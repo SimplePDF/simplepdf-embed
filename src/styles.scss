@@ -1,0 +1,25 @@
+.container {
+  position: fixed;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+
+  height: 100vh;
+  width: 100%;
+  z-index: 2;
+  padding: 20px;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.content {
+  width: 94vw;
+  height: 94vh;
+  position: relative;
+  box-sizing: border-box;
+
+  border-radius: 8px;
+  overflow: hidden;
+}
