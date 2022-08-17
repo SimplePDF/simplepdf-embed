@@ -12,19 +12,22 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
+    "autoprefixer": "^10.4.8",
     "babel-core": "^6.26.3",
     "babel-runtime": "^6.26.0",
+    "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rollup": "^2.78.0",
-    "rollup-plugin-sass": "^1.2.13",
+    "rollup-plugin-scss": "3",
     "rollup-plugin-typescript2": "^0.32.1",
+    "sass": "^1.54.4",
     "typescript": "^4.7.4"
   },
   "files": [

@@ -1,4 +1,5 @@
-.container {
+.simplePDF_container {
+  user-select: none;
   position: fixed;
   display: flex;
   box-sizing: border-box;
@@ -14,7 +15,8 @@
   background: rgba(0, 0, 0, 0.4);
 }
 
-.content {
+.simplePDF_content {
+  border: none;
   width: 94vw;
   height: 94vh;
   position: relative;
@@ -22,4 +24,36 @@
 
   border-radius: 8px;
   overflow: hidden;
+  background: white;
+}
+
+.simplePDF_close {
+  z-index: 1;
+  position: absolute;
+  top: 8px;
+  right: 26px;
+
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 24%);
+
+  cursor: pointer;
+  background: #ff5959;
+  text-shadow: 1px 1px #243889;
+
+  svg {
+    fill: white;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 4px 4px rgb(0 0 0 / 24%);
+  }
 }
