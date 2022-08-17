@@ -11,11 +11,13 @@ npm install @simplepdf/react-embed-pdf
 Wrap any anchor element with the following:
 
 ```javascript
-<PDFEditor>
+import { EmbedPDF } from "@simplepdf/react-embed-pdf";
+
+<EmbedPDF>
   <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
     Dummy PDF
   </a>
-</PDFEditor>
+</EmbedPDF>;
 ```
 
 ## How to dev

@@ -7,7 +7,7 @@ interface Props {
   children: React.ReactElement;
 }
 
-export const PDFEditor: React.FC<Props> = ({ children }) => {
+export const EmbedPDF: React.FC<Props> = ({ children }) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
