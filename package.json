@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/react-embed-pdf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SimplePDF straight into your React app",
   "main": "dist/index.js",
   "author": "bendersej",
