@@ -16,26 +16,36 @@
 }
 
 .simplePDF_content {
-  border: none;
   width: 94vw;
   height: 94vh;
   position: relative;
   box-sizing: border-box;
 
   border-radius: 8px;
-  overflow: hidden;
   background: white;
+}
+
+.simplePDF_iframeContainer {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.simplePDF_iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
 }
 
 .simplePDF_close {
   z-index: 1;
   position: absolute;
-  top: 16px;
-  right: 26px;
+  top: -12px;
+  right: -12px;
 
   border: none;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 50px;
 
   display: flex;
   align-items: center;
