@@ -5,6 +5,7 @@ import "./styles.scss";
 
 interface Props {
   children: React.ReactElement;
+  companyIdentifier?: string;
 }
 
 const CloseIcon: React.FC = () => (
@@ -19,7 +20,7 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
-export const EmbedPDF: React.FC<Props> = ({ children }) => {
+export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
@@ -45,8 +46,11 @@ export const EmbedPDF: React.FC<Props> = ({ children }) => {
               </button>
               <div className="simplePDF_iframeContainer">
                 <iframe
+                  referrerPolicy="no-referrer-when-downgrade"
                   className="simplePDF_iframe"
-                  src={`https://embed.simplepdf.eu/editor?open=${children.props.href}`}
+                  src={`https://${
+                    companyIdentifier ?? "embed"
+                  }.simplepdf.eu/editor?open=${children.props.href}`}
                 />
               </div>
             </div>
