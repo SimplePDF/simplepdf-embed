@@ -20,13 +20,12 @@
   height: 94vh;
   position: relative;
   box-sizing: border-box;
-
-  border-radius: 8px;
-  background: white;
 }
 
 .simplePDF_iframeContainer {
   overflow: hidden;
+  background: #f1f7ff;
+  border-radius: 6px;
   width: 100%;
   height: 100%;
 }
