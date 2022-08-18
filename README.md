@@ -1,6 +1,6 @@
 # @simplepdf/react-embed-pdf
 
-Easily add SimplePDF into your website, by wrapping any anchor tag with the `EmbedPDF` component.
+Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any anchor tag with the `EmbedPDF` component.
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
