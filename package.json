@@ -2,6 +2,10 @@
   "name": "@simplepdf/react-embed-pdf",
   "version": "1.1.1",
   "description": "SimplePDF straight into your React app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bendersej/simplepdf-embed.git"
+  },
   "main": "dist/index.js",
   "author": "bendersej",
   "license": "MIT",
