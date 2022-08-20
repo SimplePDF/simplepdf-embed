@@ -1,6 +1,6 @@
 # @simplepdf/react-embed-pdf
 
-Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any anchor tag with the `EmbedPDF` component.
+Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any HTML element with the `EmbedPDF` component.
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
@@ -20,16 +20,25 @@ npm install @simplepdf/react-embed-pdf
 
 ### I don't have an account on SimplePDF:
 
-Wrap any anchor element with the following:
+Wrap any element with the following:
 
 ```javascript
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 <EmbedPDF>
   <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-    Dummy PDF
+    Opens dummy.pdf
   </a>
-</EmbedPDF>;
+</EmbedPDF>
+
+
+<EmbedPDF>
+  <button>Opens the simplePDF editor</button>
+</EmbedPDF>
+```
+
+```javascript
+import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 ```
 
 ### I have an account on SimplePDF:
@@ -39,9 +48,13 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 <EmbedPDF companyIdentifier="yourcompany">
   <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-    Dummy PDF
+    Opens dummy.pdf
   </a>
-</EmbedPDF>;
+</EmbedPDF>
+
+<EmbedPDF companyIdentifier="yourcompany">
+  <button>Opens the simplePDF editor<button>
+</EmbedPDF>
 ```
 
 ## FAQ

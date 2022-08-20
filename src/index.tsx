@@ -31,6 +31,18 @@ export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
     setShouldDisplayModal(false);
   }, []);
 
+  const simplePDFUrl = React.useMemo(() => {
+    const baseURL = `https://${
+      companyIdentifier ?? "embed"
+    }.simplepdf.eu/editor`;
+
+    if (!children.props.href) {
+      return baseURL;
+    }
+
+    return `${baseURL}?open=${children.props.href}`;
+  }, [companyIdentifier, children.props.href]);
+
   return (
     <>
       {shouldDisplayModal &&
@@ -48,9 +60,7 @@ export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
                 <iframe
                   referrerPolicy="no-referrer-when-downgrade"
                   className="simplePDF_iframe"
-                  src={`https://${
-                    companyIdentifier ?? "embed"
-                  }.simplepdf.eu/editor?open=${children.props.href}`}
+                  src={simplePDFUrl}
                 />
               </div>
             </div>
