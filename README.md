@@ -8,7 +8,7 @@ Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any 
 
 - Fully-fledged PDF viewer & PDF form editor with a simple wrapper
 - Completely free to use
-- Insanely small footprint ([< 1.4KB gzipped](https://bundlephobia.com/package/@simplepdf/react-embed-pdf@1.0.3))
+- Insanely small footprint ([1.5KB gzipped](https://bundlephobia.com/package/@simplepdf/react-embed-pdf@1.2.0))
 
 ## Install
 
