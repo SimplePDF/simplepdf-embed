@@ -4,14 +4,14 @@
   "description": "SimplePDF straight into your React app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bendersej/simplepdf-embed.git"
+    "url": "https://github.com/bendersej/simplepdf-embed.git/react"
   },
   "main": "dist/index.js",
   "author": "bendersej",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "prepublish": "yarn build",
+    "prepublishOnly": "rimraf dist && yarn build",
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
@@ -29,6 +29,7 @@
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "rimraf": "^3.0.2",
     "rollup": "^2.78.0",
     "rollup-plugin-scss": "3",
     "rollup-plugin-typescript2": "^0.32.1",
