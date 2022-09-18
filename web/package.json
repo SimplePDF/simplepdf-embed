@@ -1,0 +1,38 @@
+{
+  "name": "@simplepdf/web-embed-pdf",
+  "version": "0.0.2",
+  "description": "SimplePDF straight into your website",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bendersej/simplepdf-embed/tree/main/web"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "main": "dist/index.js",
+  "author": "bendersej",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "prepublishOnly": "rimraf dist && yarn build",
+    "build": "rollup -c",
+    "start": "rollup -c -w"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "rollup": "^2.78.0",
+    "rollup-plugin-typescript2": "^0.34.0",
+    "typescript": "^4.7.4"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "web",
+    "typescript",
+    "npm",
+    "pdf"
+  ]
+}
