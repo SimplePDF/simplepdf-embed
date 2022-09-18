@@ -7,7 +7,7 @@
     "sourceMap": true,
     "allowJs": false,
     "jsx": "react",
-    "declaration": true,
+    "declaration": false,
     "strict": true,
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
