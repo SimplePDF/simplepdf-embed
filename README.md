@@ -2,10 +2,12 @@
 
 Easily add [SimplePDF](https://simplepdf.eu) into your website, by adding a script tag or using a React component.
 
-## I want to add SimplePDF to my React app
+### I want to add SimplePDF to my React app
 
-[Get started](./react/README.md)
+_Using the `EmbedPDF` React component_
+[Get started!](./react/README.md)
 
-## I want to add SimplePDF to my web page
+### I want to add SimplePDF to my Web page
 
-[Get started](./web/README.md)
+_Using a script tag_
+[Get started!](./web/README.md)

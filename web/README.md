@@ -1,6 +1,6 @@
 # @simplepdf/react-embed-pdf
 
-Easily add [SimplePDF](https://simplepdf.eu) into your website, by adding a script tag.
+Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag:
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
@@ -9,6 +9,26 @@ Easily add [SimplePDF](https://simplepdf.eu) into your website, by adding a scri
 - Fully-fledged PDF viewer & PDF form editor with simple script tag
 - Completely free to use
 - Insanely small footprint ([1.5KB gzipped](https://bundlephobia.com/package/@simplepdf/web-embed-pdf))
+
+## How does it work?
+
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [SimplePDF](https://simplepdf.eu)**
+
+### I don't want every PDF document to be opened in SimplePDF
+
+Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simplepdf`:
+
+```html
+<a href="/example.pdf" class="exclude-simplepdf">Doesn't open with SimplePDF</a>
+```
+
+### My PDF file doesn't have a .pdf extension
+
+Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
+
+```html
+<a href="/example.pdf" class="simplepdf">Open with SimplePDF</a>
+```
 
 ## How to use
 
