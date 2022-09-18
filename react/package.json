@@ -4,7 +4,7 @@
   "description": "SimplePDF straight into your React app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bendersej/simplepdf-embed.git/react"
+    "url": "https://github.com/bendersej/simplepdf-embed/tree/main/react"
   },
   "main": "dist/index.js",
   "author": "bendersej",
