@@ -1,56 +1,35 @@
 # @simplepdf/react-embed-pdf
 
-Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any HTML element with the `EmbedPDF` component.
+Easily add [SimplePDF](https://simplepdf.eu) into your website, by adding a script tag.
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
 ## Why SimplePDF Embed?
 
-- Fully-fledged PDF viewer & PDF form editor with a simple wrapper
+- Fully-fledged PDF viewer & PDF form editor with simple script tag
 - Completely free to use
-- Insanely small footprint ([1.5KB gzipped](https://bundlephobia.com/package/@simplepdf/react-embed-pdf))
-
-## Install
-
-```sh
-npm install @simplepdf/react-embed-pdf
-```
+- Insanely small footprint ([1.5KB gzipped](https://bundlephobia.com/package/@simplepdf/web-embed-pdf))
 
 ## How to use
 
 ### I don't have an account on SimplePDF:
 
-Wrap any element with the following:
+Add this script in the head of your webpage:
 
 ```javascript
-import { EmbedPDF } from "@simplepdf/react-embed-pdf";
-
-<EmbedPDF>
-  <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-    Opens dummy.pdf
-  </a>
-</EmbedPDF>
-
-
-<EmbedPDF>
-  <button>Opens the simplePDF editor</button>
-</EmbedPDF>
+<script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
 ```
 
 ### I have an account on SimplePDF:
 
+_Replace `companyIdentifier` with your own_
+
 ```javascript
-import { EmbedPDF } from "@simplepdf/react-embed-pdf";
-
-<EmbedPDF companyIdentifier="yourcompany">
-  <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
-    Opens dummy.pdf
-  </a>
-</EmbedPDF>
-
-<EmbedPDF companyIdentifier="yourcompany">
-  <button>Opens the simplePDF editor<button>
-</EmbedPDF>
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="yourcompany"
+  defer
+></script>
 ```
 
 ## FAQ
@@ -70,20 +49,3 @@ The users are notified that the document and the data they submit is sent to the
 ### How come the library is so small?
 
 The library is a simple wrapper around an iFrame that loads SimplePDF on-demand (whenever the user clicks the wrapped link), as such the footprint for this "opening an iFrame" mechanism is very tiny, the SimplePDF editor is of course bigger, but your users won't download anything until they have clicked the link. Think "lazy-loading".
-
-## How to dev
-
-_Pre-requisite: make sure to link React from the target application to avoid duplicated react dependencies, more details [here](https://reactjs.org/warnings/invalid-hook-call-warning.html#duplicate-react)_
-
-1. Link the widget
-
-```sh
-yarn link
-yarn start
-```
-
-2. Use it in the target application
-
-```sh
-yarn link @simplepdf/react-embed-pdf
-```
