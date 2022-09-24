@@ -1,17 +1,20 @@
 import { getPDFAnchors, attachOnClick, createModal } from "./shared";
 
-const init = ({ companyIdentifier }: { companyIdentifier: string }) => {
+const init = () => {
   if (window["simplePDF"]?.disableInit === true) {
     return;
   }
 
   const pdfAnchors = getPDFAnchors();
-  attachOnClick({ companyIdentifier, anchors: pdfAnchors });
+  attachOnClick({ anchors: pdfAnchors });
 };
 
 const simplePDF = {
   isDebug:
-    document.currentScript?.getAttribute("debug") === "true" ? true : false,
+    window["simplePDF"]?.isDebug ??
+    document.currentScript?.getAttribute("debug") === "true"
+      ? true
+      : false,
   companyIdentifier:
     window["simplePDF"]?.companyIdentifier ??
     document.currentScript?.getAttribute("companyIdentifier") ??
@@ -21,6 +24,6 @@ const simplePDF = {
   createModal,
 };
 
-init({ companyIdentifier: simplePDF.companyIdentifier });
+init();
 
 window["simplePDF"] = simplePDF;

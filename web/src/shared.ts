@@ -14,13 +14,9 @@ export const getPDFAnchors = (): HTMLAnchorElement[] => {
   return anchorsWithPDF;
 };
 
-export const createModal = ({
-  companyIdentifier,
-  href,
-}: {
-  companyIdentifier: string;
-  href: string | null;
-}) => {
+export const createModal = ({ href }: { href: string | null }) => {
+  const companyIdentifier = window["simplePDF"]?.companyIdentifier;
+
   const onModalClose = `(() => {document.getElementById("simplePDF_modal").remove(); document.getElementById("simplePDF_modal_style").remove(); document.body.style.overflow = "initial"; })()`;
 
   const editorURL = href
@@ -129,10 +125,8 @@ const log = (message: string, details: Record<string, string | number>) => {
 };
 
 export const attachOnClick = ({
-  companyIdentifier,
   anchors,
 }: {
-  companyIdentifier: string;
   anchors: HTMLAnchorElement[];
 }) => {
   log("Attaching listeners to anchors", {
@@ -141,7 +135,7 @@ export const attachOnClick = ({
   anchors.forEach((anchor) =>
     anchor.addEventListener("click", (e) => {
       e.preventDefault();
-      createModal({ companyIdentifier, href: anchor.href });
+      createModal({ href: anchor.href });
     })
   );
 };
