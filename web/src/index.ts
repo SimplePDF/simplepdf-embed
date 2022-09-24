@@ -1,5 +1,3 @@
-type ScriptMode = "oneOff" | "anchor";
-
 const getPDFAnchors = (): HTMLAnchorElement[] => {
   const anchors = Array.from(document.getElementsByTagName("a"));
 
@@ -130,10 +128,16 @@ const log = (message: string, details: Record<string, string | number>) => {
   console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
 };
 
-const attachOnClick = (
-  companyIdentifier: string,
-  anchors: HTMLAnchorElement[]
-) => {
+const attachOnClick = ({
+  companyIdentifier,
+  anchors,
+}: {
+  companyIdentifier: string;
+  anchors: HTMLAnchorElement[];
+}) => {
+  log("Attaching listeners to anchors", {
+    anchorsCount: anchors.length,
+  });
   anchors.forEach((anchor) =>
     anchor.addEventListener("click", (e) => {
       e.preventDefault();
@@ -142,38 +146,19 @@ const attachOnClick = (
   );
 };
 
-const simplePDF = ({
-  mode,
-  companyIdentifier,
-}: {
-  mode: ScriptMode;
-  companyIdentifier: string;
-}) => {
-  log("Initialisation", {
-    mode,
-    companyIdentifier,
-  });
+const simplePDF = { attachOnClick, createModal };
 
-  switch (mode) {
-    case "anchor": {
-      const pdfAnchors = getPDFAnchors();
-
-      attachOnClick(companyIdentifier, pdfAnchors);
-      return;
-    }
-    case "oneOff": {
-      createModal({ companyIdentifier, href: null });
-      return;
-    }
-    default:
-      log("Unknown mode", { mode });
-  }
-};
-
-const mode: ScriptMode =
-  (document.currentScript?.getAttribute("mode") as ScriptMode) ?? "anchor";
+const isAnchorListenerDisabled =
+  document.currentScript?.getAttribute("disableAnchorListeners") === "true" ??
+  false;
 
 const companyIdentifier =
   document.currentScript?.getAttribute("companyIdentifier") ?? "embed";
 
-simplePDF({ mode, companyIdentifier });
+if (!isAnchorListenerDisabled) {
+  const pdfAnchors = getPDFAnchors();
+
+  simplePDF.attachOnClick({ companyIdentifier, anchors: pdfAnchors });
+}
+
+window["simplePDF"] = simplePDF;
