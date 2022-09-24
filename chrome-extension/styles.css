@@ -1,0 +1,41 @@
+.header {
+  padding: 20px;
+}
+
+.header .logo {
+  width: 148px;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  min-width: 240px;
+}
+
+.openEditorButton {
+  font-weight: 600;
+  border-color: #2ecc71;
+  background-color: #2ecc71;
+  text-shadow: 1px 1px #2f955a;
+  color: #fff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: inherit;
+  border-radius: 3px;
+  font-size: 16px;
+  padding: 10px 12px;
+
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 24%);
+  outline-color: #35a3ff;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-decoration: none;
+}
+
+.openEditorButton:hover {
+  box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 4px 4px rgb(0 0 0 / 24%);
+}

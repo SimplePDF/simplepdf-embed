@@ -1,0 +1,22 @@
+{
+  "name": "SimplePDF",
+  "description": "Open any PDF with SimplePDF - the online editor that respects your privacy",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/images/logo_16.png",
+      "32": "/images/logo_32.png",
+      "48": "/images/logo_48.png",
+      "128": "/images/logo_128.png"
+    }
+  },
+  "icons": {
+    "16": "/images/logo_16.png",
+    "32": "/images/logo_32.png",
+    "48": "/images/logo_48.png",
+    "128": "/images/logo_128.png"
+  }
+}
