@@ -1,8 +1,30 @@
-# @simplepdf/react-embed-pdf
+# @simplepdf/web-embed-pdf
 
 Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag:
 
-[Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
+[Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
+
+## How to use
+
+### I don't have an account on SimplePDF:
+
+Add this script in the head of your webpage:
+
+```javascript
+<script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
+```
+
+### I have an account on SimplePDF:
+
+_Replace `companyIdentifier` with your own_
+
+```javascript
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="yourcompany"
+  defer
+></script>
+```
 
 ## Why SimplePDF Embed?
 
@@ -28,28 +50,6 @@ Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ```html
 <a href="/example.pdf" class="simplepdf">Open with SimplePDF</a>
-```
-
-## How to use
-
-### I don't have an account on SimplePDF:
-
-Add this script in the head of your webpage:
-
-```javascript
-<script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
-```
-
-### I have an account on SimplePDF:
-
-_Replace `companyIdentifier` with your own_
-
-```javascript
-<script
-  src="https://unpkg.com/@simplepdf/web-embed-pdf"
-  companyIdentifier="yourcompany"
-  defer
-></script>
 ```
 
 ## FAQ
