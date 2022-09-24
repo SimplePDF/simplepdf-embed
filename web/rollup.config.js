@@ -7,9 +7,7 @@ export default {
   output: [
     {
       file: pkg.main,
-      format: "cjs",
-      exports: "named",
-      sourcemap: true,
+      format: "es",
       strict: true,
     },
   ],
