@@ -1,3 +1,5 @@
+type ScriptMode = "oneOff" | "anchor";
+
 const getPDFAnchors = (): HTMLAnchorElement[] => {
   const anchors = Array.from(document.getElementsByTagName("a"));
 
@@ -14,8 +16,18 @@ const getPDFAnchors = (): HTMLAnchorElement[] => {
   return anchorsWithPDF;
 };
 
-const createModal = (companyIdentifier: string, href: string) => {
+const createModal = ({
+  companyIdentifier,
+  href,
+}: {
+  companyIdentifier: string;
+  href: string | null;
+}) => {
   const onModalClose = `(() => {document.getElementById("simplePDF_modal").remove(); document.getElementById("simplePDF_modal_style").remove(); })()`;
+
+  const editorURL = href
+    ? `https://${companyIdentifier}.simplePDF.eu/editor?open=${href}`
+    : `https://${companyIdentifier}.simplePDF.eu/editor`;
 
   const modal = `
     <style id="simplePDF_modal_style">
@@ -97,12 +109,25 @@ const createModal = (companyIdentifier: string, href: string) => {
         </svg>
       </button>
       <div class="simplePDF_iframeContainer">
-        <iframe referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="https://${companyIdentifier}.simplePDF.eu/editor?open=${href}" />
+        <iframe referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${editorURL}" />
       </div>
     </div>
   </div>
  `;
+
+  log("Creating the modal", { companyIdentifier, editorURL });
   document.body.insertAdjacentHTML("beforebegin", modal);
+};
+
+const log = (message: string, details: Record<string, string | number>) => {
+  const isDebugEnabled =
+    document.currentScript?.getAttribute("debug") === "true" ? true : false;
+
+  if (!isDebugEnabled) {
+    return;
+  }
+
+  console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
 };
 
 const attachOnClick = (
@@ -112,16 +137,43 @@ const attachOnClick = (
   anchors.forEach((anchor) =>
     anchor.addEventListener("click", (e) => {
       e.preventDefault();
-      createModal(companyIdentifier, anchor.href);
+      createModal({ companyIdentifier, href: anchor.href });
     })
   );
 };
 
-const simplePDF = () => {
-  const pdfAnchors = getPDFAnchors();
-  const companyIdentifier =
-    document.currentScript?.getAttribute("companyIdentifier") ?? "embed";
-  attachOnClick(companyIdentifier, pdfAnchors);
+const simplePDF = ({
+  mode,
+  companyIdentifier,
+}: {
+  mode: ScriptMode;
+  companyIdentifier: string;
+}) => {
+  log("Initialisation", {
+    mode,
+    companyIdentifier,
+  });
+
+  switch (mode) {
+    case "anchor": {
+      const pdfAnchors = getPDFAnchors();
+
+      attachOnClick(companyIdentifier, pdfAnchors);
+      return;
+    }
+    case "oneOff": {
+      createModal({ companyIdentifier, href: null });
+      return;
+    }
+    default:
+      log("Unknown mode", { mode });
+  }
 };
 
-simplePDF();
+const mode: ScriptMode =
+  (document.currentScript?.getAttribute("mode") as ScriptMode) ?? "anchor";
+
+const companyIdentifier =
+  document.currentScript?.getAttribute("companyIdentifier") ?? "embed";
+
+simplePDF({ mode, companyIdentifier });
