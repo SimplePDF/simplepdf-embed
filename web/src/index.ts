@@ -29,7 +29,7 @@ const createModal = (companyIdentifier: string, href: string) => {
 
         height: 100vh;
         width: 100%;
-        z-index: 2;
+        z-index: 999999;
         padding: 20px;
         top: 0;
         left: 0;
