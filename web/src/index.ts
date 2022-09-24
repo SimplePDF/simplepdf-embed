@@ -1,4 +1,9 @@
-import { getPDFAnchors, attachOnClick, createModal } from "./shared";
+import {
+  getPDFAnchors,
+  attachOnClick,
+  createModal,
+  closeModal,
+} from "./shared";
 
 const init = () => {
   if (window["simplePDF"]?.disableInit === true) {
@@ -22,6 +27,7 @@ const simplePDF = {
   disableInit: window["simplePDF"]?.disableInit ?? false,
   attachOnClick,
   createModal,
+  closeModal,
 };
 
 init();
