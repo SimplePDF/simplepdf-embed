@@ -1,5 +1,43 @@
+chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+  chrome.scripting.executeScript(
+    {
+      target: { tabId: tab.id },
+      func: () => {
+        return { isPDF: document.contentType === "application/pdf" };
+      },
+    },
+    ([
+      {
+        result: { isPDF },
+      },
+    ]) => {
+      openEditorButton.textContent = isPDF
+        ? "Edit with SimplePDF"
+        : "Open SimplePDF";
+    }
+  );
+});
+
+const setConfig = () => {
+  window.simplePDF = {
+    isDebug: false,
+    companyIdentifier: "chrome",
+    disableInit: true,
+  };
+};
+
+const openEditor = () => {
+  const currentURL = document.location.href;
+
+  const isPDF = document.contentType === "application/pdf";
+
+  const href = isPDF ? currentURL : null;
+
+  window.simplePDF.createModal({ href });
+};
+
 openEditorButton.addEventListener("click", async () => {
-  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
@@ -20,15 +58,3 @@ openEditorButton.addEventListener("click", async () => {
     window.close();
   }, 100);
 });
-
-const setConfig = () => {
-  window.simplePDF = {
-    isDebug: true,
-    companyIdentifier: "chrome",
-    disableInit: true,
-  };
-};
-
-const openEditor = () => {
-  window.simplePDF.createModal({ url: null });
-};
