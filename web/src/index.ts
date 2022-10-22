@@ -1,8 +1,8 @@
 import {
-  getPDFAnchors,
+  getSimplePDFElements,
   attachOnClick,
-  createModal,
-  closeModal,
+  openEditor,
+  closeEditor,
 } from "./shared";
 
 const init = () => {
@@ -10,8 +10,8 @@ const init = () => {
     return;
   }
 
-  const pdfAnchors = getPDFAnchors();
-  attachOnClick({ anchors: pdfAnchors });
+  const elements = getSimplePDFElements();
+  attachOnClick({ elements });
 };
 
 const simplePDF = {
@@ -26,8 +26,8 @@ const simplePDF = {
     "embed",
   disableInit: window["simplePDF"]?.disableInit ?? false,
   attachOnClick,
-  createModal,
-  closeModal,
+  openEditor,
+  closeEditor,
 };
 
 init();

@@ -1,4 +1,4 @@
-export const getPDFAnchors = (): HTMLAnchorElement[] => {
+const getAnchors = (): HTMLAnchorElement[] => {
   const anchors = Array.from(document.getElementsByTagName("a"));
 
   const anchorsWithPDF = anchors.filter((anchor) => {
@@ -14,13 +14,26 @@ export const getPDFAnchors = (): HTMLAnchorElement[] => {
   return anchorsWithPDF;
 };
 
-export const closeModal = () => {
+const getNonAnchors = (): Element[] => {
+  const nonAnchorElements = Array.from(
+    document.getElementsByClassName("simplepdf")
+  ).filter((element) => !isAnchor(element));
+
+  return nonAnchorElements;
+};
+
+export const getSimplePDFElements = (): Element[] => [
+  ...getNonAnchors(),
+  ...getAnchors(),
+];
+
+export const closeEditor = () => {
   document.getElementById("simplePDF_modal")?.remove();
   document.getElementById("simplePDF_modal_style")?.remove();
   document.body.style.overflow = "initial";
 };
 
-export const createModal = ({ href }: { href: string | null }) => {
+export const openEditor = ({ href }: { href: string | null }) => {
   const companyIdentifier = window["simplePDF"]?.companyIdentifier;
 
   const editorURL = href
@@ -117,9 +130,10 @@ export const createModal = ({ href }: { href: string | null }) => {
   document.body.style.overflow = "hidden";
   document.body.insertAdjacentHTML("beforebegin", modal);
 
+  log("Attach close modal listener", {});
   document
     .getElementById("simplePDF_modal_close_button")
-    ?.addEventListener("click", closeModal);
+    ?.addEventListener("click", closeEditor);
 };
 
 const log = (message: string, details: Record<string, string | number>) => {
@@ -132,18 +146,18 @@ const log = (message: string, details: Record<string, string | number>) => {
   console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
 };
 
-export const attachOnClick = ({
-  anchors,
-}: {
-  anchors: HTMLAnchorElement[];
-}) => {
+const isAnchor = (
+  element: HTMLAnchorElement | Element
+): element is HTMLAnchorElement => element.hasAttribute("href");
+
+export const attachOnClick = ({ elements }: { elements: Element[] }) => {
   log("Attaching listeners to anchors", {
-    anchorsCount: anchors.length,
+    anchorsCount: elements.length,
   });
-  anchors.forEach((anchor) =>
-    anchor.addEventListener("click", (e) => {
+  elements.forEach((element) =>
+    element.addEventListener("click", (e) => {
       e.preventDefault();
-      createModal({ href: anchor.href });
+      openEditor({ href: isAnchor(element) ? element.href : null });
     })
   );
 };
