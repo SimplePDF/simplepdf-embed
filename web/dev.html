@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Dev</title>
+    <script
+      src="./dist/index.js"
+      companyIdentifier="yourcompany"
+      defer
+    ></script>
+  </head>
+
+  <body>
+    <p>Any PDF link is automatically opened in your SimplePDF portal</p>
+    <ul>
+      <li>
+        <a href="http://www.africau.edu/images/default/sample.pdf"
+          >Link with a ".pdf" extension</a
+        >
+      </li>
+      <li>
+        <a
+          class="simplepdf"
+          href="https://www.formulaires.service-public.fr/gf/cerfa_10832.do"
+          >Link without a ".pdf" extension</a
+        >
+      </li>
+    </ul>
+    <p>
+      Add a class <code>simplepdf</code> to make any HTML element open the
+      editor:
+    </p>
+    <button class="simplepdf">This button opens the editor</button>
+  </body>
+</html>
