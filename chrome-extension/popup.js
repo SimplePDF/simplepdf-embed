@@ -6,11 +6,18 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
         return { isPDF: document.contentType === "application/pdf" };
       },
     },
-    ([
-      {
-        result: { isPDF },
-      },
-    ]) => {
+    (tab) => {
+      if (!tab) {
+        openEditorButton.textContent = "Open SimplePDF";
+        return;
+      }
+
+      const [
+        {
+          result: { isPDF },
+        },
+      ] = tab;
+
       openEditorButton.textContent = isPDF
         ? "Edit with SimplePDF"
         : "Open SimplePDF";
@@ -50,11 +57,21 @@ openEditorButton.addEventListener("click", async () => {
   });
 
   setTimeout(() => {
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: openEditor,
-    });
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tab.id },
+        func: openEditor,
+      },
+      (injectionResults) => {
+        if (injectionResults === undefined) {
+          openEditorButton.style.display = "none";
+          errorMessage.textContent = "SimplePDF cannot be opened in this page";
+          errorDetails.textContent = "Try navigating to a different page";
+          return;
+        }
 
-    window.close();
+        window.close();
+      }
+    );
   }, 100);
 });
