@@ -2,6 +2,7 @@ import scss from "rollup-plugin-scss";
 import postcss from "postcss";
 import autoprefixer from "autoprefixer";
 import typescript from "rollup-plugin-typescript2";
+import { uglify } from "rollup-plugin-uglify";
 
 import pkg from "./package.json";
 
@@ -23,6 +24,7 @@ export default {
       insert: true,
     }),
     typescript(),
+    uglify(),
   ],
   external: ["react", "react-dom"],
 };
