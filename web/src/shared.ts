@@ -36,8 +36,10 @@ export const closeEditor = () => {
 export const openEditor = ({ href }: { href: string | null }) => {
   const companyIdentifier = window["simplePDF"]?.companyIdentifier;
 
-  const editorURL = href
-    ? `https://${companyIdentifier}.simplePDF.eu/editor?open=${href}`
+  const sanitizedURL = href ? encodeURIComponent(href) : null;
+
+  const editorURL = sanitizedURL
+    ? `https://${companyIdentifier}.simplePDF.eu/editor?open=${sanitizedURL}`
     : `https://${companyIdentifier}.simplePDF.eu/editor`;
 
   const modal = `

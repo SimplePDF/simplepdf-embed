@@ -40,7 +40,9 @@ export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
       return baseURL;
     }
 
-    return `${baseURL}?open=${children.props.href}`;
+    const sanitizedURL = encodeURIComponent(children.props.href);
+
+    return `${baseURL}?open=${sanitizedURL}`;
   }, [companyIdentifier, children.props.href]);
 
   return (
