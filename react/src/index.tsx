@@ -3,9 +3,14 @@ import { createPortal } from "react-dom";
 
 import "./styles.scss";
 
+export type EmbedEvent =
+  | { type: "DOCUMENT_LOADED"; data: { document_id: string } }
+  | { type: "SUBMISSION_SENT"; data: { submission_id: string } };
+
 interface Props {
   children: React.ReactElement;
   companyIdentifier?: string;
+  onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
 }
 
 const CloseIcon: React.FC = () => (
@@ -20,8 +25,57 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
-export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
+export const EmbedPDF: React.FC<Props> = ({
+  children,
+  companyIdentifier,
+  onEmbedEvent,
+}) => {
+  const editorDomain = React.useMemo(
+    () => `https://${companyIdentifier ?? "embed"}.simplepdf.eu`,
+    [companyIdentifier]
+  );
+
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
+
+  React.useEffect(() => {
+    if (onEmbedEvent === undefined) {
+      return;
+    }
+
+    const eventHandler = async (event: MessageEvent<string>) => {
+      if (event.origin !== editorDomain) {
+        return;
+      }
+
+      const payload: EmbedEvent | null = (() => {
+        try {
+          return JSON.parse(event.data);
+        } catch (e) {
+          console.error("Failed to parse iFrame event payload");
+          return null;
+        }
+      })();
+
+      switch (payload?.type) {
+        case "DOCUMENT_LOADED":
+        case "SUBMISSION_SENT":
+          await onEmbedEvent(payload);
+          return;
+
+        default:
+          return;
+      }
+    };
+
+    if (!shouldDisplayModal) {
+      window.removeEventListener("message", eventHandler);
+      return;
+    }
+
+    window.addEventListener("message", eventHandler, false);
+
+    return () => window.removeEventListener("message", eventHandler);
+  }, [shouldDisplayModal, editorDomain, onEmbedEvent]);
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
     setShouldDisplayModal(true);
@@ -32,9 +86,7 @@ export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
   }, []);
 
   const simplePDFUrl = React.useMemo(() => {
-    const baseURL = `https://${
-      companyIdentifier ?? "embed"
-    }.simplepdf.eu/editor`;
+    const baseURL = `${editorDomain}/editor`;
 
     if (!children.props.href) {
       return baseURL;
@@ -43,7 +95,7 @@ export const EmbedPDF: React.FC<Props> = ({ children, companyIdentifier }) => {
     const sanitizedURL = encodeURIComponent(children.props.href);
 
     return `${baseURL}?open=${sanitizedURL}`;
-  }, [companyIdentifier, children.props.href]);
+  }, [editorDomain, children.props.href]);
 
   return (
     <>

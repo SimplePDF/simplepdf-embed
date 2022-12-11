@@ -53,6 +53,31 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 </EmbedPDF>
 ```
 
+### Available props
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Required</th>
+  </tr>
+  <tr>
+    <td>children</td>
+    <td>React.ReactElement</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <td>companyIdentifier</td>
+    <td>string</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td>onEmbedEvent</td>
+    <td>(event: EmbedEvent) => Promise<void> | void</td>
+    <td>No</td>
+  </tr>
+</table>
+
 ## FAQ
 
 ### This seems too good to be true, is it free?
