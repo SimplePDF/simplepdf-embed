@@ -8,9 +8,9 @@
   </picture>
   </a>
 </div>
-<h1 align="center">Simple yet powerful PDF SDK to edit documents and fill in forms.</h1>
+<h1 align="center">Simple PDF Embed</h1>
 <div align="center">
-Add a PDF editor directly into your website or React App.
+Add a powerful PDF editor directly into your website or React App.
 </div>
 </br>
 </br>
