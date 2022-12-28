@@ -26,13 +26,13 @@ Add a powerful PDF editor directly into your website.
 <br/>
 <br/>
 
-Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag:
+Open PDF files with [Simple PDF](https://simplepdf.eu), using a simple script tag:
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
 
 ## How to use
 
-### I don't have an account on SimplePDF:
+### I don't have an account on Simple PDF:
 
 Add this script in the head of your webpage:
 
@@ -40,7 +40,7 @@ Add this script in the head of your webpage:
 <script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
 ```
 
-### I have an account on SimplePDF:
+### I have an account on Simple PDF:
 
 _Replace `companyIdentifier` with your own_
 
@@ -54,20 +54,20 @@ _Replace `companyIdentifier` with your own_
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [SimplePDF](https://simplepdf.eu)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [Simple PDF](https://simplepdf.eu)**
 
-### I don't want every PDF document to be opened in SimplePDF
+### I don't want every PDF document to be opened in Simple PDF
 
-Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simplepdf`:
+Exclude any anchor tags from opening Simple PDF by adding the class `exclude-simplepdf`:
 
 ```html
-<a href="/example.pdf" class="exclude-simplepdf">Doesn't open with SimplePDF</a>
+<a href="/example.pdf" class="exclude-simplepdf">Doesn't open with Simple PDF</a>
 ```
 
 ### My PDF file doesn't have a .pdf extension
 
-Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
+Add a class `simplepdf` to any anchor tag to open them with Simple PDF:
 
 ```html
-<a href="/example.pdf" class="simplepdf">Open with SimplePDF</a>
+<a href="/example.pdf" class="simplepdf">Open with Simple PDF</a>
 ```
