@@ -1,7 +1,19 @@
-# SimplePDF Embed
-
-Easily add [SimplePDF](https://simplepdf.eu) into your website, by adding a script tag or using a React component.
-
+</br>
+</br>
+<div align="center">
+  <a href="https://simplepdf.eu" target="_blank">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github-white.png">
+    <img src="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
+  </picture>
+  </a>
+</div>
+<h1 align="center">Simple yet powerful PDF SDK to edit documents and fill in forms.</h1>
+<div align="center">
+Add a PDF editor directly into your website or React App.
+</div>
+</br>
+</br>
 
 
 https://user-images.githubusercontent.com/10613140/200180719-4c2181d7-df4b-4dd5-8b4d-4f5ebee4189f.mov
