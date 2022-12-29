@@ -8,7 +8,7 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
     },
     (tab) => {
       if (!tab) {
-        openEditorButton.textContent = "Open Simple PDF";
+        openEditorButton.textContent = "Open SimplePDF";
         return;
       }
 
@@ -19,8 +19,8 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       ] = tab;
 
       openEditorButton.textContent = isPDF
-        ? "Edit with Simple PDF"
-        : "Open Simple PDF";
+        ? "Edit with SimplePDF"
+        : "Open SimplePDF";
     }
   );
 });
@@ -65,7 +65,7 @@ openEditorButton.addEventListener("click", async () => {
       (injectionResults) => {
         if (injectionResults === undefined) {
           openEditorButton.style.display = "none";
-          errorMessage.textContent = "The Simple PDF editor cannot be opened in this page";
+          errorMessage.textContent = "The SimplePDF editor cannot be opened in this page";
           errorDetails.textContent = "Try navigating to a different page";
           return;
         }

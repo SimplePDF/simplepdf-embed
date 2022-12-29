@@ -8,7 +8,7 @@
   </picture>
   </a>
 </div>
-<h1 align="center">Simple PDF Web Embed</h1>
+<h1 align="center">SimplePDF Web Embed</h1>
 <div align="center">
 Add a powerful PDF editor directly into your website.
 </div>
@@ -16,7 +16,7 @@ Add a powerful PDF editor directly into your website.
 </br>
 <p align="center">
 <br/>
-<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about Simple PDF Embed »</strong></a>
+<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
 <br/>
 <br/>
 <a href="https://discord.gg/TvRFMCTN">Join Our Discord</a>
@@ -26,13 +26,13 @@ Add a powerful PDF editor directly into your website.
 <br/>
 <br/>
 
-Open PDF files with [Simple PDF](https://simplepdf.eu), using a simple script tag:
+Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag:
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
 
 ## How to use
 
-### I don't have an account on Simple PDF:
+### I don't have an account on SimplePDF:
 
 Add this script in the head of your webpage:
 
@@ -40,7 +40,7 @@ Add this script in the head of your webpage:
 <script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
 ```
 
-### I have an account on Simple PDF:
+### I have an account on SimplePDF:
 
 _Replace `companyIdentifier` with your own_
 
@@ -54,20 +54,20 @@ _Replace `companyIdentifier` with your own_
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [Simple PDF](https://simplepdf.eu)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [SimplePDF](https://simplepdf.eu)**
 
-### I don't want every PDF document to be opened in Simple PDF
+### I don't want every PDF document to be opened in SimplePDF
 
-Exclude any anchor tags from opening Simple PDF by adding the class `exclude-simplepdf`:
+Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simplepdf`:
 
 ```html
-<a href="/example.pdf" class="exclude-simplepdf">Doesn't open with Simple PDF</a>
+<a href="/example.pdf" class="exclude-simplepdf">Doesn't open with SimplePDF</a>
 ```
 
 ### My PDF file doesn't have a .pdf extension
 
-Add a class `simplepdf` to any anchor tag to open them with Simple PDF:
+Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ```html
-<a href="/example.pdf" class="simplepdf">Open with Simple PDF</a>
+<a href="/example.pdf" class="simplepdf">Open with SimplePDF</a>
 ```

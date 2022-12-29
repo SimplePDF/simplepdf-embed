@@ -8,7 +8,7 @@
   </picture>
   </a>
 </div>
-<h1 align="center">Simple PDF React Embed</h1>
+<h1 align="center">SimplePDF React Embed</h1>
 <div align="center">
 Add a powerful PDF editor directly into your React App.
 </div>
@@ -16,7 +16,7 @@ Add a powerful PDF editor directly into your React App.
 </br>
 <p align="center">
 <br/>
-<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about Simple PDF Embed »</strong></a>
+<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
 <br/>
 <br/>
 <a href="https://discord.gg/TvRFMCTN">Join Our Discord</a>
@@ -26,7 +26,7 @@ Add a powerful PDF editor directly into your React App.
 <br/>
 <br/>
 
-Easily add [Simple PDF](https://simplepdf.eu) into your website, by wrapping any HTML element with the `EmbedPDF` component.
+Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any HTML element with the `EmbedPDF` component.
 
 [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
@@ -38,7 +38,7 @@ npm install @simplepdf/react-embed-pdf
 
 ## How to use it
 
-### I don't have an account on Simple PDF:
+### I don't have an account on SimplePDF:
 
 Wrap any element with the following:
 
@@ -57,7 +57,7 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 </EmbedPDF>
 ```
 
-### I have an account on Simple PDF:
+### I have an account on SimplePDF:
 
 ```javascript
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";

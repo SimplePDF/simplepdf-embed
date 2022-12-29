@@ -1,6 +1,6 @@
 {
-  "name": "Simple PDF",
-  "description": "Open any PDF with the Simple PDF editor - the online editor that respects your privacy",
+  "name": "SimplePDF",
+  "description": "Open any PDF with the SimplePDF editor - the online editor that respects your privacy",
   "version": "1.1.2",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting"],
