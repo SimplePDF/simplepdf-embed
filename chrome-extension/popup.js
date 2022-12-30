@@ -25,53 +25,44 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   );
 });
 
-const setConfig = () => {
-  window.simplePDF = {
-    isDebug: false,
-    companyIdentifier: "chrome",
-    disableInit: true,
-  };
-};
-
-const openEditor = () => {
-  const currentURL = document.location.href;
-
-  const isPDF = document.contentType === "application/pdf";
-
-  const href = isPDF ? currentURL : null;
-
-  window.simplePDF.createModal({ href });
-};
-
 openEditorButton.addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const setConfig = () => {
+    window.simplePDF = {
+      isDebug: false,
+      companyIdentifier: "chrome",
+      disableInit: true,
+    };
+  };
 
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: setConfig,
-  });
+  const openEditor = () => {
+    const currentURL = document.location.href;
 
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ["./node_modules/@simplepdf/web-embed-pdf/dist/index.js"],
-  });
+    const isPDF = document.contentType === "application/pdf";
 
-  setTimeout(() => {
-    chrome.scripting.executeScript(
-      {
-        target: { tabId: tab.id },
-        func: openEditor,
-      },
-      (injectionResults) => {
-        if (injectionResults === undefined) {
-          openEditorButton.style.display = "none";
-          errorMessage.textContent = "The SimplePDF editor cannot be opened in this page";
-          errorDetails.textContent = "Try navigating to a different page";
-          return;
-        }
+    const href = isPDF ? currentURL : null;
 
-        window.close();
-      }
-    );
-  }, 100);
+    window.simplePDF.createModal({ href });
+  };
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: setConfig,
+    });
+
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["./node_modules/@simplepdf/web-embed-pdf/dist/index.js"],
+    });
+
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: openEditor });
+
+    window.close();
+  } catch(e) {
+    openEditorButton.style.display = "none";
+    errorMessage.textContent = "The SimplePDF editor cannot be opened in this tab";
+    errorDetails.textContent = "Try navigating to a different website and opening the extension again";
+  }
 });
