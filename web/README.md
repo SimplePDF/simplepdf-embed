@@ -69,5 +69,5 @@ Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simp
 Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ```html
-<a href="/example.pdf" class="simplepdf">Open with SimplePDF</a>
+<a href="/example_without_pdf_extension" class="simplepdf">Open with SimplePDF</a>
 ```
