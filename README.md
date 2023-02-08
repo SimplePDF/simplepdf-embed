@@ -12,6 +12,14 @@
 <div align="center">
 Add a powerful PDF editor directly into your website or React App.
 </div>
+<div align="center" style="padding-top:20px">
+  <a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/LICENSE.md">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="SimplePDF embed is released under the MIT license." />
+  </a>
+  <a href="https://twitter.com/intent/tweet?text=Add+a+powerful+PDF+editor+directly+into+your+website+or+React+App!&url=https://simplePDF.eu/embed">
+    <img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social" alt="Tweet" />
+  </a>
+</div>
 </br>
 </br>
 <p align="center">
