@@ -28,7 +28,7 @@ Add a powerful PDF editor directly into your React App.
 
 Easily add [SimplePDF](https://simplepdf.eu) into your website, by wrapping any HTML element with the `EmbedPDF` component.
 
-[Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
+## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
 ## Install
 

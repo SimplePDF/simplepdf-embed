@@ -26,9 +26,9 @@ Add a powerful PDF editor directly into your website.
 <br/>
 <br/>
 
-Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag:
+Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag.
 
-[Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
+## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
 
 ## How to use
 
