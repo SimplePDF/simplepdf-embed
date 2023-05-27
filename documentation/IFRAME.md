@@ -11,8 +11,6 @@ SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) allow yo
 _[Get your own SimplePDF account](https://simplepdf.eu/pricing)_
 
 
-
-
 ### Let your users pick the file on their computer
 _- Replace `COMPANY_IDENTIFIER` with your own_
 ```html
@@ -35,14 +33,14 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 _Notice how `COMPANY_IDENTIFIER` has been replaced with `embed`_
 
 
-#### Let your users pick the file on their computer
+### Let your users pick the file on their computer
 
 ```html
 <iframe src="https://embed.simplePDF.eu/editor" frameBorder="0">
 </iframe>
 ```
 
-#### Open a given PDF file automatically
+### Open a given PDF file automatically
 
 _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 ```html

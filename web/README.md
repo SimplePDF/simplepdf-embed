@@ -71,3 +71,30 @@ Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 ```html
 <a href="/example_without_pdf_extension" class="simplepdf">Open with SimplePDF</a>
 ```
+
+## Advanced usage
+
+In case you want to have more control over how the modal for editing PDFs is invoked, you can directly interact with the `simplePDF` global variable that is inkected in the `window` by the script.
+
+### Defining the `company_identifier` (optional)
+_This should be done prior to opening the `editor`_
+```javascript
+window.simplePDF = {
+  companyIdentifier: "COMPANY_IDENTIFIER"
+};
+```
+
+### Opening the editor programmatically
+#### Open the editor with a specific PDF
+```javascript
+window.simplePDF.openEditor({ url: "publicly_available_url_pdf" })
+```
+#### Let your customers pick the PDF on their computer
+```javascript
+window.simplePDF.openEditor({ url: null })
+```
+
+### Closing the editor programmatically
+```javascript
+window.simplePDF.closeEditor()
+```
