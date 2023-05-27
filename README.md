@@ -35,9 +35,11 @@ Add a powerful PDF editor directly into your website or React App.
 
 # Get started
 
-[🚀 Using the `EmbedPDF` React component](./react/README.md)
+[⚛️ Using the `EmbedPDF` React component](./react/README.md)
 
 [🚀 Using a script tag](./web/README.md)
+
+[🛠 Using the iFrame](./documentation/IFRAME.md)
 
 # Why SimplePDF Embed?
 
