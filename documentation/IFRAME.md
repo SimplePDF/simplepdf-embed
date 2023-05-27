@@ -1,10 +1,10 @@
-# SimplePDF Embed using an IFrame
+# SimplePDF Embed using an Iframe
 
 SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) allow you to easily integrate `SimplePDF` using a single line of code by displaying the editor in a modal.
 
 **If you're however interested in having more control over the way SimplePDF is displayed in your app**, such as changing the way the modal looks or dropping it altogether – injecting the editor into a `div` for example, **read on:**
 
-## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-IFrame)
+## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Iframe)
 
 ## With a SimplePDF account (to collect customers' submissions)
 
@@ -48,10 +48,10 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 </iframe>
 ```
 
-## IFrame Communication
-When your users interact with the editor, the IFrame sends events that can allow you to reconcile data on your side or remove the `IFrame` from your app once a submission has been
+## Iframe Communication
+When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been
 
-Currently two events are sent by the IFrame:
+Currently two events are sent by the Iframe:
 - `DOCUMENT_LOADED`, containing the `document_id`: the document has been successfully loaded
 - `SUBMISSION_SENT`, containing the `submission_id`: the customer has successfully sent the submission
 
@@ -67,7 +67,7 @@ const eventHandler = async (event) => {
     try {
       return JSON.parse(event.data);
     } catch (e) {
-      console.error("Failed to parse IFrame event payload");
+      console.error("Failed to parse Iframe event payload");
       return null;
     }
   })();

@@ -39,7 +39,7 @@ Add a powerful PDF editor directly into your website or React App.
 
 [🚀 Using a script tag](./web/README.md)
 
-[🛠 Using the iFrame](./documentation/IFRAME.md)
+[🛠 Using the Iframe](./documentation/IFRAME.md)
 
 # Why SimplePDF Embed?
 
@@ -63,4 +63,4 @@ The users are notified that the document and the data they submit is sent to the
 
 ### How come the library is so small?
 
-The library is a simple wrapper around an iFrame that loads SimplePDF on-demand (whenever the user clicks the wrapped link), as such the footprint for this "opening an iFrame" mechanism is very tiny, the SimplePDF editor is of course bigger, but your users won't download anything until they have clicked the link. Think "lazy-loading".
+The library is a simple wrapper around an Iframe that loads SimplePDF on-demand (whenever the user clicks the wrapped link), as such the footprint for this "opening an Iframe" mechanism is very tiny, the SimplePDF editor is of course bigger, but your users won't download anything until they have clicked the link. Think "lazy-loading".
