@@ -49,7 +49,7 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 ```
 
 ## Iframe Communication
-When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been
+When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been successfully sent.
 
 Currently two events are sent by the Iframe:
 - `DOCUMENT_LOADED`, containing the `document_id`: the document has been successfully loaded
