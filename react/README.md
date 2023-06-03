@@ -80,21 +80,31 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
     <th>Name</th>
     <th>Type</th>
     <th>Required</th>
+    <th>Description</th>
   </tr>
   <tr>
     <td>children</td>
     <td>React.ReactElement</td>
     <td>Yes</td>
+    <td>Elements triggering the editor</td>
   </tr>
   <tr>
     <td>companyIdentifier</td>
     <td>string</td>
     <td>No</td>
+    <td><a href="https://simplePDF.eu/embed">Allows collecting customers submissions</a></td>
+  </tr>
+    <tr>
+    <td>context</td>
+    <td>Record&lt;string, string | number&gt;</td>
+    <td>No</td>
+    <td><a href="https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events">Sent to webhook</a></td>
   </tr>
   <tr>
     <td>onEmbedEvent</td>
     <td>(event: EmbedEvent) => Promise<void> | void</td>
     <td>No</td>
+    <td><a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/documentation/IFRAME.md#iframe-communication">Events sent by the Iframe</a></td>
   </tr>
 </table>
 

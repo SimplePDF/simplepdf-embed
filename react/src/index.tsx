@@ -10,6 +10,7 @@ export type EmbedEvent =
 interface Props {
   children: React.ReactElement;
   companyIdentifier?: string;
+  context?: Record<string, string | number>;
   onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
 }
 
@@ -28,6 +29,7 @@ const CloseIcon: React.FC = () => (
 export const EmbedPDF: React.FC<Props> = ({
   children,
   companyIdentifier,
+  context,
   onEmbedEvent,
 }) => {
   const editorDomain = React.useMemo(
@@ -76,6 +78,7 @@ export const EmbedPDF: React.FC<Props> = ({
 
     return () => window.removeEventListener("message", eventHandler);
   }, [shouldDisplayModal, editorDomain, onEmbedEvent]);
+
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
     setShouldDisplayModal(true);
@@ -88,14 +91,31 @@ export const EmbedPDF: React.FC<Props> = ({
   const simplePDFUrl = React.useMemo(() => {
     const baseURL = `${editorDomain}/editor`;
 
+    const encodedContext = (() => {
+      if (!context) {
+        return null;
+      }
+
+      try {
+        return encodeURIComponent(btoa(JSON.stringify(context)));
+      } catch (e) {
+        console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
+          context,
+        });
+        return null;
+      }
+    })();
+
     if (!children.props.href) {
-      return baseURL;
+      return `${baseURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
     }
 
-    const sanitizedURL = encodeURIComponent(children.props.href);
+    const sanitizedOpenURL = encodeURIComponent(children.props.href);
 
-    return `${baseURL}?open=${sanitizedURL}`;
-  }, [editorDomain, children.props.href]);
+    return `${baseURL}?open=${sanitizedOpenURL}${
+      encodedContext ? `&context=${encodedContext}` : ""
+    }`;
+  }, [editorDomain, children.props.href, context]);
 
   return (
     <>

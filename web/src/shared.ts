@@ -33,14 +33,37 @@ export const closeEditor = () => {
   document.body.style.overflow = "initial";
 };
 
-export const openEditor = ({ href }: { href: string | null }) => {
+export const openEditor = ({
+  href,
+  context,
+}: {
+  href: string | null;
+  context?: Record<string, string | number>;
+}) => {
   const companyIdentifier = window["simplePDF"]?.companyIdentifier;
 
-  const sanitizedURL = href ? encodeURIComponent(href) : null;
+  const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
 
-  const editorURL = sanitizedURL
-    ? `https://${companyIdentifier}.simplePDF.eu/editor?open=${sanitizedURL}`
-    : `https://${companyIdentifier}.simplePDF.eu/editor`;
+  const encodedContext = (() => {
+    if (!context) {
+      return null;
+    }
+
+    try {
+      return encodeURIComponent(btoa(JSON.stringify(context)));
+    } catch (e) {
+      log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
+      return null;
+    }
+  })();
+
+  const baseEditorURL = `https://${companyIdentifier}.simplePDF.eu/editor`;
+
+  const editorURL = sanitizedOpenURL
+    ? `${baseEditorURL}?open=${sanitizedOpenURL}${
+        encodedContext ? `&context=${encodedContext}` : ""
+      }`
+    : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
 
   const modal = `
     <style id="simplePDF_modal_style">
@@ -138,7 +161,10 @@ export const openEditor = ({ href }: { href: string | null }) => {
     ?.addEventListener("click", closeEditor);
 };
 
-const log = (message: string, details: Record<string, string | number>) => {
+const log = (
+  message: string,
+  details: Record<string, string | number | Record<string, string | number>>
+) => {
   const isDebugEnabled = window["simplePDF"]?.isDebug === true;
 
   if (!isDebugEnabled) {

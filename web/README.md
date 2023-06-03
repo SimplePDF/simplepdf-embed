@@ -69,7 +69,9 @@ Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simp
 Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ```html
-<a href="/example_without_pdf_extension" class="simplepdf">Open with SimplePDF</a>
+<a href="/example_without_pdf_extension" class="simplepdf"
+  >Open with SimplePDF</a
+>
 ```
 
 ## Advanced usage
@@ -77,24 +79,52 @@ Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 In case you want to have more control over how the modal for editing PDFs is invoked, you can directly interact with the `simplePDF` global variable that is inkected in the `window` by the script.
 
 ### Defining the `company_identifier` (optional)
+
 _This should be done prior to opening the `editor`_
+
 ```javascript
 window.simplePDF = {
-  companyIdentifier: "COMPANY_IDENTIFIER"
+  companyIdentifier: "COMPANY_IDENTIFIER",
 };
 ```
 
 ### Opening the editor programmatically
+
 #### Open the editor with a specific PDF
+
 ```javascript
-window.simplePDF.openEditor({ url: "publicly_available_url_pdf" })
+window.simplePDF.openEditor({ url: "publicly_available_url_pdf" });
 ```
+
 #### Let your customers pick the PDF on their computer
+
 ```javascript
-window.simplePDF.openEditor({ url: null })
+window.simplePDF.openEditor({ url: null });
 ```
 
 ### Closing the editor programmatically
+
 ```javascript
-window.simplePDF.closeEditor()
+window.simplePDF.closeEditor();
+```
+
+### Specifying a context
+
+_The context is sent as part of the submission via the webhooks integration: [read more](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events)_
+
+**Use-cases:**
+
+- Link a submission back to a customer
+- Specify the environment / configuration of the editor
+
+_Do not store sensitive information in the context (!!) as it is available locally to anyone inspecting the code_
+
+```javascript
+window.simplePDF.openEditor({
+  url: "publicly_available_url_pdf",
+  context: {
+    customer_id: "123",
+    environment: "prod",
+  },
+});
 ```
