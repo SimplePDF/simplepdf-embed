@@ -96,9 +96,9 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
   </tr>
     <tr>
     <td>context</td>
-    <td>Record&lt;string, string | number&gt;</td>
+    <td>Record&lt;string, unknown&gt;</td>
     <td>No</td>
-    <td><a href="https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events">Sent to webhook</a></td>
+    <td><a href="https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events">Sent via webhooks</a></td>
   </tr>
   <tr>
     <td>onEmbedEvent</td>

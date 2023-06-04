@@ -10,7 +10,7 @@ export type EmbedEvent =
 interface Props {
   children: React.ReactElement;
   companyIdentifier?: string;
-  context?: Record<string, string | number>;
+  context?: Record<string, unknown>;
   onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
 }
 

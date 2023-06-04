@@ -38,7 +38,7 @@ export const openEditor = ({
   context,
 }: {
   href: string | null;
-  context?: Record<string, string | number>;
+  context?: Record<string, unknown>;
 }) => {
   const companyIdentifier = window["simplePDF"]?.companyIdentifier;
 
@@ -163,7 +163,7 @@ export const openEditor = ({
 
 const log = (
   message: string,
-  details: Record<string, string | number | Record<string, string | number>>
+  details: Record<string, unknown>
 ) => {
   const isDebugEnabled = window["simplePDF"]?.isDebug === true;
 
