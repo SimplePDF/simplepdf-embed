@@ -27,6 +27,34 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 </iframe>
 ```
 
+### Specifying a context
+
+_The context is sent as part of the submission via the webhooks integration: [read more](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events)_
+
+**Use-cases:**
+
+- Link a submission back to a customer
+- Specify the environment / configuration of the editor
+
+_Do not store sensitive information in the context (!!) as it is available locally to anyone inspecting the code_
+
+
+```html
+<iframe src="https://COMPANY_IDENTIFIER.simplePDF.eu/editor?open=PUBLICLY_AVAILABLE_PDF_URL&context=CONTEXT" frameBorder="0">
+</iframe>
+```
+
+Where `CONTEXT` is a URL safe Base64 encoded stringified JSON.
+
+### Implementation example
+```javascript
+const context = { customerId: '123', environment: 'production' };
+
+const encodedContext = encodeURIComponent(btoa(JSON.stringify(context)))
+
+const url = `https://COMPANY_IDENTIFIER.simplePDF.eu/editor?open=PUBLICLY_AVAILABLE_PDF_URL&context=${encodedContext}`
+```
+
 
 ## Without a SimplePDF account (to use the free PDF editor)
 
@@ -49,6 +77,8 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 ```
 
 ## Iframe Communication
+_Only available with a SimplePDF account_
+
 When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been successfully sent.
 
 Currently two events are sent by the Iframe:
