@@ -79,20 +79,30 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 ## Iframe Communication
 _Only available with a SimplePDF account_
 
+[Head over here to see the incoming and outgoing events communication](./iframe.html)
+
 When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been successfully sent.
 
-Currently two events are sent by the Iframe:
-- `DOCUMENT_LOADED`, containing the `document_id`: the document has been successfully loaded
-- `SUBMISSION_SENT`, containing the `submission_id`: the customer has successfully sent the submission
+### Events sent by the SimplePDF Iframe:
+_Events are stringified (`JSON.stringify`) before being sent out_
+- `DOCUMENT_LOADED`
+```
+type: 'DOCUMENT_LOADED'
+data: { document_id: string }
+```
+Where `document_id` is the unique ID of the document that was successfully loaded.
 
-### Implementation example
+- `SUBMISSION_SENT`
+```
+type: 'SUBMISSION_SENT'
+data: { submission_id: string }
+```
+Where the `submission_id` is the unique ID of the submission successfully sent.
+
+#### Implementation example
 ```javascript
 
 const eventHandler = async (event) => {
-  if (event.origin !== "https://yourcompany.simplepdf.eu") {
-    return;
-  }
-
   const payload = (() => {
     try {
       return JSON.parse(event.data);
@@ -114,4 +124,35 @@ const eventHandler = async (event) => {
 };
 
 window.addEventListener("message", eventHandler, false);
+```
+
+### Events that can be received by the SimplePDF Iframe:
+_Events must be stringified (`JSON.stringify`) before being sent out_
+
+- `LOAD_DOCUMENT`
+```
+type: "LOAD_DOCUMENT",
+data: { data_url: string }
+```
+
+#### Implementation example
+```javascript
+const iframe = document.getElementById("iframe");
+
+const response = await fetch("https://cdn.simplepdf.eu/simple-pdf/assets/example_en.pdf");
+const blob = await response.blob();
+const reader = new FileReader();
+await new Promise((resolve, reject) => {
+  reader.onload = resolve;
+  reader.onerror = reject;
+  reader.readAsDataURL(blob);
+});
+
+iframe.contentWindow.postMessage(
+  JSON.stringify({
+    type: "LOAD_DOCUMENT",
+    data: { data_url: reader.result },
+  }),
+  "*"
+);
 ```

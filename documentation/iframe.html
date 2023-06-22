@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SimplePDF – Sending and Receiving events</title>
+    <script>
+      async function sendMessage() {
+        const editor = document.getElementById("simplepdf");
+        const input = document.getElementById("input");
+
+        const response = await fetch(input.value);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        await new Promise((resolve, reject) => {
+          reader.onload = resolve;
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        editor.contentWindow.postMessage(
+          JSON.stringify({
+            type: "LOAD_DOCUMENT",
+            data: { data_url: reader.result },
+          }),
+          "*"
+        );
+      }
+    </script>
+    <script>
+      const eventHandler = async (event) => {
+        const payload = (() => {
+          try {
+            return JSON.parse(event.data);
+          } catch (e) {
+            console.error("Failed to parse Iframe event payload");
+            return null;
+          }
+        })();
+
+        switch (payload?.type) {
+          case "DOCUMENT_LOADED":
+          case "SUBMISSION_SENT":
+            console.log("Event received:", payload);
+            return;
+
+          default:
+            return;
+        }
+      };
+
+      window.addEventListener("message", eventHandler, false);
+    </script>
+  </head>
+  <body>
+    <div style="margin-bottom: 10px">
+      <input
+        id="input"
+        value="https://cdn.simplepdf.eu/simple-pdf/assets/example_en.pdf"
+        style="min-width: 400px"
+      />
+      <button onclick="sendMessage()">Send "LOAD_DOCUMENT" message</button>
+    </div>
+
+    <iframe
+      id="simplepdf"
+      src="https://yourcompany.simplePDF.eu/editor"
+      width="100%"
+      height="800px"
+    />
+  </body>
+</html>
