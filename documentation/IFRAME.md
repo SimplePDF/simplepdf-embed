@@ -83,8 +83,8 @@ _Only available with a SimplePDF account_
 
 When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been successfully sent.
 
-### Events sent by the SimplePDF Iframe:
-_Events are stringified (`JSON.stringify`) before being sent out_
+### Events `sent by` the Iframe:
+_Events are stringified (`JSON.stringify`) before they are sent out_
 - `DOCUMENT_LOADED`
 ```
 type: 'DOCUMENT_LOADED'
@@ -126,8 +126,8 @@ const eventHandler = async (event) => {
 window.addEventListener("message", eventHandler, false);
 ```
 
-### Events that can be received by the SimplePDF Iframe:
-_Events must be stringified (`JSON.stringify`) before being sent out_
+### Events `sent to` the Iframe:
+_Events must be stringified (`JSON.stringify`) before they are sent out_
 
 - `LOAD_DOCUMENT`
 ```
