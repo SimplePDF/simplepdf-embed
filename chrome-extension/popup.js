@@ -25,7 +25,7 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   );
 });
 
-openEditorButton.addEventListener("click", async () => {
+async function handleOpenEditor () {
   const setConfig = () => {
     window.simplePDF = {
       isDebug: false,
@@ -61,8 +61,28 @@ openEditorButton.addEventListener("click", async () => {
 
     window.close();
   } catch(e) {
+    chrome.tabs.create({ url: 'https://simplePDF.eu/editor', active: false });
     openEditorButton.style.display = "none";
-    errorMessage.textContent = "The SimplePDF editor cannot be opened in this tab";
-    errorDetails.textContent = "Try navigating to a different website and opening the extension again";
+    errorDetails.textContent = "The SimplePDF editor was not allowed to be opened in the current tab";
+    errorMessage.textContent = "We opened the editor in a new tab for you";
+
+    await fetch('https://chrome.simplePDF.eu/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: 'mutation Track($input: TrackEventInput!) { track(input: $input) }',
+        variables: {
+          input: {
+            type: 'ERROR',
+            name: 'Chrome extension error',
+            data: JSON.stringify({ name: e.name, message: e.message}),
+          },
+        },
+      }),
+    });
   }
-});
+}
+
+openEditorButton.addEventListener("click", handleOpenEditor);

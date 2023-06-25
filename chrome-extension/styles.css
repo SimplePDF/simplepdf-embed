@@ -41,5 +41,10 @@
 }
 
 .errorContainer h3 {
+  line-height: 1.4;
   margin-top: 0;
+}
+
+.errorContainer p {
+  line-height: 1.4;
 }
