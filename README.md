@@ -33,6 +33,10 @@ Add a powerful PDF editor directly into your website or React App.
 <a href="https://twitter.com/simple_pdf">Follow us on Twitter</a>
 </p>
 
+
+https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-9ae5-eedf9a740bb1
+
+
 # Get started
 
 [⚛️ Using the `EmbedPDF` React component](./react/README.md)
