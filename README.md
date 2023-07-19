@@ -36,6 +36,12 @@ Add a powerful PDF editor directly into your website or React App.
 
 https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-9ae5-eedf9a740bb1
 
+# Features
+
+- Client-based: the document and data filled in does not leave the browser
+- Add text, checkboxes, pictures, signatures to PDF documents
+- Add, remove, re-arrange, rotate pages
+- Automatic detection of pre-existing PDF fields
 
 # Get started
 
