@@ -78,15 +78,15 @@ export const openEditor = ({
         height: 100vh;
         width: 100%;
         z-index: 999999;
-        padding: 20px;
+        padding: 16px;
         top: 0;
         left: 0;
         background: rgba(0, 0, 0, 0.4);
       }
 
       .simplePDF_content {
-        width: 94vw;
-        height: 94vh;
+        width: 100%;
+        height: 100%;
         position: relative;
         box-sizing: border-box;
       }
@@ -161,10 +161,7 @@ export const openEditor = ({
     ?.addEventListener("click", closeEditor);
 };
 
-const log = (
-  message: string,
-  details: Record<string, unknown>
-) => {
+const log = (message: string, details: Record<string, unknown>) => {
   const isDebugEnabled = window["simplePDF"]?.isDebug === true;
 
   if (!isDebugEnabled) {
