@@ -10,6 +10,7 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "type": "module",
   "main": "dist/index.js",
   "author": "bendersej",
   "license": "MIT",
@@ -21,10 +22,11 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "rimraf": "^3.0.2",
-    "rollup": "^2.78.0",
-    "rollup-plugin-typescript2": "^0.34.0",
-    "typescript": "^4.7.4"
+    "rimraf": "^5.0.5",
+    "rollup": "^4.12.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.3.3"
   },
   "files": [
     "dist"
