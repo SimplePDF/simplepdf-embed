@@ -2,11 +2,11 @@
 Contributors:      bendersej
 Tags:              pdf, embed pdf, fill & sign PDF, pdf editor
 Tested up to:      6.4.3
-Stable tag:        1.0
+Stable tag:        1.0.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
-Requires at least: 5.6.0
-Requires PHP:      5.6
+Requires at least: 5.8
+Requires PHP:      5.6.20
 
 Your visitors can fill & sign PDFs without leaving your website.
 

@@ -1,12 +1,16 @@
 <?php
 /*
-Plugin Name: SimplePDF Embed
-Description: Your visitors can fill & sign PDFs without leaving your website.
-Plugin URI: https://simplePDF.eu/embed
-Version: 1.0
-Author: SimplePDF.eu
-Author URI: https://simplePDF.eu
+Plugin Name:       SimplePDF Embed
+Plugin URI:        https://simplePDF.eu/embed
+Author:            SimplePDF.eu
+Author URI:        https://simplePDF.eu
+Description:       Your visitors can fill & sign PDFs without leaving your website.
+Version:           1.0.0
+License:           GPL v2 or later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 */
+
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 function simplepdf_settings_init() {
     add_option('simplepdf_auto_open_pdf', true);
@@ -56,30 +60,39 @@ function simplepdf_settings_section_callback() {
 function simplepdf_auto_open_pdf_callback() {
     $value = get_option('simplepdf_auto_open_pdf');
     echo '<div style="display: flex; align-items: center;"><input type="checkbox" name="simplepdf_auto_open_pdf" value="1"' . checked(1, $value, false) . '>';
-    echo <<<HTML
-      <i style="margin-left: 8px;">Links with the extension .pdf are opened with SimplePDF</i>
-    HTML;
+    echo '<i style="margin-left: 8px;">Links with the extension .pdf are opened with SimplePDF</i>';
     echo '</div>';
 }
 
 function simplepdf_company_identifier_callback() {
     $value = get_option('simplepdf_company_identifier');
     echo '<input type="text" name="simplepdf_company_identifier" value="' . esc_attr($value) . '">';
-    echo <<<HTML
-    <p style="margin-top: 8px; margin-bottom: 8px"><b>Signup to get your own company identifier: <a href="https://simplePDF.eu/embed#wp" target="_blank">SimplePDF.eu/embed</a>.</b></p>
-    <ul style="list-style: circle;padding-left: 20px;">
-        <li><a href="https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding#wp" target="_blank">Use your own branding and loading</a></li>
-        <li><a href="https://simplepdf.eu/help/how-to/get-email-notifications-for-pdf-form-submissions#wp" target="_blank">Automatically receive the submissions in your inbox</a></li>
-        <li><a href="https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding#wp" target="_blank">Customize the editor: show and hide fields</a></li>
-    </ul>
-    HTML;
+    echo '<p style="margin-top: 8px; margin-bottom: 8px"><b>Signup to get your own company identifier: <a href="https://simplePDF.eu/embed#wp" target="_blank">SimplePDF.eu/embed</a>.</b></p>';
+    echo '<ul style="list-style: circle;padding-left: 20px;">';
+    echo '<li><a href="https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding#wp" target="_blank">Use your own branding and loading</a></li>';
+    echo '<li><a href="https://simplepdf.eu/help/how-to/get-email-notifications-for-pdf-form-submissions#wp" target="_blank">Automatically receive the submissions in your inbox</a></li>';
+    echo '<li><a href="https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding#wp" target="_blank">Customize the editor: show or hide specific fields</a></li>';
+    echo '</ul>';
 }
 
 function enqueue_simplepdf_script() {
   $company_identifier = get_option('simplepdf_company_identifier');
   $auto_open_pdf = get_option('simplepdf_auto_open_pdf');
+
   if ($auto_open_pdf) {
-      echo '<script src="https://unpkg.com/@simplepdf/web-embed-pdf" companyIdentifier="' . esc_attr(empty($company_identifier) ? 'wordpress' : $company_identifier) . '" defer></script>';
+      $plugin_url = plugin_dir_url(__FILE__);
+      $script_src = $plugin_url . 'js/web-embed-pdf.js';
+
+
+      wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.0.0', true);
+
+
+      add_filter('script_loader_tag', function($tag, $handle, $src) use ($company_identifier) {
+          if ($handle === 'simplepdf-web-embed-pdf') {
+              return "<script src='$src' companyIdentifier='" . esc_attr(empty($company_identifier) ? 'wordpress' : $company_identifier) . "' defer></script>";
+          }
+          return $tag;
+      }, 10, 3);
   }
 }
 
