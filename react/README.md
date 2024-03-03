@@ -40,21 +40,33 @@ npm install @simplepdf/react-embed-pdf
 
 ### I don't have an account on SimplePDF:
 
-Wrap any element with the following:
-
 ```javascript
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
+// Modal mode: opens the PDF on click
 <EmbedPDF>
   <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
     Opens dummy.pdf
   </a>
 </EmbedPDF>
 
+// Inline mode: the PDF is displayed when rendering the component
+ <EmbedPDF
+  mode="inline"
+  style={{ width: 900, height: 800 }}
+  documentURL="https://cdn.simplepdf.eu/simple-pdf/assets/placeholder.pdf"
+/>
 
+// Modal mode: let the user pick the PDF
 <EmbedPDF>
   <button>Opens the simplePDF editor</button>
 </EmbedPDF>
+
+// Inline mode: the PDF picker is displayed when rendering the component
+ <EmbedPDF
+  mode="inline"
+  style={{ width: 900, height: 800 }}
+/>
 ```
 
 ### I have an account on SimplePDF:
@@ -62,15 +74,32 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 ```javascript
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
+// Modal mode: opens the PDF on click
 <EmbedPDF companyIdentifier="yourcompany">
   <a href="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf">
     Opens dummy.pdf
   </a>
 </EmbedPDF>
 
+// Inline mode: the PDF is displayed when rendering the component
+ <EmbedPDF
+  mode="inline"
+  style={{ width: 900, height: 800 }}
+  companyIdentifier="yourcompany"
+  documentURL="https://cdn.simplepdf.eu/simple-pdf/assets/placeholder.pdf"
+/>
+
+// Modal mode: let the user pick the PDF
 <EmbedPDF companyIdentifier="yourcompany">
-  <button>Opens the simplePDF editor<button>
+  <button>Opens the simplePDF editor</button>
 </EmbedPDF>
+
+// Inline mode: the PDF picker is displayed when rendering the component
+<EmbedPDF
+  mode="inline"
+  style={{ width: 900, height: 800 }}
+  companyIdentifier="yourcompany"
+/>
 ```
 
 ### Available props
@@ -81,6 +110,12 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
     <th>Type</th>
     <th>Required</th>
     <th>Description</th>
+  </tr>
+    <tr>
+    <td>mode</td>
+    <td>"inline" | "modal"</td>
+    <td>No</td>
+    <td>Inline the editor or display it inside a modal</td>
   </tr>
   <tr>
     <td>children</td>
@@ -106,11 +141,22 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
     <td>No</td>
     <td><a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/documentation/IFRAME.md#iframe-communication">Events sent by the Iframe</a></td>
   </tr>
+    <tr>
+    <td>style</td>
+    <td>React.CSSProperties</td>
+    <td>No</td>
+    <td>Available for inline mode only</td>
+  </tr>
+    </tr>
+    <tr>
+    <td>className</td>
+    <td>string</td>
+    <td>No</td>
+    <td>Available for inline mode only</td>
+  </tr>
 </table>
 
 ## How to dev
-
-_Pre-requisite: make sure to link React from the target application to avoid duplicated react dependencies, more details [here](https://reactjs.org/warnings/invalid-hook-call-warning.html#duplicate-react)_
 
 1. Link the widget
 

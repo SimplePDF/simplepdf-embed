@@ -7,11 +7,29 @@ export type EmbedEvent =
   | { type: "DOCUMENT_LOADED"; data: { document_id: string } }
   | { type: "SUBMISSION_SENT"; data: { submission_id: string } };
 
-interface Props {
+type Props = InlineProps | ModalProps;
+
+interface InlineProps {
+  mode: "inline";
+  className?: string;
+  style?: React.CSSProperties;
+  companyIdentifier?: string;
+  documentURL?: string;
+  context?: Record<string, unknown>;
+  onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
+}
+
+interface ModalProps {
+  mode?: "modal";
   children: React.ReactElement;
   companyIdentifier?: string;
   context?: Record<string, unknown>;
   onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
+}
+
+interface InternalProps {
+  simplePDFUrl: string;
+  embedEventHandler: (event: MessageEvent<string>) => Promise<void>;
 }
 
 const CloseIcon: React.FC = () => (
@@ -26,58 +44,50 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
-export const EmbedPDF: React.FC<Props> = ({
-  children,
-  companyIdentifier,
-  context,
-  onEmbedEvent,
-}) => {
-  const editorDomain = React.useMemo(
-    () => `https://${companyIdentifier ?? "embed"}.simplepdf.eu`,
-    [companyIdentifier]
-  );
+const isInlineComponent = (props: Props): props is InlineProps =>
+  (props as InlineProps).mode === "inline";
 
+const InlineComponent: React.FC<
+  InternalProps & Pick<InlineProps, "className" | "style">
+> = ({ simplePDFUrl, embedEventHandler, className, style }) => {
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  React.useEffect(() => {
+    if (!iframeRef.current) {
+      window.removeEventListener("message", embedEventHandler);
+      return;
+    }
+
+    window.addEventListener("message", embedEventHandler, false);
+
+    return () => window.removeEventListener("message", embedEventHandler);
+  }, [iframeRef, embedEventHandler]);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      src={simplePDFUrl}
+      className={className}
+      style={{ border: 0, ...style }}
+    />
+  );
+};
+
+const ModalComponent: React.FC<
+  InternalProps & Pick<ModalProps, "children">
+> = ({ children, embedEventHandler, simplePDFUrl }) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
 
   React.useEffect(() => {
-    if (onEmbedEvent === undefined) {
-      return;
-    }
-
-    const eventHandler = async (event: MessageEvent<string>) => {
-      if (event.origin !== editorDomain) {
-        return;
-      }
-
-      const payload: EmbedEvent | null = (() => {
-        try {
-          return JSON.parse(event.data);
-        } catch (e) {
-          console.error("Failed to parse iFrame event payload");
-          return null;
-        }
-      })();
-
-      switch (payload?.type) {
-        case "DOCUMENT_LOADED":
-        case "SUBMISSION_SENT":
-          await onEmbedEvent(payload);
-          return;
-
-        default:
-          return;
-      }
-    };
-
     if (!shouldDisplayModal) {
-      window.removeEventListener("message", eventHandler);
+      window.removeEventListener("message", embedEventHandler);
       return;
     }
 
-    window.addEventListener("message", eventHandler, false);
+    window.addEventListener("message", embedEventHandler, false);
 
-    return () => window.removeEventListener("message", eventHandler);
-  }, [shouldDisplayModal, editorDomain, onEmbedEvent]);
+    return () => window.removeEventListener("message", embedEventHandler);
+  }, [shouldDisplayModal, embedEventHandler]);
 
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
@@ -87,35 +97,6 @@ export const EmbedPDF: React.FC<Props> = ({
   const handleCloseModal = React.useCallback(() => {
     setShouldDisplayModal(false);
   }, []);
-
-  const simplePDFUrl = React.useMemo(() => {
-    const baseURL = `${editorDomain}/editor`;
-
-    const encodedContext = (() => {
-      if (!context) {
-        return null;
-      }
-
-      try {
-        return encodeURIComponent(btoa(JSON.stringify(context)));
-      } catch (e) {
-        console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
-          context,
-        });
-        return null;
-      }
-    })();
-
-    if (!children.props.href) {
-      return `${baseURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
-    }
-
-    const sanitizedOpenURL = encodeURIComponent(children.props.href);
-
-    return `${baseURL}?open=${sanitizedOpenURL}${
-      encodedContext ? `&context=${encodedContext}` : ""
-    }`;
-  }, [editorDomain, children.props.href, context]);
 
   return (
     <>
@@ -144,5 +125,98 @@ export const EmbedPDF: React.FC<Props> = ({
 
       {React.cloneElement(children, { onClick: handleAnchorClick })}
     </>
+  );
+};
+
+export const EmbedPDF: React.FC<Props> = (props) => {
+  const { context, companyIdentifier } = props;
+
+  const url: string | undefined = isInlineComponent(props)
+    ? props.documentURL
+    : props.children?.props?.href;
+
+  const editorDomain = React.useMemo(
+    () => `https://${companyIdentifier ?? "embed"}.simplepdf.eu`,
+    [companyIdentifier]
+  );
+
+  const embedEventHandler = React.useCallback(
+    async (event: MessageEvent<string>) => {
+      if (props.onEmbedEvent === undefined) {
+        return;
+      }
+
+      if (event.origin !== editorDomain) {
+        return;
+      }
+
+      const payload: EmbedEvent | null = (() => {
+        try {
+          return JSON.parse(event.data);
+        } catch (e) {
+          console.error("Failed to parse iFrame event payload");
+          return null;
+        }
+      })();
+
+      switch (payload?.type) {
+        case "DOCUMENT_LOADED":
+        case "SUBMISSION_SENT":
+          await props.onEmbedEvent(payload);
+          return;
+
+        default:
+          return;
+      }
+    },
+    [props.onEmbedEvent, editorDomain]
+  );
+
+  const simplePDFUrl = React.useMemo(() => {
+    const baseURL = `${editorDomain}/editor`;
+
+    const encodedContext = (() => {
+      if (!context) {
+        return null;
+      }
+
+      try {
+        return encodeURIComponent(btoa(JSON.stringify(context)));
+      } catch (e) {
+        console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
+          context,
+        });
+        return null;
+      }
+    })();
+
+    if (!url) {
+      return `${baseURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
+    }
+
+    const sanitizedOpenURL = encodeURIComponent(url);
+
+    return `${baseURL}?open=${sanitizedOpenURL}${
+      encodedContext ? `&context=${encodedContext}` : ""
+    }`;
+  }, [editorDomain, url, context]);
+
+  if (isInlineComponent(props)) {
+    return (
+      <InlineComponent
+        className={props.className}
+        style={props.style}
+        simplePDFUrl={simplePDFUrl}
+        embedEventHandler={embedEventHandler}
+      />
+    );
+  }
+
+  return (
+    <ModalComponent
+      children={props.children}
+      simplePDFUrl={simplePDFUrl}
+      embedEventHandler={embedEventHandler}
+    />
   );
 };
