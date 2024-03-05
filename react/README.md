@@ -40,14 +40,16 @@ npm install @simplepdf/react-embed-pdf
 
 The `EmbedPDF` component has two modes: `"modal"` (default) and `"inline"`.
 
+It can be tied to a [SimplePDF account](https://simplePDF.eu/pricing#g).
+
 ### Account-specific features
 
-While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` (see [Available Props](#available-props)) to:
+While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` to:
 
-- [automatically collect your users' submissions](https://simplepdf.eu/embed)
-- [customize the editor and use your own branding](https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding)
-- [use your own storage](https://simplepdf.eu/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
-- [configure webhooks](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions).
+- [Aautomatically collect your users' submissions](https://simplepdf.eu/embed)
+- [Customize the editor and use your own branding](https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding)
+- [Use your own storage](https://simplepdf.eu/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
+- [Configure webhooks](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions)
 
 _Example_
 
