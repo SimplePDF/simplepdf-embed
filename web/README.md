@@ -19,7 +19,7 @@ Add a powerful PDF editor directly into your website.
 <a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
 <br/>
 <br/>
-<a href="https://discord.gg/TvRFMCTN">Join Our Discord</a>
+<a href="https://discord.gg/n6M8jb5GEP">Join Our Discord</a>
   ·
 <a href="https://twitter.com/simple_pdf">Follow us on Twitter</a>
 </p>

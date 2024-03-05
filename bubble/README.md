@@ -19,7 +19,7 @@ Add a powerful PDF editor directly into your Bubble app.
 <a href="https://bubble.io/plugin/pdf-editor-and-filler-1673591701449x899138091362287600" rel="dofollow"><strong>Read more about SimplePDF for Bubble.io »</strong></a>
 <br/>
 <br/>
-<a href="https://discord.gg/TvRFMCTN">Join Our Discord</a>
+<a href="https://discord.gg/n6M8jb5GEP">Join Our Discord</a>
   ·
 <a href="https://twitter.com/simple_pdf">Follow us on Twitter</a>
 </p>
