@@ -36,7 +36,7 @@ Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag
 
 Add this script in the head of your webpage:
 
-```javascript
+```html
 <script src="https://unpkg.com/@simplepdf/web-embed-pdf" defer></script>
 ```
 
@@ -44,7 +44,7 @@ Add this script in the head of your webpage:
 
 _Replace `companyIdentifier` with your own_
 
-```javascript
+```html
 <script
   src="https://unpkg.com/@simplepdf/web-embed-pdf"
   companyIdentifier="yourcompany"
@@ -76,16 +76,28 @@ Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ## Advanced usage
 
-In case you want to have more control over how the modal for editing PDFs is invoked, you can directly interact with the `simplePDF` global variable that is inkected in the `window` by the script.
+In case you want to have more control over how the modal for editing PDFs is invoked, you can directly interact with the `simplePDF` global variable that is injected in the `window` by the script.
 
-### Defining the `company_identifier` (optional)
+### Overriding the automatic locale detection
 
-_This should be done prior to opening the `editor`_
+SimplePDF currently supports the following languages automatically detects the language of the page (using the `lang` attribute) and opens the editor in the following languages:
 
-```javascript
-window.simplePDF = {
-  companyIdentifier: "COMPANY_IDENTIFIER",
-};
+- English (`en`)
+- German (`de`)
+- Spanish (`es`)
+- French (`fr`)
+- Italian (`it`)
+- Portuguese (`pt`)
+
+**If you wish to override the automatic detection, you can specify the `locale` attribute on the script tag as follows**:
+
+```html
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="yourcompany"
+  locale="fr"
+  defer
+></script>
 ```
 
 ### Opening the editor programmatically

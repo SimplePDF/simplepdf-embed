@@ -1,3 +1,5 @@
+import { EditorConfig } from "./types";
+
 const getAnchors = (): HTMLAnchorElement[] => {
   const anchors = Array.from(document.getElementsByTagName("a"));
 
@@ -27,45 +29,50 @@ export const getSimplePDFElements = (): Element[] => [
   ...getAnchors(),
 ];
 
-export const closeEditor = () => {
+export const closeEditor = (): void => {
   document.getElementById("simplePDF_modal")?.remove();
   document.getElementById("simplePDF_modal_style")?.remove();
   document.body.style.overflow = "initial";
 };
 
-export const openEditor = ({
-  href,
-  context,
-}: {
-  href: string | null;
-  context?: Record<string, unknown>;
-}) => {
-  const companyIdentifier = window["simplePDF"]?.companyIdentifier;
+export const handleOpenEditor =
+  (editorConfig: EditorConfig) =>
+  ({
+    href,
+    context,
+  }: {
+    href: string | null;
+    context?: Record<string, unknown>;
+  }): void => {
+    const { getFromConfig, log } = editorConfig;
 
-  const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
+    const companyIdentifier = getFromConfig("companyIdentifier");
+    const locale = getFromConfig("locale");
 
-  const encodedContext = (() => {
-    if (!context) {
-      return null;
-    }
+    const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
 
-    try {
-      return encodeURIComponent(btoa(JSON.stringify(context)));
-    } catch (e) {
-      log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
-      return null;
-    }
-  })();
+    const encodedContext = (() => {
+      if (!context) {
+        return null;
+      }
 
-  const baseEditorURL = `https://${companyIdentifier}.simplePDF.eu/editor`;
+      try {
+        return encodeURIComponent(btoa(JSON.stringify(context)));
+      } catch (e) {
+        log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
+        return null;
+      }
+    })();
 
-  const editorURL = sanitizedOpenURL
-    ? `${baseEditorURL}?open=${sanitizedOpenURL}${
-        encodedContext ? `&context=${encodedContext}` : ""
-      }`
-    : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
+    const baseEditorURL = `https://${companyIdentifier}.simplePDF.eu/${locale}/editor`;
 
-  const modal = `
+    const editorURL = sanitizedOpenURL
+      ? `${baseEditorURL}?open=${sanitizedOpenURL}${
+          encodedContext ? `&context=${encodedContext}` : ""
+        }`
+      : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
+
+    const modal = `
     <style id="simplePDF_modal_style">
       .simplePDF_container {
         user-select: none;
@@ -151,38 +158,34 @@ export const openEditor = ({
   </div>
  `;
 
-  log("Creating the modal", { companyIdentifier, editorURL });
-  document.body.style.overflow = "hidden";
-  document.body.insertAdjacentHTML("beforebegin", modal);
+    log("Creating the modal", {
+      companyIdentifier: getFromConfig("companyIdentifier"),
+      editorURL,
+    });
+    document.body.style.overflow = "hidden";
+    document.body.insertAdjacentHTML("beforebegin", modal);
 
-  log("Attach close modal listener", {});
-  document
-    .getElementById("simplePDF_modal_close_button")
-    ?.addEventListener("click", closeEditor);
-};
-
-const log = (message: string, details: Record<string, unknown>) => {
-  const isDebugEnabled = window["simplePDF"]?.isDebug === true;
-
-  if (!isDebugEnabled) {
-    return;
-  }
-
-  console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
-};
+    log("Attach close modal listener", {});
+    document
+      .getElementById("simplePDF_modal_close_button")
+      ?.addEventListener("click", closeEditor);
+  };
 
 const isAnchor = (
   element: HTMLAnchorElement | Element
 ): element is HTMLAnchorElement => element.hasAttribute("href");
 
-export const attachOnClick = ({ elements }: { elements: Element[] }) => {
-  log("Attaching listeners to anchors", {
-    anchorsCount: elements.length,
-  });
-  elements.forEach((element) =>
-    element.addEventListener("click", (e) => {
-      e.preventDefault();
-      openEditor({ href: isAnchor(element) ? element.href : null });
-    })
-  );
-};
+export const handleAttachOnClick =
+  (editorConfig: EditorConfig) =>
+  ({ elements }: { elements: Element[] }) => {
+    const openEditor = handleOpenEditor(editorConfig);
+    editorConfig.log("Attaching listeners to anchors", {
+      anchorsCount: elements.length,
+    });
+    elements.forEach((element) =>
+      element.addEventListener("click", (e) => {
+        e.preventDefault();
+        openEditor({ href: isAnchor(element) ? element.href : null });
+      })
+    );
+  };

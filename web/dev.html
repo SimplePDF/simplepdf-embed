@@ -15,7 +15,7 @@
     <p>Any PDF link is automatically opened in your SimplePDF portal</p>
     <ul>
       <li>
-        <a href="http://www.africau.edu/images/default/sample.pdf"
+        <a href="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf"
           >Link with a ".pdf" extension</a
         >
       </li>
@@ -32,5 +32,8 @@
       editor:
     </p>
     <button class="simplepdf">This button opens the editor</button>
+    <button onclick="window['simplePDF'].openEditor({href: null })">
+      Programmatic opening
+    </button>
   </body>
 </html>

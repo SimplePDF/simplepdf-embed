@@ -1,35 +1,75 @@
 import {
   getSimplePDFElements,
-  attachOnClick,
-  openEditor,
+  handleAttachOnClick,
+  handleOpenEditor,
   closeEditor,
 } from "./shared";
+import type { EditorConfig, Locale, SimplePDF } from "./types";
 
-const init = () => {
-  if (window["simplePDF"]?.disableInit === true) {
+export { Locale, EditorConfig, SimplePDF };
+
+const locale = ((): Locale => {
+  const inputLocale = (window["simplePDF"]?.locale ??
+    document.currentScript?.getAttribute("locale") ??
+    document.documentElement.lang ??
+    "en") as Locale;
+
+  switch (inputLocale) {
+    case "en":
+    case "de":
+    case "es":
+    case "fr":
+    case "it":
+    case "pt":
+      return inputLocale;
+    default:
+      inputLocale satisfies never;
+      return "en";
+  }
+})();
+
+const disableInit =
+  window["simplePDF"]?.disableInit ??
+  document.currentScript?.getAttribute("disableInit") !== null ??
+  false;
+const isDebug = document.currentScript?.getAttribute("debug") !== null;
+
+const companyIdentifier =
+  window["simplePDF"]?.companyIdentifier ??
+  document.currentScript?.getAttribute("companyIdentifier") ??
+  "embed";
+
+const log = (message: string, details: Record<string, unknown>) => {
+  if (!isDebug) {
     return;
   }
+
+  console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
+};
+
+const editorConfig: EditorConfig = {
+  getFromConfig: (key: "companyIdentifier" | "locale") =>
+    window["simplePDF"]?.[key] ?? null,
+  log,
+};
+
+const init = () => {
+  if (disableInit === true) {
+    return;
+  }
+
+  const attachOnClick = handleAttachOnClick(editorConfig);
 
   const elements = getSimplePDFElements();
   attachOnClick({ elements });
 };
 
-const simplePDF = {
-  isDebug:
-    window["simplePDF"]?.isDebug ??
-    document.currentScript?.getAttribute("debug") === "true"
-      ? true
-      : false,
-  companyIdentifier:
-    window["simplePDF"]?.companyIdentifier ??
-    document.currentScript?.getAttribute("companyIdentifier") ??
-    "embed",
-  disableInit: window["simplePDF"]?.disableInit ?? false,
-  attachOnClick,
-  openEditor,
-  closeEditor,
-};
-
 init();
 
-window["simplePDF"] = simplePDF;
+window["simplePDF"] = {
+  locale,
+  disableInit,
+  companyIdentifier,
+  openEditor: handleOpenEditor(editorConfig),
+  closeEditor,
+};
