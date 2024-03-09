@@ -34,6 +34,8 @@ Add a PDF editor into your Bubble app: add text, checkboxes, signatures, picture
 
 Get your own SimplePDF account to start collecting your customer PDF submissions straight from your Bubble app.
 
+Available in English, German, Portuguese, Spanish, French and Italian
+
 =========== SHOW ME! ===========
 
 https://simplepdf.bubbleapps.io/version-test
@@ -50,6 +52,15 @@ Display the PDF:
 
 - In a popup
 - Inline
+
+Choose the language of the interface between 6 languages:
+
+- English
+- German
+- Portuguese
+- Spanish
+- French
+- Italian
 
 === WHY IS IT FREE? ===
 
