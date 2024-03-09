@@ -12,6 +12,8 @@
   },
   "type": "module",
   "main": "dist/index.js",
+  "browser": "dist/index.min.js",
+  "unpkg": "dist/index.min.js",
   "types": "dist/index.d.ts",
   "author": "bendersej",
   "license": "MIT",
