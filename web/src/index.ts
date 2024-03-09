@@ -9,9 +9,18 @@ import type { EditorConfig, Locale, SimplePDF } from "./types";
 export { Locale, EditorConfig, SimplePDF };
 
 const locale = ((): Locale => {
+  const languageCode = (() => {
+    try {
+      const locale = new Intl.Locale(document.documentElement.lang);
+      return locale.language;
+    } catch (e) {
+      return null;
+    }
+  })();
+
   const inputLocale = (window["simplePDF"]?.locale ??
     document.currentScript?.getAttribute("locale") ??
-    document.documentElement.lang ??
+    languageCode ??
     "en") as Locale;
 
   switch (inputLocale) {
