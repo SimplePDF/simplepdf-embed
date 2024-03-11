@@ -1,4 +1,6 @@
 node_modules
 dist
 dev
-simplepdf.zip
+
+wordpress/simplepdf.zip
+wordpress/src

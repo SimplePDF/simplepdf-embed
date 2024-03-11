@@ -76,23 +76,20 @@ function simplepdf_company_identifier_callback() {
 }
 
 function enqueue_simplepdf_script() {
-  $company_identifier = get_option('simplepdf_company_identifier');
+
   $auto_open_pdf = get_option('simplepdf_auto_open_pdf');
 
   if ($auto_open_pdf) {
       $plugin_url = plugin_dir_url(__FILE__);
-      $script_src = $plugin_url . 'js/web-embed-pdf.js';
+      $script_src = $plugin_url . 'build/web-embed-pdf.js';
 
+      wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.6.2', true);
 
-      wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.0.0', true);
+      $company_identifier = get_option('simplepdf_company_identifier');
+      $companyIdentifier = empty($company_identifier) ? 'wordpress' : $company_identifier;
+      $inline_script = "window.simplePDF = {companyIdentifier: '" . esc_js($companyIdentifier) . "'};";
 
-
-      add_filter('script_loader_tag', function($tag, $handle, $src) use ($company_identifier) {
-          if ($handle === 'simplepdf-web-embed-pdf') {
-              return "<script src='$src' companyIdentifier='" . esc_attr(empty($company_identifier) ? 'wordpress' : $company_identifier) . "' defer></script>";
-          }
-          return $tag;
-      }, 10, 3);
+      wp_add_inline_script('simplepdf-web-embed-pdf', $inline_script, 'before');
   }
 }
 

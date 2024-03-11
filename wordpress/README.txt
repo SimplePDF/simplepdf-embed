@@ -74,8 +74,14 @@ With an account, the filled in documents will be automatically transmitted to yo
 
 Feel free to reach out to us at wordpress@simplepdf.eu!
 
+= Where can I see the code? =
+
+Our Github repository contains both the code for the Wordpress plugin as well as the underlying @simplepdf/web-embed-pdf code upon which it relies:
+- [Wordpress plugin source code](https://github.com/SimplePDF/simplepdf-embed/tree/main/wordpress)
+- [@simplepdf/web-embed-pdf](https://github.com/SimplePDF/simplepdf-embed/tree/main/web)
+
 == Changelog ==
 
 = 1.0.0 =
-* Release
+* Initial release
 
