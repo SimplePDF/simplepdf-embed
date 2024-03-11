@@ -1,4 +1,4 @@
-# With iframe Example
+# With iframe example
 
 This example showcases how to embed SimplePDF in your app or website with using an `iframe`.
 

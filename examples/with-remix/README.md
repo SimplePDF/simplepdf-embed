@@ -1,4 +1,4 @@
-# With Next.js example
+# With Remix example
 
 Run it locally:
 
