@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "copy-src": "cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* src/",
-    "copy-build": "cp ./node_modules/@simplepdf/web-embed-pdf/dist/index.min.js ./build/web-embed-pdf.js",
-    "package-plugin": "npm run copy-src && npm run copy-build && rm simplepdf.zip || true && zip -r simplepdf.zip . -x '*node_modules/*' -x 'package.json' -x 'package-lock.json' -x 'README.md'"
+    "copy-src": "cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* ./svn/trunk/src/",
+    "copy-build": "cp -r ./node_modules/@simplepdf/web-embed-pdf/dist/index.min.js ./svn/trunk/build/web-embed-pdf.js",
+    "package-plugin": "npm run copy-src && npm run copy-build"
   },
   "dependencies": {
     "@simplepdf/web-embed-pdf": "^1.6.3"

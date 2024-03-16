@@ -83,7 +83,7 @@ function enqueue_simplepdf_script() {
       $plugin_url = plugin_dir_url(__FILE__);
       $script_src = $plugin_url . 'build/web-embed-pdf.js';
 
-      wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.6.2', true);
+      wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.6.3', true);
 
       $company_identifier = get_option('simplepdf_company_identifier');
       $companyIdentifier = empty($company_identifier) ? 'wordpress' : $company_identifier;
