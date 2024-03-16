@@ -2,7 +2,7 @@
   "scripts": {
     "copy-src": "cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* ./svn/trunk/src/",
     "copy-build": "cp -r ./node_modules/@simplepdf/web-embed-pdf/dist/index.min.js ./svn/trunk/build/web-embed-pdf.js",
-    "package-plugin": "npm run copy-src && npm run copy-build"
+    "package-plugin": "npm install && npm run copy-src && npm run copy-build"
   },
   "dependencies": {
     "@simplepdf/web-embed-pdf": "^1.6.3"

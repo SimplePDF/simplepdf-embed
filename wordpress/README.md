@@ -12,10 +12,6 @@ brew install svn
 svn checkout https://plugins.svn.wordpress.org/simplepdf-embed svn
 ```
 
-1. Install the npm dependencies
-```
-npm install
-```
 1. Update the version of `@simplepdf/web-embed-pdf` in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php) to the one specified in [package.json](./package.json):
 ```
 wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '<VERSION>', true);
