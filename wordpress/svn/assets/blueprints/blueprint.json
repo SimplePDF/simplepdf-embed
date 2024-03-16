@@ -1,0 +1,30 @@
+{
+  "landingPage": "\/wp-admin\/plugins.php",
+  "preferredVersions": {
+      "php": "8.0",
+      "wp": "latest"
+  },
+  "phpExtensionBundles": [
+      "kitchen-sink"
+  ],
+  "features": {
+      "networking": true
+  },
+  "steps": [
+      {
+          "step": "installPlugin",
+          "pluginZipFile": {
+              "resource": "url",
+              "url": "https:\/\/downloads.wordpress.org\/plugin\/simplepdf-embed.1.0.0.zip"
+          },
+          "options": {
+              "activate": true
+          }
+      },
+      {
+          "step": "login",
+          "username": "admin",
+          "password": "password"
+      }
+  ]
+}
