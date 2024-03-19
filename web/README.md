@@ -54,7 +54,7 @@ _Replace `companyIdentifier` with your own_
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) are automatically opened in [SimplePDF](https://simplepdf.eu)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.eu/portal) are automatically opened in [SimplePDF](https://simplepdf.eu)**
 
 ### I don't want every PDF document to be opened in SimplePDF
 

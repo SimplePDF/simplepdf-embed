@@ -1,5 +1,10 @@
 import { EditorConfig } from "./types";
 
+const isFormLink = (url: string) => {
+  const regex = /^https:\/\/[^.]+\.simplepdf\.eu\/[^\/]+\/form\/.+/;
+  return regex.test(url);
+};
+
 const getAnchors = (): HTMLAnchorElement[] => {
   const anchors = Array.from(document.getElementsByTagName("a"));
 
@@ -9,7 +14,9 @@ const getAnchors = (): HTMLAnchorElement[] => {
     }
 
     return (
-      anchor.href.includes(".pdf") || anchor.classList.contains("simplepdf")
+      anchor.href.includes(".pdf") ||
+      anchor.classList.contains("simplepdf") ||
+      isFormLink(anchor.href)
     );
   });
 
