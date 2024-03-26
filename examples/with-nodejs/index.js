@@ -50,21 +50,19 @@ app.get("/", (req, res) => {
           <th>Submitted at</th>
           <th>Submission context</th>
         </tr>
-        <tr>
-          ${events.map(
-            (event) =>
-              `
-              <td><a href="/submissions/${
-                event.data.submission.id
-              }">URL</a></td>
-              <td>${event.data.document.name}</td>
-              <td>${event.data.document.id}</td>
-              <td>${event.data.submission.id}</td>
-              <td>${event.data.submission.submitted_at}</td>
-              <td><code>${JSON.stringify(event.data.context)}</code></td>
-              `
-          )}
-        </tr>
+        ${events.map(
+          (event) =>
+            `
+            <tr>
+            <td><a href="/submissions/${event.data.submission.id}">URL</a></td>
+            <td>${event.data.document.name}</td>
+            <td>${event.data.document.id}</td>
+            <td>${event.data.submission.id}</td>
+            <td>${event.data.submission.submitted_at}</td>
+            <td><code>${JSON.stringify(event.data.context)}</code></td>
+            </tr>
+            `
+        )}
       </table>
     </body>
   </html>
