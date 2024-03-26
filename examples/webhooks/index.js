@@ -38,10 +38,8 @@ app.get("/", (req, res) => {
       <h3>Any PDF submitted through
         <a href="https://${companyIdentifier}.simplePDF.eu/editor" target="_blank">https://${companyIdentifier}.simplePDF.eu/editor</a> will appear below
       </h3>
-      <a href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/with-nodejs">Link to the code</a>
-      <p>
-        <i>Submissions URLs are valid for 15min</i>
-      </p>
+      <a href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/webhooks">Link to the code</a>
+      <p><i>Submissions URLs are valid for 15min</i></p>
       <table>
         <tr>
           <th>Submission URL</th>
