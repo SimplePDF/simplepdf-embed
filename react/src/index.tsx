@@ -28,7 +28,8 @@ interface ModalProps {
 }
 
 interface InternalProps {
-  simplePDFUrl: string;
+  editorURL: string;
+  documentDataURL: string | null;
   embedEventHandler: (event: MessageEvent<string>) => Promise<void>;
 }
 
@@ -44,12 +45,31 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
+const loadDocument = async ({
+  iframeRef,
+  documentDataURL,
+  editorDomain,
+}: {
+  iframeRef: React.RefObject<HTMLIFrameElement>;
+  documentDataURL: string;
+  editorDomain: string;
+}) => {
+  const editorDomainURL = new URL(editorDomain);
+  iframeRef.current?.contentWindow?.postMessage(
+    JSON.stringify({
+      type: "LOAD_DOCUMENT",
+      data: { data_url: documentDataURL },
+    }),
+    editorDomainURL.origin
+  );
+};
+
 const isInlineComponent = (props: Props): props is InlineProps =>
   (props as InlineProps).mode === "inline";
 
 const InlineComponent: React.FC<
   InternalProps & Pick<InlineProps, "className" | "style">
-> = ({ simplePDFUrl, embedEventHandler, className, style }) => {
+> = ({ editorURL, embedEventHandler, className, style, documentDataURL }) => {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   React.useEffect(() => {
@@ -63,10 +83,18 @@ const InlineComponent: React.FC<
     return () => window.removeEventListener("message", embedEventHandler);
   }, [iframeRef, embedEventHandler]);
 
+  React.useEffect(() => {
+    if (!documentDataURL) {
+      return;
+    }
+
+    loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
+  }, [documentDataURL]);
+
   return (
     <iframe
       ref={iframeRef}
-      src={simplePDFUrl}
+      src={editorURL}
       className={className}
       style={{ border: 0, ...style }}
     />
@@ -74,13 +102,21 @@ const InlineComponent: React.FC<
 };
 
 const ModalComponent: React.FC<
-  InternalProps & Pick<ModalProps, "children">
-> = ({ children, embedEventHandler, simplePDFUrl }) => {
+  InternalProps & Pick<ModalProps, "children"> & { onModalClose: () => void }
+> = ({
+  children,
+  embedEventHandler,
+  editorURL,
+  documentDataURL,
+  onModalClose,
+}) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   React.useEffect(() => {
     if (!shouldDisplayModal) {
       window.removeEventListener("message", embedEventHandler);
+      onModalClose();
       return;
     }
 
@@ -88,6 +124,14 @@ const ModalComponent: React.FC<
 
     return () => window.removeEventListener("message", embedEventHandler);
   }, [shouldDisplayModal, embedEventHandler]);
+
+  React.useEffect(() => {
+    if (!documentDataURL) {
+      return;
+    }
+
+    loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
+  }, [documentDataURL]);
 
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
@@ -113,9 +157,10 @@ const ModalComponent: React.FC<
               </button>
               <div className="simplePDF_iframeContainer">
                 <iframe
+                  ref={iframeRef}
                   referrerPolicy="no-referrer-when-downgrade"
                   className="simplePDF_iframe"
-                  src={simplePDFUrl}
+                  src={editorURL}
                 />
               </div>
             </div>
@@ -130,10 +175,44 @@ const ModalComponent: React.FC<
 
 export const EmbedPDF: React.FC<Props> = (props) => {
   const { context, companyIdentifier } = props;
+  const [documentDataURL, setDocumentDataURL] = React.useState<string | null>(
+    null
+  );
+  const [isEditorReady, setIsEditorReady] = React.useState(false);
 
-  const url: string | undefined = isInlineComponent(props)
-    ? props.documentURL
-    : props.children?.props?.href;
+  const url: string | null = isInlineComponent(props)
+    ? props.documentURL ?? null
+    : props.children?.props?.href ?? null;
+
+  React.useEffect(() => {
+    if (!url) {
+      return;
+    }
+
+    const fetchedDocumentBlob = async () => {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.error("Failed to retrieve the document", {
+          status: response.status,
+          url,
+        });
+      }
+
+      const blob = await response.blob();
+
+      const reader = new FileReader();
+      await new Promise((resolve, reject) => {
+        reader.onload = resolve;
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      return reader.result as string;
+    };
+
+    fetchedDocumentBlob().then((dataURL) => setDocumentDataURL(dataURL));
+  }, [url]);
 
   const editorDomain = React.useMemo(
     () => `https://${companyIdentifier ?? "embed"}.simplepdf.eu`,
@@ -142,15 +221,11 @@ export const EmbedPDF: React.FC<Props> = (props) => {
 
   const embedEventHandler = React.useCallback(
     async (event: MessageEvent<string>) => {
-      if (props.onEmbedEvent === undefined) {
-        return;
-      }
-
       if (event.origin !== editorDomain) {
         return;
       }
 
-      const payload: EmbedEvent | null = (() => {
+      const payload: (EmbedEvent | { type: "EDITOR_READY" }) | null = (() => {
         try {
           return JSON.parse(event.data);
         } catch (e) {
@@ -160,9 +235,19 @@ export const EmbedPDF: React.FC<Props> = (props) => {
       })();
 
       switch (payload?.type) {
+        case "EDITOR_READY":
+          setIsEditorReady(true);
+          return;
         case "DOCUMENT_LOADED":
         case "SUBMISSION_SENT":
-          await props.onEmbedEvent(payload);
+          try {
+            await props.onEmbedEvent?.(payload);
+          } catch (e) {
+            console.error(
+              `onEmbedEvent failed to execute: ${JSON.stringify(e)}`
+            );
+          }
+
           return;
 
         default:
@@ -172,41 +257,46 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     [props.onEmbedEvent, editorDomain]
   );
 
-  const simplePDFUrl = React.useMemo(() => {
-    const baseURL = `${editorDomain}/editor`;
-
-    const encodedContext = (() => {
-      if (!context) {
-        return null;
-      }
-
-      try {
-        return encodeURIComponent(btoa(JSON.stringify(context)));
-      } catch (e) {
-        console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
-          context,
-        });
-        return null;
-      }
-    })();
-
-    if (!url) {
-      return `${baseURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
+  const encodedContext: string | null = React.useMemo(() => {
+    if (!context) {
+      return null;
     }
 
-    const sanitizedOpenURL = encodeURIComponent(url);
+    try {
+      return encodeURIComponent(btoa(JSON.stringify(context)));
+    } catch (e) {
+      console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
+        context,
+      });
+      return null;
+    }
+  }, [JSON.stringify(context)]);
 
-    return `${baseURL}?open=${sanitizedOpenURL}${
-      encodedContext ? `&context=${encodedContext}` : ""
-    }`;
-  }, [editorDomain, url, context]);
+  const editorURL = React.useMemo(() => {
+    const simplePDFEditorURL = new URL("/editor", editorDomain);
+
+    if (encodedContext) {
+      simplePDFEditorURL.searchParams.set("context", encodedContext);
+    }
+
+    if (url) {
+      simplePDFEditorURL.searchParams.set("loadingPlaceholder", "true");
+    }
+
+    return simplePDFEditorURL.href;
+  }, [editorDomain, url, encodedContext]);
+
+  React.useEffect(() => {
+    setIsEditorReady(false);
+  }, [editorURL]);
 
   if (isInlineComponent(props)) {
     return (
       <InlineComponent
         className={props.className}
         style={props.style}
-        simplePDFUrl={simplePDFUrl}
+        editorURL={editorURL}
+        documentDataURL={isEditorReady ? documentDataURL : null}
         embedEventHandler={embedEventHandler}
       />
     );
@@ -215,8 +305,12 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   return (
     <ModalComponent
       children={props.children}
-      simplePDFUrl={simplePDFUrl}
+      editorURL={editorURL}
+      documentDataURL={isEditorReady ? documentDataURL : null}
       embedEventHandler={embedEventHandler}
+      onModalClose={() => {
+        setIsEditorReady(false);
+      }}
     />
   );
 };
