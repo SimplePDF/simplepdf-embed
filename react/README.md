@@ -147,7 +147,7 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
     <td>documentURL</td>
     <td>string</td>
     <td>No</td>
-    <td>Available for inline mode only</td>
+    <td>Supports blob URLs, CORS URLs, and authenticated URLs (against the same origin). Available for inline mode only</td>
   </tr>
   <tr>
     <td>style</td>
