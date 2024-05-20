@@ -89,7 +89,7 @@ const InlineComponent: React.FC<
     }
 
     loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
-  }, [documentDataURL]);
+  }, [documentDataURL, editorURL]);
 
   return (
     <iframe
@@ -131,7 +131,7 @@ const ModalComponent: React.FC<
     }
 
     loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
-  }, [documentDataURL]);
+  }, [documentDataURL, editorURL]);
 
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
@@ -175,9 +175,10 @@ const ModalComponent: React.FC<
 
 export const EmbedPDF: React.FC<Props> = (props) => {
   const { context, companyIdentifier } = props;
-  const [documentDataURL, setDocumentDataURL] = React.useState<string | null>(
-    null
-  );
+  const [documentURL, setDocumentURL] = React.useState<{
+    type: "iframe_event" | "cors_proxy_fallback";
+    value: string;
+  } | null>(null);
   const [isEditorReady, setIsEditorReady] = React.useState(false);
 
   const url: string | null = isInlineComponent(props)
@@ -190,13 +191,18 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     }
 
     const fetchedDocumentBlob = async () => {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "same-origin",
+      });
 
       if (!response.ok) {
-        console.error("Failed to retrieve the document", {
-          status: response.status,
-          url,
-        });
+        throw new Error(
+          `Failed to retrieve the document: ${JSON.stringify({
+            status: response.status,
+            url,
+          })}`
+        );
       }
 
       const blob = await response.blob();
@@ -211,7 +217,13 @@ export const EmbedPDF: React.FC<Props> = (props) => {
       return reader.result as string;
     };
 
-    fetchedDocumentBlob().then((dataURL) => setDocumentDataURL(dataURL));
+    fetchedDocumentBlob()
+      .then((dataURL) =>
+        setDocumentURL({ type: "iframe_event", value: dataURL })
+      )
+      .catch(() => {
+        setDocumentURL({ type: "cors_proxy_fallback", value: url });
+      });
   }, [url]);
 
   const editorDomain = React.useMemo(
@@ -283,12 +295,21 @@ export const EmbedPDF: React.FC<Props> = (props) => {
       simplePDFEditorURL.searchParams.set("loadingPlaceholder", "true");
     }
 
+    if (documentURL?.type === "cors_proxy_fallback") {
+      simplePDFEditorURL.searchParams.set("open", documentURL.value);
+    }
+
     return simplePDFEditorURL.href;
-  }, [editorDomain, url, encodedContext]);
+  }, [editorDomain, url, encodedContext, documentURL?.type]);
 
   React.useEffect(() => {
     setIsEditorReady(false);
   }, [editorURL]);
+
+  const documentDataURL =
+    isEditorReady && documentURL?.type === "iframe_event"
+      ? documentURL.value
+      : null;
 
   if (isInlineComponent(props)) {
     return (
@@ -296,7 +317,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
         className={props.className}
         style={props.style}
         editorURL={editorURL}
-        documentDataURL={isEditorReady ? documentDataURL : null}
+        documentDataURL={documentDataURL}
         embedEventHandler={embedEventHandler}
       />
     );
@@ -306,7 +327,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     <ModalComponent
       children={props.children}
       editorURL={editorURL}
-      documentDataURL={isEditorReady ? documentDataURL : null}
+      documentDataURL={documentDataURL}
       embedEventHandler={embedEventHandler}
       onModalClose={() => {
         setIsEditorReady(false);
