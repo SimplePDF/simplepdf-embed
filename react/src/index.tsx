@@ -29,8 +29,6 @@ interface ModalProps {
 
 interface InternalProps {
   editorURL: string;
-  documentDataURL: string | null;
-  embedEventHandler: (event: MessageEvent<string>) => Promise<void>;
 }
 
 const CloseIcon: React.FC = () => (
@@ -67,71 +65,24 @@ const loadDocument = async ({
 const isInlineComponent = (props: Props): props is InlineProps =>
   (props as InlineProps).mode === "inline";
 
-const InlineComponent: React.FC<
-  InternalProps & Pick<InlineProps, "className" | "style">
-> = ({ editorURL, embedEventHandler, className, style, documentDataURL }) => {
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
-
-  React.useEffect(() => {
-    if (!iframeRef.current) {
-      window.removeEventListener("message", embedEventHandler);
-      return;
-    }
-
-    window.addEventListener("message", embedEventHandler, false);
-
-    return () => window.removeEventListener("message", embedEventHandler);
-  }, [iframeRef, embedEventHandler]);
-
-  React.useEffect(() => {
-    if (!documentDataURL) {
-      return;
-    }
-
-    loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
-  }, [documentDataURL, editorURL]);
-
+const InlineComponent = React.forwardRef<
+  HTMLIFrameElement,
+  Pick<InlineProps, "className" | "style">
+>(({ className, style }, iframeRef) => {
   return (
     <iframe
       ref={iframeRef}
-      src={editorURL}
       className={className}
       style={{ border: 0, ...style }}
     />
   );
-};
+});
 
-const ModalComponent: React.FC<
-  InternalProps & Pick<ModalProps, "children"> & { onModalClose: () => void }
-> = ({
-  children,
-  embedEventHandler,
-  editorURL,
-  documentDataURL,
-  onModalClose,
-}) => {
+const ModalComponent = React.forwardRef<
+  HTMLIFrameElement,
+  InternalProps & Pick<ModalProps, "children">
+>(({ children, editorURL }, iframeRef) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
-
-  React.useEffect(() => {
-    if (!shouldDisplayModal) {
-      window.removeEventListener("message", embedEventHandler);
-      onModalClose();
-      return;
-    }
-
-    window.addEventListener("message", embedEventHandler, false);
-
-    return () => window.removeEventListener("message", embedEventHandler);
-  }, [shouldDisplayModal, embedEventHandler]);
-
-  React.useEffect(() => {
-    if (!documentDataURL) {
-      return;
-    }
-
-    loadDocument({ iframeRef, documentDataURL, editorDomain: editorURL });
-  }, [documentDataURL, editorURL]);
 
   const handleAnchorClick = React.useCallback((e: Event) => {
     e.preventDefault();
@@ -171,15 +122,16 @@ const ModalComponent: React.FC<
       {React.cloneElement(children, { onClick: handleAnchorClick })}
     </>
   );
-};
+});
 
 export const EmbedPDF: React.FC<Props> = (props) => {
   const { context, companyIdentifier } = props;
-  const [documentURL, setDocumentURL] = React.useState<{
-    type: "iframe_event" | "cors_proxy_fallback";
-    value: string;
-  } | null>(null);
-  const [isEditorReady, setIsEditorReady] = React.useState(false);
+  const [documentState, setDocumentState] = React.useState<{
+    type: "iframe_event" | "cors_proxy_fallback" | null;
+    value: string | null;
+    isEditorReady: boolean;
+  }>({ type: null, value: null, isEditorReady: false });
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   const url: string | null = isInlineComponent(props)
     ? props.documentURL ?? null
@@ -219,10 +171,18 @@ export const EmbedPDF: React.FC<Props> = (props) => {
 
     fetchedDocumentBlob()
       .then((dataURL) =>
-        setDocumentURL({ type: "iframe_event", value: dataURL })
+        setDocumentState((prev) => ({
+          ...prev,
+          type: "iframe_event",
+          value: dataURL,
+        }))
       )
       .catch(() => {
-        setDocumentURL({ type: "cors_proxy_fallback", value: url });
+        setDocumentState((prev) => ({
+          ...prev,
+          type: "cors_proxy_fallback",
+          value: url,
+        }));
       });
   }, [url]);
 
@@ -231,9 +191,31 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     [companyIdentifier]
   );
 
+  React.useEffect(() => {
+    if (
+      !documentState.isEditorReady ||
+      documentState.type !== "iframe_event" ||
+      documentState.value === null
+    ) {
+      return;
+    }
+
+    loadDocument({
+      iframeRef,
+      documentDataURL: documentState.value,
+      editorDomain,
+    });
+  }, [documentState, editorDomain]);
+
   const embedEventHandler = React.useCallback(
     async (event: MessageEvent<string>) => {
       if (event.origin !== editorDomain) {
+        return;
+      }
+
+      const isTrustedIframe = event.source === iframeRef.current?.contentWindow;
+
+      if (!isTrustedIframe) {
         return;
       }
 
@@ -248,7 +230,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
 
       switch (payload?.type) {
         case "EDITOR_READY":
-          setIsEditorReady(true);
+          setDocumentState((prev) => ({ ...prev, isEditorReady: true }));
           return;
         case "DOCUMENT_LOADED":
         case "SUBMISSION_SENT":
@@ -268,6 +250,12 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     },
     [props.onEmbedEvent, editorDomain]
   );
+
+  React.useEffect(() => {
+    window.addEventListener("message", embedEventHandler, false);
+
+    return () => window.removeEventListener("message", embedEventHandler);
+  }, [embedEventHandler]);
 
   const encodedContext: string | null = React.useMemo(() => {
     if (!context) {
@@ -295,30 +283,37 @@ export const EmbedPDF: React.FC<Props> = (props) => {
       simplePDFEditorURL.searchParams.set("loadingPlaceholder", "true");
     }
 
-    if (documentURL?.type === "cors_proxy_fallback") {
-      simplePDFEditorURL.searchParams.set("open", documentURL.value);
+    if (
+      documentState?.type === "cors_proxy_fallback" &&
+      documentState?.value !== null
+    ) {
+      simplePDFEditorURL.searchParams.set("open", documentState.value);
     }
 
     return simplePDFEditorURL.href;
-  }, [editorDomain, url, encodedContext, documentURL?.type]);
+  }, [editorDomain, url, encodedContext, documentState]);
+
+  const isInline = isInlineComponent(props);
 
   React.useEffect(() => {
-    setIsEditorReady(false);
-  }, [editorURL]);
+    // SSR support for the inline component:
+    // Set the iframe URL only once it's rendered client side so that we can listen to the "READY" event
+    // (The modal component is already only rendered client side as it requires a user click to load the iframe)
+    if (!isInline) {
+      return;
+    }
 
-  const documentDataURL =
-    isEditorReady && documentURL?.type === "iframe_event"
-      ? documentURL.value
-      : null;
+    if (iframeRef && iframeRef.current) {
+      iframeRef.current.src = editorURL;
+    }
+  }, [editorURL, isInline]);
 
-  if (isInlineComponent(props)) {
+  if (isInline) {
     return (
       <InlineComponent
         className={props.className}
         style={props.style}
-        editorURL={editorURL}
-        documentDataURL={documentDataURL}
-        embedEventHandler={embedEventHandler}
+        ref={iframeRef}
       />
     );
   }
@@ -327,11 +322,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     <ModalComponent
       children={props.children}
       editorURL={editorURL}
-      documentDataURL={documentDataURL}
-      embedEventHandler={embedEventHandler}
-      onModalClose={() => {
-        setIsEditorReady(false);
-      }}
+      ref={iframeRef}
     />
   );
 };
