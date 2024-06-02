@@ -9,22 +9,23 @@ export type EmbedEvent =
 
 type Props = InlineProps | ModalProps;
 
-interface InlineProps {
+interface CommonProps {
+  companyIdentifier?: string;
+  context?: Record<string, unknown>;
+  onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
+  locale?: "en" | "de" | "es" | "fr" | "it" | "pt";
+}
+
+interface InlineProps extends CommonProps {
   mode: "inline";
   className?: string;
   style?: React.CSSProperties;
-  companyIdentifier?: string;
   documentURL?: string;
-  context?: Record<string, unknown>;
-  onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
 }
 
-interface ModalProps {
+interface ModalProps extends CommonProps {
   mode?: "modal";
   children: React.ReactElement;
-  companyIdentifier?: string;
-  context?: Record<string, unknown>;
-  onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
 }
 
 interface InternalProps {
@@ -61,6 +62,8 @@ const loadDocument = async ({
     editorDomainURL.origin
   );
 };
+
+const DEFAULT_LOCALE = "en";
 
 const isInlineComponent = (props: Props): props is InlineProps =>
   (props as InlineProps).mode === "inline";
@@ -125,7 +128,7 @@ const ModalComponent = React.forwardRef<
 });
 
 export const EmbedPDF: React.FC<Props> = (props) => {
-  const { context, companyIdentifier } = props;
+  const { context, companyIdentifier, locale } = props;
   const [documentState, setDocumentState] = React.useState<{
     type: "iframe_event" | "cors_proxy_fallback" | null;
     value: string | null;
@@ -209,7 +212,10 @@ export const EmbedPDF: React.FC<Props> = (props) => {
 
   const embedEventHandler = React.useCallback(
     async (event: MessageEvent<string>) => {
-      if (event.origin !== editorDomain) {
+      const eventOrigin = new URL(event.origin).origin;
+      const iframeOrigin = new URL(editorDomain).origin;
+
+      if (eventOrigin !== iframeOrigin) {
         return;
       }
 
@@ -273,7 +279,10 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   }, [JSON.stringify(context)]);
 
   const editorURL = React.useMemo(() => {
-    const simplePDFEditorURL = new URL("/editor", editorDomain);
+    const simplePDFEditorURL = new URL(
+      `/${locale ?? DEFAULT_LOCALE}/editor`,
+      editorDomain
+    );
 
     if (encodedContext) {
       simplePDFEditorURL.searchParams.set("context", encodedContext);
@@ -291,7 +300,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     }
 
     return simplePDFEditorURL.href;
-  }, [editorDomain, url, encodedContext, documentState]);
+  }, [editorDomain, url, encodedContext, documentState, locale]);
 
   const isInline = isInlineComponent(props);
 

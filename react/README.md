@@ -116,8 +116,14 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
   <tr>
     <td>mode</td>
     <td>"inline" | "modal"</td>
-    <td>No</td>
+    <td>No (defaults to "modal")</td>
     <td>Inline the editor or display it inside a modal</td>
+  </tr>
+    <tr>
+    <td>locale</td>
+    <td>"en" | "de" | "es" | "fr" | "it" | "pt"</td>
+    <td>No (defaults to "en")</td>
+    <td>Language to display the editor in (ISO locale)</td>
   </tr>
   <tr>
     <td>children</td>
