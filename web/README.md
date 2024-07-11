@@ -105,13 +105,13 @@ SimplePDF currently supports the following languages automatically detects the l
 #### Open the editor with a specific PDF
 
 ```javascript
-window.simplePDF.openEditor({ url: "publicly_available_url_pdf" });
+window.simplePDF.openEditor({ href: "publicly_available_url_pdf" });
 ```
 
 #### Let your customers pick the PDF on their computer
 
 ```javascript
-window.simplePDF.openEditor({ url: null });
+window.simplePDF.openEditor({ href: null });
 ```
 
 ### Closing the editor programmatically
@@ -133,7 +133,7 @@ _Do not store sensitive information in the context (!!) as it is available local
 
 ```javascript
 window.simplePDF.openEditor({
-  url: "publicly_available_url_pdf",
+  href: "publicly_available_url_pdf",
   context: {
     customer_id: "123",
     environment: "prod",
