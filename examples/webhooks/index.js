@@ -123,9 +123,9 @@ app.get("/submissions/:submissionId", (req, res) => {
           )}</code></td>
         </tr>
       </table>
-      <iframe src=https://${companyIdentifier}.simplePDF.eu/editor?open=${encodeURIComponent(
-    matchingSubmission.data.submission.url
-  )} width="100%" height="900px"/>
+      <iframe src=https://viewer.simplePDF.eu/editor?open=${encodeURIComponent(
+        matchingSubmission.data.submission.url
+      )} width="100%" height="900px"/>
     </body>
   </html>
   `);
