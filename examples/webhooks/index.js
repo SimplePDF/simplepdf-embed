@@ -49,9 +49,10 @@ app.get("/", (req, res) => {
           <th>Submitted at</th>
           <th>Submission context</th>
         </tr>
-        ${events.map(
-          (event) =>
-            `
+        ${events
+          .map(
+            (event) =>
+              `
             <tr>
             <td><a href="/submissions/${event.data.submission.id}">URL</a></td>
             <td>${event.data.document.name}</td>
@@ -61,7 +62,8 @@ app.get("/", (req, res) => {
             <td><code>${JSON.stringify(event.data.context)}</code></td>
             </tr>
             `
-        )}
+          )
+          .join("")}
       </table>
     </body>
   </html>
