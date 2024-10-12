@@ -1,10 +1,10 @@
 </br>
 </br>
 <div align="center">
-  <a href="https://simplepdf.eu" target="_blank">
+  <a href="https://simplepdf.com" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github-white.png">
-    <img src="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png">
+    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
   </picture>
   </a>
 </div>
@@ -16,7 +16,7 @@ Add a powerful PDF editor directly into your React App.
 </br>
 <p align="center">
 <br/>
-<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
+<a href="https://simplepdf.com/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
 <br/>
 <br/>
 <a href="https://discord.gg/n6M8jb5GEP">Join Our Discord</a>
@@ -26,7 +26,7 @@ Add a powerful PDF editor directly into your React App.
 <br/>
 <br/>
 
-Easily add [SimplePDF](https://simplepdf.eu) to your React app, by using the `EmbedPDF` component.
+Easily add [SimplePDF](https://simplepdf.com) to your React app, by using the `EmbedPDF` component.
 
 ## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed)
 
@@ -40,16 +40,16 @@ npm install @simplepdf/react-embed-pdf
 
 The `EmbedPDF` component has two modes: `"modal"` (default) and `"inline"`.
 
-It can be tied to a [SimplePDF account](https://simplePDF.eu/pricing#g).
+It can be tied to a [SimplePDF account](https://simplepdf.com/pricing#g).
 
 ### Account-specific features
 
 While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` to:
 
-- [Aautomatically collect your users' submissions](https://simplepdf.eu/embed)
-- [Customize the editor and use your own branding](https://simplepdf.eu/help/how-to/customize-the-pdf-editor-and-add-branding)
-- [Use your own storage](https://simplepdf.eu/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
-- [Configure webhooks](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions)
+- [Aautomatically collect your users' submissions](https://simplepdf.com/embed)
+- [Customize the editor and use your own branding](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding)
+- [Use your own storage](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
+- [Configure webhooks](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
 
 _Example_
 
@@ -57,7 +57,7 @@ _Example_
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 <EmbedPDF companyIdentifier="yourcompany">
-  <a href="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf">
+  <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
     Opens sample.pdf
   </a>
 </EmbedPDF>;
@@ -72,7 +72,7 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 // Opens the PDF on click
 <EmbedPDF>
-  <a href="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf">
+  <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
     Opens sample.pdf
   </a>
 </EmbedPDF>
@@ -94,7 +94,7 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
  <EmbedPDF
   mode="inline"
   style={{ width: 900, height: 800 }}
-  documentURL="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf"
+  documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
 />
 
 // The PDF picker is displayed when rendering the component
@@ -135,13 +135,13 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
     <td>companyIdentifier</td>
     <td>string</td>
     <td>No</td>
-    <td><a href="https://simplePDF.eu/embed">Allows collecting customers submissions</a></td>
+    <td><a href="https://simplepdf.com/embed">Allows collecting customers submissions</a></td>
   </tr>
   <tr>
     <td>context</td>
     <td>Record&lt;string, unknown&gt;</td>
     <td>No</td>
-    <td><a href="https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events">Sent via webhooks</a></td>
+    <td><a href="https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions#events">Sent via webhooks</a></td>
   </tr>
   <tr>
     <td>onEmbedEvent</td>

@@ -71,7 +71,7 @@ export const handleOpenEditor =
       }
     })();
 
-    const baseEditorURL = `https://${companyIdentifier}.simplePDF.eu/${locale}/editor`;
+    const baseEditorURL = `https://${companyIdentifier}.simplepdf.com/${locale}/editor`;
 
     const editorURL = sanitizedOpenURL
       ? `${baseEditorURL}?open=${sanitizedOpenURL}${

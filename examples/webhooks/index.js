@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
     </head>
     <body>
       <h3>Any PDF submitted through
-        <a href="https://${companyIdentifier}.simplePDF.eu/editor" target="_blank">https://${companyIdentifier}.simplePDF.eu/editor</a> will appear below
+        <a href="https://${companyIdentifier}.simplepdf.com/editor" target="_blank">https://${companyIdentifier}.simplepdf.com/editor</a> will appear below
       </h3>
       <a href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/webhooks">Link to the code</a>
       <p><i>Submissions URLs are valid for 15min</i></p>
@@ -123,7 +123,7 @@ app.get("/submissions/:submissionId", (req, res) => {
           )}</code></td>
         </tr>
       </table>
-      <iframe src=https://viewer.simplePDF.eu/editor?open=${encodeURIComponent(
+      <iframe src=https://viewer.simplepdf.com/editor?open=${encodeURIComponent(
         matchingSubmission.data.submission.url
       )} width="100%" height="900px"/>
     </body>

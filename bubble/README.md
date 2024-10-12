@@ -1,10 +1,10 @@
 </br>
 </br>
 <div align="center">
-  <a href="https://simplepdf.eu" target="_blank">
+  <a href="https://simplepdf.com" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github-white.png">
-    <img src="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png">
+    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
   </picture>
   </a>
 </div>
@@ -64,12 +64,12 @@ Choose the language of the interface between 6 languages:
 
 === WHY IS IT FREE? ===
 
-https://simplepdf.eu/help/faq/is-pdf-editor-free-to-use
+https://simplepdf.com/help/faq/is-pdf-editor-free-to-use
 
 # Instructions
 
 Simply place the SimplePDF element wherever needed in your bubble app: any click on the element will open the SimplePDF editor.
 
-If you have any questions, feel free to contact us at bubble@simplepdf.eu
+If you have any questions, feel free to contact us at bubble@simplepdf.com
 
 Or leave a message in the Bubble forum: https://forum.bubble.io/t/pdf-editor-plugin-fill-forms-add-text-signatures-pictures/271656

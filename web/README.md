@@ -1,10 +1,10 @@
 </br>
 </br>
 <div align="center">
-  <a href="https://simplepdf.eu" target="_blank">
+  <a href="https://simplepdf.com" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github-white.png">
-    <img src="https://cdn.simplepdf.eu/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png">
+    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
   </picture>
   </a>
 </div>
@@ -16,7 +16,7 @@ Add a powerful PDF editor directly into your website.
 </br>
 <p align="center">
 <br/>
-<a href="https://simplepdf.eu/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
+<a href="https://simplepdf.com/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
 <br/>
 <br/>
 <a href="https://discord.gg/n6M8jb5GEP">Join Our Discord</a>
@@ -26,7 +26,7 @@ Add a powerful PDF editor directly into your website.
 <br/>
 <br/>
 
-Open PDF files with [SimplePDF](https://simplepdf.eu), using a simple script tag.
+Open PDF files with [SimplePDF](https://simplepdf.com), using a simple script tag.
 
 ## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Web)
 
@@ -54,7 +54,7 @@ _Replace `companyIdentifier` with your own_
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.eu/portal) are automatically opened in [SimplePDF](https://simplepdf.eu)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
 
 ### I don't want every PDF document to be opened in SimplePDF
 
@@ -122,7 +122,7 @@ window.simplePDF.closeEditor();
 
 ### Specifying a context
 
-_The context is sent as part of the submission via the webhooks integration: [read more](https://simplepdf.eu/help/how-to/configure-webhooks-pdf-form-submissions#events)_
+_The context is sent as part of the submission via the webhooks integration: [read more](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions#events)_
 
 **Use-cases:**
 

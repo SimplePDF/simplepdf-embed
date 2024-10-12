@@ -16,13 +16,13 @@ export default function Index() {
       <h2>Without an account</h2>
       <h3>Modal mode (default)</h3>
       <EmbedPDF>
-        <a href="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf">
+        <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
           Opens sample.pdf in a modal
         </a>
       </EmbedPDF>
       <h3>Inline mode</h3>
       <EmbedPDF
-        documentURL="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf"
+        documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
         mode="inline"
         style={{ width: 1200, height: 800 }}
       />
@@ -30,14 +30,14 @@ export default function Index() {
       <h2>With an account</h2>
       <h3>Modal mode (default)</h3>
       <EmbedPDF companyIdentifier="yourcompany">
-        <a href="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf">
+        <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
           Opens sample.pdf in a modal
         </a>
       </EmbedPDF>
       <h3>Inline mode</h3>
       <EmbedPDF
         companyIdentifier="yourcompany"
-        documentURL="https://cdn.simplepdf.eu/simple-pdf/assets/sample.pdf"
+        documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
         mode="inline"
         style={{ width: 1200, height: 800 }}
       />
