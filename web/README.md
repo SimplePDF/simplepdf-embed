@@ -3,12 +3,12 @@
 <div align="center">
   <a href="https://simplepdf.com" target="_blank">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png">
-    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png" width="280" alt="Logo"/>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png?">
+    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png?" width="280" alt="Logo"/>
   </picture>
   </a>
 </div>
-<h1 align="center">SimplePDF Web Embed</h1>
+<br/>
 <div align="center">
 Add a powerful PDF editor directly into your website.
 </div>
