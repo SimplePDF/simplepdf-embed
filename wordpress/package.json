@@ -5,6 +5,6 @@
     "package-plugin": "npm install && npm run copy-src && npm run copy-build"
   },
   "dependencies": {
-    "@simplepdf/web-embed-pdf": "^1.7.0"
+    "@simplepdf/web-embed-pdf": "^1.7.2"
   }
 }
