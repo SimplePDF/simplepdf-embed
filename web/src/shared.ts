@@ -1,7 +1,7 @@
 import { EditorConfig } from "./types";
 
 const isFormLink = (url: string) => {
-  const regex = /^https:\/\/[^.]+\.simplepdf\.eu\/[^\/]+\/form\/.+/;
+  const regex = /^https:\/\/[^.]+\.simplepdf\.com\/[^\/]+\/form\/.+/;
   return regex.test(url);
 };
 
