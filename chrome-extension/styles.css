@@ -1,5 +1,5 @@
 .header {
-  padding: 20px;
+  padding: 20px 10px;
 }
 
 .header .logo {
@@ -10,13 +10,13 @@
   display: flex;
   justify-content: center;
   padding: 20px;
-  min-width: 240px;
+  min-width: 280px;
 }
 
 .openEditorButton {
   font-weight: 600;
-  border-color: #2ecc71;
-  background-color: #2ecc71;
+  border-color: #5380e3;
+  background-color: #5380e3;
   text-shadow: 1px 1px #2f955a;
   color: #fff;
   position: relative;
@@ -26,12 +26,12 @@
   cursor: pointer;
   border: 1px solid transparent;
   font-family: inherit;
-  border-radius: 3px;
+  border-radius: 8px;
   font-size: 16px;
   padding: 10px 12px;
 
   box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 24%);
-  outline-color: #35a3ff;
+  outline-color: #5380e3;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   text-decoration: none;
 }

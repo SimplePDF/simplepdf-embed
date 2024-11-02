@@ -1,0 +1,20 @@
+{
+  "app_name": {
+    "message": "SimplePDF - Editar, Assinar e Preencher PDF"
+  },
+  "app_description": {
+    "message": "Edite, assine e preencha PDFs sem sair do seu separador atual com o SimplePDF - o editor online que respeita a sua privacidade"
+  },
+  "openEditor": {
+    "message": "Abrir o editor de PDF"
+  },
+  "editWithSimplePDF": {
+    "message": "Editar com o SimplePDF"
+  },
+  "unableToOpenInCurrentTab": {
+    "message": "O editor SimplePDF não pôde ser aberto no separador atual"
+  },
+  "openedInOtherTab": {
+    "message": "Abrimos o editor num novo separador para si"
+  }
+}

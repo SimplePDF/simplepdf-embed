@@ -1,7 +1,8 @@
 {
-  "name": "SimplePDF - Edit and Fill PDF",
-  "description": "Edit, merge and rotate PDF files without leaving your current tab using SimplePDF - the online editor that respects your privacy",
-  "version": "1.2.0",
+  "name": "__MSG_app_name__",
+  "description": "__MSG_app_description__",
+  "default_locale": "en",
+  "version": "1.2.1",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting"],
   "action": {

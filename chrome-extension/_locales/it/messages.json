@@ -1,0 +1,20 @@
+{
+  "app_name": {
+    "message": "SimplePDF - Modifica, Firma e Compila PDF"
+  },
+  "app_description": {
+    "message": "Modifica, firma e compila PDF senza lasciare la tua scheda corrente con SimplePDF - l'editor online che rispetta la tua privacy"
+  },
+  "openEditor": {
+    "message": "Apri l'editor PDF"
+  },
+  "editWithSimplePDF": {
+    "message": "Modifica con SimplePDF"
+  },
+  "unableToOpenInCurrentTab": {
+    "message": "L'editor SimplePDF non è stato autorizzato ad aprirsi nella scheda corrente"
+  },
+  "openedInOtherTab": {
+    "message": "Abbiamo aperto l'editor in una nuova scheda per te"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "app_name": {
+    "message": "SimplePDF - Edit, Sign and Fill PDF"
+  },
+  "app_description": {
+    "message": "Edit, sign, and fill PDF without leaving your current tab using SimplePDF - the online editor that respects your privacy"
+  },
+  "openEditor": {
+    "message": "Open PDF Editor"
+  },
+  "editWithSimplePDF": {
+    "message": "Edit with SimplePDF"
+  },
+  "unableToOpenInCurrentTab": {
+    "message": "The SimplePDF editor was not allowed to be opened in the current tab"
+  },
+  "openedInOtherTab": {
+    "message": "We opened the editor in a new tab for you"
+  }
+}

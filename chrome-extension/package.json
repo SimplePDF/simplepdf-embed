@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@simplepdf/web-embed-pdf": "^1.2.3"
+    "@simplepdf/web-embed-pdf": "^1.7.2"
   }
 }

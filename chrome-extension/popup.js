@@ -8,7 +8,7 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
     },
     (tab) => {
       if (!tab) {
-        openEditorButton.textContent = "Open SimplePDF";
+        openEditorButton.textContent = chrome.i18n.getMessage("openEditor");
         return;
       }
 
@@ -19,8 +19,8 @@ chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       ] = tab;
 
       openEditorButton.textContent = isPDF
-        ? "Edit with SimplePDF"
-        : "Open SimplePDF";
+        ? chrome.i18n.getMessage("editWithSimplePDF")
+        : chrome.i18n.getMessage("openEditor");
     }
   );
 });
@@ -41,7 +41,7 @@ async function handleOpenEditor () {
 
     const href = isPDF ? currentURL : null;
 
-    window.simplePDF.createModal({ href });
+    window.simplePDF.openEditor({ href });
   };
 
   try {
@@ -61,12 +61,12 @@ async function handleOpenEditor () {
 
     window.close();
   } catch(e) {
-    chrome.tabs.create({ url: 'https://simplePDF.eu/editor', active: false });
+    chrome.tabs.create({ url: 'https://simplePDF.com/editor', active: false });
     openEditorButton.style.display = "none";
-    errorDetails.textContent = "The SimplePDF editor was not allowed to be opened in the current tab";
-    errorMessage.textContent = "We opened the editor in a new tab for you";
+    errorDetails.textContent = chrome.i18n.getMessage("unableToOpenInCurrentTab");
+    errorMessage.textContent = chrome.i18n.getMessage("openedInOtherTab");
 
-    await fetch('https://chrome.simplePDF.eu/graphql', {
+    await fetch('https://chrome.simplePDF.com/graphql', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

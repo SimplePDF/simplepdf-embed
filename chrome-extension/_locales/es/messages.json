@@ -1,0 +1,20 @@
+{
+  "app_name": {
+    "message": "SimplePDF - Editar, Firmar y Rellenar PDF"
+  },
+  "app_description": {
+    "message": "Edita, firma y rellena PDF sin salir de tu pestaña actual usando SimplePDF - el editor en línea que respeta tu privacidad"
+  },
+  "openEditor": {
+    "message": "Abrir el editor de PDF"
+  },
+  "editWithSimplePDF": {
+    "message": "Editar con SimplePDF"
+  },
+  "unableToOpenInCurrentTab": {
+    "message": "No se pudo abrir el editor de SimplePDF en la pestaña actual"
+  },
+  "openedInOtherTab": {
+    "message": "Abrimos el editor en una nueva pestaña para ti"
+  }
+}

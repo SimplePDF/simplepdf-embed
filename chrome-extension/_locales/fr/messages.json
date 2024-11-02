@@ -1,0 +1,20 @@
+{
+  "app_name": {
+    "message": "SimplePDF - Modifier, Signer et Remplir des PDF"
+  },
+  "app_description": {
+    "message": "Éditez, signez et remplissez vos fichiers PDF sans quitter votre onglet actuel grâce à SimplePDF - l'éditeur en ligne qui respecte votre vie privée"
+  },
+  "openEditor": {
+    "message": "Ouvrir l'éditeur PDF"
+  },
+  "editWithSimplePDF": {
+    "message": "Éditer avec SimplePDF"
+  },
+  "unableToOpenInCurrentTab": {
+    "message": "L'éditeur SimplePDF n'a pas pu être ouvert dans l'onglet actuel"
+  },
+  "openedInOtherTab": {
+    "message": "Nous avons ouvert l'éditeur dans un nouvel onglet pour vous"
+  }
+}
