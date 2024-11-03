@@ -136,10 +136,10 @@ app.post("/webhooks", (req, res) => {
   switch (eventType) {
     case "submission.created":
       events.push(req.body);
-      return res.status(200);
+      return res.status(200).end();
     default:
       console.log(`Unhandled event type: ${eventType}`);
-      return res.status(200);
+      return res.status(200).end();
   }
 });
 
