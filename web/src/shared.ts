@@ -11,7 +11,8 @@ const UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED = 'Unexpected: SimplePDF iframe n
 const editorContext: EditorContext = {
   getFromConfig: (key: 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
   log: (message: string, details: Record<string, unknown>) => {
-    const isDebug = document.currentScript?.getAttribute('debug') !== null;
+    const debugAttribute = document.currentScript?.getAttribute('debug');
+    const isDebug = debugAttribute !== null && debugAttribute !== undefined;
 
     if (!isDebug) {
       return;
