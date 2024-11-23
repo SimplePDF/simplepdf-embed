@@ -181,14 +181,6 @@ const eventsListener = (event: MessageEvent) => {
       return;
     case 'DOCUMENT_LOADED':
     case 'SUBMISSION_SENT':
-      try {
-        console.log(payload);
-      } catch (e) {
-        console.error(`onEmbedEvent failed to execute: ${JSON.stringify(e)}`);
-      }
-
-      return;
-
     default:
       return;
   }
@@ -222,6 +214,11 @@ function sendEventToIframe(event: OutgoingIframeEvent) {
 
 export const openEditor = ({ href, context }: { href: string | null; context?: Record<string, unknown> }): void => {
   const { getFromConfig, log, getEditor } = editorContext;
+
+  if (getEditor().iframe) {
+    log('Editor already opened', {});
+    return;
+  }
 
   const companyIdentifier = getFromConfig('companyIdentifier');
   const locale = getFromConfig('locale');
