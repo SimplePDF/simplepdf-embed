@@ -1,10 +1,12 @@
-import { EditorConfig, EditorContext, Locale, ConfigSetter } from './types';
+import { EditorConfig, EditorContext, Locale, ConfigSetter, OutgoingIframeEvent, IncomingIframeEvent } from './types';
 
 const MODAL_ID = 'simplePDF_modal' as const;
 const MODAL_CLOSE_BUTTON_ID = 'simplePDF_modal_close_button' as const;
 const MODAL_STYLE_ID = 'simplePDF_modal_style' as const;
+const IFRAME_ID = 'simplePDF_iframe' as const;
 
-const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: winod.simplePDF not initialized';
+const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: window.simplePDF not initialized';
+const UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED = 'Unexpected: SimplePDF iframe not instantiated';
 
 const editorContext: EditorContext = {
   getFromConfig: (key: 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
@@ -17,14 +19,15 @@ const editorContext: EditorContext = {
 
     console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
   },
-  getListeners: () => {
-    let existingConfigurationMap = window.simplePDF?._ctx.listenersMap;
-
-    if (!existingConfigurationMap) {
-      throw Error(UNEXPECTED_ERROR_INITIALIZATION);
-    }
-
-    return existingConfigurationMap;
+  autoOpenListeners: window.simplePDF?._ctx.listenersMap ?? new Map(),
+  outgoingEventsQueue: [],
+  isIframeReady: false,
+  getEditor: () => {
+    return {
+      iframe: document.getElementById(IFRAME_ID) as HTMLIFrameElement | null,
+      modal: document.getElementById(MODAL_ID) as HTMLDivElement | null,
+      styles: document.getElementById(MODAL_STYLE_ID) as HTMLStyleElement | null,
+    };
   },
 };
 
@@ -134,18 +137,93 @@ const getSimplePDFElements = (): Element[] => {
 };
 
 export const closeEditor = (): void => {
-  document.getElementById(MODAL_ID)?.remove();
-  document.getElementById(MODAL_STYLE_ID)?.remove();
+  removeIframe();
   document.body.style.overflow = 'initial';
 };
 
+const eventsListener = (event: MessageEvent) => {
+  const { getEditor, outgoingEventsQueue, getFromConfig, log } = editorContext;
+  const iframe = getEditor().iframe;
+  const editorDomain = `https://${getFromConfig('companyIdentifier')}.simplepdf.com`;
+
+  const eventOrigin = new URL(event.origin).origin;
+  const iframeOrigin = new URL(editorDomain).origin;
+
+  if (eventOrigin !== iframeOrigin) {
+    log('Incoming message from untrusted origin', { eventOrigin, iframeOrigin });
+    return;
+  }
+
+  const isTrustedIframe = event.source === iframe?.contentWindow;
+
+  if (!isTrustedIframe) {
+    log('Incoming message from untrusted iframe', { eventOrigin, iframeOrigin });
+    return;
+  }
+
+  const payload: IncomingIframeEvent | null = (() => {
+    try {
+      return JSON.parse(event.data);
+    } catch (e) {
+      console.error('Failed to parse iFrame event payload');
+      return null;
+    }
+  })();
+
+  switch (payload?.type) {
+    case 'EDITOR_READY':
+      editorContext.isIframeReady = true;
+      outgoingEventsQueue.forEach((queuedEvent) => {
+        sendEventToIframe(queuedEvent);
+      });
+      outgoingEventsQueue.length = 0;
+      return;
+    case 'DOCUMENT_LOADED':
+    case 'SUBMISSION_SENT':
+      try {
+        console.log(payload);
+      } catch (e) {
+        console.error(`onEmbedEvent failed to execute: ${JSON.stringify(e)}`);
+      }
+
+      return;
+
+    default:
+      return;
+  }
+};
+
+const onIframeLoaded = () => {
+  window.addEventListener('message', eventsListener);
+};
+
+const removeIframe = () => {
+  window.removeEventListener('message', eventsListener);
+  editorContext.getEditor().modal?.remove();
+  editorContext.getEditor().styles?.remove();
+  editorContext.isIframeReady = false;
+  editorContext.outgoingEventsQueue.length = 0;
+};
+
+function sendEventToIframe(event: OutgoingIframeEvent) {
+  const { outgoingEventsQueue, log, isIframeReady } = editorContext;
+  const editorDomainURL = new URL(editorContext.getEditor().iframe?.src ?? '');
+
+  if (isIframeReady) {
+    log('Send iframe event', { event });
+    editorContext.getEditor().iframe?.contentWindow?.postMessage(JSON.stringify(event), editorDomainURL.origin);
+    return;
+  }
+
+  log('Push event to queue', { event });
+  outgoingEventsQueue.push(event);
+}
+
 export const openEditor = ({ href, context }: { href: string | null; context?: Record<string, unknown> }): void => {
-  const { getFromConfig, log } = editorContext;
+  const { getFromConfig, log, getEditor } = editorContext;
 
   const companyIdentifier = getFromConfig('companyIdentifier');
   const locale = getFromConfig('locale');
-
-  const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
 
   const encodedContext = (() => {
     if (!context) {
@@ -153,18 +231,22 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
     }
 
     try {
-      return encodeURIComponent(btoa(JSON.stringify(context)));
+      return btoa(JSON.stringify(context));
     } catch (e) {
       log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
       return null;
     }
   })();
 
-  const baseEditorURL = `https://${companyIdentifier}.simplepdf.com/${locale}/editor`;
+  const iframeURL = new URL(`/${locale}/editor`, `https://${companyIdentifier}.simplepdf.com`);
 
-  const editorURL = sanitizedOpenURL
-    ? `${baseEditorURL}?open=${sanitizedOpenURL}${encodedContext ? `&context=${encodedContext}` : ''}`
-    : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ''}`;
+  if (href) {
+    iframeURL.searchParams.set('loadingPlaceholder', 'true');
+  }
+
+  if (encodedContext) {
+    iframeURL.searchParams.set('context', encodedContext);
+  }
 
   const modal = `
     <style id="${MODAL_STYLE_ID}">
@@ -246,7 +328,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
         </svg>
       </button>
       <div class="simplePDF_iframeContainer">
-        <iframe referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${editorURL}" />
+        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${iframeURL.href}" onload="${onIframeLoaded()}"/>
       </div>
     </div>
   </div>
@@ -254,10 +336,55 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
 
   log('Creating the modal', {
     companyIdentifier: getFromConfig('companyIdentifier'),
-    editorURL,
+    iframeURL: iframeURL,
   });
   document.body.style.overflow = 'hidden';
   document.body.insertAdjacentHTML('beforebegin', modal);
+
+  if (href) {
+    const fetchedDocumentBlob = async (): Promise<string> => {
+      const response = await fetch(href ?? '', {
+        method: 'GET',
+        credentials: 'same-origin',
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to retrieve the document: ${JSON.stringify({
+            status: response.status,
+            href,
+          })}`,
+        );
+      }
+
+      const blob = await response.blob();
+
+      const reader = new FileReader();
+      await new Promise((resolve, reject) => {
+        reader.onload = resolve;
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      return reader.result as string;
+    };
+
+    fetchedDocumentBlob()
+      .then((dataURL) => {
+        sendEventToIframe({ type: 'LOAD_DOCUMENT', data: { data_url: dataURL } });
+      })
+      .catch(() => {
+        const iframe = getEditor().iframe;
+        if (!iframe) {
+          throw Error(UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED);
+        }
+
+        iframeURL.searchParams.delete('loadingPlaceholder');
+        iframeURL.searchParams.set('open', href);
+
+        iframe.src = iframeURL.href;
+      });
+  }
 
   log('Attach close modal listener', {});
   document.getElementById(MODAL_CLOSE_BUTTON_ID)?.addEventListener('click', closeEditor);
@@ -265,7 +392,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
 
 const isAnchor = (element: HTMLAnchorElement | Element): element is HTMLAnchorElement => element.hasAttribute('href');
 
-const getListenersCount = (): number => editorContext.getListeners().size;
+const getListenersCount = (): number => editorContext.autoOpenListeners.size;
 
 const enableAutoOpen = () => {
   const listenersCount = getListenersCount();
@@ -288,7 +415,7 @@ const enableAutoOpen = () => {
 
     element.addEventListener('click', handler);
 
-    editorContext.getListeners().set(element, handler);
+    editorContext.autoOpenListeners.set(element, handler);
   });
 };
 
@@ -302,8 +429,8 @@ const disableAutoOpen = () => {
 
   editorContext.log('Removing listeners', { listenersCount });
 
-  editorContext.getListeners().forEach((handler, element) => {
+  editorContext.autoOpenListeners.forEach((handler, element) => {
     element.removeEventListener('click', handler);
   });
-  editorContext.getListeners().clear();
+  editorContext.autoOpenListeners.clear();
 };

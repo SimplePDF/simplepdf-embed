@@ -9,7 +9,6 @@
       companyIdentifier="yourcompany"
       defer
       debug
-      onload="console.log(window.simplePDF)"
     ></script>
   </head>
 
@@ -41,7 +40,7 @@
       editor:
     </p>
     <button class="simplepdf">This button opens the editor</button>
-    <button onclick="window['simplePDF'].openEditor({href: null })">
+    <button onclick="window['simplePDF'].openEditor({href: `https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf`, context: { env: 'staging', customer_id: '444'} })">
       Programmatic opening
     </button>
     <h3>Config</h3>
