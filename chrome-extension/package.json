@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "@simplepdf/web-embed-pdf": "^1.7.2"
+    "@simplepdf/web-embed-pdf": "^1.8.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
   }
 }
