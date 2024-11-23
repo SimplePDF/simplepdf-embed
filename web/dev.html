@@ -8,10 +8,12 @@
       src="./dist/index.min.js"
       companyIdentifier="yourcompany"
       defer
+      debug
     ></script>
   </head>
 
   <body>
+    <h1>SimplePDF - Web Embed</h1>
     <p>Any PDF link is automatically opened in your SimplePDF portal</p>
     <ul>
       <li>
@@ -38,8 +40,25 @@
       editor:
     </p>
     <button class="simplepdf">This button opens the editor</button>
-    <button onclick="window['simplePDF'].openEditor({href: null })">
+    <button onclick="window['simplePDF'].openEditor({href: `https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf`, context: { env: 'staging', customer_id: '444'} })">
       Programmatic opening
     </button>
+    <h3>Config</h3>
+    <select onchange="window['simplePDF'].setConfig({ autoOpen: this.value === 'true' })">
+      <option value="true" selected>Auto Open: Enabled</option>
+      <option value="false">Auto Open: Disabled</option>
+    </select>
+    <select onchange="window['simplePDF'].setConfig({ locale: this.value })">
+      <option value="de">Locale: German</option>
+      <option value="en" selected>Locale: English</option>
+      <option value="es">Locale: Spanish</option>
+      <option value="fr">Locale: French</option>
+      <option value="it">Locale: Italian</option>
+      <option value="pt">Locale: Portuguese</option>
+    </select>
+    <select onchange="window['simplePDF'].setConfig({ companyIdentifier: this.value })">
+      <option value="yourcompany" selected>companyIdentifier: Your Company</option>
+      <option value="embed">companyIdentifier: Web Embed</option>
+    </select>
   </body>
 </html>

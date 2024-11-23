@@ -140,3 +140,17 @@ window.simplePDF.openEditor({
   },
 });
 ```
+
+### Updating the configuration programmatically
+
+**Use-cases:**
+- Change the locale at run time
+- Enabling / Disabling _Auto Open_: automatically opening the editor for anchor tags pointing to PDF files. By default enabled when SimplePDF is added as a script
+- Change the company identifier at run time
+
+```javascript
+window.simplePDF.setConfig({
+  locale: 'fr',
+  autoOpen: false,
+});
+```

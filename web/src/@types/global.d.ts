@@ -1,4 +1,4 @@
-import { SimplePDF } from "../types";
+import { SimplePDF } from '../types';
 
 declare global {
   interface Window {
