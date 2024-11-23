@@ -1,86 +1,173 @@
-import { EditorConfig } from "./types";
+import { EditorConfig, EditorContext, Locale, ConfigSetter } from './types';
+
+const MODAL_ID = 'simplePDF_modal' as const;
+const MODAL_CLOSE_BUTTON_ID = 'simplePDF_modal_close_button' as const;
+const MODAL_STYLE_ID = 'simplePDF_modal_style' as const;
+
+const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: winod.simplePDF not initialized';
+
+const editorContext: EditorContext = {
+  getFromConfig: (key: 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
+  log: (message: string, details: Record<string, unknown>) => {
+    const isDebug = document.currentScript?.getAttribute('debug') !== null;
+
+    if (!isDebug) {
+      return;
+    }
+
+    console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
+  },
+  getListeners: () => {
+    let existingConfigurationMap = window.simplePDF?._ctx.listenersMap;
+
+    if (!existingConfigurationMap) {
+      throw Error(UNEXPECTED_ERROR_INITIALIZATION);
+    }
+
+    return existingConfigurationMap;
+  },
+};
 
 const isFormLink = (url: string) => {
   const regex = /^https:\/\/[^.]+\.simplepdf\.com\/[^\/]+\/form\/.+/;
   return regex.test(url);
 };
 
-const getAnchors = (): HTMLAnchorElement[] => {
-  const anchors = Array.from(document.getElementsByTagName("a"));
+const getLocale = (): Locale => {
+  const languageCode = (() => {
+    try {
+      const locale = new Intl.Locale(document.documentElement.lang);
+      return locale.language;
+    } catch (e) {
+      return null;
+    }
+  })();
 
-  const anchorsWithPDF = anchors.filter((anchor) => {
-    if (anchor.classList.contains("exclude-simplepdf")) {
-      return false;
+  const inputLocale = (editorContext.getFromConfig('locale') ??
+    document.currentScript?.getAttribute('locale') ??
+    languageCode ??
+    'en') as Locale;
+
+  switch (inputLocale) {
+    case 'en':
+    case 'de':
+    case 'es':
+    case 'fr':
+    case 'it':
+    case 'pt':
+      return inputLocale;
+    default:
+      inputLocale satisfies never;
+      return 'en';
+  }
+};
+
+export const config: EditorConfig = {
+  locale: getLocale(),
+  companyIdentifier:
+    editorContext.getFromConfig('companyIdentifier') ??
+    document.currentScript?.getAttribute('companyIdentifier') ??
+    'embed',
+  autoOpen: false,
+};
+
+export const setConfig: ConfigSetter = (params) => {
+  let config = window.simplePDF?.config;
+
+  if (!config) {
+    throw Error(UNEXPECTED_ERROR_INITIALIZATION);
+  }
+
+  Object.keys(params).forEach((paramKey) => {
+    const configKey = paramKey as keyof EditorConfig;
+    const configValue = params[configKey];
+
+    if (configValue === undefined) {
+      return;
     }
 
-    return (
-      anchor.href.includes(".pdf") ||
-      anchor.classList.contains("simplepdf") ||
-      isFormLink(anchor.href)
-    );
+    editorContext.log('Update config', { configKey, configValue });
+
+    switch (configKey) {
+      case 'autoOpen': {
+        if (configValue === true) {
+          enableAutoOpen();
+        } else {
+          disableAutoOpen();
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    (config[configKey] as any) = configValue as any;
   });
 
-  return anchorsWithPDF;
+  return config;
 };
 
-const getNonAnchors = (): Element[] => {
-  const nonAnchorElements = Array.from(
-    document.getElementsByClassName("simplepdf")
-  ).filter((element) => !isAnchor(element));
+const getSimplePDFElements = (): Element[] => {
+  const getAnchors = (): HTMLAnchorElement[] => {
+    const anchors = Array.from(document.getElementsByTagName('a'));
 
-  return nonAnchorElements;
+    const anchorsWithPDF = anchors.filter((anchor) => {
+      if (anchor.classList.contains('exclude-simplepdf')) {
+        return false;
+      }
+
+      return anchor.href.includes('.pdf') || anchor.classList.contains('simplepdf') || isFormLink(anchor.href);
+    });
+
+    return anchorsWithPDF;
+  };
+
+  const getNonAnchors = (): Element[] => {
+    const nonAnchorElements = Array.from(document.getElementsByClassName('simplepdf')).filter(
+      (element) => !isAnchor(element),
+    );
+
+    return nonAnchorElements;
+  };
+
+  return [...getNonAnchors(), ...getAnchors()];
 };
-
-export const getSimplePDFElements = (): Element[] => [
-  ...getNonAnchors(),
-  ...getAnchors(),
-];
 
 export const closeEditor = (): void => {
-  document.getElementById("simplePDF_modal")?.remove();
-  document.getElementById("simplePDF_modal_style")?.remove();
-  document.body.style.overflow = "initial";
+  document.getElementById(MODAL_ID)?.remove();
+  document.getElementById(MODAL_STYLE_ID)?.remove();
+  document.body.style.overflow = 'initial';
 };
 
-export const handleOpenEditor =
-  (editorConfig: EditorConfig) =>
-  ({
-    href,
-    context,
-  }: {
-    href: string | null;
-    context?: Record<string, unknown>;
-  }): void => {
-    const { getFromConfig, log } = editorConfig;
+export const openEditor = ({ href, context }: { href: string | null; context?: Record<string, unknown> }): void => {
+  const { getFromConfig, log } = editorContext;
 
-    const companyIdentifier = getFromConfig("companyIdentifier");
-    const locale = getFromConfig("locale");
+  const companyIdentifier = getFromConfig('companyIdentifier');
+  const locale = getFromConfig('locale');
 
-    const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
+  const sanitizedOpenURL = href ? encodeURIComponent(href) : null;
 
-    const encodedContext = (() => {
-      if (!context) {
-        return null;
-      }
+  const encodedContext = (() => {
+    if (!context) {
+      return null;
+    }
 
-      try {
-        return encodeURIComponent(btoa(JSON.stringify(context)));
-      } catch (e) {
-        log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
-        return null;
-      }
-    })();
+    try {
+      return encodeURIComponent(btoa(JSON.stringify(context)));
+    } catch (e) {
+      log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
+      return null;
+    }
+  })();
 
-    const baseEditorURL = `https://${companyIdentifier}.simplepdf.com/${locale}/editor`;
+  const baseEditorURL = `https://${companyIdentifier}.simplepdf.com/${locale}/editor`;
 
-    const editorURL = sanitizedOpenURL
-      ? `${baseEditorURL}?open=${sanitizedOpenURL}${
-          encodedContext ? `&context=${encodedContext}` : ""
-        }`
-      : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ""}`;
+  const editorURL = sanitizedOpenURL
+    ? `${baseEditorURL}?open=${sanitizedOpenURL}${encodedContext ? `&context=${encodedContext}` : ''}`
+    : `${baseEditorURL}${encodedContext ? `?context=${encodedContext}` : ''}`;
 
-    const modal = `
-    <style id="simplePDF_modal_style">
+  const modal = `
+    <style id="${MODAL_STYLE_ID}">
       .simplePDF_container {
         user-select: none;
         position: fixed;
@@ -91,7 +178,7 @@ export const handleOpenEditor =
 
         height: 100vh;
         width: 100%;
-        z-index: 999999;
+        z-index: 2147483647;
         padding: 16px;
         top: 0;
         left: 0;
@@ -151,9 +238,9 @@ export const handleOpenEditor =
           box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 4px 4px rgb(0 0 0 / 24%);
       }
   </style>
-  <div class="simplePDF_container" aria-modal="true" id="simplePDF_modal">
+  <div class="simplePDF_container" aria-modal="true" id="${MODAL_ID}">
     <div class="simplePDF_content">
-      <button id="simplePDF_modal_close_button" class="simplePDF_close" aria-label="Close PDF editor modal">
+      <button id="${MODAL_CLOSE_BUTTON_ID}" class="simplePDF_close" aria-label="Close PDF editor modal">
         <svg height="512" viewBox="0 0 512 512" width="512" xml-space="preserve" xmlns="http://www.w3.org/2000/svg">
           <path d="M443.6 387.1 312.4 255.4l131.5-130c5.4-5.4 5.4-14.2 0-19.6l-37.4-37.6c-2.6-2.6-6.1-4-9.8-4-3.7 0-7.2 1.5-9.8 4L256 197.8 124.9 68.3c-2.6-2.6-6.1-4-9.8-4-3.7 0-7.2 1.5-9.8 4L68 105.9c-5.4 5.4-5.4 14.2 0 19.6l131.5 130L68.4 387.1c-2.6 2.6-4.1 6.1-4.1 9.8 0 3.7 1.4 7.2 4.1 9.8l37.4 37.6c2.7 2.7 6.2 4.1 9.8 4.1 3.5 0 7.1-1.3 9.8-4.1L256 313.1l130.7 131.1c2.7 2.7 6.2 4.1 9.8 4.1 3.5 0 7.1-1.3 9.8-4.1l37.4-37.6c2.6-2.6 4.1-6.1 4.1-9.8-.1-3.6-1.6-7.1-4.2-9.7z" />
         </svg>
@@ -165,34 +252,58 @@ export const handleOpenEditor =
   </div>
  `;
 
-    log("Creating the modal", {
-      companyIdentifier: getFromConfig("companyIdentifier"),
-      editorURL,
-    });
-    document.body.style.overflow = "hidden";
-    document.body.insertAdjacentHTML("beforebegin", modal);
+  log('Creating the modal', {
+    companyIdentifier: getFromConfig('companyIdentifier'),
+    editorURL,
+  });
+  document.body.style.overflow = 'hidden';
+  document.body.insertAdjacentHTML('beforebegin', modal);
 
-    log("Attach close modal listener", {});
-    document
-      .getElementById("simplePDF_modal_close_button")
-      ?.addEventListener("click", closeEditor);
-  };
+  log('Attach close modal listener', {});
+  document.getElementById(MODAL_CLOSE_BUTTON_ID)?.addEventListener('click', closeEditor);
+};
 
-const isAnchor = (
-  element: HTMLAnchorElement | Element
-): element is HTMLAnchorElement => element.hasAttribute("href");
+const isAnchor = (element: HTMLAnchorElement | Element): element is HTMLAnchorElement => element.hasAttribute('href');
 
-export const handleAttachOnClick =
-  (editorConfig: EditorConfig) =>
-  ({ elements }: { elements: Element[] }) => {
-    const openEditor = handleOpenEditor(editorConfig);
-    editorConfig.log("Attaching listeners to anchors", {
-      anchorsCount: elements.length,
-    });
-    elements.forEach((element) =>
-      element.addEventListener("click", (e) => {
-        e.preventDefault();
-        openEditor({ href: isAnchor(element) ? element.href : null });
-      })
-    );
-  };
+const getListenersCount = (): number => editorContext.getListeners().size;
+
+const enableAutoOpen = () => {
+  const listenersCount = getListenersCount();
+  if (listenersCount > 0) {
+    editorContext.log('Listeners already attached', { listenersCount });
+    return;
+  }
+
+  const elements = getSimplePDFElements();
+
+  editorContext.log('Attaching listeners to anchors', {
+    anchorsCount: elements.length,
+  });
+
+  elements.forEach((element) => {
+    const handler: EventListenerOrEventListenerObject = (e) => {
+      e.preventDefault();
+      openEditor({ href: isAnchor(element) ? element.href : null });
+    };
+
+    element.addEventListener('click', handler);
+
+    editorContext.getListeners().set(element, handler);
+  });
+};
+
+const disableAutoOpen = () => {
+  const listenersCount = getListenersCount();
+
+  if (listenersCount === 0) {
+    editorContext.log('No listeners to remove', {});
+    return;
+  }
+
+  editorContext.log('Removing listeners', { listenersCount });
+
+  editorContext.getListeners().forEach((handler, element) => {
+    element.removeEventListener('click', handler);
+  });
+  editorContext.getListeners().clear();
+};
