@@ -30,14 +30,18 @@
   font-size: 16px;
   padding: 10px 12px;
 
-  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px rgb(0 0 0 / 24%);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 10%),
+    0 1px 2px rgb(0 0 0 / 24%);
   outline-color: #5380e3;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   text-decoration: none;
 }
 
 .openEditorButton:hover {
-  box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 4px 4px rgb(0 0 0 / 24%);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 10%),
+    0 4px 4px rgb(0 0 0 / 24%);
 }
 
 .errorContainer h3 {
@@ -47,4 +51,77 @@
 
 .errorContainer p {
   line-height: 1.4;
+}
+
+.preferences {
+  padding: 0 20px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+
+  h4 {
+    margin: 14px 0 8px;
+  }
+}
+
+.divider {
+  width: calc(100% - 20px);
+
+  margin: 20px auto 0;
+  height: 1px;
+  background: #cacaca;
+  height: 1px;
+}
+
+.toggleContainer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+
+  position: relative;
+
+  input {
+    display: none;
+
+    &:checked + .toggle {
+      background-color: #5380e3;
+
+      &:before {
+        transform: translateX(17px);
+      }
+    }
+  }
+
+  .label {
+    font-size: 12px;
+    padding-right: 14px;
+    user-select: none;
+  }
+
+  .toggle {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    height: 21px;
+    width: 38px;
+    border-radius: 26px;
+    background-color: #ccc;
+    cursor: pointer;
+
+    &.withTransition {
+      &:before {
+        transition: 0.2s;
+      }
+    }
+
+    &:before {
+      border-radius: 50%;
+      background-color: #fff;
+      bottom: 2px;
+      content: "";
+      height: 17px;
+      left: 2px;
+      position: absolute;
+      width: 17px;
+    }
+  }
 }

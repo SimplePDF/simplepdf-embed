@@ -16,5 +16,11 @@
   },
   "openedInOtherTab": {
     "message": "Nous avons ouvert l'éditeur dans un nouvel onglet pour vous"
+  },
+  "preferencesHeader": {
+    "message": "Préférences"
+  },
+  "autoOpenLabel": {
+    "message": "Ouvrir les liens PDF avec SimplePDF"
   }
 }
