@@ -2,4 +2,9 @@ node_modules
 dist
 dev
 
+# Wordpress extension
 wordpress/svn/.svn
+
+# Chrome extension
+chrome-extension/release/
+chrome-extension/release.zip

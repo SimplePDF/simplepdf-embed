@@ -1,0 +1,7 @@
+images/
+release/
+release.zip
+
+.prettierignore
+.prettierrc
+.DS_Store
