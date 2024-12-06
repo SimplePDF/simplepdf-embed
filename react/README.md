@@ -40,9 +40,11 @@ npm install @simplepdf/react-embed-pdf
 
 The `EmbedPDF` component has two modes: `"modal"` (default) and `"inline"`.
 
-It can be tied to a [SimplePDF account](https://simplepdf.com/pricing#g).
+**[List of all available props](#available-props)**
 
 ### Account-specific features
+
+_The features below require a [SimplePDF account](https://simplepdf.com/pricing#g)_
 
 While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` to:
 
