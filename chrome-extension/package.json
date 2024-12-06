@@ -1,4 +1,16 @@
 {
+  "author": "SimplePDF",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SimplePDF/simplepdf-embed/tree/main/chrome-extension"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prettier": "prettier .",
+    "test:format": "npm run prettier -- --check",
+    "format": "npm run prettier -- --write",
+    "package": "npm ci --production && zip -r release.zip . -x .prettierignore .prettierrc package-lock.json"
+  },
   "dependencies": {
     "@simplepdf/web-embed-pdf": "^1.8.1"
   },

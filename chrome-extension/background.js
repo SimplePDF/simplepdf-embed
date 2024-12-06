@@ -1,6 +1,6 @@
 // User preferences change
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  const hasPreferencesChanged = areaName === "local" && changes.userPreferences;
+  const hasPreferencesChanged = areaName === 'local' && changes.userPreferences;
 
   if (!hasPreferencesChanged) {
     return;
@@ -16,7 +16,7 @@ chrome.tabs.onActivated.addListener(() => {
 
 // Current tab URL change
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete") {
+  if (changeInfo.status !== 'complete') {
     return;
   }
 
@@ -31,21 +31,19 @@ function toggleAutoOpenPDFLinksOnCurrentTab() {
       return;
     }
 
-    const isUnsupportedURL =
-      currentTab.url.startsWith("chrome://") ||
-      currentTab.url.startsWith("edge://");
+    const isUnsupportedURL = currentTab.url.startsWith('chrome://') || currentTab.url.startsWith('edge://');
 
     if (isUnsupportedURL) {
       return;
     }
 
-    chrome.storage.local.get("userPreferences", ({ userPreferences }) => {
+    chrome.storage.local.get('userPreferences', ({ userPreferences }) => {
       const preferences = userPreferences ?? { autoOpen: false };
 
       chrome.scripting.executeScript(
         {
           target: { tabId: currentTab.id },
-          files: ["./node_modules/@simplepdf/web-embed-pdf/dist/index.js"],
+          files: ['./node_modules/@simplepdf/web-embed-pdf/dist/index.js'],
         },
         () => {
           if (chrome.runtime.lastError) {
@@ -61,7 +59,7 @@ function toggleAutoOpenPDFLinksOnCurrentTab() {
 
               window.simplePDF.setConfig({
                 autoOpen: preferences.autoOpen,
-                companyIdentifier: "chrome",
+                companyIdentifier: 'chrome',
               });
             },
             args: [preferences],
