@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "prettier": "prettier .",
-    "format:check": "npm run prettier -- --check",
-    "format:fix": "npm run prettier -- --write",
+    "test:format": "npm run prettier -- --check",
+    "format": "npm run prettier -- --write",
     "package": "npm ci --production && zip -r release.zip . -x .prettigerignore .prettierrc package-lock.json"
   },
   "dependencies": {
