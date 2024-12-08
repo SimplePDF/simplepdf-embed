@@ -106,6 +106,22 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 />
 ```
 
+### Viewer mode only
+
+Specify `react-viewer` as `companyIdentifier` to disable the editing features:
+
+```jsx
+import { EmbedPDF } from "@simplepdf/react-embed-pdf";
+
+// The PDF is displayed using the viewer: all editing features are disabled
+ <EmbedPDF
+  companyIdentifier="react-viewer"
+  mode="inline"
+  style={{ width: 900, height: 800 }}
+  documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+/>
+```
+
 ### <a id="available-props"></a>Available props
 
 <table>

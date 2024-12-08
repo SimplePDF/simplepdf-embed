@@ -77,3 +77,8 @@ The users are notified that the document and the data they submit is sent to the
 ### How come the library is so small?
 
 The library is a simple wrapper around an Iframe that loads SimplePDF on-demand (whenever the user clicks the wrapped link), as such the footprint for this "opening an Iframe" mechanism is very tiny, the SimplePDF editor is of course bigger, but your users won't download anything until they have clicked the link. Think "lazy-loading".
+
+
+### I'm looking for a PDF viewer only, can I disable the editing features?
+
+You can use SimplePDF as a PDF viewer by specifying `viewer` as a `companyIdentifier`.
