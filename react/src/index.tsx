@@ -190,7 +190,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   }, [url]);
 
   const editorDomain = React.useMemo(
-    () => `https://${companyIdentifier ?? "embed"}.simplepdf.com`,
+    () => `https://${companyIdentifier ?? 'react-editor'}.simplepdf.com`,
     [companyIdentifier]
   );
 
