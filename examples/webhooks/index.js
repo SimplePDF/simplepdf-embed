@@ -12,11 +12,11 @@ const pruneOldSubmissions = () => {
   const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
 
   for (let i = events.length - 1; i >= 0; i--) {
-    const submission = events[i].data;
+    const submission = events[i].data.submission;
 
     const submittedAtUTC = Date.parse(submission.submitted_at);
 
-    if (isNaN(submittedAtUTC) || submittedAtUTC < fifteenMinutesAgo) {
+    if (submittedAtUTC < fifteenMinutesAgo) {
       console.log("Pruning submission", JSON.stringify(submission))
       events.splice(i, 1);
     }
@@ -55,7 +55,6 @@ app.get("/", (req, res) => {
         <a href="https://${companyIdentifier}.simplepdf.com/editor" target="_blank">https://${companyIdentifier}.simplepdf.com/editor</a> will appear below
       </h3>
       <a href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/webhooks">Link to the code</a>
-      <p><i>Submissions URLs are valid for 15min</i></p>
       <table>
         <tr>
           <th>Submission URL</th>
