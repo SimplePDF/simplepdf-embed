@@ -1,4 +1,6 @@
 const express = require("express");
+
+const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 const app = express();
 
 const events = [];
@@ -6,6 +8,10 @@ const events = [];
 const port = process.env.PORT ?? "8080";
 const companyIdentifier =
   process.env.COMPANY_IDENTIFIER ?? "webhooks-playground";
+
+setInterval(() => {
+  pruneOldSubmissions()
+}, FIFTEEN_MINUTES_IN_MS)
 
 const pruneOldSubmissions = () => {
   console.log(`Going through ${events.length} submissions...`)
