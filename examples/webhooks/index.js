@@ -7,6 +7,22 @@ const port = process.env.PORT ?? "8080";
 const companyIdentifier =
   process.env.COMPANY_IDENTIFIER ?? "webhooks-playground";
 
+const pruneOldSubmissions = () => {
+  console.log(`Going through ${events.length} submissions...`)
+  const fifteenMinutesAgo = Date.now() - 15 * 60 * 1000;
+
+  for (let i = events.length - 1; i >= 0; i--) {
+    const submission = events[i].data;
+
+    const submittedAtUTC = Date.parse(submission.submitted_at);
+
+    if (isNaN(submittedAtUTC) || submittedAtUTC < fifteenMinutesAgo) {
+      console.log("Pruning submission", JSON.stringify(submission))
+      events.splice(i, 1);
+    }
+  }
+};
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -132,6 +148,7 @@ app.get("/submissions/:submissionId", (req, res) => {
 });
 
 app.post("/webhooks", (req, res) => {
+  pruneOldSubmissions()
   const eventType = req.body.type;
   switch (eventType) {
     case "submission.created":
