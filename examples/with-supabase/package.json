@@ -1,0 +1,11 @@
+{
+  "name": "with-supabase",
+  "description": "Webhooks integration with Supabase",
+  "scripts": {
+    "deploy": "supabase functions deploy simplepdf-webhooks --project-ref <PROJECT_ID>"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "supabase": "^2.2.1"
+  }
+}
