@@ -1,53 +1,54 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>SimplePDF – @simplepdf/web-embed-pdf script tag</title>
-    <script
-      src="https://unpkg.com/@simplepdf/web-embed-pdf"
-      companyIdentifier="yourcompany"
-      defer
-      debug
-    ></script>
-  </head>
-  <body>
-    <h1>SimplePDF - Web Embed</h1>
-    <p>Any PDF link is automatically opened in your SimplePDF portal</p>
-    <ul>
-      <li>
-        <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
-          >Link with a ".pdf" extension</a
-        >
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SimplePDF – @simplepdf/web-embed-pdf script tag</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@simplepdf/web-embed-pdf" companyIdentifier="yourcompany" defer debug></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
+
+  <div class="max-w-2xl w-full">
+    <h1 class="text-3xl font-bold mb-4 text-center">SimplePDF - Web Embed</h1>
+    <p class="text-lg mb-4 text-center">Any PDF link is automatically opened in your SimplePDF portal</p>
+
+    <ul class="list-disc pl-5 mb-6">
+      <li class="mb-2">
+        <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf" class="text-blue-600 hover:text-blue-800 underline">
+          Link with a ".pdf" extension
+        </a>
       </li>
-      <li>
-        <a
-          class="simplepdf"
-          href="https://www.formulaires.service-public.fr/gf/cerfa_10832.do"
-          >Link without a ".pdf" extension</a
-        >
+      <li class="mb-2">
+        <a href="https://www.formulaires.service-public.fr/gf/cerfa_10832.do" class="text-blue-600 hover:text-blue-800 underline simplepdf">
+          Link without a ".pdf" extension
+        </a>
       </li>
-      <li>
-        <a
-          href="https://yourcompany.simplepdf.com/en/form/7950ad9a2c3d4f504f67e7a3a700a239e2a77c9bd6691b832c18a6f08552b5f5"
-          >SimplePDF form link</a
-        >
+      <li class="mb-2">
+        <a href="https://yourcompany.simplepdf.com/en/form/7950ad9a2c3d4f504f67e7a3a700a239e2a77c9bd6691b832c18a6f08552b5f5" class="text-blue-600 hover:text-blue-800 underline">
+          SimplePDF form link
+        </a>
       </li>
     </ul>
-    <p>
-      Add a class <code>simplepdf</code> to make any HTML element open the
-      editor:
+
+    <p class="mb-4">
+      Add a class <code class="bg-gray-200 p-1 rounded">simplepdf</code> to make any HTML element open the editor:
     </p>
-    <button class="simplepdf">This button opens the editor</button>
-    <button onclick="window['simplePDF'].openEditor({href: `https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf`, context: { env: 'staging', customer_id: '444'} })">
+
+    <button class="simplepdf mb-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      This button opens the editor
+    </button>
+
+    <button onclick="window['simplePDF'].openEditor({href: `https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf`, context: { env: 'staging', customer_id: '444'} })" class="mb-2 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
       Programmatic opening
     </button>
-    <h3>Config</h3>
-    <select onchange="window['simplePDF'].setConfig({ autoOpen: this.value === 'true' })">
+
+    <h3 class="text-xl font-semibold mt-6 mb-3">Config</h3>
+    <select onchange="window['simplePDF'].setConfig({ autoOpen: this.value === 'true' })" class="mb-2 block w-full p-2 border border-gray-300 rounded">
       <option value="true" selected>Auto Open: Enabled</option>
       <option value="false">Auto Open: Disabled</option>
     </select>
-    <select onchange="window['simplePDF'].setConfig({ locale: this.value })">
+    <select onchange="window['simplePDF'].setConfig({ locale: this.value })" class="mb-2 block w-full p-2 border border-gray-300 rounded">
       <option value="de">Locale: German</option>
       <option value="en" selected>Locale: English</option>
       <option value="es">Locale: Spanish</option>
@@ -55,9 +56,10 @@
       <option value="it">Locale: Italian</option>
       <option value="pt">Locale: Portuguese</option>
     </select>
-    <select onchange="window['simplePDF'].setConfig({ companyIdentifier: this.value })">
+    <select onchange="window['simplePDF'].setConfig({ companyIdentifier: this.value })" class="block w-full p-2 border border-gray-300 rounded">
       <option value="yourcompany" selected>companyIdentifier: Your Company</option>
       <option value="embed">companyIdentifier: Web Embed</option>
     </select>
-  </body>
+  </div>
+</body>
 </html>
