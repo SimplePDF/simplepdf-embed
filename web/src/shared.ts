@@ -229,7 +229,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
     }
 
     try {
-      return btoa(JSON.stringify(context));
+      return encodeURIComponent(btoa(JSON.stringify(context)));
     } catch (e) {
       log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
       return null;
@@ -326,7 +326,9 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
         </svg>
       </button>
       <div class="simplePDF_iframeContainer">
-        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${iframeURL.href}" onload="${onIframeLoaded()}"/>
+        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${
+    iframeURL.href
+  }" onload="${onIframeLoaded()}"/>
       </div>
     </div>
   </div>
@@ -369,7 +371,8 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
 
     fetchedDocumentBlob()
       .then((dataURL) => {
-        sendEventToIframe({ type: 'LOAD_DOCUMENT', data: { data_url: dataURL } });
+        const [documentName] = href.substring(href.lastIndexOf('/') + 1).split('?');
+        sendEventToIframe({ type: 'LOAD_DOCUMENT', data: { data_url: dataURL, name: documentName } });
       })
       .catch(() => {
         const iframe = getEditor().iframe;

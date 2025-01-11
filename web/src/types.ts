@@ -7,7 +7,7 @@ export type IncomingIframeEvent =
 
 export type OutgoingIframeEvent = {
   type: 'LOAD_DOCUMENT';
-  data: { data_url: string };
+  data: { data_url: string; name: string };
 };
 
 export type EditorContext = {

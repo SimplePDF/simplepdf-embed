@@ -47,19 +47,21 @@ const CloseIcon: React.FC = () => (
 const loadDocument = async ({
   iframeRef,
   documentDataURL,
+  documentName,
   editorDomain,
 }: {
   iframeRef: React.RefObject<HTMLIFrameElement>;
   documentDataURL: string;
+  documentName: string;
   editorDomain: string;
 }) => {
   const editorDomainURL = new URL(editorDomain);
   iframeRef.current?.contentWindow?.postMessage(
     JSON.stringify({
       type: "LOAD_DOCUMENT",
-      data: { data_url: documentDataURL },
+      data: { data_url: documentDataURL, name: documentName },
     }),
-    editorDomainURL.origin
+    editorDomainURL.origin,
   );
 };
 
@@ -119,7 +121,7 @@ const ModalComponent = React.forwardRef<
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
 
       {React.cloneElement(children, { onClick: handleAnchorClick })}
@@ -127,18 +129,30 @@ const ModalComponent = React.forwardRef<
   );
 });
 
+type DocumentToLoadState =
+  | { type: null; value: null; isEditorReady: boolean }
+  | {
+      type: "iframe_event";
+      value: string | null;
+      isEditorReady: boolean;
+      documentName: string;
+    }
+  | {
+      type: "cors_proxy_fallback";
+      value: string | null;
+      isEditorReady: boolean;
+    };
+
 export const EmbedPDF: React.FC<Props> = (props) => {
   const { context, companyIdentifier, locale } = props;
-  const [documentState, setDocumentState] = React.useState<{
-    type: "iframe_event" | "cors_proxy_fallback" | null;
-    value: string | null;
-    isEditorReady: boolean;
-  }>({ type: null, value: null, isEditorReady: false });
+  const [documentState, setDocumentState] = React.useState<DocumentToLoadState>(
+    { type: null, value: null, isEditorReady: false },
+  );
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   const url: string | null = isInlineComponent(props)
-    ? props.documentURL ?? null
-    : props.children?.props?.href ?? null;
+    ? (props.documentURL ?? null)
+    : (props.children?.props?.href ?? null);
 
   React.useEffect(() => {
     if (!url) {
@@ -156,7 +170,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
           `Failed to retrieve the document: ${JSON.stringify({
             status: response.status,
             url,
-          })}`
+          })}`,
         );
       }
 
@@ -172,13 +186,16 @@ export const EmbedPDF: React.FC<Props> = (props) => {
       return reader.result as string;
     };
 
+    const [documentName] = url.substring(url.lastIndexOf("/") + 1).split("?");
+
     fetchedDocumentBlob()
       .then((dataURL) =>
         setDocumentState((prev) => ({
           ...prev,
           type: "iframe_event",
           value: dataURL,
-        }))
+          documentName,
+        })),
       )
       .catch(() => {
         setDocumentState((prev) => ({
@@ -190,8 +207,8 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   }, [url]);
 
   const editorDomain = React.useMemo(
-    () => `https://${companyIdentifier ?? 'react-editor'}.simplepdf.com`,
-    [companyIdentifier]
+    () => `https://${companyIdentifier ?? "react-editor"}.simplepdf.com`,
+    [companyIdentifier],
   );
 
   React.useEffect(() => {
@@ -206,6 +223,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
     loadDocument({
       iframeRef,
       documentDataURL: documentState.value,
+      documentName: documentState.documentName,
       editorDomain,
     });
   }, [documentState, editorDomain]);
@@ -244,7 +262,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
             await props.onEmbedEvent?.(payload);
           } catch (e) {
             console.error(
-              `onEmbedEvent failed to execute: ${JSON.stringify(e)}`
+              `onEmbedEvent failed to execute: ${JSON.stringify(e)}`,
             );
           }
 
@@ -254,7 +272,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
           return;
       }
     },
-    [props.onEmbedEvent, editorDomain]
+    [props.onEmbedEvent, editorDomain],
   );
 
   React.useEffect(() => {
@@ -281,7 +299,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   const editorURL = React.useMemo(() => {
     const simplePDFEditorURL = new URL(
       `/${locale ?? DEFAULT_LOCALE}/editor`,
-      editorDomain
+      editorDomain,
     );
 
     if (encodedContext) {
