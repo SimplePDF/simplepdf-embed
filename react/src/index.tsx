@@ -25,7 +25,7 @@ interface InlineProps extends CommonProps {
 
 interface ModalProps extends CommonProps {
   mode?: "modal";
-  children: React.ReactElement;
+  children: React.ReactNode;
 }
 
 interface InternalProps {
@@ -50,7 +50,7 @@ const loadDocument = async ({
   documentName,
   editorDomain,
 }: {
-  iframeRef: React.RefObject<HTMLIFrameElement>;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
   documentDataURL: string;
   documentName: string;
   editorDomain: string;
@@ -89,10 +89,13 @@ const ModalComponent = React.forwardRef<
 >(({ children, editorURL }, iframeRef) => {
   const [shouldDisplayModal, setShouldDisplayModal] = React.useState(false);
 
-  const handleAnchorClick = React.useCallback((e: Event) => {
-    e.preventDefault();
-    setShouldDisplayModal(true);
-  }, []);
+  const handleAnchorClick = React.useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      setShouldDisplayModal(true);
+    },
+    [],
+  );
 
   const handleCloseModal = React.useCallback(() => {
     setShouldDisplayModal(false);
@@ -124,7 +127,11 @@ const ModalComponent = React.forwardRef<
           document.body,
         )}
 
-      {React.cloneElement(children, { onClick: handleAnchorClick })}
+      {React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<any>, {
+            onClick: handleAnchorClick,
+          })
+        : null}
     </>
   );
 });
@@ -152,7 +159,7 @@ export const EmbedPDF: React.FC<Props> = (props) => {
 
   const url: string | null = isInlineComponent(props)
     ? (props.documentURL ?? null)
-    : (props.children?.props?.href ?? null);
+    : ((props.children as { props?: { href: string } })?.props?.href ?? null);
 
   React.useEffect(() => {
     if (!url) {
