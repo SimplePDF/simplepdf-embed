@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/react-embed-pdf",
-  "version": "1.8.4-react19.0",
+  "version": "1.8.4",
   "description": "SimplePDF straight into your React app",
   "repository": {
     "type": "git",
@@ -14,8 +14,11 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "prepublishOnly": "rimraf dist && yarn build",
     "test:types": "tsc --noEmit",
+    "test:format": "npm run prettier -- --check",
+    "prettier": "prettier .",
+    "format": "npm run prettier -- --write",
+    "prepublishOnly": "rimraf dist && yarn build",
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
@@ -29,6 +32,7 @@
     "@types/react-dom": "*",
     "autoprefixer": "^10.4.18",
     "postcss": "^8.4.35",
+    "prettier": "^3.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^5.0.5",
@@ -38,13 +42,6 @@
     "sass": "^1.71.1",
     "typescript": "^5.7.3"
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "react",
-    "typescript",
-    "npm",
-    "pdf"
-  ]
+  "files": ["dist"],
+  "keywords": ["react", "typescript", "npm", "pdf"]
 }

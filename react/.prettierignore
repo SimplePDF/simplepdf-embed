@@ -1,0 +1,8 @@
+dist/
+dev/
+
+package-lock.json
+
+.prettierignore
+.prettierrc
+.DS_Store
