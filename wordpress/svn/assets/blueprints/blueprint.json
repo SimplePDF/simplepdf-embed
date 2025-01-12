@@ -13,7 +13,7 @@
       "step": "installPlugin",
       "pluginZipFile": {
         "resource": "url",
-        "url": "https://downloads.wordpress.org/plugin/simplepdf-embed.1.1.1.zip"
+        "url": "https://downloads.wordpress.org/plugin/simplepdf-embed.1.1.2.zip"
       },
       "options": {
         "activate": true

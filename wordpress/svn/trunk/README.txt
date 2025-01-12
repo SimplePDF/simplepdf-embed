@@ -1,8 +1,8 @@
 === SimplePDF Embed ===
 Contributors:      bendersej
 Tags:              pdf, embed pdf, fill & sign PDF, pdf editor
-Tested up to:      6.4.3
-Stable tag:        1.1.1
+Tested up to:      6.7.1
+Stable tag:        1.1.2
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
@@ -68,7 +68,7 @@ No: the plugin does not require an account to work: all features are available w
 
 Without an account, the plugin will open the PDF editor allowing your visitors to fill in documents and download them.
 
-With an account, the filled in documents will be automatically transmitted to you. You can configure to receive email notifications as well as use your own logo and loading.
+With an account, the filled in documents will be automatically transmitted to you. You can configure to receive email notifications as well as use your own logo and loading animation.
 
 = Where should I submit my feature request or bug report? =
 
@@ -88,4 +88,6 @@ Our Github repository contains both the code for the Wordpress plugin as well as
 * Add support for SimplePDF form links
 = 1.1.1 =
 * Move to SimplePDF.com (from SimplePDF.eu)
+= 1.1.2 =
+* Plugin tested with the latest wordpress version (6.7.1)
 

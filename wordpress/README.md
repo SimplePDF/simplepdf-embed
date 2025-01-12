@@ -16,9 +16,13 @@ svn checkout https://plugins.svn.wordpress.org/simplepdf-embed svn
 ```
 wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '<VERSION>', true);
 ```
-2. Run the following
 
-_Make sure to update TAG in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php), in [README.txt](./svn/trunk/README.txt) and in [blueprint.json](./svn/assets/blueprints/blueprint.json)_
+2. Update the TAG / version in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php)
+3. Update the TAG / version in [README.txt](./svn/trunk/README.txt)
+4. Update the TAG / version in [blueprint.json](./svn/assets/blueprints/blueprint.json)
+5. Update changelog in [README.txt](./svn/trunk/README.txt)
+6. Run the following
+
 ```bash
 npm run package-plugin
 cd svn
