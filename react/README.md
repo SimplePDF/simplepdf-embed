@@ -56,12 +56,10 @@ While the component does not require any account to be used (without any limits)
 _Example_
 
 ```jsx
-import { EmbedPDF } from "@simplepdf/react-embed-pdf";
+import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
 <EmbedPDF companyIdentifier="yourcompany">
-  <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
-    Opens sample.pdf
-  </a>
+  <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">Opens sample.pdf</a>
 </EmbedPDF>;
 ```
 
@@ -111,15 +109,15 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 Specify `react-viewer` as `companyIdentifier` to disable the editing features:
 
 ```jsx
-import { EmbedPDF } from "@simplepdf/react-embed-pdf";
+import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
 // The PDF is displayed using the viewer: all editing features are disabled
- <EmbedPDF
+<EmbedPDF
   companyIdentifier="react-viewer"
   mode="inline"
   style={{ width: 900, height: 800 }}
   documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
-/>
+/>;
 ```
 
 ### <a id="available-props"></a>Available props

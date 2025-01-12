@@ -1,32 +1,32 @@
-import scss from "rollup-plugin-scss";
-import postcss from "postcss";
-import autoprefixer from "autoprefixer";
-import typescript from "rollup-plugin-typescript2";
-import { terser } from "rollup-plugin-terser";
+import scss from 'rollup-plugin-scss';
+import postcss from 'postcss';
+import autoprefixer from 'autoprefixer';
+import typescript from 'rollup-plugin-typescript2';
+import terser from '@rollup/plugin-terser';
 
-import pkg from "./package.json" assert { type: "json" };
+import pkg from './package.json' assert { type: 'json' };
 
 export default {
-  input: "src/index.tsx",
+  input: 'src/index.tsx',
   output: [
     {
       file: pkg.main,
-      format: "cjs",
-      exports: "named",
+      format: 'cjs',
+      exports: 'named',
       sourcemap: true,
       strict: true,
     },
     {
       file: pkg.module,
-      format: "es",
-      exports: "named",
+      format: 'es',
+      exports: 'named',
       sourcemap: true,
     },
   ],
   plugins: [
     scss({
       processor: () => postcss([autoprefixer()]),
-      outputStyle: "compressed",
+      outputStyle: 'compressed',
       insert: true,
     }),
     typescript(),
@@ -36,5 +36,5 @@ export default {
       },
     }),
   ],
-  external: ["react", "react-dom"],
+  external: ['react', 'react-dom'],
 };
