@@ -1,0 +1,40 @@
+name: React
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - react/**
+      - .github/workflows/react.yaml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - react/**
+      - .github/workflows/react.yaml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test formatting
+        run: npm run test:format
+
+      - name: Test types
+        run: npm run test:types
