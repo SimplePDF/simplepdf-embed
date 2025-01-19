@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/web-embed-pdf",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "SimplePDF straight into your website",
   "repository": {
     "type": "git",
@@ -40,6 +40,14 @@
     "typescript": "^5.7.3",
     "vitest": "^3.0.2"
   },
-  "files": ["src", "dist"],
-  "keywords": ["web", "typescript", "npm", "pdf"]
+  "files": [
+    "src",
+    "dist"
+  ],
+  "keywords": [
+    "web",
+    "typescript",
+    "npm",
+    "pdf"
+  ]
 }
