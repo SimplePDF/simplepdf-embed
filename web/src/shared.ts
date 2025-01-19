@@ -37,13 +37,7 @@ const isFormLink = (url: string) => {
   return regex.test(url);
 };
 
-const isPDFLink = (url: string) => {
-  try {
-    return url.endsWith('.pdf');
-  } catch {
-    return false;
-  }
-};
+const isPDFLink = (url: string) => url.endsWith('.pdf');
 
 const getLocale = (): Locale => {
   const languageCode = (() => {
