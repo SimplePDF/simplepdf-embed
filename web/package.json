@@ -19,27 +19,27 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "prepublishOnly": "rimraf dist && yarn build",
+    "test:types": "tsc --noEmit",
+    "test:format": "npm run prettier -- --check",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "prettier": "prettier .",
+    "format": "npm run prettier -- --write",
+    "prepublishOnly": "rimraf dist && npm run build",
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
-  "dependencies": {},
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "rimraf": "^5.0.5",
-    "rollup": "^4.12.0",
-    "rollup-plugin-terser": "^7.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/jsdom": "^21.1.7",
+    "jsdom": "^26.0.0",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.30.1",
     "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.2"
   },
-  "files": [
-    "src",
-    "dist"
-  ],
-  "keywords": [
-    "web",
-    "typescript",
-    "npm",
-    "pdf"
-  ]
+  "files": ["src", "dist"],
+  "keywords": ["web", "typescript", "npm", "pdf"]
 }

@@ -37,6 +37,14 @@ const isFormLink = (url: string) => {
   return regex.test(url);
 };
 
+const isPDFLink = (url: string) => {
+  try {
+    return url.endsWith('.pdf');
+  } catch {
+    return false;
+  }
+};
+
 const getLocale = (): Locale => {
   const languageCode = (() => {
     try {
@@ -111,7 +119,7 @@ export const setConfig: ConfigSetter = (params) => {
   return config;
 };
 
-const getSimplePDFElements = (): Element[] => {
+export const getSimplePDFElements = (document: Document): Element[] => {
   const getAnchors = (): HTMLAnchorElement[] => {
     const anchors = Array.from(document.getElementsByTagName('a'));
 
@@ -120,7 +128,7 @@ const getSimplePDFElements = (): Element[] => {
         return false;
       }
 
-      return anchor.href.includes('.pdf') || anchor.classList.contains('simplepdf') || isFormLink(anchor.href);
+      return isPDFLink(anchor.href) || anchor.classList.contains('simplepdf') || isFormLink(anchor.href);
     });
 
     return anchorsWithPDF;
@@ -327,8 +335,8 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
       </button>
       <div class="simplePDF_iframeContainer">
         <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${
-    iframeURL.href
-  }" onload="${onIframeLoaded()}"/>
+          iframeURL.href
+        }" onload="${onIframeLoaded()}"/>
       </div>
     </div>
   </div>
@@ -402,7 +410,7 @@ const enableAutoOpen = () => {
     return;
   }
 
-  const elements = getSimplePDFElements();
+  const elements = getSimplePDFElements(document);
 
   editorContext.log('Attaching listeners to anchors', {
     anchorsCount: elements.length,

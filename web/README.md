@@ -44,6 +44,7 @@ Add this script in the head of your webpage:
 
 _Replace `companyIdentifier` with your own_
 
+<!-- prettier-ignore-start -->
 ```html
 <script
   src="https://unpkg.com/@simplepdf/web-embed-pdf"
@@ -51,6 +52,7 @@ _Replace `companyIdentifier` with your own_
   defer
 ></script>
 ```
+<!-- prettier-ignore-end -->
 
 ## How does it work?
 
@@ -69,9 +71,7 @@ Exclude any anchor tags from opening SimplePDF by adding the class `exclude-simp
 Add a class `simplepdf` to any anchor tag to open them with SimplePDF:
 
 ```html
-<a href="/example_without_pdf_extension" class="simplepdf"
-  >Open with SimplePDF</a
->
+<a href="/example_without_pdf_extension" class="simplepdf">Open with SimplePDF</a>
 ```
 
 ## Advanced usage
@@ -91,6 +91,7 @@ SimplePDF currently supports the following languages automatically detects the l
 
 **If you wish to override the automatic detection, you can specify the `locale` attribute on the script tag as follows**:
 
+<!-- prettier-ignore-start -->
 ```html
 <script
   src="https://unpkg.com/@simplepdf/web-embed-pdf"
@@ -99,13 +100,14 @@ SimplePDF currently supports the following languages automatically detects the l
   defer
 ></script>
 ```
+<!-- prettier-ignore-end -->
 
 ### Opening the editor programmatically
 
 #### Open the editor with a specific PDF
 
 ```javascript
-window.simplePDF.openEditor({ href: "publicly_available_url_pdf" });
+window.simplePDF.openEditor({ href: 'publicly_available_url_pdf' });
 ```
 
 #### Let your customers pick the PDF on their computer
@@ -133,10 +135,10 @@ _Do not store sensitive information in the context (!!) as it is available local
 
 ```javascript
 window.simplePDF.openEditor({
-  href: "publicly_available_url_pdf",
+  href: 'publicly_available_url_pdf',
   context: {
-    customer_id: "123",
-    environment: "prod",
+    customer_id: '123',
+    environment: 'prod',
   },
 });
 ```
@@ -144,6 +146,7 @@ window.simplePDF.openEditor({
 ### Updating the configuration programmatically
 
 **Use-cases:**
+
 - Change the locale at run time
 - Enabling / Disabling _Auto Open_: automatically opening the editor for anchor tags pointing to PDF files. By default enabled when SimplePDF is added as a script
 - Change the company identifier at run time
