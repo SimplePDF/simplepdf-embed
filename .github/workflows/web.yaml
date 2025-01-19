@@ -1,25 +1,25 @@
-name: React
+name: Web
 
 on:
   push:
     branches:
       - main
     paths:
-      - react/**
-      - .github/workflows/react.yaml
+      - web/**
+      - .github/workflows/web.yaml
   pull_request:
     branches:
       - main
     paths:
-      - react/**
-      - .github/workflows/react.yaml
+      - web/**
+      - .github/workflows/web.yaml
 
 jobs:
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: react
+        working-directory: web
 
     steps:
       - name: Checkout code
@@ -38,3 +38,6 @@ jobs:
 
       - name: Types
         run: npm run test:types
+
+      - name: Unit tests
+        run: npm run test:unit

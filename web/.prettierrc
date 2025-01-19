@@ -2,7 +2,6 @@
   "singleQuote": true,
   "trailingComma": "all",
   "bracketSpacing": true,
-  "jsxBracketSameLine": true,
   "printWidth": 120,
   "tabWidth": 2,
   "useTabs": false,
@@ -25,6 +24,12 @@
       "files": "*.json",
       "options": {
         "parser": "json"
+      }
+    },
+    {
+      "files": "*.md",
+      "options": {
+        "parser": "markdown"
       }
     }
   ]
