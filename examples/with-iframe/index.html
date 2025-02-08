@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SimplePDF – Sending and Receiving events</title>
     <script>
-      async function sendMessage() {
-        const editor = document.getElementById("simplepdf");
-        const input = document.getElementById("input");
 
-        const response = await fetch(input.value);
+      function generateRandomID() {
+        return Math.random().toString(36).substring(2, 15);
+      }
+
+      async function loadDocument(url) {
+        const editor = document.getElementById("simplepdf");
+
+        const response = await fetch(url);
         const blob = await response.blob();
         const reader = new FileReader();
         await new Promise((resolve, reject) => {
@@ -18,10 +22,37 @@
           reader.readAsDataURL(blob);
         });
 
+        const [documentName] = url.substring(url.lastIndexOf('/') + 1).split('?');
+
         editor.contentWindow.postMessage(
           JSON.stringify({
             type: "LOAD_DOCUMENT",
-            data: { data_url: reader.result },
+            request_id: generateRandomID(),
+            data: { data_url: reader.result, name: documentName },
+          }),
+          "*"
+        );
+      }
+
+      function selectTool(value) {
+        const editor = document.getElementById("simplepdf");
+        editor.contentWindow.postMessage(
+          JSON.stringify({
+            type: "SELECT_TOOL",
+            request_id: generateRandomID(),
+            data: { tool: value },
+          }),
+          "*"
+        );
+      }
+
+      function submit(downloadCopy) {
+        const editor = document.getElementById("simplepdf");
+        editor.contentWindow.postMessage(
+          JSON.stringify({
+            type: "SUBMIT",
+            request_id: generateRandomID(),
+            data: { download_copy: downloadCopy },
           }),
           "*"
         );
@@ -43,7 +74,16 @@
           case "SUBMISSION_SENT":
             console.log("Event received:", payload);
             return;
-
+          case 'EDITOR_READY': {
+            const loadDocument = document.getElementById("load_document");
+            loadDocument.disabled = false;
+            const selectTool = document.getElementById("select_tool");
+            selectTool.disabled = false;
+            return;
+          }
+          case 'REQUEST_RESULT':
+          console.log("Request result:", payload);
+            return;
           default:
             console.log("Unknown event received:", payload);
             return;
@@ -55,12 +95,21 @@
   </head>
   <body>
     <div style="margin-bottom: 10px">
-      <input
-        id="input"
-        value="https://cdn.simplepdf.com/simple-pdf/assets/example_en.pdf"
-        style="min-width: 400px"
-      />
-      <button onclick="sendMessage()">Send "LOAD_DOCUMENT" message</button>
+      <select onchange="loadDocument(this.value)" id="load_document" disabled>
+        <option value="" selected>Load document</option>
+        <option value="https://cdn.simplepdf.com/simple-pdf/assets/example_en.pdf">example_en.pdf</option>
+        <option value="https://pdfobject.com/pdf/sample.pdf">sample.pdf</option>
+        <option value="https://cdn.simplepdf.com/simple-pdf/assets/eu_%20competitiveness_2024.pdf">EU Competitiveness Report</option>
+        <option value="https://cdn.simplepdf.com/simple-pdf/assets/eu_report_35mb_170pages.pdf">EU Report: 170 pages / 35mb</option>
+      </select>
+      <select onchange="selectTool(this.value)" id="select_tool" disabled>
+        <option value="" selected>Select a tool</option>
+        <option value="TEXT">Text</option>
+        <option value="SIGNATURE">Signature</option>
+        <option value="PICTURE">Picture</option>
+      </select>
+      <button id="submit" onclick="submit(false)">Submit</button>
+      <button id="submit_with_download" onclick="submit(true)">Submit with Download</button>
     </div>
 
     <iframe
