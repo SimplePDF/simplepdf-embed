@@ -42,7 +42,7 @@ app.get("/", (req, res) => {
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="font-sans bg-gray-100 min-h-screen p-4">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
       <h3 class="text-xl font-semibold mb-4">
         Any PDF submitted through
         <a href="https://${companyIdentifier}.simplepdf.com/editor" target="_blank" class="text-blue-600 hover:text-blue-800 underline">https://${companyIdentifier}.simplepdf.com/editor</a> will appear below
@@ -51,7 +51,7 @@ app.get("/", (req, res) => {
       <table class="w-full text-left text-sm font-light">
         <thead class="border-b font-medium bg-gray-200">
           <tr>
-            <th class="px-6 py-4">Submission URL</th>
+            <th class="px-6 py-4">Submission</th>
             <th class="px-6 py-4">Document</th>
             <th class="px-6 py-4">Document ID</th>
             <th class="px-6 py-4">Submission ID</th>
@@ -61,10 +61,15 @@ app.get("/", (req, res) => {
         </thead>
         <tbody>
           ${events
+            .sort((eventA, eventB) => {
+              const dateA = new Date(eventA.data.submission.submitted_at);
+              const dateB = new Date(eventB.data.submission.submitted_at);
+              return dateB.getTime() - dateA.getTime();
+            })
             .map(
               (event) => `
                 <tr class="bg-white border-b">
-                  <td class="px-6 py-4"><a href="/submissions/${event.data.submission.id}" class="text-blue-600 hover:text-blue-800 underline">URL</a></td>
+                  <td class="px-6 py-4"><a href="/submissions/${event.data.submission.id}" class="text-blue-600 hover:text-blue-800 underline">View submission</a></td>
                   <td class="px-6 py-4">${event.data.document.name}</td>
                   <td class="px-6 py-4">${event.data.document.id}</td>
                   <td class="px-6 py-4">${event.data.submission.id}</td>
@@ -101,7 +106,7 @@ app.get("/submissions/:submissionId", (req, res) => {
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="font-sans bg-gray-100 min-h-screen p-4">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
       <table class="w-full text-left text-sm font-light">
         <thead class="border-b font-medium bg-gray-200">
           <tr>
