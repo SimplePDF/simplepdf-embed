@@ -120,6 +120,35 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 />;
 ```
 
+### Programmatic Control
+
+_Requires a SimplePDF account_
+
+Use `const { embedRef, actions } = useEmbed();` to programmatically control the embed editor:
+
+- `actions.submit`: Submit the document (specify or not whether to download a copy of the document on the device of the user)
+- `actions.selectTool`: Select a tool to use
+
+```jsx
+import { EmbedPDF, useEmbed } from "@simplepdf/react-embed-pdf";
+
+const { embedRef, actions } = useEmbed();
+
+return (
+   <>
+      <button onClick={() => await actions.submit({ downloadCopyOnDevice: false })}>Submit</button>
+      <button onClick={() => await actions.selectTool('TEXT')}>Select Text Tool</button>
+      <EmbedPDF
+         companyIdentifier="yourcompany"
+         ref={embedRef}
+         mode="inline"
+         style={{ width: 900, height: 800 }}
+         documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+      />
+   </>
+);
+```
+
 ### <a id="available-props"></a>Available props
 
 <table>
@@ -128,6 +157,12 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
     <th>Type</th>
     <th>Required</th>
     <th>Description</th>
+  </tr>
+  <tr>
+    <td>ref</td>
+    <td>EmbedRefHandlers</td>
+    <td>No</td>
+    <td>Used for programmatic control of the editor</td>
   </tr>
   <tr>
     <td>mode</td>

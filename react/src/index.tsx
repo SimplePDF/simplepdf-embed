@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
+import { sendEvent, EmbedRefHandlers, useEmbed } from './hook';
 
 import './styles.scss';
+
+export { useEmbed };
 
 export type EmbedEvent =
   | { type: 'DOCUMENT_LOADED'; data: { document_id: string } }
@@ -128,14 +131,57 @@ type DocumentToLoadState =
       isEditorReady: boolean;
     };
 
-export const EmbedPDF: React.FC<Props> = (props) => {
+export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) => {
   const { context, companyIdentifier, locale } = props;
+  const editorActionsReadyRef = React.useRef<Promise<void>>(null);
+  const editorActionsReadyResolveRef = React.useRef<() => void>(null);
   const [documentState, setDocumentState] = React.useState<DocumentToLoadState>({
     type: null,
     value: null,
     isEditorReady: false,
   });
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  const submit: EmbedRefHandlers['submit'] = React.useCallback(async ({ downloadCopyOnDevice }) => {
+    if (!iframeRef.current) {
+      throw Error('Unexpected');
+    }
+
+    await editorActionsReadyRef.current;
+
+    const eventResponse = await sendEvent(iframeRef.current, {
+      type: 'SUBMIT',
+      data: { download_copy: downloadCopyOnDevice },
+    });
+
+    return eventResponse;
+  }, []);
+
+  const selectTool: EmbedRefHandlers['selectTool'] = React.useCallback(async (toolType) => {
+    if (!iframeRef.current) {
+      throw Error('Unexpected');
+    }
+
+    await editorActionsReadyRef.current;
+
+    const eventResponse = await sendEvent(iframeRef.current, {
+      type: 'SELECT_TOOL',
+      data: { tool: toolType },
+    });
+
+    return eventResponse;
+  }, []);
+
+  React.useImperativeHandle(ref, () => ({
+    submit,
+    selectTool,
+  }));
+
+  React.useEffect(() => {
+    editorActionsReadyRef.current = new Promise((resolve) => {
+      editorActionsReadyResolveRef.current = resolve;
+    });
+  }, []);
 
   const url: string | null = isInlineComponent(props)
     ? (props.documentURL ?? null)
@@ -235,19 +281,30 @@ export const EmbedPDF: React.FC<Props> = (props) => {
         }
       })();
 
+      const handleEmbedEvent = async (payload: EmbedEvent) => {
+        try {
+          await props.onEmbedEvent?.(payload);
+        } catch (e) {
+          console.error(`onEmbedEvent failed to execute: ${JSON.stringify(e)}`);
+        }
+      };
+
       switch (payload?.type) {
         case 'EDITOR_READY':
           setDocumentState((prev) => ({ ...prev, isEditorReady: true }));
           return;
-        case 'DOCUMENT_LOADED':
-        case 'SUBMISSION_SENT':
-          try {
-            await props.onEmbedEvent?.(payload);
-          } catch (e) {
-            console.error(`onEmbedEvent failed to execute: ${JSON.stringify(e)}`);
-          }
-
+        case 'DOCUMENT_LOADED': {
+          // EDGE-CASE handling
+          // Timeout necessary for now due to a race condition on SimplePDF's end
+          // Without it actions.submit prior to the editor being loaded resolves to "document not found"
+          await setTimeout(() => editorActionsReadyResolveRef.current?.(), 200);
+          await handleEmbedEvent(payload);
           return;
+        }
+        case 'SUBMISSION_SENT': {
+          await handleEmbedEvent(payload);
+          return;
+        }
 
         default:
           return;
@@ -315,4 +372,4 @@ export const EmbedPDF: React.FC<Props> = (props) => {
   }
 
   return <ModalComponent children={props.children} editorURL={editorURL} ref={iframeRef} />;
-};
+});
