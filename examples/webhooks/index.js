@@ -3,7 +3,7 @@ const express = require("express");
 const FIFTEEN_MINUTES_IN_MS = 15 * 60 * 1000;
 const app = express();
 
-const events = [];
+let events = [];
 
 const port = process.env.PORT ?? "8080";
 const companyIdentifier =
@@ -150,6 +150,11 @@ app.post("/webhooks", (req, res) => {
       console.log(`Unhandled event type: ${eventType}`);
       return res.status(200).end();
   }
+});
+
+app.get("/flush", (req, res) => {
+  events = [];
+  return res.redirect('/');
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
