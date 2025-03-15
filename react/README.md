@@ -50,8 +50,8 @@ While the component does not require any account to be used (without any limits)
 
 - [Aautomatically collect your users' submissions](https://simplepdf.com/embed)
 - [Customize the editor and use your own branding](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding)
-- [Use your own storage](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
 - [Configure webhooks](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
+- **Use your own storage**: [S3-compatible](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions) / [Azure Blob Storage](https://simplepdf.com/help/how-to/use-your-own-azure-blob-storage-for-pdf-documents)
 
 _Example_
 
