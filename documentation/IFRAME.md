@@ -25,6 +25,8 @@ _- Replace `COMPANY_IDENTIFIER` with your own_
 
 _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 
+NOTE: if the `PUBLICLY_AVAILABLE_PDF_URL` contains query parameters (for example when using S3 or Azure Blob storage presigned URLs), you must encode the URL using `encodeURIComponent`
+
 ```html
 <iframe
   src="https://COMPANY_IDENTIFIER.simplepdf.com/editor?open=PUBLICLY_AVAILABLE_PDF_URL"
