@@ -32,8 +32,8 @@ const editorContext: EditorContext = {
   },
 };
 
-const isFormLink = (url: string) => {
-  const regex = /^https:\/\/[^.]+\.simplepdf\.com\/[^\/]+\/form\/.+/;
+const isSimplePDFLink = (url: string) => {
+  const regex = /^https:\/\/[^.]+\.simplepdf\.com(\/[^\/]+)?\/(form|documents)\/.+/;
   return regex.test(url);
 };
 
@@ -122,7 +122,7 @@ export const getSimplePDFElements = (document: Document): Element[] => {
         return false;
       }
 
-      return isPDFLink(anchor.href) || anchor.classList.contains('simplepdf') || isFormLink(anchor.href);
+      return isPDFLink(anchor.href) || anchor.classList.contains('simplepdf') || isSimplePDFLink(anchor.href);
     });
 
     return anchorsWithPDF;
