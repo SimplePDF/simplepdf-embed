@@ -12,7 +12,7 @@
     "package": "npm ci --production && zip -r release.zip . -x .prettierignore .prettierrc package-lock.json"
   },
   "dependencies": {
-    "@simplepdf/web-embed-pdf": "^1.8.2"
+    "@simplepdf/web-embed-pdf": "^1.8.4"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
