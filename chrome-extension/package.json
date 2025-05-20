@@ -9,10 +9,10 @@
     "prettier": "prettier .",
     "test:format": "npm run prettier -- --check",
     "format": "npm run prettier -- --write",
-    "package": "npm ci --production && zip -r release.zip . -x .prettierignore .prettierrc package-lock.json"
+    "package": "npm ci --production && zip -r release.zip . -x .prettierignore .prettierrc package.json package-lock.json README.md"
   },
   "dependencies": {
-    "@simplepdf/web-embed-pdf": "^1.8.2"
+    "@simplepdf/web-embed-pdf": "^1.8.4"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
