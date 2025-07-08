@@ -24,38 +24,52 @@
 
         const [documentName] = url.substring(url.lastIndexOf('/') + 1).split('?');
 
-        editor.contentWindow.postMessage(
-          JSON.stringify({
+        const request = {
             type: "LOAD_DOCUMENT",
             request_id: generateRandomID(),
             data: { data_url: reader.result, name: documentName },
-          }),
+          }
+
+        editor.contentWindow.postMessage(
+          JSON.stringify(request),
           "*"
         );
+
+        console.warn(`Request sent`, request);
       }
 
       function selectTool(value) {
         const editor = document.getElementById("simplepdf");
-        editor.contentWindow.postMessage(
-          JSON.stringify({
+
+        const request = {
             type: "SELECT_TOOL",
             request_id: generateRandomID(),
             data: { tool: value },
-          }),
+          };
+
+        editor.contentWindow.postMessage(
+          JSON.stringify(request),
           "*"
         );
+
+        console.warn(`Request sent`, request);
       }
 
       function submit(downloadCopy) {
         const editor = document.getElementById("simplepdf");
+
+        const request = {
+          type: "SUBMIT",
+          request_id: generateRandomID(),
+          data: { download_copy: downloadCopy },
+        };
+
         editor.contentWindow.postMessage(
-          JSON.stringify({
-            type: "SUBMIT",
-            request_id: generateRandomID(),
-            data: { download_copy: downloadCopy },
-          }),
+          JSON.stringify(request),
           "*"
         );
+
+        console.warn(`Request sent`, request);
       }
     </script>
     <script>
@@ -71,8 +85,14 @@
 
         switch (payload?.type) {
           case "DOCUMENT_LOADED":
+            // You can retrieve the full details about the document by calling the SimplePDF API: https://yourcompany.simplepdf.com/api/#tag/document/get/documents/{document_id}
+            // NOTE: the API Key is very sensitive - do not expose it client side
+            console.log("Event received:", payload); // Event received: {type: "DOCUMENT_LOADED", data: {document_id: "66742cc1-c5d1-439f-a06c-bb6863844cf0"}}
+            return;
           case "SUBMISSION_SENT":
-            console.log("Event received:", payload);
+            // You can retrieve the full details about the document by calling the SimplePDF API: https://yourcompany.simplepdf.com/api/#tag/submission/get/documents/{document_id}/submissions/{submission_id}
+            // NOTE: the API Key is very sensitive - do not expose it client side
+            console.log("Event received:", payload); // Event received: {type: "SUBMISSION_SENT", data: {document_id: "66742cc1-c5d1-439f-a06c-bb6863844cf0", submission_id: "93b51faa-af8e-411e-bcd8-2715cb83c152"}}
             return;
           case 'EDITOR_READY': {
             const loadDocument = document.getElementById("load_document");
@@ -82,7 +102,8 @@
             return;
           }
           case 'REQUEST_RESULT':
-          console.log("Request result:", payload);
+          // The request result contains the requestId sent as part of the initial requests. This allows you to correlate the result with the request and handle and errors
+          console.log("Request result:", payload); // Request result: {type: "REQUEST_RESULT", data: {request_id: "36w7krleldg", result: {success: true}}}
             return;
           default:
             console.log("Unknown event received:", payload);
@@ -95,8 +116,10 @@
   </head>
   <body>
     <div style="margin-bottom: 10px">
+      <h1>Iframe demo with programmatic control</h1>
+      <p>Start by loading the document of your choice then use the different controls (tool selection / submit) to see how to programmatically control the editor.</p>
       <select onchange="loadDocument(this.value)" id="load_document" disabled>
-        <option value="" selected>Load document</option>
+        <option value="" selected>Select a document to load</option>
         <option value="https://cdn.simplepdf.com/simple-pdf/assets/example_en.pdf">example_en.pdf</option>
         <option value="https://pdfobject.com/pdf/sample.pdf">sample.pdf</option>
         <option value="https://cdn.simplepdf.com/simple-pdf/assets/eu_%20competitiveness_2024.pdf">EU Competitiveness Report</option>
