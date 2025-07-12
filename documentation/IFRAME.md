@@ -113,7 +113,7 @@ Where `document_id` is the unique ID of the document that was successfully loade
 
 ```
 type: 'SUBMISSION_SENT'
-data: { submission_id: string }
+data: { document_id: string; submission_id: string }
 ```
 
 Where the `submission_id` is the unique ID of the submission successfully sent.
