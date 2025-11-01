@@ -91,7 +91,7 @@ const WithAccount = ({ children }: { children: React.ReactNode }) => {
           via webhooks
         </a>{" "}
         and can be seen{" "}
-        <a href="https://webhooks.simplepdf.co/" target="_blank">
+        <a href="https://webhooks.simplepdf.com/" target="_blank">
           on this website
         </a>
       </i>

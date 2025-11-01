@@ -1,3 +1,3 @@
 # With script tag example
 
-[See it live here](https://web.simplepdf.co)
+[See it live here](https://web.simplepdf.com)
