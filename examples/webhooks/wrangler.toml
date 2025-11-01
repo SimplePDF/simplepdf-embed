@@ -1,0 +1,19 @@
+name = "simplepdf-webhooks"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Static assets
+[assets]
+directory = "./public"
+
+# KV Namespace for storing webhook events
+[[kv_namespaces]]
+binding = "SIMPLEPDF_WEBHOOKS_KV"
+
+# Cron trigger to run cleanup every 15 minutes
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Environment variables
+[vars]
+COMPANY_IDENTIFIER = "webhooks-playground"

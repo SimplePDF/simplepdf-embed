@@ -8,3 +8,6 @@ wordpress/svn/.svn
 # Chrome extension
 chrome-extension/release/
 chrome-extension/release.zip
+
+.claude/
+.wrangler/
