@@ -1,5 +1,5 @@
-</br>
-</br>
+<br/>
+<br/>
 <div align="center">
   <a href="https://simplepdf.com" target="_blank">
   <picture>
@@ -12,8 +12,8 @@
 <div align="center">
 Add a powerful PDF editor directly into your React App.
 </div>
-</br>
-</br>
+<br/>
+<br/>
 <p align="center">
 <br/>
 <a href="https://simplepdf.com/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
@@ -48,7 +48,7 @@ _The features below require a [SimplePDF account](https://simplepdf.com/pricing#
 
 While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` to:
 
-- [Aautomatically collect your users' submissions](https://simplepdf.com/embed)
+- [Automatically collect your users' submissions](https://simplepdf.com/embed)
 - [Customize the editor and use your own branding](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding)
 - [Configure webhooks](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
 - **Use your own storage**: [S3-compatible](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions) / [Azure Blob Storage](https://simplepdf.com/help/how-to/use-your-own-azure-blob-storage-for-pdf-documents)

@@ -1,5 +1,5 @@
-</br>
-</br>
+<br/>
+<br/>
 <div align="center">
   <a href="https://simplepdf.com" target="_blank">
   <picture>
@@ -12,7 +12,7 @@
 <div align="center">
 Add a powerful PDF editor directly into your website or React App.
 </div>
-</br>
+<br/>
 <div align="center">
   <a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/LICENSE.md">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="SimplePDF embed is released under the MIT license." />
@@ -21,8 +21,8 @@ Add a powerful PDF editor directly into your website or React App.
     <img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social" alt="Tweet" />
   </a>
 </div>
-</br>
-</br>
+<br/>
+<br/>
 <p align="center">
 <br />
 <a href="https://simplepdf.com/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
@@ -69,7 +69,7 @@ Yes! The embed editor is and will remain free, it comes with a branding ("Powere
 ### What happens to the document my users load and the data they fill in?
 
 **For the default editor (`companyIdentifier` is not specified):**
-It stays in their browser! The document(s) that they load and the data they fill in never leaves their computer: [SimplePDF privacy policy](https://simplepdf.com/privacy_policy#what-data-we-dont-collect).
+It stays in their browser! The document(s) that they load and the data they fill in never leave their computer: [SimplePDF privacy policy](https://simplepdf.com/privacy_policy#what-data-we-dont-collect).
 
 **For company editors (`companyIdentifier` is specified):**
 The users are notified that the document and the data they submit is sent to the server. This is part of the `paid` offering of SimplePDF: allowing to automate form submissions.
