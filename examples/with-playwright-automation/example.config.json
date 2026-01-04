@@ -1,0 +1,163 @@
+{
+  "document": "https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf",
+  "fields": [
+    {
+      "type": "TEXT",
+      "x": 72,
+      "y": 700,
+      "width": 200,
+      "height": 14,
+      "page": 1,
+      "value": "John"
+    },
+    {
+      "type": "TEXT",
+      "x": 320,
+      "y": 700,
+      "width": 200,
+      "height": 14,
+      "page": 1,
+      "value": "Doe"
+    },
+    {
+      "type": "TEXT",
+      "x": 72,
+      "y": 650,
+      "width": 200,
+      "height": 14,
+      "page": 1,
+      "value": "john.doe@example.com"
+    },
+    {
+      "type": "TEXT",
+      "x": 320,
+      "y": 650,
+      "width": 200,
+      "height": 14,
+      "page": 1,
+      "value": "+1 555-123-4567"
+    },
+    {
+      "type": "BOXED_TEXT",
+      "x": 72,
+      "y": 600,
+      "width": 150,
+      "height": 14,
+      "page": 1,
+      "value": "2024-01-15"
+    },
+    {
+      "type": "BOXED_TEXT",
+      "x": 320,
+      "y": 600,
+      "width": 150,
+      "height": 14,
+      "page": 1,
+      "value": "REF-001"
+    },
+    {
+      "type": "CHECKBOX",
+      "x": 72,
+      "y": 550,
+      "width": 12,
+      "height": 12,
+      "page": 1,
+      "value": true
+    },
+    {
+      "type": "CHECKBOX",
+      "x": 320,
+      "y": 550,
+      "width": 12,
+      "height": 12,
+      "page": 1,
+      "value": false
+    },
+    {
+      "type": "SIGNATURE",
+      "x": 72,
+      "y": 450,
+      "width": 200,
+      "height": 60,
+      "page": 1
+    },
+    {
+      "type": "PICTURE",
+      "x": 320,
+      "y": 450,
+      "width": 100,
+      "height": 100,
+      "page": 1
+    },
+    {
+      "type": "TEXT",
+      "x": 72,
+      "y": 700,
+      "width": 200,
+      "height": 14,
+      "page": 2,
+      "value": "Additional Notes"
+    },
+    {
+      "type": "TEXT",
+      "x": 320,
+      "y": 700,
+      "width": 200,
+      "height": 14,
+      "page": 2,
+      "value": "Section B"
+    },
+    {
+      "type": "BOXED_TEXT",
+      "x": 72,
+      "y": 650,
+      "width": 200,
+      "height": 14,
+      "page": 2,
+      "value": "ABC-123"
+    },
+    {
+      "type": "BOXED_TEXT",
+      "x": 320,
+      "y": 650,
+      "width": 200,
+      "height": 14,
+      "page": 2,
+      "value": "XYZ-789"
+    },
+    {
+      "type": "CHECKBOX",
+      "x": 72,
+      "y": 600,
+      "width": 12,
+      "height": 12,
+      "page": 2,
+      "value": true
+    },
+    {
+      "type": "CHECKBOX",
+      "x": 320,
+      "y": 600,
+      "width": 12,
+      "height": 12,
+      "page": 2,
+      "value": true
+    },
+    {
+      "type": "SIGNATURE",
+      "x": 72,
+      "y": 450,
+      "width": 200,
+      "height": 60,
+      "page": 2
+    },
+    {
+      "type": "PICTURE",
+      "x": 320,
+      "y": 450,
+      "width": 100,
+      "height": 100,
+      "page": 2
+    }
+  ]
+}
