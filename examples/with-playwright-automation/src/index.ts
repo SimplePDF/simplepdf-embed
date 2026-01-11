@@ -49,8 +49,8 @@ Coordinate System:
   - Units in points (1/72 inch)
 
 Examples:
-  npx tsx src/index.ts config.json
-  npx tsx src/index.ts config.json --company-identifier mycompany
+  npx tsx src/index.ts example.config.json
+  npx tsx src/index.ts example.config.json --company-identifier yourcompany
 `);
 };
 
