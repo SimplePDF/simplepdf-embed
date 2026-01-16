@@ -1,16 +1,66 @@
 import * as React from 'react';
 
-const DEFAULT_REQUEST_TIMEOUT_IN_MS = 5000;
+const DEFAULT_REQUEST_TIMEOUT_IN_MS = 30000;
 
-const generateRandomID = () => {
-  return Math.random().toString(36).substring(2, 15);
+const generateRandomID = (): string => {
+  return `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+};
+
+type ExtractionMode = 'auto' | 'ocr';
+
+type ToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+
+type FieldType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+
+type ErrorCodePrefix = 'bad_request' | 'unexpected' | 'forbidden';
+
+type ErrorResult = {
+  success: false;
+  error: { code: `${ErrorCodePrefix}:${string}`; message: string };
+};
+
+type SuccessResult<TData = undefined> = TData extends undefined ? { success: true } : { success: true; data: TData };
+
+type ActionResult<TData = undefined> = SuccessResult<TData> | ErrorResult;
+
+type DocumentContentPage = {
+  page: number;
+  content: string;
+};
+
+type DocumentContentResult = {
+  name: string;
+  pages: DocumentContentPage[];
+};
+
+type ClearFieldsResult = {
+  cleared_count: number;
+};
+
+type CreateFieldResult = {
+  field_id: string;
 };
 
 export type EmbedActions = {
-  submit: (options: { downloadCopyOnDevice: boolean }) => Promise<Result['data']['result']>;
-  selectTool: (
-    toolType: 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE' | null,
-  ) => Promise<Result['data']['result']>;
+  goTo: (options: { page: number }) => Promise<ActionResult>;
+
+  selectTool: (toolType: ToolType | null) => Promise<ActionResult>;
+
+  createField: (options: {
+    type: FieldType;
+    page: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    value?: string;
+  }) => Promise<ActionResult<CreateFieldResult>>;
+
+  clearFields: (options?: { fieldIds?: string[]; page?: number }) => Promise<ActionResult<ClearFieldsResult>>;
+
+  getDocumentContent: (options?: { extractionMode?: ExtractionMode }) => Promise<ActionResult<DocumentContentResult>>;
+
+  submit: (options: { downloadCopyOnDevice: boolean }) => Promise<ActionResult>;
 };
 
 export type EventPayload = {
@@ -18,128 +68,138 @@ export type EventPayload = {
   data: unknown;
 };
 
-export function sendEvent(iframe: HTMLIFrameElement, payload: EventPayload) {
-  const requestId = generateRandomID();
-  return new Promise<Result['data']['result']>((resolve) => {
-    try {
-      const handleMessage = (event: MessageEvent<string>) => {
-        const parsedEvent: Result = (() => {
-          try {
-            const parsedEvent = JSON.parse(event.data);
-
-            if (parsedEvent.type !== 'REQUEST_RESULT') {
-              return {
-                data: {
-                  request_id: null,
-                },
-              };
-            }
-
-            return parsedEvent;
-          } catch (e) {
-            return null;
-          }
-        })();
-        const isTargetIframe = event.source === iframe.contentWindow;
-        const isMatchingResponse = parsedEvent.data.request_id === requestId;
-
-        if (isTargetIframe && isMatchingResponse) {
-          resolve(parsedEvent.data.result);
-          window.removeEventListener('message', handleMessage);
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
-
-      iframe.contentWindow?.postMessage(JSON.stringify({ ...payload, request_id: requestId }), '*');
-
-      const timeoutId = setTimeout(() => {
-        resolve({
-          success: false,
-          error: {
-            code: 'unexpected:request_timed_out',
-            message: 'The request timed out: try again',
-          },
-        } satisfies Result['data']['result']);
-        window.removeEventListener('message', handleMessage);
-      }, DEFAULT_REQUEST_TIMEOUT_IN_MS);
-
-      const cleanup = () => clearTimeout(timeoutId);
-      window.addEventListener('message', cleanup);
-    } catch (e) {
-      const error = e as Error;
-      resolve({
-        success: false,
-        error: {
-          code: 'unexpected:failed_processing_request',
-          message: `The following error happened: ${error.name}:${error.message}`,
-        },
-      });
-    }
-  });
-}
-
-type ErrorCodePrefix = 'bad_request' | 'unexpected';
-
-type Result = {
+type RequestResultEvent<TData = unknown> = {
   type: 'REQUEST_RESULT';
   data: {
     request_id: string;
-    result:
-      | { success: true }
-      | {
-          success: false;
-          error: { code: `${ErrorCodePrefix}:${string}`; message: string };
-        };
+    result: ActionResult<TData>;
   };
+};
+
+export const sendEvent = <TData = undefined,>(
+  iframe: HTMLIFrameElement,
+  payload: EventPayload,
+): Promise<ActionResult<TData>> => {
+  const requestId = generateRandomID();
+  return new Promise<ActionResult<TData>>((resolve) => {
+    const handleMessage = (event: MessageEvent<string>) => {
+      const parsedEvent: RequestResultEvent<TData> | null = (() => {
+        try {
+          const parsed = JSON.parse(event.data);
+          if (parsed.type !== 'REQUEST_RESULT') {
+            return null;
+          }
+          return parsed;
+        } catch {
+          return null;
+        }
+      })();
+
+      if (parsedEvent === null) {
+        return;
+      }
+
+      const isTargetIframe = event.source === iframe.contentWindow;
+      const isMatchingResponse = parsedEvent.data.request_id === requestId;
+
+      if (isTargetIframe && isMatchingResponse) {
+        resolve(parsedEvent.data.result);
+        window.removeEventListener('message', handleMessage);
+        clearTimeout(timeoutId);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    iframe.contentWindow?.postMessage(JSON.stringify({ ...payload, request_id: requestId }), '*');
+
+    const timeoutId = setTimeout(() => {
+      resolve({
+        success: false,
+        error: {
+          code: 'unexpected:request_timed_out',
+          message: 'The request timed out: try again',
+        },
+      });
+      window.removeEventListener('message', handleMessage);
+    }, DEFAULT_REQUEST_TIMEOUT_IN_MS);
+  });
 };
 
 export const useEmbed = (): { embedRef: React.RefObject<EmbedRefHandlers | null>; actions: EmbedActions } => {
   const embedRef = React.useRef<EmbedRefHandlers>(null);
 
-  const handleSubmit: EmbedRefHandlers['submit'] = React.useCallback(
-    async ({ downloadCopyOnDevice }): Promise<Result['data']['result']> => {
+  const createAction = <TArgs extends unknown[], TResult = undefined>(
+    actionFn: (ref: EmbedRefHandlers, ...args: TArgs) => Promise<ActionResult<TResult>>,
+  ): ((...args: TArgs) => Promise<ActionResult<TResult>>) => {
+    return async (...args: TArgs): Promise<ActionResult<TResult>> => {
       if (embedRef.current === null) {
-        return Promise.resolve({
-          success: false as const,
+        return {
+          success: false,
           error: {
-            code: 'bad_request:embed_ref_not_available' as const,
+            code: 'bad_request:embed_ref_not_available',
             message: 'embedRef is not available: make sure to pass embedRef to the <Embed /> component',
           },
-        });
+        };
       }
+      return actionFn(embedRef.current, ...args);
+    };
+  };
 
-      const result = await embedRef.current.submit({ downloadCopyOnDevice });
-
-      return result;
-    },
+  const handleGoTo = React.useCallback(
+    createAction<[{ page: number }]>(async (ref, options) => {
+      return ref.goTo(options);
+    }),
     [],
   );
 
-  const handleSelectTool: EmbedRefHandlers['selectTool'] = React.useCallback(
-    async (toolType): Promise<Result['data']['result']> => {
-      if (embedRef.current === null) {
-        return Promise.resolve({
-          success: false as const,
-          error: {
-            code: 'bad_request:embed_ref_not_available' as const,
-            message: 'embedRef is not available: make sure to pass embedRef to the <Embed /> component',
-          },
-        });
-      }
+  const handleSelectTool = React.useCallback(
+    createAction<[ToolType | null]>(async (ref, toolType) => {
+      return ref.selectTool(toolType);
+    }),
+    [],
+  );
 
-      const result = await embedRef.current.selectTool(toolType);
+  const handleCreateField = React.useCallback(
+    createAction<
+      [{ type: FieldType; page: number; x: number; y: number; width: number; height: number; value?: string }],
+      CreateFieldResult
+    >(async (ref, options) => {
+      return ref.createField(options);
+    }),
+    [],
+  );
 
-      return result;
-    },
+  const handleClearFields = React.useCallback(
+    createAction<[{ fieldIds?: string[]; page?: number }?], ClearFieldsResult>(async (ref, options) => {
+      return ref.clearFields(options);
+    }),
+    [],
+  );
+
+  const handleGetDocumentContent = React.useCallback(
+    createAction<[{ extractionMode?: ExtractionMode }?], DocumentContentResult>(async (ref, options) => {
+      return ref.getDocumentContent(options);
+    }),
+    [],
+  );
+
+  const handleSubmit = React.useCallback(
+    createAction<[{ downloadCopyOnDevice: boolean }]>(async (ref, options) => {
+      return ref.submit(options);
+    }),
     [],
   );
 
   return {
     embedRef,
     actions: {
-      submit: handleSubmit,
+      goTo: handleGoTo,
       selectTool: handleSelectTool,
+      createField: handleCreateField,
+      clearFields: handleClearFields,
+      getDocumentContent: handleGetDocumentContent,
+      submit: handleSubmit,
     },
   };
 };

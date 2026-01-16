@@ -13,12 +13,15 @@
   "author": "bendersej",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test:types": "tsc --noEmit",
     "test:format": "npm run prettier -- --check",
     "prettier": "prettier .",
     "format": "npm run prettier -- --write",
-    "prepublishOnly": "rimraf dist && yarn build",
+    "prepublishOnly": "rimraf dist && npm run build",
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
