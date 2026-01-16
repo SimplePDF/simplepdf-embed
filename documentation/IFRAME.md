@@ -2,7 +2,7 @@
 
 SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) allow you to easily integrate `SimplePDF` using a single line of code by displaying the editor in a modal.
 
-**If you're however interested in having more control over the way SimplePDF is displayed in your app**, such as changing the way the modal looks or dropping it altogether – injecting the editor into a `div` for example, **read on:**
+**If you're however interested in having more control over the way SimplePDF is displayed in your app**, such as changing the way the modal looks or dropping it altogether - injecting the editor into a `div` for example, **read on:**
 
 ## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Iframe)
 
@@ -56,13 +56,9 @@ _Do not store sensitive information in the context (!!) as it is available local
 
 Where `CONTEXT` is a URL safe Base64 encoded stringified JSON.
 
-### Implementation example
-
 ```javascript
 const context = { customerId: "123", environment: "production" };
-
 const encodedContext = encodeURIComponent(btoa(JSON.stringify(context)));
-
 const url = `https://COMPANY_IDENTIFIER.simplepdf.com/editor?open=PUBLICLY_AVAILABLE_PDF_URL&context=${encodedContext}`;
 ```
 
@@ -88,95 +84,248 @@ _- Replace `PUBLICLY_AVAILABLE_PDF_URL` with the url of the PDF to use._
 </iframe>
 ```
 
+---
+
 ## Iframe Communication
 
-_Only available with a SimplePDF account_
+_Programmatic control is only available with a SimplePDF account_
 
-[Head over here to see the incoming and outgoing events communication](../examples/with-iframe/index.html)
+The iframe communicates using the `postMessage` API. All messages are JSON strings that must be parsed with `JSON.parse()`.
 
-When your users interact with the editor, the Iframe sends events that can allow you to reconcile data on your side or remove the `Iframe` from your app once a submission has been successfully sent.
-
-### Events `sent by` the Iframe:
-
-_Events are stringified (`JSON.stringify`) before they are sent out_
-
-- `DOCUMENT_LOADED`
-
-```
-type: 'DOCUMENT_LOADED'
-data: { document_id: string }
-```
-
-Where `document_id` is the unique ID of the document that was successfully loaded.
-
-- `SUBMISSION_SENT`
-
-```
-type: 'SUBMISSION_SENT'
-data: { document_id: string; submission_id: string }
-```
-
-Where the `submission_id` is the unique ID of the submission successfully sent.
-
-#### Implementation example
+### Implementation
 
 ```javascript
-const eventHandler = async (event) => {
-  const payload = (() => {
-    try {
-      return JSON.parse(event.data);
-    } catch (e) {
-      console.error("Failed to parse Iframe event payload");
-      return null;
-    }
-  })();
+const iframe = document.getElementById("simplepdf-iframe");
 
-  switch (payload?.type) {
-    case "DOCUMENT_LOADED":
-    case "SUBMISSION_SENT":
-      console.log("Event received:", payload);
-      return;
+// Helper to send events and receive responses
+const sendEvent = (type, data = {}) => {
+  return new Promise((resolve, reject) => {
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-    default:
-      return;
-  }
+    const handleResponse = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.type === "REQUEST_RESULT" && payload.data.request_id === requestId) {
+          window.removeEventListener("message", handleResponse);
+          if (payload.data.result.success) {
+            resolve(payload.data.result.data);
+          } else {
+            reject(payload.data.result.error);
+          }
+        }
+      } catch {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener("message", handleResponse);
+
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ type, request_id: requestId, data }),
+      "*"
+    );
+
+    // Timeout after 30 seconds
+    setTimeout(() => {
+      window.removeEventListener("message", handleResponse);
+      reject({ code: "timeout", message: "Request timed out" });
+    }, 30000);
+  });
 };
 
-window.addEventListener("message", eventHandler, false);
+// Listen for events sent by the iframe
+window.addEventListener("message", (event) => {
+  try {
+    const payload = JSON.parse(event.data);
+    switch (payload.type) {
+      case "EDITOR_READY":
+        console.log("Editor is ready");
+        break;
+      case "DOCUMENT_LOADED":
+        console.log("Document loaded:", payload.data.document_id);
+        break;
+      case "PAGE_FOCUSED":
+        console.log("Page changed:", payload.data.current_page, "/", payload.data.total_pages);
+        break;
+      case "SUBMISSION_SENT":
+        console.log("Submission sent:", payload.data.submission_id);
+        break;
+    }
+  } catch {
+    // Ignore non-JSON messages
+  }
+});
 ```
 
-### Events `sent to` the Iframe:
-
-_Events must be stringified (`JSON.stringify`) before they are sent out_
-
-- `LOAD_DOCUMENT`
-
-```
-type: "LOAD_DOCUMENT",
-data: { data_url: string }
-```
-
-#### Implementation example
+### Usage Examples
 
 ```javascript
-const iframe = document.getElementById("iframe");
-
-const response = await fetch(
-  "https://cdn.simplepdf.com/simple-pdf/assets/example_en.pdf"
-);
-const blob = await response.blob();
-const reader = new FileReader();
-await new Promise((resolve, reject) => {
-  reader.onload = resolve;
-  reader.onerror = reject;
-  reader.readAsDataURL(blob);
+// Load a document
+await sendEvent("LOAD_DOCUMENT", {
+  data_url: "https://example.com/document.pdf",
+  name: "my-document.pdf",
+  page: 1
 });
 
-iframe.contentWindow.postMessage(
-  JSON.stringify({
-    type: "LOAD_DOCUMENT",
-    data: { data_url: reader.result },
-  }),
-  "*"
-);
+// Navigate to a specific page
+await sendEvent("GO_TO", { page: 3 });
+
+// Select a tool
+await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE", "PICTURE", "BOXED_TEXT", null
+
+// Create a field
+await sendEvent("CREATE_FIELD", {
+  type: "TEXT",
+  page: 1,
+  x: 100,
+  y: 700,
+  width: 200,
+  height: 30,
+  value: "Hello World"
+});
+
+// Clear all fields (or specific ones)
+await sendEvent("CLEAR_FIELDS", {}); // Clear all
+await sendEvent("CLEAR_FIELDS", { page: 1 }); // Clear page 1 only
+await sendEvent("CLEAR_FIELDS", { field_ids: ["f_kj8n2hd9x3m1p", "f_q7v5c4b6a0wyz"] }); // Clear specific fields
+
+// Extract document content
+const content = await sendEvent("GET_DOCUMENT_CONTENT", { extraction_mode: "auto" });
+console.log("Document name:", content.name);
+console.log("Pages:", content.pages); // [{ page: 1, content: "..." }, ...]
+
+// Submit the document
+await sendEvent("SUBMIT", { download_copy: true });
 ```
+
+---
+
+## Events Reference
+
+### Outgoing Events (sent by the iframe)
+
+| Event | Data | Description |
+|-------|------|-------------|
+| `EDITOR_READY` | `{}` | Editor has loaded and is ready to receive commands |
+| `DOCUMENT_LOADED` | `{ document_id: string }` | A document has been loaded into the editor |
+| `PAGE_FOCUSED` | `{ previous_page: number \| null, current_page: number, total_pages: number }` | User navigated to a different page |
+| `SUBMISSION_SENT` | `{ document_id: string, submission_id: string }` | Document was successfully submitted |
+| `REQUEST_RESULT` | `{ request_id: string, result: { success: boolean, data?: any, error?: { code: string, message: string } } }` | Response to an incoming event |
+
+### Incoming Events (sent to the iframe)
+
+All incoming events require a `request_id` field and return a `REQUEST_RESULT` response.
+
+#### LOAD_DOCUMENT
+
+Load a PDF document into the editor.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data_url` | `string` | Yes | URL or data URL (base64) of the PDF |
+| `name` | `string` | No | Display name for the document |
+| `page` | `number` | No | Initial page to display (1-indexed) |
+
+#### GO_TO
+
+Navigate to a specific page.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `page` | `number` | Yes | Page number to navigate to (1-indexed) |
+
+#### SELECT_TOOL
+
+Select a drawing tool or return to cursor mode.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tool` | `string \| null` | Yes | `"TEXT"`, `"BOXED_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, `"PICTURE"`, or `null` for cursor |
+
+#### CREATE_FIELD
+
+Create a new field on the document.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `string` | Yes | `"TEXT"`, `"BOXED_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, or `"PICTURE"` |
+| `page` | `number` | Yes | Page number (1-indexed) |
+| `x` | `number` | Yes | X coordinate (PDF points from left) |
+| `y` | `number` | Yes | Y coordinate (PDF points from bottom) |
+| `width` | `number` | Yes | Field width in PDF points |
+| `height` | `number` | Yes | Field height in PDF points |
+| `value` | `string` | No | Initial value (see value formats below) |
+
+**Value formats by field type:**
+- `TEXT` / `BOXED_TEXT`: Plain text content
+- `CHECKBOX`: `"checked"` or `"unchecked"`
+- `PICTURE`: Data URL (base64)
+- `SIGNATURE`: Data URL (base64 image) or plain text (generates a typed signature)
+
+**Response data:**
+```json
+{
+  "field_id": "f_kj8n2hd9x3m1p"
+}
+```
+
+#### CLEAR_FIELDS
+
+Remove fields from the document.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `field_ids` | `string[]` | No | Specific field IDs to remove (omit to clear all) |
+| `page` | `number` | No | Only clear fields on this page |
+
+**Response data:**
+```json
+{
+  "cleared_count": 5
+}
+```
+
+#### GET_DOCUMENT_CONTENT
+
+Extract text content from the loaded document.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `extraction_mode` | `string` | No | `"auto"` (default) or `"ocr"` to force OCR processing |
+
+**Response data:**
+```json
+{
+  "name": "document.pdf",
+  "pages": [
+    { "page": 1, "content": "Text content from page 1..." },
+    { "page": 2, "content": "Text content from page 2..." }
+  ]
+}
+```
+
+#### SUBMIT
+
+Submit the document for processing.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `download_copy` | `boolean` | Yes | Whether to trigger a download of the filled PDF |
+
+---
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `bad_request:signup_required` | Feature requires a SimplePDF account |
+| `bad_request:editor_not_ready` | Editor is not ready to handle the event |
+| `bad_request:invalid_page` | Page must be an integer |
+| `bad_request:page_out_of_range` | Requested page does not exist |
+| `bad_request:page_not_found` | Could not get dimensions for the requested page |
+| `bad_request:invalid_field_type` | Unknown field type |
+| `bad_request:invalid_tool` | Unknown tool type |
+| `bad_request:event_not_allowed` | Event is not allowed for your configuration |
+| `forbidden:editing_not_allowed` | Editing is disabled for this portal configuration |
+| `forbidden:origin_not_whitelisted` | Origin is not in your allowed origins list |
+| `forbidden:whitelist_required` | Event requires origin whitelisting |
