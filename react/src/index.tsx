@@ -143,7 +143,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     }
   };
 
-  const loadDocument: EmbedRefHandlers['loadDocument'] = React.useCallback(async ({ dataUrl, name, page }) => {
+  const loadDocument = React.useCallback(async ({ dataUrl, name, page }: { dataUrl: string; name?: string; page?: number }) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
