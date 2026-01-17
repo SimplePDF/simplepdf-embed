@@ -4,7 +4,8 @@
   "description": "SimplePDF straight into your website",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bendersej/simplepdf-embed/tree/main/web"
+    "url": "https://github.com/SimplePDF/simplepdf-embed",
+    "directory": "web"
   },
   "publishConfig": {
     "access": "public",
