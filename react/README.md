@@ -192,6 +192,19 @@ const Editor = () => {
 };
 ```
 
+#### `createField` options
+
+The `createField` action uses a discriminated union based on field type:
+
+| Type | `value` format |
+|------|----------------|
+| `TEXT` / `BOXED_TEXT` | Plain text content |
+| `CHECKBOX` | `'checked'` or `'unchecked'` |
+| `PICTURE` | Data URL (base64) |
+| `SIGNATURE` | Data URL (base64) or plain text (generates typed signature) |
+
+All field types share these base options: `page`, `x`, `y`, `width`, `height` (coordinates in PDF points, origin at bottom-left).
+
 ### <a id="available-props"></a>Available props
 
 <table>

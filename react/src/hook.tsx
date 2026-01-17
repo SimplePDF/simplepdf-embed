@@ -7,7 +7,39 @@ type ExtractionMode = 'auto' | 'ocr';
 
 type ToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
 
-type FieldType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+type BaseFieldOptions = {
+  page: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type TextFieldOptions = BaseFieldOptions & {
+  type: 'TEXT' | 'BOXED_TEXT';
+  value?: string;
+};
+
+type CheckboxFieldOptions = BaseFieldOptions & {
+  type: 'CHECKBOX';
+  value?: 'checked' | 'unchecked';
+};
+
+type PictureFieldOptions = BaseFieldOptions & {
+  type: 'PICTURE';
+  value?: string; // Data URL (base64)
+};
+
+type SignatureFieldOptions = BaseFieldOptions & {
+  type: 'SIGNATURE';
+  value?: string; // Data URL (base64) or plain text (generates typed signature)
+};
+
+export type CreateFieldOptions =
+  | TextFieldOptions
+  | CheckboxFieldOptions
+  | PictureFieldOptions
+  | SignatureFieldOptions;
 
 type ErrorCodePrefix = 'bad_request' | 'unexpected' | 'forbidden';
 
@@ -43,15 +75,7 @@ export type EmbedActions = {
 
   selectTool: (toolType: ToolType | null) => Promise<ActionResult>;
 
-  createField: (options: {
-    type: FieldType;
-    page: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    value?: string;
-  }) => Promise<ActionResult<CreateFieldResult>>;
+  createField: (options: CreateFieldOptions) => Promise<ActionResult<CreateFieldResult>>;
 
   clearFields: (options?: { fieldIds?: string[]; page?: number }) => Promise<ActionResult<ClearFieldsResult>>;
 
@@ -158,10 +182,7 @@ export const useEmbed = (): { embedRef: React.RefObject<EmbedActions | null>; ac
   );
 
   const handleCreateField = React.useCallback(
-    createAction<
-      [{ type: FieldType; page: number; x: number; y: number; width: number; height: number; value?: string }],
-      CreateFieldResult
-    >(async (ref, options) => {
+    createAction<[CreateFieldOptions], CreateFieldResult>(async (ref, options) => {
       return ref.createField(options);
     }),
     [],
