@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/react-embed-pdf",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "SimplePDF straight into your React app",
   "repository": {
     "type": "git",
@@ -56,6 +56,13 @@
     "typescript": "^5.9.3",
     "vitest": "4.0.17"
   },
-  "files": ["dist"],
-  "keywords": ["react", "typescript", "npm", "pdf"]
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "react",
+    "typescript",
+    "npm",
+    "pdf"
+  ]
 }
