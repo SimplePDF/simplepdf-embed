@@ -38,3 +38,6 @@ jobs:
 
       - name: Types
         run: npm run test:types
+
+      - name: Tests
+        run: npm test

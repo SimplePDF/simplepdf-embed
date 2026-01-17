@@ -11,3 +11,5 @@ chrome-extension/release.zip
 
 .claude/
 .wrangler/
+
+coverage

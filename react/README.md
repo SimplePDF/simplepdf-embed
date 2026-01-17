@@ -122,32 +122,88 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
 ### Programmatic Control
 
-_Requires a SimplePDF account_
+_Some actions require a SimplePDF account_
 
 Use `const { embedRef, actions } = useEmbed();` to programmatically control the embed editor:
 
-- `actions.submit`: Submit the document (specify or not whether to download a copy of the document on the device of the user)
-- `actions.selectTool`: Select a tool to use
+| Action                                           | Description                                                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `actions.goTo({ page })`                         | Navigate to a specific page                                                                                         |
+| `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'BOXED_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
+| `actions.createField(options)`                   | Create a field at specified position (see below)                                                                    |
+| `actions.clearFields(options?)`                  | Clear fields by `fieldIds` or `page`, or all fields if no options                                                   |
+| `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                      |
+| `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                 |
+
+All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
 ```jsx
-import { EmbedPDF, useEmbed } from "@simplepdf/react-embed-pdf";
+import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
 
-const { embedRef, actions } = useEmbed();
+const Editor = () => {
+  const { embedRef, actions } = useEmbed();
 
-return (
-   <>
-      <button onClick={() => await actions.submit({ downloadCopyOnDevice: false })}>Submit</button>
-      <button onClick={() => await actions.selectTool('TEXT')}>Select Text Tool</button>
+  const handleSubmit = async () => {
+    const result = await actions.submit({ downloadCopyOnDevice: false });
+    if (result.success) {
+      console.log('Submitted!');
+    }
+  };
+
+  const handleExtract = async () => {
+    const result = await actions.getDocumentContent({ extractionMode: 'auto' });
+    if (result.success) {
+      console.log('Document name:', result.data.name);
+      console.log('Pages:', result.data.pages);
+    }
+  };
+
+  const handleCreateTextField = async () => {
+    const result = await actions.createField({
+      type: 'TEXT',
+      page: 1,
+      x: 100,
+      y: 200,
+      width: 150,
+      height: 30,
+      value: 'Hello World',
+    });
+    if (result.success) {
+      console.log('Created field:', result.data.field_id);
+    }
+  };
+
+  return (
+    <>
+      <button onClick={handleSubmit}>Submit</button>
+      <button onClick={handleExtract}>Extract Content</button>
+      <button onClick={handleCreateTextField}>Add Text Field</button>
+      <button onClick={() => actions.selectTool('TEXT')}>Select Text Tool</button>
+      <button onClick={() => actions.goTo({ page: 2 })}>Go to Page 2</button>
       <EmbedPDF
-         companyIdentifier="yourcompany"
-         ref={embedRef}
-         mode="inline"
-         style={{ width: 900, height: 800 }}
-         documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+        companyIdentifier="yourcompany"
+        ref={embedRef}
+        mode="inline"
+        style={{ width: 900, height: 800 }}
+        documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
       />
-   </>
-);
+    </>
+  );
+};
 ```
+
+#### `createField` options
+
+The `createField` action uses a discriminated union based on field type:
+
+| Type                  | `value` format                                              |
+| --------------------- | ----------------------------------------------------------- |
+| `TEXT` / `BOXED_TEXT` | Plain text content                                          |
+| `CHECKBOX`            | `'checked'` or `'unchecked'`                                |
+| `PICTURE`             | Data URL (base64)                                           |
+| `SIGNATURE`           | Data URL (base64) or plain text (generates typed signature) |
+
+All field types share these base options: `page`, `x`, `y`, `width`, `height` (coordinates in PDF points, origin at bottom-left).
 
 ### <a id="available-props"></a>Available props
 
@@ -160,9 +216,9 @@ return (
   </tr>
   <tr>
     <td>ref</td>
-    <td>EmbedRefHandlers</td>
+    <td>EmbedActions</td>
     <td>No</td>
-    <td>Used for programmatic control of the editor</td>
+    <td>Used for programmatic control of the editor (see Programmatic Control section)</td>
   </tr>
   <tr>
     <td>mode</td>
@@ -170,9 +226,9 @@ return (
     <td>No (defaults to "modal")</td>
     <td>Inline the editor or display it inside a modal</td>
   </tr>
-    <tr>
+  <tr>
     <td>locale</td>
-    <td>"en" | "de" | "es" | "fr" | "it" | "pt"</td>
+    <td>"en" | "de" | "es" | "fr" | "it" | "nl" | "pt"</td>
     <td>No (defaults to "en")</td>
     <td>Language to display the editor in (ISO locale)</td>
   </tr>
@@ -187,6 +243,12 @@ return (
     <td>string</td>
     <td>No</td>
     <td><a href="https://simplepdf.com/embed">Allows collecting customers submissions</a></td>
+  </tr>
+  <tr>
+    <td>baseDomain</td>
+    <td>string</td>
+    <td>No</td>
+    <td>Override the base domain for self-hosted deployments (e.g., "yourdomain.com"). Contact sales@simplepdf.com for enterprise self-hosting</td>
   </tr>
   <tr>
     <td>context</td>
@@ -225,12 +287,12 @@ return (
 1. Link the widget
 
 ```sh
-yarn link
-yarn start
+npm link
+npm start
 ```
 
 2. Use it in the target application
 
 ```sh
-yarn link @simplepdf/react-embed-pdf
+npm link @simplepdf/react-embed-pdf
 ```

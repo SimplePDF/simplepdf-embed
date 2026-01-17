@@ -18,5 +18,5 @@
     "noUnusedParameters": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.test.tsx", "vitest.setup.ts"]
 }

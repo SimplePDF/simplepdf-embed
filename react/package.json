@@ -13,12 +13,19 @@
   "author": "bendersej",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "pretest": "tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:types": "tsc --noEmit",
     "test:format": "npm run prettier -- --check",
     "prettier": "prettier .",
     "format": "npm run prettier -- --write",
-    "prepublishOnly": "rimraf dist && yarn build",
+    "prepublishOnly": "rimraf dist && npm run build",
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
@@ -28,9 +35,15 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "*",
     "@types/react-dom": "*",
+    "@vitest/coverage-v8": "4.0.17",
     "autoprefixer": "^10.4.18",
+    "jsdom": "26.1.0",
     "postcss": "^8.4.35",
     "prettier": "^3.4.2",
     "react": "^18.2.0",
@@ -40,7 +53,8 @@
     "rollup-plugin-scss": "^4.0.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "sass": "^1.71.1",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3",
+    "vitest": "4.0.17"
   },
   "files": ["dist"],
   "keywords": ["react", "typescript", "npm", "pdf"]
