@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { sendEvent, EmbedRefHandlers, useEmbed } from './hook';
+import { sendEvent, EmbedActions, useEmbed } from './hook';
+import { buildEditorDomain, encodeContext, buildEditorURL, extractDocumentName, type Locale } from './utils';
 
 import './styles.scss';
 
@@ -18,7 +19,7 @@ interface CommonProps {
   companyIdentifier?: string;
   context?: Record<string, unknown>;
   onEmbedEvent?: (event: EmbedEvent) => Promise<void> | void;
-  locale?: 'en' | 'de' | 'es' | 'fr' | 'it' | 'pt' | 'nl';
+  locale?: Locale;
   /**
    * Override the base domain for self-hosted deployments (e.g., "yourdomain.com").
    * Interested in enterprise self-hosting? Contact sales@simplepdf.com
@@ -48,13 +49,11 @@ const CloseIcon: React.FC = () => (
   </svg>
 );
 
-const DEFAULT_LOCALE = 'en';
-
 const isInlineComponent = (props: Props): props is InlineProps => (props as InlineProps).mode === 'inline';
 
 const InlineComponent = React.forwardRef<HTMLIFrameElement, Pick<InlineProps, 'className' | 'style'>>(
   ({ className, style }, iframeRef) => {
-    return <iframe ref={iframeRef} className={className} style={{ border: 0, ...style }} />;
+    return <iframe ref={iframeRef} title="SimplePDF" className={className} style={{ border: 0, ...style }} />;
   },
 );
 
@@ -75,7 +74,7 @@ const ModalComponent = React.forwardRef<HTMLIFrameElement, InternalProps & Pick<
       <>
         {shouldDisplayModal &&
           createPortal(
-            <div className="simplePDF_container" aria-modal="true">
+            <div className="simplePDF_container" role="dialog" aria-modal="true">
               <div className="simplePDF_content">
                 <button onClick={handleCloseModal} className="simplePDF_close" aria-label="Close PDF editor modal">
                   <CloseIcon />
@@ -83,6 +82,7 @@ const ModalComponent = React.forwardRef<HTMLIFrameElement, InternalProps & Pick<
                 <div className="simplePDF_iframeContainer">
                   <iframe
                     ref={iframeRef}
+                    title="SimplePDF"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="simplePDF_iframe"
                     src={editorURL}
@@ -117,7 +117,7 @@ type DocumentToLoadState =
       isEditorReady: boolean;
     };
 
-export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) => {
+export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
   const { context, companyIdentifier, locale, baseDomain } = props;
   const editorActionsReadyRef = React.useRef<Promise<void> | null>(null);
   const editorActionsReadyResolveRef = React.useRef<(() => void) | null>(null);
@@ -128,14 +128,10 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
   });
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
-  const editorDomain = React.useMemo(() => {
-    const domain = baseDomain ?? 'simplepdf.com';
-    const subdomain = companyIdentifier ?? 'react-editor';
-    const isLocalDev = domain.includes('.nil') || domain.includes('localhost');
-    const protocol = isLocalDev ? 'http' : 'https';
-
-    return `${protocol}://${subdomain}.${domain}`;
-  }, [baseDomain, companyIdentifier]);
+  const editorDomain = React.useMemo(
+    () => buildEditorDomain({ baseDomain, companyIdentifier }),
+    [baseDomain, companyIdentifier],
+  );
 
   const ensureEditorReady = async (): Promise<void> => {
     if (editorActionsReadyRef.current) {
@@ -146,7 +142,10 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
   const loadDocument = React.useCallback(
     async ({ dataUrl, name, page }: { dataUrl: string; name?: string; page?: number }) => {
       if (!iframeRef.current) {
-        return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
+        return {
+          success: false as const,
+          error: { code: 'unexpected:iframe_not_available' as const, message: 'Iframe not available' },
+        };
       }
       await ensureEditorReady();
       return sendEvent(iframeRef.current, {
@@ -157,7 +156,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     [],
   );
 
-  const goTo: EmbedRefHandlers['goTo'] = React.useCallback(async ({ page }) => {
+  const goTo: EmbedActions['goTo'] = React.useCallback(async ({ page }) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -168,7 +167,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     });
   }, []);
 
-  const selectTool: EmbedRefHandlers['selectTool'] = React.useCallback(async (toolType) => {
+  const selectTool: EmbedActions['selectTool'] = React.useCallback(async (toolType) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -179,7 +178,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     });
   }, []);
 
-  const createField: EmbedRefHandlers['createField'] = React.useCallback(async (options) => {
+  const createField: EmbedActions['createField'] = React.useCallback(async (options) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -190,7 +189,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     });
   }, []);
 
-  const clearFields: EmbedRefHandlers['clearFields'] = React.useCallback(async (options) => {
+  const clearFields: EmbedActions['clearFields'] = React.useCallback(async (options) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -201,7 +200,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     });
   }, []);
 
-  const getDocumentContent: EmbedRefHandlers['getDocumentContent'] = React.useCallback(async (options) => {
+  const getDocumentContent: EmbedActions['getDocumentContent'] = React.useCallback(async (options) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -212,7 +211,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     });
   }, []);
 
-  const submit: EmbedRefHandlers['submit'] = React.useCallback(async ({ downloadCopyOnDevice }) => {
+  const submit: EmbedActions['submit'] = React.useCallback(async ({ downloadCopyOnDevice }) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
@@ -275,7 +274,7 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
       return reader.result as string;
     };
 
-    const [documentName] = url.substring(url.lastIndexOf('/') + 1).split('?');
+    const documentName = extractDocumentName(url);
 
     fetchedDocumentBlob()
       .then((dataURL) =>
@@ -381,38 +380,20 @@ export const EmbedPDF = React.forwardRef<EmbedRefHandlers, Props>((props, ref) =
     return () => window.removeEventListener('message', embedEventHandler);
   }, [embedEventHandler]);
 
-  const encodedContext: string | null = React.useMemo(() => {
-    if (!context) {
-      return null;
-    }
+  const encodedContext = React.useMemo(() => encodeContext(context), [JSON.stringify(context)]);
 
-    try {
-      return encodeURIComponent(btoa(JSON.stringify(context)));
-    } catch (e) {
-      console.error(`Failed to encode the context: ${JSON.stringify(e)}`, {
-        context,
-      });
-      return null;
-    }
-  }, [JSON.stringify(context)]);
-
-  const editorURL = React.useMemo(() => {
-    const simplePDFEditorURL = new URL(`/${locale ?? DEFAULT_LOCALE}/editor`, editorDomain);
-
-    if (encodedContext) {
-      simplePDFEditorURL.searchParams.set('context', encodedContext);
-    }
-
-    if (url) {
-      simplePDFEditorURL.searchParams.set('loadingPlaceholder', 'true');
-    }
-
-    if (documentState?.type === 'cors_proxy_fallback' && documentState?.value !== null) {
-      simplePDFEditorURL.searchParams.set('open', documentState.value);
-    }
-
-    return simplePDFEditorURL.href;
-  }, [editorDomain, url, encodedContext, documentState, locale]);
+  const editorURL = React.useMemo(
+    () =>
+      buildEditorURL({
+        editorDomain,
+        locale,
+        encodedContext,
+        hasDocumentUrl: Boolean(url),
+        corsProxyFallbackUrl:
+          documentState?.type === 'cors_proxy_fallback' && documentState?.value !== null ? documentState.value : null,
+      }),
+    [editorDomain, url, encodedContext, documentState, locale],
+  );
 
   const isInline = isInlineComponent(props);
 

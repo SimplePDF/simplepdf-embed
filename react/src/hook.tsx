@@ -1,10 +1,7 @@
 import * as React from 'react';
+import { generateRandomID } from './utils';
 
 const DEFAULT_REQUEST_TIMEOUT_IN_MS = 30000;
-
-const generateRandomID = (): string => {
-  return `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-};
 
 type ExtractionMode = 'auto' | 'ocr';
 
@@ -126,11 +123,11 @@ export const sendEvent = <TData = undefined,>(
   });
 };
 
-export const useEmbed = (): { embedRef: React.RefObject<EmbedRefHandlers | null>; actions: EmbedActions } => {
-  const embedRef = React.useRef<EmbedRefHandlers>(null);
+export const useEmbed = (): { embedRef: React.RefObject<EmbedActions | null>; actions: EmbedActions } => {
+  const embedRef = React.useRef<EmbedActions>(null);
 
   const createAction = <TArgs extends unknown[], TResult = undefined>(
-    actionFn: (ref: EmbedRefHandlers, ...args: TArgs) => Promise<ActionResult<TResult>>,
+    actionFn: (ref: EmbedActions, ...args: TArgs) => Promise<ActionResult<TResult>>,
   ): ((...args: TArgs) => Promise<ActionResult<TResult>>) => {
     return async (...args: TArgs): Promise<ActionResult<TResult>> => {
       if (embedRef.current === null) {
@@ -203,5 +200,3 @@ export const useEmbed = (): { embedRef: React.RefObject<EmbedRefHandlers | null>
     },
   };
 };
-
-export type EmbedRefHandlers = EmbedActions;
