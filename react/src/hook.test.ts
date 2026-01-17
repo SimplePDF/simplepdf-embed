@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, expectTypeOf } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { sendEvent, useEmbed, EmbedActions } from './hook';
 
@@ -232,22 +232,6 @@ describe('useEmbed', () => {
       expect(result.current.embedRef.current).toBeNull();
       expect(result.current.actions).toBeDefined();
     });
-
-    it('exposes all action methods', () => {
-      const { result } = renderHook(() => useEmbed());
-
-      const expectedActions: (keyof EmbedActions)[] = [
-        'goTo',
-        'selectTool',
-        'createField',
-        'clearFields',
-        'getDocumentContent',
-        'submit',
-      ];
-      expectedActions.forEach((action) => {
-        expect(typeof result.current.actions[action]).toBe('function');
-      });
-    });
   });
 
   describe('actions without ref attached', () => {
@@ -391,5 +375,177 @@ describe('useEmbed', () => {
 
     expect(result.current.actions.goTo).toBe(initialActions.goTo);
     expect(result.current.actions.submit).toBe(initialActions.submit);
+  });
+});
+
+describe('Type assertions', () => {
+  // These types are intentionally inlined to act as a "frozen" contract.
+  // If the actual types change, these tests will fail at compile time.
+
+  type ExpectedToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+
+  type ExpectedBaseFieldOptions = {
+    page: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+
+  type ExpectedTextFieldOptions = ExpectedBaseFieldOptions & {
+    type: 'TEXT' | 'BOXED_TEXT';
+    value?: string;
+  };
+
+  type ExpectedCheckboxFieldOptions = ExpectedBaseFieldOptions & {
+    type: 'CHECKBOX';
+    value?: 'checked' | 'unchecked';
+  };
+
+  type ExpectedPictureFieldOptions = ExpectedBaseFieldOptions & {
+    type: 'PICTURE';
+    value?: string;
+  };
+
+  type ExpectedSignatureFieldOptions = ExpectedBaseFieldOptions & {
+    type: 'SIGNATURE';
+    value?: string;
+  };
+
+  type ExpectedCreateFieldOptions =
+    | ExpectedTextFieldOptions
+    | ExpectedCheckboxFieldOptions
+    | ExpectedPictureFieldOptions
+    | ExpectedSignatureFieldOptions;
+
+  type ExpectedErrorResult = {
+    success: false;
+    error: { code: string; message: string };
+  };
+
+  type ExpectedSuccessResult<TData = undefined> = TData extends undefined
+    ? { success: true }
+    : { success: true; data: TData };
+
+  type ExpectedActionResult<TData = undefined> = ExpectedSuccessResult<TData> | ExpectedErrorResult;
+
+  describe('EmbedActions', () => {
+    it('goTo accepts { page: number } and returns ActionResult', () => {
+      expectTypeOf<EmbedActions['goTo']>().parameter(0).toEqualTypeOf<{ page: number }>();
+      expectTypeOf<EmbedActions['goTo']>().returns.resolves.toExtend<ExpectedActionResult>();
+    });
+
+    it('selectTool accepts ToolType | null and returns ActionResult', () => {
+      expectTypeOf<EmbedActions['selectTool']>().parameter(0).toEqualTypeOf<ExpectedToolType | null>();
+      expectTypeOf<EmbedActions['selectTool']>().returns.resolves.toExtend<ExpectedActionResult>();
+    });
+
+    it('createField accepts CreateFieldOptions and returns ActionResult with field_id', () => {
+      expectTypeOf<EmbedActions['createField']>().parameter(0).toEqualTypeOf<ExpectedCreateFieldOptions>();
+      expectTypeOf<EmbedActions['createField']>().returns.resolves.toExtend<
+        ExpectedActionResult<{ field_id: string }>
+      >();
+    });
+
+    it('clearFields accepts optional { fieldIds?, page? } and returns ActionResult with cleared_count', () => {
+      expectTypeOf<EmbedActions['clearFields']>()
+        .parameter(0)
+        .toEqualTypeOf<{ fieldIds?: string[]; page?: number } | undefined>();
+      expectTypeOf<EmbedActions['clearFields']>().returns.resolves.toExtend<
+        ExpectedActionResult<{ cleared_count: number }>
+      >();
+    });
+
+    it('getDocumentContent requires { extractionMode } and returns ActionResult with document content', () => {
+      expectTypeOf<EmbedActions['getDocumentContent']>().parameter(0).toEqualTypeOf<{
+        extractionMode: 'auto' | 'ocr';
+      }>();
+      expectTypeOf<EmbedActions['getDocumentContent']>().returns.resolves.toExtend<
+        ExpectedActionResult<{ name: string; pages: { page: number; content: string }[] }>
+      >();
+    });
+
+    it('submit requires { downloadCopyOnDevice } and returns ActionResult', () => {
+      expectTypeOf<EmbedActions['submit']>().parameter(0).toEqualTypeOf<{ downloadCopyOnDevice: boolean }>();
+      expectTypeOf<EmbedActions['submit']>().returns.resolves.toExtend<ExpectedActionResult>();
+    });
+  });
+
+  describe('createField discriminated union', () => {
+    it('TEXT field options are accepted', () => {
+      const textField = {
+        type: 'TEXT' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 20,
+        value: 'hello',
+      };
+      expectTypeOf(textField).toExtend<ExpectedCreateFieldOptions>();
+    });
+
+    it('BOXED_TEXT field options are accepted', () => {
+      const boxedTextField = {
+        type: 'BOXED_TEXT' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 20,
+        value: 'hello',
+      };
+      expectTypeOf(boxedTextField).toExtend<ExpectedCreateFieldOptions>();
+    });
+
+    it('CHECKBOX field accepts only checked/unchecked values', () => {
+      const checkedField = {
+        type: 'CHECKBOX' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 20,
+        value: 'checked' as const,
+      };
+      expectTypeOf(checkedField).toExtend<ExpectedCreateFieldOptions>();
+
+      const uncheckedField = {
+        type: 'CHECKBOX' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 20,
+        height: 20,
+        value: 'unchecked' as const,
+      };
+      expectTypeOf(uncheckedField).toExtend<ExpectedCreateFieldOptions>();
+    });
+
+    it('PICTURE field options are accepted', () => {
+      const pictureField = {
+        type: 'PICTURE' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        value: 'data:image/png;base64,...',
+      };
+      expectTypeOf(pictureField).toExtend<ExpectedCreateFieldOptions>();
+    });
+
+    it('SIGNATURE field options are accepted', () => {
+      const signatureField = {
+        type: 'SIGNATURE' as const,
+        page: 1,
+        x: 0,
+        y: 0,
+        width: 150,
+        height: 50,
+        value: 'John Doe',
+      };
+      expectTypeOf(signatureField).toExtend<ExpectedCreateFieldOptions>();
+    });
   });
 });
