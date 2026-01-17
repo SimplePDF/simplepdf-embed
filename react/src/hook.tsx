@@ -35,11 +35,7 @@ type SignatureFieldOptions = BaseFieldOptions & {
   value?: string; // Data URL (base64) or plain text (generates typed signature)
 };
 
-export type CreateFieldOptions =
-  | TextFieldOptions
-  | CheckboxFieldOptions
-  | PictureFieldOptions
-  | SignatureFieldOptions;
+export type CreateFieldOptions = TextFieldOptions | CheckboxFieldOptions | PictureFieldOptions | SignatureFieldOptions;
 
 type ErrorCodePrefix = 'bad_request' | 'unexpected' | 'forbidden';
 
