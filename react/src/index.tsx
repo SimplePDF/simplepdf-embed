@@ -207,7 +207,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     await ensureEditorReady();
     return sendEvent(iframeRef.current, {
       type: 'GET_DOCUMENT_CONTENT',
-      data: { extraction_mode: options?.extractionMode },
+      data: { extraction_mode: options.extractionMode },
     });
   }, []);
 

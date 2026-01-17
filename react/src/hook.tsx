@@ -55,7 +55,7 @@ export type EmbedActions = {
 
   clearFields: (options?: { fieldIds?: string[]; page?: number }) => Promise<ActionResult<ClearFieldsResult>>;
 
-  getDocumentContent: (options?: { extractionMode?: ExtractionMode }) => Promise<ActionResult<DocumentContentResult>>;
+  getDocumentContent: (options: { extractionMode: ExtractionMode }) => Promise<ActionResult<DocumentContentResult>>;
 
   submit: (options: { downloadCopyOnDevice: boolean }) => Promise<ActionResult>;
 };
@@ -175,7 +175,7 @@ export const useEmbed = (): { embedRef: React.RefObject<EmbedActions | null>; ac
   );
 
   const handleGetDocumentContent = React.useCallback(
-    createAction<[{ extractionMode?: ExtractionMode }?], DocumentContentResult>(async (ref, options) => {
+    createAction<[{ extractionMode: ExtractionMode }], DocumentContentResult>(async (ref, options) => {
       return ref.getDocumentContent(options);
     }),
     [],

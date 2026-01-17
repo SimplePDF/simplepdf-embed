@@ -284,7 +284,7 @@ describe('useEmbed', () => {
 
     it('getDocumentContent returns error when embedRef not attached', async () => {
       const { result } = renderHook(() => useEmbed());
-      const actionResult = await result.current.actions.getDocumentContent({});
+      const actionResult = await result.current.actions.getDocumentContent({ extractionMode: 'auto' });
       expect(actionResult).toEqual(expectedError);
     });
 
@@ -365,9 +365,9 @@ describe('useEmbed', () => {
       const { ref, spies } = createMockEmbedRef();
       (result.current.embedRef as React.MutableRefObject<EmbedActions>).current = ref;
 
-      const actionResult = await result.current.actions.getDocumentContent({});
+      const actionResult = await result.current.actions.getDocumentContent({ extractionMode: 'auto' });
 
-      expect(spies.getDocumentContent).toHaveBeenCalledWith({});
+      expect(spies.getDocumentContent).toHaveBeenCalledWith({ extractionMode: 'auto' });
       expect(actionResult).toEqual({ success: true });
     });
 

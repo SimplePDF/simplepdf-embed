@@ -508,7 +508,7 @@ describe('EmbedPDF', () => {
           throw new Error('Expected ref to be available');
         }
 
-        const resultPromise = ref.current.getDocumentContent({});
+        const resultPromise = ref.current.getDocumentContent({ extractionMode: 'auto' });
 
         await waitFor(() => {
           expect(mockContentWindow.postMessage).toHaveBeenCalled();
