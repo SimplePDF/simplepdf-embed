@@ -10,7 +10,7 @@ Additionally, it showcases programmatic control of the editor, allowing develope
 
 - **Custom Sidebar**: The default SimplePDF sidebar is hidden, replaced with a custom sidebar containing tools for text, checkboxes, signatures, images, and document uploads, along with a submit button and a download toggle.
 
-- **Programmatic Control**: Use the `useEmbed` hook to programmatically control the SimplePDF editor, including submitting the document and selecting tools: [documentation](../../react/README#programmatic-control)
+- **Programmatic Control**: Use the `useEmbed` hook to programmatically control the SimplePDF editor, including submitting the document and selecting tools: [documentation](../../react/README.md#programmatic-control)
 
 
 ## Installation

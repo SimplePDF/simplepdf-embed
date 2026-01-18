@@ -205,6 +205,8 @@ The `createField` action uses a discriminated union based on field type:
 
 All field types share these base options: `page`, `x`, `y`, `width`, `height` (coordinates in PDF points, origin at bottom-left).
 
+See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
+
 ### <a id="available-props"></a>Available props
 
 <table>
@@ -242,7 +244,9 @@ All field types share these base options: `page`, `x`, `y`, `width`, `height` (c
     <td>companyIdentifier</td>
     <td>string</td>
     <td>No</td>
-    <td><a href="https://simplepdf.com/embed">Allows collecting customers submissions</a></td>
+    <td>
+      Your SimplePDF portal. See <a href="../README.md#data-privacy--companyidentifier">Data Privacy & companyIdentifier</a> for reserved values and data handling details.
+    </td>
   </tr>
   <tr>
     <td>baseDomain</td>
@@ -258,7 +262,7 @@ All field types share these base options: `page`, `x`, `y`, `width`, `height` (c
   </tr>
   <tr>
     <td>onEmbedEvent</td>
-    <td>(event: EmbedEvent) => Promise<void> | void</td>
+    <td><code>(event: EmbedEvent) =&gt; Promise&lt;void&gt; | void</code></td>
     <td>No</td>
     <td><a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/documentation/IFRAME.md#iframe-communication">Events sent by the Iframe</a></td>
   </tr>

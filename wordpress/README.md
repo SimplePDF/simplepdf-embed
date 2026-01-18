@@ -28,5 +28,5 @@ npm run package-plugin
 cd svn
 svn up
 svn cp trunk tags/<TAG>
-svn commit -m 'Tagging version TAG>'
+svn commit -m 'Tagging version <TAG>'
 ```

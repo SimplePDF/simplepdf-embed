@@ -1,5 +1,5 @@
-</br>
-</br>
+<br/>
+<br/>
 <div align="center">
   <a href="https://simplepdf.com" target="_blank">
   <picture>
@@ -12,8 +12,8 @@
 <div align="center">
 Add a powerful PDF editor directly into your website.
 </div>
-</br>
-</br>
+<br/>
+<br/>
 <p align="center">
 <br/>
 <a href="https://simplepdf.com/embed" rel="dofollow"><strong>Read more about SimplePDF Embed »</strong></a>
@@ -54,6 +54,8 @@ _Replace `companyIdentifier` with your own_
 ```
 <!-- prettier-ignore-end -->
 
+See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentifier) for details on how data is handled.
+
 ## How does it work?
 
 **Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
@@ -80,7 +82,7 @@ In case you want to have more control over how the modal for editing PDFs is inv
 
 ### Overriding the automatic locale detection
 
-SimplePDF currently supports the following languages automatically detects the language of the page (using the `lang` attribute) and opens the editor in the following languages:
+SimplePDF automatically detects the language of the page (using the `lang` attribute) and supports the following languages:
 
 - English (`en`)
 - German (`de`)
@@ -157,3 +159,24 @@ window.simplePDF.setConfig({
   autoOpen: false,
 });
 ```
+
+### Viewer Mode (Read-Only)
+
+To use SimplePDF as a PDF viewer with all editing features disabled:
+
+```html
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="viewer"
+  defer
+></script>
+```
+
+Or programmatically:
+
+```javascript
+window.simplePDF.setConfig({ companyIdentifier: 'viewer' });
+window.simplePDF.openEditor({ href: 'https://example.com/document.pdf' });
+```
+
+See the [main README](../README.md#im-looking-for-a-pdf-viewer-only-can-i-disable-the-editing-features) for more details on what's disabled in viewer mode.

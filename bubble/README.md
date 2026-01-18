@@ -1,5 +1,5 @@
-</br>
-</br>
+<br/>
+<br/>
 <div align="center">
   <a href="https://simplepdf.com" target="_blank">
   <picture>
@@ -12,8 +12,8 @@
 <div align="center">
 Add a powerful PDF editor directly into your Bubble app.
 </div>
-</br>
-</br>
+<br/>
+<br/>
 <p align="center">
 <br/>
 <a href="https://bubble.io/plugin/pdf-editor-and-filler-1673591701449x899138091362287600" rel="dofollow"><strong>Read more about SimplePDF for Bubble.io »</strong></a>
