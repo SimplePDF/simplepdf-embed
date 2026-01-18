@@ -279,12 +279,19 @@ See: [Customize the PDF Editor and Add Branding](https://simplepdf.com/help/how-
 
 Currently, page manipulation (add/remove/re-arrange/rotate) is only available through the UI. There are no programmatic APIs for these operations. If you need this feature, [file an issue on the repository](https://github.com/SimplePDF/simplepdf-embed/issues).
 
-**Available programmatic navigation:**
+**Available programmatic actions:**
 
-```jsx
-// Navigate to a specific page
-await actions.goTo({ page: 3 });
-```
+| Action                 | Description                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `goTo`                 | Navigate to a specific page                                                                                |
+| `selectTool`           | Select a tool (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `PICTURE`, `SIGNATURE`) or `null` for cursor              |
+| `createField`          | Create a field at a specified position                                                                     |
+| `clearFields`          | Clear fields by ID, by page, or all fields                                                                 |
+| `getDocumentContent`   | Extract text content from the document                                                                     |
+| `submit`               | Submit the document (with optional device download)                                                        |
+| `loadDocument` (Iframe)| Load a document programmatically (Iframe API only)                                                         |
+
+See full documentation: [React](./react/README.md#programmatic-control) | [Iframe](./documentation/IFRAME.md#incoming-events-sent-to-the-iframe)
 
 # Get started
 

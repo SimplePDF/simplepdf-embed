@@ -165,11 +165,7 @@ window.simplePDF.setConfig({
 To use SimplePDF as a PDF viewer with all editing features disabled:
 
 ```html
-<script
-  src="https://unpkg.com/@simplepdf/web-embed-pdf"
-  companyIdentifier="viewer"
-  defer
-></script>
+<script src="https://unpkg.com/@simplepdf/web-embed-pdf" companyIdentifier="viewer" defer></script>
 ```
 
 Or programmatically:
