@@ -5,6 +5,9 @@
   "type": "module",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
+  "bin": {
+    "simplepdf-mcp": "./dist/server.js"
+  },
   "files": [
     "dist",
     "mcp-app.html"
