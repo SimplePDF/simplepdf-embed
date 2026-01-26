@@ -16,7 +16,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "types": ["@cloudflare/workers-types", "node"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
