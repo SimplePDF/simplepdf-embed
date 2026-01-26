@@ -1,0 +1,46 @@
+{
+  "name": "@simplepdf/mcp-app",
+  "version": "0.0.1",
+  "description": "MCP App for SimplePDF - Edit PDFs with AI assistants",
+  "type": "module",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "files": [
+    "dist",
+    "mcp-app.html"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\"",
+    "dev:server": "tsx watch src/server.ts",
+    "dev:ui": "vite",
+    "build": "npm run build:server && npm run build:ui",
+    "build:server": "tsc",
+    "build:ui": "vite build",
+    "test:types": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "pdf",
+    "simplepdf",
+    "model-context-protocol",
+    "ai"
+  ],
+  "author": "SimplePDF",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArnaudLigny/simplepdf-embed.git",
+    "directory": "mcp-app"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "zod": "^3.24.0"
+  }
+}
