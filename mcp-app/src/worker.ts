@@ -1,8 +1,17 @@
+import OAuthProvider from '@cloudflare/workers-oauth-provider';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpAgent } from 'agents/mcp';
 import { z } from 'zod';
+import { GitHubHandler } from './github-handler.js';
 
-export class SimplePdfMcp extends McpAgent {
+type Props = {
+  login: string;
+  name: string;
+  email: string;
+  accessToken: string;
+};
+
+export class SimplePdfMcp extends McpAgent<Env, Record<string, never>, Props> {
   server = new McpServer({
     name: 'simplepdf-mcp',
     version: '0.0.1',
@@ -118,38 +127,12 @@ export class SimplePdfMcp extends McpAgent {
   }
 }
 
-export default {
-  fetch(request: Request, env: Env, ctx: ExecutionContext): Response | Promise<Response> {
-    const url = new URL(request.url);
-
-    if (url.pathname === '/mcp' || url.pathname === '/sse') {
-      return SimplePdfMcp.serve('/mcp').fetch(request, env, ctx);
-    }
-
-    if (url.pathname === '/') {
-      return new Response(
-        JSON.stringify({
-          name: 'SimplePDF MCP Server',
-          version: '0.0.1',
-          endpoints: {
-            mcp: '/mcp',
-            sse: '/sse (deprecated)',
-          },
-          tools: [
-            'display_pdf',
-            'add_annotation',
-            'extract_content',
-            'navigate_page',
-            'submit_document',
-            'clear_annotations',
-          ],
-        }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    return new Response('Not found', { status: 404 });
-  },
-};
+export default new OAuthProvider({
+  apiRoute: '/mcp',
+  apiHandler: SimplePdfMcp.mount('/mcp'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultHandler: GitHubHandler as any,
+  authorizeEndpoint: '/authorize',
+  tokenEndpoint: '/token',
+  clientRegistrationEndpoint: '/register',
+});

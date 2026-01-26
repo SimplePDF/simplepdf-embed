@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "simplepdf-mcp",
+  "name": "simplepdf-mcp-app",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/worker.ts",
@@ -18,6 +18,12 @@
       }
     ]
   },
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "ef84b2c943984636995a8058684570b5"
+    }
+  ],
   "observability": {
     "enabled": true
   }

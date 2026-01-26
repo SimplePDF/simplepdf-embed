@@ -38,9 +38,11 @@
     "directory": "mcp-app"
   },
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.2.2",
     "@modelcontextprotocol/ext-apps": "^1.0.0",
     "@modelcontextprotocol/sdk": "1.25.2",
     "agents": "^0.3.6",
+    "hono": "^4.11.6",
     "zod": "^3.24.0"
   },
   "devDependencies": {
