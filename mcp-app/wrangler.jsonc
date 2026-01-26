@@ -3,5 +3,22 @@
   "name": "simplepdf-mcp",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "src/worker.ts"
+  "main": "src/worker.ts",
+  "migrations": [
+    {
+      "new_sqlite_classes": ["SimplePdfMcp"],
+      "tag": "v1"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "SimplePdfMcp",
+        "name": "MCP_OBJECT"
+      }
+    ]
+  },
+  "observability": {
+    "enabled": true
+  }
 }
