@@ -1,3 +1,5 @@
+import { App } from '@modelcontextprotocol/ext-apps';
+
 type IframeAction =
   | { action: 'LOAD_DOCUMENT'; data: { data_url: string; name?: string; page?: number } }
   | { action: 'CREATE_FIELD'; data: { type: string; page: number; x: number; y: number; width: number; height: number; value?: string } }
@@ -33,6 +35,7 @@ const state: AppState = {
 };
 
 let iframe: HTMLIFrameElement | null = null;
+let mcpApp: App | null = null;
 
 const generateRequestId = (): string => {
   return `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -86,12 +89,14 @@ const handleIframeMessage = (event: MessageEvent<string>): void => {
     case 'DOCUMENT_LOADED':
       state.documentId = payload.data.document_id;
       console.log('[SimplePDF MCP] Document loaded:', payload.data.document_id);
+      updateModelContext();
       break;
 
     case 'PAGE_FOCUSED':
       state.currentPage = payload.data.current_page;
       state.totalPages = payload.data.total_pages;
       console.log('[SimplePDF MCP] Page:', payload.data.current_page, '/', payload.data.total_pages);
+      updateModelContext();
       break;
 
     case 'SUBMISSION_SENT':
@@ -110,6 +115,28 @@ const handleIframeMessage = (event: MessageEvent<string>): void => {
       }
       break;
     }
+  }
+};
+
+const updateModelContext = (): void => {
+  if (!mcpApp) return;
+
+  const contextParts: string[] = [];
+
+  if (state.documentId) {
+    contextParts.push(`Document loaded: ${state.documentId}`);
+  }
+
+  if (state.currentPage !== null && state.totalPages !== null) {
+    contextParts.push(`Current page: ${state.currentPage} of ${state.totalPages}`);
+  }
+
+  if (contextParts.length > 0) {
+    mcpApp.updateModelContext({
+      content: [{ type: 'text', text: contextParts.join('\n') }],
+    }).catch((error) => {
+      console.error('[SimplePDF MCP] Failed to update model context:', error);
+    });
   }
 };
 
@@ -166,8 +193,40 @@ const createUI = (): void => {
   window.addEventListener('message', handleIframeMessage);
 };
 
+const initMcpApp = (): void => {
+  mcpApp = new App(
+    {
+      name: 'SimplePDF Editor',
+      version: '0.0.1',
+    },
+    {}
+  );
+
+  mcpApp.ontoolresult = async (result) => {
+    console.log('[SimplePDF MCP] Tool result received:', result);
+
+    try {
+      const content = result.content?.[0];
+      if (content?.type === 'text' && typeof content.text === 'string') {
+        const action = JSON.parse(content.text) as IframeAction;
+        const actionResult = await executeAction(action);
+        console.log('[SimplePDF MCP] Action executed:', actionResult);
+      }
+    } catch (error) {
+      console.error('[SimplePDF MCP] Failed to execute action:', error);
+    }
+  };
+
+  mcpApp.connect().catch((error) => {
+    console.error('[SimplePDF MCP] Failed to connect:', error);
+  });
+
+  console.log('[SimplePDF MCP] MCP App initialized');
+};
+
 const init = (): void => {
   createUI();
+  initMcpApp();
 
   (window as unknown as { simplePdfMcp: { executeAction: typeof executeAction; getState: () => AppState } }).simplePdfMcp = {
     executeAction,
