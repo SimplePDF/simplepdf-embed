@@ -65,18 +65,12 @@ export const handleToolCall = (
           isError: true,
         };
       }
+      const editorUrl = `https://embed.simplepdf.com/editor?open=${encodeURIComponent(parsed.data.url)}`;
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'LOAD_DOCUMENT',
-              data: {
-                data_url: parsed.data.url,
-                name: parsed.data.name,
-                page: parsed.data.page,
-              },
-            }),
+            text: `PDF ready to view in SimplePDF Editor.\n\nDocument: ${parsed.data.name ?? parsed.data.url}\nEditor URL: ${editorUrl}\n\nOpen this URL in a browser to view and edit the PDF, or use the SimplePDF embed in your application.`,
           },
         ],
       };
@@ -90,14 +84,12 @@ export const handleToolCall = (
           isError: true,
         };
       }
+      const valueInfo = parsed.data.value ? ` with value "${parsed.data.value}"` : '';
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'CREATE_FIELD',
-              data: parsed.data,
-            }),
+            text: `Annotation instruction created.\n\nType: ${parsed.data.type}\nPage: ${parsed.data.page}\nPosition: (${parsed.data.x}, ${parsed.data.y})\nSize: ${parsed.data.width}x${parsed.data.height}${valueInfo}\n\nThis annotation will be added when the document is loaded in SimplePDF Editor.`,
           },
         ],
       };
@@ -115,10 +107,7 @@ export const handleToolCall = (
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'GET_DOCUMENT_CONTENT',
-              data: { extraction_mode: parsed.data.extraction_mode },
-            }),
+            text: `Content extraction requested.\n\nMode: ${parsed.data.extraction_mode}\n\nNote: Content extraction requires the document to be loaded in the SimplePDF Editor. The text content of each page will be returned once the document is processed.`,
           },
         ],
       };
@@ -136,10 +125,7 @@ export const handleToolCall = (
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'GO_TO',
-              data: { page: parsed.data.page },
-            }),
+            text: `Navigation instruction created.\n\nTarget page: ${parsed.data.page}\n\nThe editor will navigate to this page when the instruction is executed.`,
           },
         ],
       };
@@ -153,14 +139,12 @@ export const handleToolCall = (
           isError: true,
         };
       }
+      const downloadInfo = parsed.data.download_copy ? 'A copy will be downloaded to your device.' : '';
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'SUBMIT',
-              data: { download_copy: parsed.data.download_copy },
-            }),
+            text: `Document submission requested.\n\n${downloadInfo}\n\nThe document with all annotations will be submitted when this instruction is executed in the SimplePDF Editor.`,
           },
         ],
       };
@@ -174,17 +158,20 @@ export const handleToolCall = (
           isError: true,
         };
       }
+      const scopeInfo = (() => {
+        if (parsed.data.field_ids && parsed.data.field_ids.length > 0) {
+          return `Specific fields: ${parsed.data.field_ids.join(', ')}`;
+        }
+        if (parsed.data.page) {
+          return `All fields on page ${parsed.data.page}`;
+        }
+        return 'All fields in the document';
+      })();
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              action: 'CLEAR_FIELDS',
-              data: {
-                field_ids: parsed.data.field_ids,
-                page: parsed.data.page,
-              },
-            }),
+            text: `Clear annotations requested.\n\nScope: ${scopeInfo}\n\nThe specified annotations will be removed when this instruction is executed.`,
           },
         ],
       };
