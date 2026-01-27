@@ -1,243 +1,806 @@
-import { App } from '@modelcontextprotocol/ext-apps';
+/**
+ * PDF Viewer MCP App
+ *
+ * Interactive PDF viewer with single-page display.
+ * - Fixed height (no auto-resize)
+ * - Text selection via PDF.js TextLayer
+ * - Page navigation, zoom
+ */
+import {
+  App,
+  type McpUiHostContext,
+  applyDocumentTheme,
+  applyHostStyleVariables,
+} from "@modelcontextprotocol/ext-apps";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import * as pdfjsLib from "pdfjs-dist";
+import { TextLayer } from "pdfjs-dist";
+import "./global.css";
+import "./mcp-app.css";
 
-type IframeAction =
-  | { action: 'LOAD_DOCUMENT'; data: { data_url: string; name?: string; page?: number } }
-  | { action: 'CREATE_FIELD'; data: { type: string; page: number; x: number; y: number; width: number; height: number; value?: string } }
-  | { action: 'GET_DOCUMENT_CONTENT'; data: { extraction_mode: string } }
-  | { action: 'GO_TO'; data: { page: number } }
-  | { action: 'SUBMIT'; data: { download_copy: boolean } }
-  | { action: 'CLEAR_FIELDS'; data: { field_ids?: string[]; page?: number } };
+const MAX_MODEL_CONTEXT_LENGTH = 15000;
+const CHUNK_SIZE = 500 * 1024; // 500KB chunks
 
-type IframeEvent =
-  | { type: 'EDITOR_READY'; data: Record<string, never> }
-  | { type: 'DOCUMENT_LOADED'; data: { document_id: string } }
-  | { type: 'PAGE_FOCUSED'; data: { previous_page: number | null; current_page: number; total_pages: number } }
-  | { type: 'SUBMISSION_SENT'; data: { document_id: string; submission_id: string } }
-  | { type: 'REQUEST_RESULT'; data: { request_id: string; result: { success: boolean; data?: unknown; error?: { code: string; message: string } } } };
+// Configure PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.mjs",
+  import.meta.url,
+).href;
 
-type AppState = {
-  isEditorReady: boolean;
-  currentPage: number | null;
-  totalPages: number | null;
-  documentId: string | null;
-  pendingRequests: Map<string, { resolve: (value: unknown) => void; reject: (error: Error) => void }>;
+const log = {
+  info: console.log.bind(console, "[PDF-VIEWER]"),
+  error: console.error.bind(console, "[PDF-VIEWER]"),
 };
 
-const SIMPLEPDF_EDITOR_URL = 'https://embed.simplepdf.com/editor';
-const REQUEST_TIMEOUT_MS = 30000;
+// State
+let pdfDocument: pdfjsLib.PDFDocumentProxy | null = null;
+let pdfBytes: Uint8Array | null = null;
+let currentPage = 1;
+let totalPages = 0;
+let scale = 1.0;
+let pdfUrl = "";
+let pdfTitle: string | undefined;
+let viewUUID: string | undefined;
+let currentRenderTask: { cancel: () => void } | null = null;
 
-const state: AppState = {
-  isEditorReady: false,
-  currentPage: null,
-  totalPages: null,
-  documentId: null,
-  pendingRequests: new Map(),
-};
+// DOM Elements
+const mainEl = document.querySelector(".main") as HTMLElement;
+const loadingEl = document.getElementById("loading")!;
+const loadingTextEl = document.getElementById("loading-text")!;
+const errorEl = document.getElementById("error")!;
+const errorMessageEl = document.getElementById("error-message")!;
+const viewerEl = document.getElementById("viewer")!;
+const canvasContainerEl = document.querySelector(".canvas-container")!;
+const canvasEl = document.getElementById("pdf-canvas") as HTMLCanvasElement;
+const textLayerEl = document.getElementById("text-layer")!;
+const titleEl = document.getElementById("pdf-title")!;
+const pageInputEl = document.getElementById("page-input") as HTMLInputElement;
+const totalPagesEl = document.getElementById("total-pages")!;
+const prevBtn = document.getElementById("prev-btn") as HTMLButtonElement;
+const nextBtn = document.getElementById("next-btn") as HTMLButtonElement;
+const zoomOutBtn = document.getElementById("zoom-out-btn") as HTMLButtonElement;
+const zoomInBtn = document.getElementById("zoom-in-btn") as HTMLButtonElement;
+const zoomLevelEl = document.getElementById("zoom-level")!;
+const fullscreenBtn = document.getElementById(
+  "fullscreen-btn",
+) as HTMLButtonElement;
+const progressContainerEl = document.getElementById("progress-container")!;
+const progressBarEl = document.getElementById("progress-bar")!;
+const progressTextEl = document.getElementById("progress-text")!;
 
-let iframe: HTMLIFrameElement | null = null;
-let mcpApp: App | null = null;
+// Track current display mode
+let currentDisplayMode: "inline" | "fullscreen" = "inline";
 
-const generateRequestId = (): string => {
-  return `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-};
+// Layout constants are no longer used - we calculate dynamically from actual element dimensions
 
-const sendIframeEvent = <TData = unknown>(
-  eventType: string,
-  data: Record<string, unknown>
-): Promise<TData> => {
-  return new Promise((resolve, reject) => {
-    if (!iframe?.contentWindow) {
-      reject(new Error('Iframe not available'));
+/**
+ * Request the host to resize the app to fit the current PDF page.
+ * Only applies in inline mode - fullscreen mode uses scrolling.
+ */
+function requestFitToContent() {
+  if (currentDisplayMode === "fullscreen") {
+    return; // Fullscreen uses scrolling
+  }
+
+  const canvasHeight = canvasEl.height;
+  if (canvasHeight <= 0) {
+    return; // No content yet
+  }
+
+  // Get actual element dimensions
+  const canvasContainerEl = document.querySelector(
+    ".canvas-container",
+  ) as HTMLElement;
+  const pageWrapperEl = document.querySelector(".page-wrapper") as HTMLElement;
+  const toolbarEl = document.querySelector(".toolbar") as HTMLElement;
+
+  if (!canvasContainerEl || !toolbarEl || !pageWrapperEl) {
+    return;
+  }
+
+  // Get computed styles
+  const containerStyle = getComputedStyle(canvasContainerEl);
+  const paddingTop = parseFloat(containerStyle.paddingTop);
+  const paddingBottom = parseFloat(containerStyle.paddingBottom);
+
+  // Calculate required height:
+  // toolbar + padding-top + page-wrapper height + padding-bottom + buffer
+  const toolbarHeight = toolbarEl.offsetHeight;
+  const pageWrapperHeight = pageWrapperEl.offsetHeight;
+  const BUFFER = 10; // Buffer for sub-pixel rounding and browser quirks
+  const totalHeight =
+    toolbarHeight + paddingTop + pageWrapperHeight + paddingBottom + BUFFER;
+
+  app.sendSizeChanged({ height: totalHeight });
+}
+
+// Create app instance
+// autoResize disabled - app fills its container, doesn't request size changes
+const app = new App(
+  { name: "PDF Viewer", version: "1.0.0" },
+  {},
+  { autoResize: false },
+);
+
+// UI State functions
+function showLoading(text: string) {
+  loadingTextEl.textContent = text;
+  loadingEl.style.display = "flex";
+  errorEl.style.display = "none";
+  viewerEl.style.display = "none";
+}
+
+function showError(message: string) {
+  errorMessageEl.textContent = message;
+  loadingEl.style.display = "none";
+  errorEl.style.display = "block";
+  viewerEl.style.display = "none";
+}
+
+function showViewer() {
+  loadingEl.style.display = "none";
+  errorEl.style.display = "none";
+  viewerEl.style.display = "flex";
+}
+
+function updateControls() {
+  // Show URL with CSS ellipsis, full URL as tooltip, clickable to open
+  titleEl.textContent = pdfUrl;
+  titleEl.title = pdfUrl;
+  titleEl.style.textDecoration = "underline";
+  titleEl.style.cursor = "pointer";
+  titleEl.onclick = () => app.openLink({ url: pdfUrl });
+  pageInputEl.value = String(currentPage);
+  pageInputEl.max = String(totalPages);
+  totalPagesEl.textContent = `of ${totalPages}`;
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  zoomLevelEl.textContent = `${Math.round(scale * 100)}%`;
+}
+
+/**
+ * Format page text with optional selection, truncating intelligently.
+ * - Centers window around selection when truncating
+ * - Adds <truncated-content/> markers where text is elided
+ * - If selection itself is too long, truncates inside: <pdf-selection><truncated-content/>...<truncated-content/></pdf-selection>
+ */
+function formatPageContent(
+  text: string,
+  maxLength: number,
+  selection?: { start: number; end: number },
+): string {
+  const T = "<truncated-content/>";
+
+  // No truncation needed
+  if (text.length <= maxLength) {
+    if (!selection) return text;
+    return (
+      text.slice(0, selection.start) +
+      `<pdf-selection>${text.slice(selection.start, selection.end)}</pdf-selection>` +
+      text.slice(selection.end)
+    );
+  }
+
+  // Truncation needed, no selection - just truncate end
+  if (!selection) {
+    return text.slice(0, maxLength) + "\n" + T;
+  }
+
+  // Calculate budgets
+  const selLen = selection.end - selection.start;
+  const overhead = "<pdf-selection></pdf-selection>".length + T.length * 2 + 4;
+  const contextBudget = maxLength - overhead;
+
+  // Selection too long - truncate inside the selection tags
+  if (selLen > contextBudget) {
+    const keepLen = Math.max(100, contextBudget);
+    const halfKeep = Math.floor(keepLen / 2);
+    const selStart = text.slice(selection.start, selection.start + halfKeep);
+    const selEnd = text.slice(selection.end - halfKeep, selection.end);
+    return (
+      T + `<pdf-selection>${T}${selStart}...${selEnd}${T}</pdf-selection>` + T
+    );
+  }
+
+  // Selection fits - center it with context
+  const remainingBudget = contextBudget - selLen;
+  const beforeBudget = Math.floor(remainingBudget / 2);
+  const afterBudget = remainingBudget - beforeBudget;
+
+  const windowStart = Math.max(0, selection.start - beforeBudget);
+  const windowEnd = Math.min(text.length, selection.end + afterBudget);
+
+  const adjStart = selection.start - windowStart;
+  const adjEnd = selection.end - windowStart;
+  const windowText = text.slice(windowStart, windowEnd);
+
+  return (
+    (windowStart > 0 ? T + "\n" : "") +
+    windowText.slice(0, adjStart) +
+    `<pdf-selection>${windowText.slice(adjStart, adjEnd)}</pdf-selection>` +
+    windowText.slice(adjEnd) +
+    (windowEnd < text.length ? "\n" + T : "")
+  );
+}
+
+/**
+ * Find selection position in page text using fuzzy matching.
+ * TextLayer spans may lack spaces between them, so we try both exact and spaceless match.
+ */
+function findSelectionInText(
+  pageText: string,
+  selectedText: string,
+): { start: number; end: number } | undefined {
+  if (!selectedText || selectedText.length <= 2) return undefined;
+
+  // Try exact match
+  let start = pageText.indexOf(selectedText);
+  if (start >= 0) {
+    return { start, end: start + selectedText.length };
+  }
+
+  // Try spaceless match (TextLayer spans may not have spaces)
+  const noSpaceSel = selectedText.replace(/\s+/g, "");
+  const noSpaceText = pageText.replace(/\s+/g, "");
+  const noSpaceStart = noSpaceText.indexOf(noSpaceSel);
+  if (noSpaceStart >= 0) {
+    // Map back to approximate position in original
+    start = Math.floor((noSpaceStart / noSpaceText.length) * pageText.length);
+    return { start, end: start + selectedText.length };
+  }
+
+  return undefined;
+}
+
+// Extract text from current page and update model context
+async function updatePageContext() {
+  if (!pdfDocument) return;
+
+  try {
+    const page = await pdfDocument.getPage(currentPage);
+    const textContent = await page.getTextContent();
+    const pageText = (textContent.items as Array<{ str?: string }>)
+      .map((item) => item.str || "")
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Find selection position
+    const sel = window.getSelection();
+    const selectedText = sel?.toString().replace(/\s+/g, " ").trim();
+    const selection = selectedText
+      ? findSelectionInText(pageText, selectedText)
+      : undefined;
+
+    if (selection) {
+      log.info(
+        "Selection found:",
+        selectedText?.slice(0, 30),
+        "at",
+        selection.start,
+      );
+    }
+
+    // Format content with selection markers and truncation
+    const content = formatPageContent(
+      pageText,
+      MAX_MODEL_CONTEXT_LENGTH,
+      selection,
+    );
+
+    // Build context with tool ID for multi-tool disambiguation
+    const toolId = app.getHostContext()?.toolInfo?.id;
+    const header = [
+      `PDF viewer${toolId ? ` (${toolId})` : ""}`,
+      pdfTitle ? `"${pdfTitle}"` : pdfUrl,
+      `Current Page: ${currentPage}/${totalPages}`,
+    ].join(" | ");
+
+    const contextText = `${header}\n\nPage content:\n${content}`;
+
+    app.updateModelContext({ content: [{ type: "text", text: contextText }] });
+  } catch (err) {
+    log.error("Error updating context:", err);
+  }
+}
+
+// Render state - prevents concurrent renders
+let isRendering = false;
+let pendingPage: number | null = null;
+
+// Render current page with text layer for selection
+async function renderPage() {
+  if (!pdfDocument) return;
+
+  // If already rendering, queue this page for later
+  if (isRendering) {
+    pendingPage = currentPage;
+    // Cancel current render to speed up
+    if (currentRenderTask) {
+      currentRenderTask.cancel();
+    }
+    return;
+  }
+
+  isRendering = true;
+  pendingPage = null;
+
+  try {
+    const pageToRender = currentPage;
+    const page = await pdfDocument.getPage(pageToRender);
+    const viewport = page.getViewport({ scale });
+
+    // Account for retina displays
+    const dpr = window.devicePixelRatio || 1;
+    const ctx = canvasEl.getContext("2d")!;
+
+    // Set canvas size in pixels (scaled for retina)
+    canvasEl.width = viewport.width * dpr;
+    canvasEl.height = viewport.height * dpr;
+
+    // Set display size in CSS pixels
+    canvasEl.style.width = `${viewport.width}px`;
+    canvasEl.style.height = `${viewport.height}px`;
+
+    // Scale context for retina
+    ctx.scale(dpr, dpr);
+
+    // Clear and setup text layer
+    textLayerEl.innerHTML = "";
+    textLayerEl.style.width = `${viewport.width}px`;
+    textLayerEl.style.height = `${viewport.height}px`;
+
+    // Render canvas - track the task so we can cancel it
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const renderTask = (page.render as any)({
+      canvasContext: ctx,
+      viewport,
+    });
+    currentRenderTask = renderTask;
+
+    try {
+      await renderTask.promise;
+    } catch (renderErr) {
+      // Ignore RenderingCancelledException - it's expected when we cancel
+      if (
+        renderErr instanceof Error &&
+        renderErr.name === "RenderingCancelledException"
+      ) {
+        log.info("Render cancelled");
+        return;
+      }
+      throw renderErr;
+    } finally {
+      currentRenderTask = null;
+    }
+
+    // Only continue if this is still the page we want
+    if (pageToRender !== currentPage) {
       return;
     }
 
-    const requestId = generateRequestId();
-    state.pendingRequests.set(requestId, {
-      resolve: resolve as (value: unknown) => void,
-      reject,
+    // Render text layer for selection
+    const textContent = await page.getTextContent();
+    const textLayer = new TextLayer({
+      textContentSource: textContent,
+      container: textLayerEl,
+      viewport,
     });
+    await textLayer.render();
 
-    iframe.contentWindow.postMessage(
-      JSON.stringify({ type: eventType, request_id: requestId, data }),
-      '*'
-    );
+    updateControls();
+    updatePageContext();
 
-    setTimeout(() => {
-      const pending = state.pendingRequests.get(requestId);
-      if (pending) {
-        state.pendingRequests.delete(requestId);
-        pending.reject(new Error('Request timed out'));
-      }
-    }, REQUEST_TIMEOUT_MS);
-  });
-};
+    // Request host to resize app to fit content (inline mode only)
+    requestFitToContent();
+  } catch (err) {
+    log.error("Error rendering page:", err);
+    showError(`Failed to render page ${currentPage}`);
+  } finally {
+    isRendering = false;
 
-const handleIframeMessage = (event: MessageEvent<string>): void => {
-  let payload: IframeEvent;
+    // If there's a pending page, render it now
+    if (pendingPage !== null && pendingPage !== currentPage) {
+      currentPage = pendingPage;
+      renderPage();
+    } else if (pendingPage === currentPage) {
+      // Re-render the same page (e.g., after zoom change during render)
+      renderPage();
+    }
+  }
+}
+
+function saveCurrentPage() {
+  log.info("saveCurrentPage: key=", viewUUID, "page=", currentPage);
+  if (viewUUID) {
+    try {
+      localStorage.setItem(viewUUID, String(currentPage));
+      log.info("saveCurrentPage: saved successfully");
+    } catch (err) {
+      log.error("saveCurrentPage: error", err);
+    }
+  }
+}
+
+function loadSavedPage(): number | null {
+  log.info("loadSavedPage: key=", viewUUID);
+  if (!viewUUID) return null;
   try {
-    payload = JSON.parse(event.data);
-  } catch {
+    const saved = localStorage.getItem(viewUUID);
+    log.info("loadSavedPage: saved value=", saved);
+    if (saved) {
+      const page = parseInt(saved, 10);
+      if (!isNaN(page) && page >= 1) {
+        log.info("loadSavedPage: returning page=", page);
+        return page;
+      }
+    }
+  } catch (err) {
+    log.error("loadSavedPage: error", err);
+  }
+  log.info("loadSavedPage: returning null");
+  return null;
+}
+
+// Navigation
+function goToPage(page: number) {
+  const targetPage = Math.max(1, Math.min(page, totalPages));
+  if (targetPage !== currentPage) {
+    currentPage = targetPage;
+    saveCurrentPage();
+    renderPage();
+  }
+  pageInputEl.value = String(currentPage);
+}
+
+function prevPage() {
+  goToPage(currentPage - 1);
+}
+
+function nextPage() {
+  goToPage(currentPage + 1);
+}
+
+function zoomIn() {
+  scale = Math.min(scale + 0.25, 3.0);
+  renderPage();
+}
+
+function zoomOut() {
+  scale = Math.max(scale - 0.25, 0.5);
+  renderPage();
+}
+
+function resetZoom() {
+  scale = 1.0;
+  renderPage();
+}
+
+async function toggleFullscreen() {
+  const ctx = app.getHostContext();
+  if (!ctx?.availableDisplayModes?.includes("fullscreen")) {
+    log.info("Fullscreen not available");
     return;
   }
 
-  switch (payload.type) {
-    case 'EDITOR_READY':
-      state.isEditorReady = true;
-      console.log('[SimplePDF MCP] Editor ready');
-      break;
+  const newMode = currentDisplayMode === "fullscreen" ? "inline" : "fullscreen";
+  log.info("Requesting display mode:", newMode);
 
-    case 'DOCUMENT_LOADED':
-      state.documentId = payload.data.document_id;
-      console.log('[SimplePDF MCP] Document loaded:', payload.data.document_id);
-      updateModelContext();
-      break;
+  try {
+    const result = await app.requestDisplayMode({ mode: newMode });
+    log.info("Display mode result:", result);
+    currentDisplayMode = result.mode as "inline" | "fullscreen";
+    updateFullscreenButton();
+  } catch (err) {
+    log.error("Failed to change display mode:", err);
+  }
+}
 
-    case 'PAGE_FOCUSED':
-      state.currentPage = payload.data.current_page;
-      state.totalPages = payload.data.total_pages;
-      console.log('[SimplePDF MCP] Page:', payload.data.current_page, '/', payload.data.total_pages);
-      updateModelContext();
-      break;
+function updateFullscreenButton() {
+  fullscreenBtn.textContent = currentDisplayMode === "fullscreen" ? "⛶" : "⛶";
+  fullscreenBtn.title =
+    currentDisplayMode === "fullscreen" ? "Exit fullscreen" : "Fullscreen";
+}
 
-    case 'SUBMISSION_SENT':
-      console.log('[SimplePDF MCP] Submission sent:', payload.data.submission_id);
-      break;
+// Event listeners
+prevBtn.addEventListener("click", prevPage);
+nextBtn.addEventListener("click", nextPage);
+zoomOutBtn.addEventListener("click", zoomOut);
+zoomInBtn.addEventListener("click", zoomIn);
+fullscreenBtn.addEventListener("click", toggleFullscreen);
 
-    case 'REQUEST_RESULT': {
-      const pending = state.pendingRequests.get(payload.data.request_id);
-      if (pending) {
-        state.pendingRequests.delete(payload.data.request_id);
-        if (payload.data.result.success) {
-          pending.resolve(payload.data.result.data);
-        } else {
-          pending.reject(new Error(payload.data.result.error?.message ?? 'Unknown error'));
-        }
+pageInputEl.addEventListener("change", () => {
+  const page = parseInt(pageInputEl.value, 10);
+  if (!isNaN(page)) {
+    goToPage(page);
+  } else {
+    pageInputEl.value = String(currentPage);
+  }
+});
+
+pageInputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    pageInputEl.blur();
+  }
+});
+
+// Keyboard navigation
+document.addEventListener("keydown", (e) => {
+  if (document.activeElement === pageInputEl) return;
+
+  // Ctrl/Cmd+0 to reset zoom
+  if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+    resetZoom();
+    e.preventDefault();
+    return;
+  }
+
+  switch (e.key) {
+    case "Escape":
+      if (currentDisplayMode === "fullscreen") {
+        toggleFullscreen();
+        e.preventDefault();
       }
       break;
+    case "ArrowLeft":
+    case "PageUp":
+      prevPage();
+      e.preventDefault();
+      break;
+    case "ArrowRight":
+    case "PageDown":
+    case " ":
+      nextPage();
+      e.preventDefault();
+      break;
+    case "+":
+    case "=":
+      zoomIn();
+      e.preventDefault();
+      break;
+    case "-":
+      zoomOut();
+      e.preventDefault();
+      break;
+  }
+});
+
+// Update context when text selection changes (debounced)
+let selectionUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
+document.addEventListener("selectionchange", () => {
+  if (selectionUpdateTimeout) clearTimeout(selectionUpdateTimeout);
+  selectionUpdateTimeout = setTimeout(() => {
+    const sel = window.getSelection();
+    const text = sel?.toString().trim();
+    if (text && text.length > 2) {
+      log.info("Selection changed:", text.slice(0, 50));
+      updatePageContext();
     }
-  }
-};
+  }, 300);
+});
 
-const updateModelContext = (): void => {
-  if (!mcpApp) return;
+// Horizontal scroll/swipe to change pages (disabled when zoomed)
+let horizontalScrollAccumulator = 0;
+const SCROLL_THRESHOLD = 50;
 
-  const contextParts: string[] = [];
+canvasContainerEl.addEventListener(
+  "wheel",
+  (event) => {
+    const e = event as WheelEvent;
 
-  if (state.documentId) {
-    contextParts.push(`Document loaded: ${state.documentId}`);
-  }
+    // Only intercept horizontal scroll, let vertical scroll through
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
 
-  if (state.currentPage !== null && state.totalPages !== null) {
-    contextParts.push(`Current page: ${state.currentPage} of ${state.totalPages}`);
-  }
+    // When zoomed, let natural panning happen (no page changes)
+    if (scale > 1.0) return;
 
-  if (contextParts.length > 0) {
-    mcpApp.updateModelContext({
-      content: [{ type: 'text', text: contextParts.join('\n') }],
-    }).catch((error) => {
-      console.error('[SimplePDF MCP] Failed to update model context:', error);
+    // At 100% zoom, handle page navigation
+    e.preventDefault();
+    horizontalScrollAccumulator += e.deltaX;
+    if (horizontalScrollAccumulator > SCROLL_THRESHOLD) {
+      nextPage();
+      horizontalScrollAccumulator = 0;
+    } else if (horizontalScrollAccumulator < -SCROLL_THRESHOLD) {
+      prevPage();
+      horizontalScrollAccumulator = 0;
+    }
+  },
+  { passive: false },
+);
+
+// Parse tool result
+function parseToolResult(result: CallToolResult): {
+  url: string;
+  title?: string;
+  pageCount: number;
+  initialPage: number;
+} | null {
+  return result.structuredContent as {
+    url: string;
+    title?: string;
+    pageCount: number;
+    initialPage: number;
+  } | null;
+}
+
+// Chunked binary loading types
+interface PdfBytesChunk {
+  url: string;
+  bytes: string;
+  offset: number;
+  byteCount: number;
+  totalBytes: number;
+  hasMore: boolean;
+}
+
+// Update progress bar
+function updateProgress(loaded: number, total: number) {
+  const percent = Math.round((loaded / total) * 100);
+  progressBarEl.style.width = `${percent}%`;
+  progressTextEl.textContent = `${(loaded / 1024).toFixed(0)} KB / ${(total / 1024).toFixed(0)} KB (${percent}%)`;
+}
+
+// Load PDF in chunks with progress
+async function loadPdfInChunks(urlToLoad: string): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  let offset = 0;
+  let totalBytes = 0;
+  let hasMore = true;
+
+  // Show progress UI
+  progressContainerEl.style.display = "block";
+  updateProgress(0, 1);
+
+  while (hasMore) {
+    const result = await app.callServerTool({
+      name: "read_pdf_bytes",
+      arguments: { url: urlToLoad, offset, byteCount: CHUNK_SIZE },
     });
-  }
-};
 
-const executeAction = async (action: IframeAction): Promise<unknown> => {
-  if (!state.isEditorReady && action.action !== 'LOAD_DOCUMENT') {
-    throw new Error('Editor not ready');
-  }
-
-  switch (action.action) {
-    case 'LOAD_DOCUMENT':
-      return sendIframeEvent('LOAD_DOCUMENT', action.data);
-
-    case 'CREATE_FIELD':
-      return sendIframeEvent('CREATE_FIELD', action.data);
-
-    case 'GET_DOCUMENT_CONTENT':
-      return sendIframeEvent('GET_DOCUMENT_CONTENT', action.data);
-
-    case 'GO_TO':
-      return sendIframeEvent('GO_TO', action.data);
-
-    case 'SUBMIT':
-      return sendIframeEvent('SUBMIT', action.data);
-
-    case 'CLEAR_FIELDS':
-      return sendIframeEvent('CLEAR_FIELDS', action.data);
-
-    default: {
-      const exhaustiveCheck: never = action;
-      throw new Error(`Unknown action: ${JSON.stringify(exhaustiveCheck)}`);
+    // Check for errors
+    if (result.isError) {
+      const errorText = result.content
+        ?.map((c) => ("text" in c ? c.text : ""))
+        .join(" ");
+      throw new Error(`Tool error: ${errorText}`);
     }
-  }
-};
 
-const createUI = (): void => {
-  const root = document.getElementById('root');
-  if (!root) {
-    console.error('[SimplePDF MCP] Root element not found');
+    if (!result.structuredContent) {
+      throw new Error("No structuredContent in tool response");
+    }
+
+    const chunk = result.structuredContent as unknown as PdfBytesChunk;
+    totalBytes = chunk.totalBytes;
+    hasMore = chunk.hasMore;
+
+    // Decode base64 chunk
+    const binaryString = atob(chunk.bytes);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    chunks.push(bytes);
+
+    offset += chunk.byteCount;
+    updateProgress(offset, totalBytes);
+  }
+
+  // Combine all chunks
+  const fullPdf = new Uint8Array(totalBytes);
+  let pos = 0;
+  for (const chunk of chunks) {
+    fullPdf.set(chunk, pos);
+    pos += chunk.length;
+  }
+
+  log.info(
+    `PDF loaded: ${(totalBytes / 1024).toFixed(0)} KB in ${chunks.length} chunks`,
+  );
+  return fullPdf;
+}
+
+// Handle tool result
+app.ontoolresult = async (result) => {
+  log.info("Received tool result:", result);
+
+  const parsed = parseToolResult(result);
+  if (!parsed) {
+    showError("Invalid tool result");
     return;
   }
 
-  const container = document.createElement('div');
-  container.className = 'simplepdf-container';
+  pdfUrl = parsed.url;
+  pdfTitle = parsed.title;
+  totalPages = parsed.pageCount;
+  viewUUID = result._meta?.viewUUID ? String(result._meta.viewUUID) : undefined;
 
-  iframe = document.createElement('iframe');
-  iframe.className = 'simplepdf-iframe';
-  iframe.src = SIMPLEPDF_EDITOR_URL;
-  iframe.title = 'SimplePDF Editor';
-  iframe.referrerPolicy = 'no-referrer-when-downgrade';
+  // Restore saved page or use initial page
+  const savedPage = loadSavedPage();
+  currentPage =
+    savedPage && savedPage <= parsed.pageCount ? savedPage : parsed.initialPage;
 
-  container.appendChild(iframe);
-  root.appendChild(container);
-
-  window.addEventListener('message', handleIframeMessage);
-};
-
-const initMcpApp = (): void => {
-  mcpApp = new App(
-    {
-      name: 'SimplePDF Editor',
-      version: '0.0.1',
-    },
-    {}
+  log.info(
+    "URL:",
+    pdfUrl,
+    "Pages:",
+    parsed.pageCount,
+    "Starting:",
+    currentPage,
   );
 
-  mcpApp.ontoolresult = async (result) => {
-    console.log('[SimplePDF MCP] Tool result received:', result);
+  showLoading("Loading PDF...");
 
-    try {
-      const content = result.content?.[0];
-      if (content?.type === 'text' && typeof content.text === 'string') {
-        const action = JSON.parse(content.text) as IframeAction;
-        const actionResult = await executeAction(action);
-        console.log('[SimplePDF MCP] Action executed:', actionResult);
-      }
-    } catch (error) {
-      console.error('[SimplePDF MCP] Failed to execute action:', error);
+  try {
+    pdfBytes = await loadPdfInChunks(pdfUrl);
+
+    showLoading("Rendering PDF...");
+
+    pdfDocument = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+    totalPages = pdfDocument.numPages;
+
+    log.info("PDF loaded, pages:", totalPages);
+
+    showViewer();
+    renderPage();
+  } catch (err) {
+    log.error("Error loading PDF:", err);
+    showError(err instanceof Error ? err.message : String(err));
+  }
+};
+
+app.onerror = (err) => {
+  log.error("App error:", err);
+  showError(err instanceof Error ? err.message : String(err));
+};
+
+function handleHostContextChanged(ctx: McpUiHostContext) {
+  log.info("Host context changed:", ctx);
+
+  // Apply theme from host
+  if (ctx.theme) {
+    applyDocumentTheme(ctx.theme);
+  }
+
+  // Apply host CSS variables
+  if (ctx.styles?.variables) {
+    applyHostStyleVariables(ctx.styles.variables);
+  }
+
+  // Apply safe area insets
+  if (ctx.safeAreaInsets) {
+    mainEl.style.paddingTop = `${ctx.safeAreaInsets.top}px`;
+    mainEl.style.paddingRight = `${ctx.safeAreaInsets.right}px`;
+    mainEl.style.paddingBottom = `${ctx.safeAreaInsets.bottom}px`;
+    mainEl.style.paddingLeft = `${ctx.safeAreaInsets.left}px`;
+  }
+
+  // Log containerDimensions for debugging
+  if (ctx.containerDimensions) {
+    log.info("Container dimensions:", ctx.containerDimensions);
+  }
+
+  // Handle display mode changes
+  if (ctx.displayMode) {
+    const wasFullscreen = currentDisplayMode === "fullscreen";
+    currentDisplayMode = ctx.displayMode as "inline" | "fullscreen";
+    const isFullscreen = currentDisplayMode === "fullscreen";
+    mainEl.classList.toggle("fullscreen", isFullscreen);
+    log.info(isFullscreen ? "Fullscreen mode enabled" : "Inline mode");
+    // When exiting fullscreen, request resize to fit content
+    if (wasFullscreen && !isFullscreen && pdfDocument) {
+      requestFitToContent();
     }
-  };
-
-  mcpApp.connect().catch((error) => {
-    console.error('[SimplePDF MCP] Failed to connect:', error);
-  });
-
-  console.log('[SimplePDF MCP] MCP App initialized');
-};
-
-const init = (): void => {
-  createUI();
-  initMcpApp();
-
-  (window as unknown as { simplePdfMcp: { executeAction: typeof executeAction; getState: () => AppState } }).simplePdfMcp = {
-    executeAction,
-    getState: () => ({ ...state, pendingRequests: new Map() }),
-  };
-
-  console.log('[SimplePDF MCP] App initialized');
-};
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
+    updateFullscreenButton();
+  }
 }
+
+app.onhostcontextchanged = handleHostContextChanged;
+
+// Connect to host
+app.connect().then(() => {
+  log.info("Connected to host");
+  const ctx = app.getHostContext();
+  if (ctx) {
+    handleHostContextChanged(ctx);
+  }
+});

@@ -1,0 +1,312 @@
+:root {
+  color-scheme: light dark;
+
+  /* Background colors */
+  --bg000: light-dark(#ffffff, #1a1a1a);
+  --bg100: light-dark(#f5f5f5, #252525);
+  --bg200: light-dark(#e0e0e0, #333333);
+  --bg300: light-dark(#cccccc, #444444);
+
+  /* Text colors */
+  --text000: light-dark(#1a1a1a, #f0f0f0);
+  --text100: light-dark(#666666, #aaaaaa);
+  --text200: light-dark(#999999, #888888);
+
+  /* Shadows */
+  --shadow-page: light-dark(0 2px 8px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.4));
+  --selection-bg: light-dark(rgba(0, 0, 255, 0.3), rgba(100, 150, 255, 0.4));
+}
+
+body {
+  overscroll-behavior-x: none;
+  display: flex;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  background: var(--bg100);
+  color: var(--text000);
+  overflow: hidden; /* Prevent scrollbars in inline mode - we request exact size */
+  border-radius: 0.75rem;
+  border: 1px solid var(--bg200);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 0.75rem;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--bg200);
+  border-top-color: var(--text100);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#loading-text {
+  font-size: 0.8rem;
+  color: var(--text100);
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  max-width: 200px;
+  height: 3px;
+  background: var(--bg200);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--text100);
+  width: 0%;
+  transition: width 0.15s ease-out;
+}
+
+.progress-text {
+  font-size: 0.7rem;
+  color: var(--text200);
+}
+
+/* Error State */
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 3rem;
+}
+
+#error-message {
+  color: var(--text200);
+  max-width: 400px;
+}
+
+/* Viewer Container */
+.viewer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: visible;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: var(--bg000);
+  border-bottom: 1px solid var(--bg200);
+  flex-shrink: 0;
+  gap: 0.5rem;
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.toolbar-left {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pdf-title {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  display: block;
+  max-width: 100%;
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Page Navigation */
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-input {
+  width: 50px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--bg200);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-align: center;
+  background: var(--bg000);
+  color: var(--text000);
+}
+
+.page-input:focus {
+  outline: none;
+  border-color: var(--text100);
+}
+
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.page-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.total-pages {
+  font-size: 0.85rem;
+  color: var(--text100);
+  white-space: nowrap;
+}
+
+.nav-btn,
+.zoom-btn,
+.fullscreen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--bg200);
+  border-radius: 4px;
+  background: var(--bg000);
+  color: var(--text000);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s ease;
+}
+
+.nav-btn:hover:not(:disabled),
+.zoom-btn:hover:not(:disabled),
+.fullscreen-btn:hover {
+  background: var(--bg100);
+  border-color: var(--bg300);
+}
+
+.nav-btn:disabled,
+.zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  font-size: 0.8rem;
+  color: var(--text100);
+  min-width: 50px;
+  text-align: center;
+}
+
+/* Single Page Canvas Container */
+.canvas-container {
+  flex: 1;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+  background: var(--bg200);
+}
+
+.page-wrapper {
+  position: relative;
+  box-shadow: var(--shadow-page);
+  background: white;
+}
+
+#pdf-canvas {
+  display: block;
+}
+
+/* Text Layer for Selection */
+.text-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.2;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+
+.text-layer span,
+.text-layer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.text-layer ::selection {
+  background: var(--selection-bg);
+}
+
+.text-layer > span {
+  pointer-events: all;
+}
+
+/* Fullscreen mode */
+.main.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  overflow: hidden; /* No scrolling on main - only canvas-container scrolls */
+  border-radius: 0;
+  border: none;
+}
+
+.main.fullscreen .viewer {
+  min-height: 0; /* Allow flex item to shrink below content size */
+}
+
+.main.fullscreen .canvas-container {
+  min-height: 0; /* Allow flex item to shrink below content size */
+  overflow: auto; /* Scroll within the document area only */
+}

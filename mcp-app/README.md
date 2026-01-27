@@ -1,127 +1,186 @@
-# @simplepdf/mcp-app
+# PDF Server
 
-MCP (Model Context Protocol) App for SimplePDF - Edit PDFs with AI assistants like Claude.
+![Screenshot](screenshot.png)
 
-## Features
+An interactive PDF viewer using [PDF.js](https://mozilla.github.io/pdf.js/). Supports local files and remote URLs from academic sources (arxiv, biorxiv, zenodo, etc).
 
-- Load and display PDFs in SimplePDF's browser-based editor
-- Add annotations: text, checkboxes, signatures, pictures
-- Extract document content (with OCR support)
-- Navigate pages programmatically
-- Submit/save annotated documents
+## MCP Client Configuration
 
-## Installation
-
-```bash
-npm install @simplepdf/mcp-app
-```
-
-## Usage with Claude Desktop
-
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Add to your MCP client configuration (stdio transport):
 
 ```json
 {
   "mcpServers": {
-    "simplepdf": {
+    "pdf": {
       "command": "npx",
-      "args": ["@simplepdf/mcp-app"]
+      "args": [
+        "-y",
+        "--silent",
+        "--registry=https://registry.npmjs.org/",
+        "@modelcontextprotocol/server-pdf",
+        "--stdio"
+      ]
     }
   }
 }
 ```
 
-## Available Tools
+### Local Development
 
-### display_pdf
-
-Load and display a PDF document in the editor.
+To test local modifications, use this configuration (replace `~/code/ext-apps` with your clone path):
 
 ```json
 {
-  "url": "https://example.com/document.pdf",
-  "name": "my-document.pdf",
-  "page": 1
+  "mcpServers": {
+    "pdf": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "cd ~/code/ext-apps/examples/pdf-server && npm run build >&2 && node dist/index.js --stdio"
+      ]
+    }
+  }
 }
 ```
 
-### add_annotation
+## What This Example Demonstrates
 
-Add an annotation to the document.
+### 1. Chunked Data Through Size-Limited Tool Calls
 
-```json
+On some host platforms, tool calls have size limits, so large PDFs cannot be sent in a single response. This example streams PDFs in chunks using HTTP Range requests:
+
+**Server side** (`server.ts`):
+
+```typescript
+// Returns chunks with pagination metadata
 {
-  "type": "TEXT",
-  "page": 1,
-  "x": 100,
-  "y": 700,
-  "width": 200,
-  "height": 30,
-  "value": "Hello World"
+  (bytes, offset, byteCount, totalBytes, hasMore);
 }
 ```
 
-Supported types: `TEXT`, `BOXED_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`
+**Client side** (`mcp-app.ts`):
 
-### extract_content
-
-Extract text content from the document.
-
-```json
-{
-  "extraction_mode": "auto"
+```typescript
+// Load in chunks with progress
+while (hasMore) {
+  const chunk = await app.callServerTool("read_pdf_bytes", { url, offset });
+  chunks.push(base64ToBytes(chunk.bytes));
+  offset += chunk.byteCount;
+  hasMore = chunk.hasMore;
+  updateProgress(offset, chunk.totalBytes);
 }
 ```
 
-Modes: `auto` (default), `ocr`
+### 2. Model Context Updates
 
-### navigate_page
+The viewer keeps the model informed about what the user is seeing:
 
-Navigate to a specific page.
-
-```json
-{
-  "page": 3
-}
+```typescript
+app.updateModelContext({
+  content: [
+    {
+      type: "text",
+      text: `PDF viewer | "${title}" | Current Page: ${page}/${total}\n\nPage content:\n${pageText}`,
+    },
+  ],
+});
 ```
 
-### submit_document
+This enables the model to answer questions about the current page or selected text.
 
-Submit the document with annotations.
+### 3. Display Modes: Fullscreen vs Inline
 
-```json
-{
-  "download_copy": true
-}
+- **Inline mode**: App requests height changes to fit content
+- **Fullscreen mode**: App fills the screen with internal scrolling
+
+```typescript
+// Request fullscreen
+app.requestDisplayMode({ mode: "fullscreen" });
+
+// Listen for mode changes
+app.ondisplaymodechange = (mode) => {
+  if (mode === "fullscreen") enableScrolling();
+  else disableScrolling();
+};
 ```
 
-### clear_annotations
+### 4. External Links (openLink)
 
-Clear annotations from the document.
+The viewer demonstrates opening external links (e.g., to the original arxiv page):
 
-```json
-{
-  "field_ids": ["f_abc123"],
-  "page": 1
-}
+```typescript
+titleEl.onclick = () => app.openLink(sourceUrl);
 ```
 
-## Development
+### 5. View Persistence
+
+Page position is saved per-view using `viewUUID` and localStorage.
+
+### 6. Dark Mode / Theming
+
+The viewer syncs with the host's theme using CSS `light-dark()` and the SDK's theming APIs:
+
+```typescript
+app.onhostcontextchanged = (ctx) => {
+  if (ctx.theme) applyDocumentTheme(ctx.theme);
+  if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
+};
+```
+
+## Usage
 
 ```bash
-# Install dependencies
-npm install
+# Default: loads a sample arxiv paper
+bun examples/pdf-server/main.ts
 
-# Run in development mode
-npm run dev
+# Load local files (converted to file:// URLs)
+bun examples/pdf-server/main.ts ./docs/paper.pdf /path/to/thesis.pdf
 
-# Build
-npm run build
+# Load from URLs
+bun examples/pdf-server/main.ts https://arxiv.org/pdf/2401.00001.pdf
 
-# Type check
-npm run test:types
+# Mix local and remote
+bun examples/pdf-server/main.ts ./local.pdf https://arxiv.org/pdf/2401.00001.pdf
+
+# stdio mode for MCP clients
+bun examples/pdf-server/main.ts --stdio ./papers/
 ```
 
-## License
+## Allowed Sources
 
-MIT
+- **Local files**: Must be passed as CLI arguments
+- **Remote URLs**: arxiv.org, biorxiv.org, medrxiv.org, chemrxiv.org, zenodo.org, osf.io, hal.science, ssrn.com, and more
+
+## Tools
+
+| Tool             | Visibility | Purpose                                |
+| ---------------- | ---------- | -------------------------------------- |
+| `list_pdfs`      | Model      | List available local files and origins |
+| `display_pdf`    | Model + UI | Display interactive viewer             |
+| `read_pdf_bytes` | App only   | Stream PDF data in chunks              |
+
+## Architecture
+
+```
+server.ts      # MCP server + tools
+main.ts        # CLI entry point
+src/
+└── mcp-app.ts # Interactive viewer UI (PDF.js)
+```
+
+## Key Patterns Shown
+
+| Pattern           | Implementation                              |
+| ----------------- | ------------------------------------------- |
+| App-only tools    | `_meta: { ui: { visibility: ["app"] } }`    |
+| Chunked responses | `hasMore` + `offset` pagination             |
+| Model context     | `app.updateModelContext()`                  |
+| Display modes     | `app.requestDisplayMode()`                  |
+| External links    | `app.openLink()`                            |
+| View persistence  | `viewUUID` + localStorage                   |
+| Theming           | `applyDocumentTheme()` + CSS `light-dark()` |
+
+## Dependencies
+
+- `pdfjs-dist`: PDF rendering (frontend only)
+- `@modelcontextprotocol/ext-apps`: MCP Apps SDK

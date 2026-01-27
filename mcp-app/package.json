@@ -1,57 +1,52 @@
 {
-  "name": "@simplepdf/mcp-app",
-  "version": "0.0.1",
-  "description": "MCP App for SimplePDF - Edit PDFs with AI assistants",
+  "name": "@modelcontextprotocol/server-pdf",
+  "version": "1.0.1",
   "type": "module",
-  "main": "dist/server.js",
-  "types": "dist/server.d.ts",
-  "bin": {
-    "simplepdf-mcp": "./dist/server.js"
-  },
-  "files": [
-    "dist",
-    "mcp-app.html"
-  ],
-  "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\"",
-    "dev:server": "tsx watch src/server.ts",
-    "dev:ui": "vite",
-    "dev:worker": "wrangler dev",
-    "build": "npm run build:server && npm run build:ui",
-    "build:server": "tsc",
-    "build:ui": "vite build",
-    "deploy": "wrangler deploy",
-    "test:types": "tsc --noEmit"
-  },
-  "keywords": [
-    "mcp",
-    "pdf",
-    "simplepdf",
-    "model-context-protocol",
-    "ai"
-  ],
-  "author": "SimplePDF",
-  "license": "MIT",
+  "description": "MCP server for loading and extracting text from PDF files with chunked pagination and interactive viewer",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ArnaudLigny/simplepdf-embed.git",
-    "directory": "mcp-app"
+    "url": "https://github.com/modelcontextprotocol/ext-apps",
+    "directory": "examples/pdf-server"
+  },
+  "license": "MIT",
+  "main": "dist/server.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit && cross-env INPUT=mcp-app.html vite build && tsc -p tsconfig.server.json && bun build server.ts --outdir dist --target node --external pdfjs-dist && bun build main.ts --outfile dist/index.js --target node --external \"./server.js\" --external pdfjs-dist --banner \"#!/usr/bin/env node\"",
+    "watch": "cross-env INPUT=mcp-app.html vite build --watch",
+    "serve": "bun --watch main.ts",
+    "start": "cross-env NODE_ENV=development npm run build && npm run serve",
+    "dev": "cross-env NODE_ENV=development concurrently 'npm run watch' 'npm run serve'",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@cloudflare/workers-oauth-provider": "^0.2.2",
     "@modelcontextprotocol/ext-apps": "^1.0.0",
-    "@modelcontextprotocol/sdk": "1.25.2",
-    "agents": "^0.3.6",
-    "hono": "^4.11.6",
-    "zod": "^3.24.0"
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pdfjs-dist": "^5.0.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.0.0",
-    "@types/node": "^22.0.0",
-    "concurrently": "^9.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.7.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.0",
+    "@types/node": "22.10.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "typescript": "^5.9.3",
     "vite": "^6.0.0",
-    "wrangler": "^4.0.0"
+    "vite-plugin-singlefile": "^2.3.0"
+  },
+  "types": "dist/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "bin": {
+    "mcp-pdf-server": "dist/index.js"
   }
 }
