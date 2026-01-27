@@ -3,18 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Viewer</title>
+    <title>SimplePDF Editor</title>
   </head>
   <body>
     <div class="main">
       <!-- Loading State -->
       <div id="loading" class="loading">
         <div class="spinner"></div>
-        <p id="loading-text">Loading PDF...</p>
-        <div id="progress-container" class="progress-container" style="display: none">
-          <div id="progress-bar" class="progress-bar"></div>
-        </div>
-        <p id="progress-text" class="progress-text"></p>
+        <p id="loading-text">Loading SimplePDF...</p>
       </div>
 
       <!-- Error State -->
@@ -23,53 +19,13 @@
         <p id="error-message">An error occurred</p>
       </div>
 
-      <!-- PDF Viewer -->
-      <div id="viewer" class="viewer" style="display: none">
-        <!-- Toolbar -->
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <span id="pdf-title" class="pdf-title">Document</span>
-          </div>
-          <div class="toolbar-center">
-            <button id="prev-btn" class="nav-btn" title="Previous page (←)">
-              ◀
-            </button>
-            <div class="page-nav">
-              <input
-                id="page-input"
-                type="number"
-                class="page-input"
-                min="1"
-                value="1"
-                title="Go to page"
-              />
-              <span id="total-pages" class="total-pages">of 1</span>
-            </div>
-            <button id="next-btn" class="nav-btn" title="Next page (→)">
-              ▶
-            </button>
-          </div>
-          <div class="toolbar-right">
-            <button id="zoom-out-btn" class="zoom-btn" title="Zoom out (-)">
-              −
-            </button>
-            <span id="zoom-level" class="zoom-level">100%</span>
-            <button id="zoom-in-btn" class="zoom-btn" title="Zoom in (+)">
-              +
-            </button>
-            <button id="fullscreen-btn" class="fullscreen-btn" title="Toggle fullscreen">
-              ⛶
-            </button>
-          </div>
-        </div>
-
-        <!-- Single Page Canvas Container -->
-        <div class="canvas-container">
-          <div class="page-wrapper">
-            <canvas id="pdf-canvas"></canvas>
-            <div id="text-layer" class="text-layer"></div>
-          </div>
-        </div>
+      <!-- SimplePDF Editor -->
+      <div id="editor" class="editor" style="display: none">
+        <iframe
+          id="simplepdf-iframe"
+          frameborder="0"
+          allow="clipboard-write"
+        ></iframe>
       </div>
     </div>
 

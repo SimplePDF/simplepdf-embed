@@ -1,8 +1,6 @@
-# PDF Server
+# SimplePDF MCP App
 
-![Screenshot](screenshot.png)
-
-An interactive PDF viewer using [PDF.js](https://mozilla.github.io/pdf.js/). Supports local files and remote URLs from academic sources (arxiv, biorxiv, zenodo, etc).
+An interactive PDF editor using [SimplePDF](https://simplepdf.com). View and annotate PDF documents directly in Claude Desktop.
 
 ## MCP Client Configuration
 
@@ -11,13 +9,13 @@ Add to your MCP client configuration (stdio transport):
 ```json
 {
   "mcpServers": {
-    "pdf": {
+    "simplepdf": {
       "command": "npx",
       "args": [
         "-y",
         "--silent",
         "--registry=https://registry.npmjs.org/",
-        "@modelcontextprotocol/server-pdf",
+        "@simplepdf/mcp-app",
         "--stdio"
       ]
     }
@@ -27,137 +25,51 @@ Add to your MCP client configuration (stdio transport):
 
 ### Local Development
 
-To test local modifications, use this configuration (replace `~/code/ext-apps` with your clone path):
+To test local modifications:
 
 ```json
 {
   "mcpServers": {
-    "pdf": {
+    "simplepdf": {
       "command": "bash",
       "args": [
         "-c",
-        "cd ~/code/ext-apps/examples/pdf-server && npm run build >&2 && node dist/index.js --stdio"
+        "cd /path/to/simplepdf-embed/mcp-app && npm run build >&2 && node dist/index.js --stdio"
       ]
     }
   }
 }
 ```
 
-## What This Example Demonstrates
+## Features
 
-### 1. Chunked Data Through Size-Limited Tool Calls
-
-On some host platforms, tool calls have size limits, so large PDFs cannot be sent in a single response. This example streams PDFs in chunks using HTTP Range requests:
-
-**Server side** (`server.ts`):
-
-```typescript
-// Returns chunks with pagination metadata
-{
-  (bytes, offset, byteCount, totalBytes, hasMore);
-}
-```
-
-**Client side** (`mcp-app.ts`):
-
-```typescript
-// Load in chunks with progress
-while (hasMore) {
-  const chunk = await app.callServerTool("read_pdf_bytes", { url, offset });
-  chunks.push(base64ToBytes(chunk.bytes));
-  offset += chunk.byteCount;
-  hasMore = chunk.hasMore;
-  updateProgress(offset, chunk.totalBytes);
-}
-```
-
-### 2. Model Context Updates
-
-The viewer keeps the model informed about what the user is seeing:
-
-```typescript
-app.updateModelContext({
-  content: [
-    {
-      type: "text",
-      text: `PDF viewer | "${title}" | Current Page: ${page}/${total}\n\nPage content:\n${pageText}`,
-    },
-  ],
-});
-```
-
-This enables the model to answer questions about the current page or selected text.
-
-### 3. Display Modes: Fullscreen vs Inline
-
-- **Inline mode**: App requests height changes to fit content
-- **Fullscreen mode**: App fills the screen with internal scrolling
-
-```typescript
-// Request fullscreen
-app.requestDisplayMode({ mode: "fullscreen" });
-
-// Listen for mode changes
-app.ondisplaymodechange = (mode) => {
-  if (mode === "fullscreen") enableScrolling();
-  else disableScrolling();
-};
-```
-
-### 4. External Links (openLink)
-
-The viewer demonstrates opening external links (e.g., to the original arxiv page):
-
-```typescript
-titleEl.onclick = () => app.openLink(sourceUrl);
-```
-
-### 5. View Persistence
-
-Page position is saved per-view using `viewUUID` and localStorage.
-
-### 6. Dark Mode / Theming
-
-The viewer syncs with the host's theme using CSS `light-dark()` and the SDK's theming APIs:
-
-```typescript
-app.onhostcontextchanged = (ctx) => {
-  if (ctx.theme) applyDocumentTheme(ctx.theme);
-  if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
-};
-```
+- View PDF documents from any publicly accessible URL
+- Add text, checkboxes, signatures, and images
+- Extract document content (text, OCR)
+- Submit annotated documents
+- Dark/light mode support
 
 ## Usage
 
 ```bash
-# Default: loads a sample arxiv paper
-bun examples/pdf-server/main.ts
+# Development
+npm run dev
 
-# Load local files (converted to file:// URLs)
-bun examples/pdf-server/main.ts ./docs/paper.pdf /path/to/thesis.pdf
+# Build
+npm run build
 
-# Load from URLs
-bun examples/pdf-server/main.ts https://arxiv.org/pdf/2401.00001.pdf
+# Run with stdio (for MCP clients)
+node dist/index.js --stdio
 
-# Mix local and remote
-bun examples/pdf-server/main.ts ./local.pdf https://arxiv.org/pdf/2401.00001.pdf
-
-# stdio mode for MCP clients
-bun examples/pdf-server/main.ts --stdio ./papers/
+# Run with HTTP transport
+node dist/index.js
 ```
-
-## Allowed Sources
-
-- **Local files**: Must be passed as CLI arguments
-- **Remote URLs**: arxiv.org, biorxiv.org, medrxiv.org, chemrxiv.org, zenodo.org, osf.io, hal.science, ssrn.com, and more
 
 ## Tools
 
-| Tool             | Visibility | Purpose                                |
-| ---------------- | ---------- | -------------------------------------- |
-| `list_pdfs`      | Model      | List available local files and origins |
-| `display_pdf`    | Model + UI | Display interactive viewer             |
-| `read_pdf_bytes` | App only   | Stream PDF data in chunks              |
+| Tool          | Visibility | Purpose                          |
+| ------------- | ---------- | -------------------------------- |
+| `display_pdf` | Model + UI | Display SimplePDF editor with PDF |
 
 ## Architecture
 
@@ -165,22 +77,10 @@ bun examples/pdf-server/main.ts --stdio ./papers/
 server.ts      # MCP server + tools
 main.ts        # CLI entry point
 src/
-└── mcp-app.ts # Interactive viewer UI (PDF.js)
+└── mcp-app.ts # SimplePDF iframe integration
 ```
-
-## Key Patterns Shown
-
-| Pattern           | Implementation                              |
-| ----------------- | ------------------------------------------- |
-| App-only tools    | `_meta: { ui: { visibility: ["app"] } }`    |
-| Chunked responses | `hasMore` + `offset` pagination             |
-| Model context     | `app.updateModelContext()`                  |
-| Display modes     | `app.requestDisplayMode()`                  |
-| External links    | `app.openLink()`                            |
-| View persistence  | `viewUUID` + localStorage                   |
-| Theming           | `applyDocumentTheme()` + CSS `light-dark()` |
 
 ## Dependencies
 
-- `pdfjs-dist`: PDF rendering (frontend only)
 - `@modelcontextprotocol/ext-apps`: MCP Apps SDK
+- `@modelcontextprotocol/sdk`: MCP protocol SDK
