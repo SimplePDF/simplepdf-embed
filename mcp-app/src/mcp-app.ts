@@ -32,7 +32,6 @@ let documentId: string | null = null;
 // DOM Elements
 const mainEl = document.querySelector(".main") as HTMLElement;
 const loadingEl = document.getElementById("loading")!;
-const loadingTextEl = document.getElementById("loading-text")!;
 const errorEl = document.getElementById("error")!;
 const errorMessageEl = document.getElementById("error-message")!;
 const editorEl = document.getElementById("editor")!;
@@ -51,13 +50,6 @@ const app = new App(
 );
 
 // UI State functions
-const showLoading = (text: string): void => {
-  loadingTextEl.textContent = text;
-  loadingEl.style.display = "flex";
-  errorEl.style.display = "none";
-  editorEl.style.display = "none";
-};
-
 const showError = (message: string): void => {
   errorMessageEl.textContent = message;
   loadingEl.style.display = "none";
@@ -151,7 +143,6 @@ app.ontoolresult = (result): void => {
   documentId = null;
 
   log.info("Loading PDF:", pdfUrl, "starting at page:", currentPage);
-  showLoading("Loading SimplePDF editor...");
 
   // Construct SimplePDF iframe URL
   const encodedUrl = encodeURIComponent(pdfUrl);
@@ -159,6 +150,11 @@ app.ontoolresult = (result): void => {
 
   log.info("Setting iframe src:", iframeSrc);
   iframeEl.src = iframeSrc;
+
+  // Show editor immediately - don't wait for iframe events
+  // (iframe events may not reach us due to origin restrictions in MCP app context)
+  showEditor();
+  updateModelContext();
 };
 
 app.onerror = (error): void => {

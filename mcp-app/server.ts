@@ -90,7 +90,18 @@ Accepts any publicly accessible PDF URL.`,
       );
       return {
         contents: [
-          { uri: RESOURCE_URI, mimeType: RESOURCE_MIME_TYPE, text: html },
+          {
+            uri: RESOURCE_URI,
+            mimeType: RESOURCE_MIME_TYPE,
+            text: html,
+            _meta: {
+              ui: {
+                csp: {
+                  frameDomains: ["https://embed.simplepdf.com"],
+                },
+              },
+            },
+          },
         ],
       };
     },
