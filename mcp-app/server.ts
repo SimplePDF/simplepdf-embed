@@ -41,13 +41,13 @@ const DIST_DIR = import.meta.filename.endsWith(".ts")
 export const createServer = (): McpServer => {
   const server = new McpServer({ name: "SimplePDF", version: "1.0.0" });
 
-  // Tool: display_pdf - Show interactive editor
+  // Tool: load_pdf - Show interactive editor
   registerAppTool(
     server,
-    "display_pdf",
+    "load_pdf",
     {
-      title: "Display PDF",
-      description: `Display an interactive PDF editor using SimplePDF.
+      title: "Load PDF",
+      description: `Load a PDF in SimplePDF's interactive editor.
 
 Features:
 - View and annotate PDF documents
@@ -57,21 +57,22 @@ Features:
 
 Accepts any publicly accessible PDF URL.`,
       inputSchema: {
-        url: z.string().url().default(DEFAULT_PDF).describe("PDF URL to open"),
-        page: z.number().min(1).default(1).describe("Initial page number"),
+        url: z.string().url().describe("PDF URL to open"),
+        page: z.number().min(1).optional().describe("Initial page number"),
       },
       outputSchema: z.object({
         url: z.string(),
-        initialPage: z.number(),
+        page: z.number(),
       }),
       _meta: { ui: { resourceUri: RESOURCE_URI } },
     },
     async ({ url, page }): Promise<CallToolResult> => {
+      const initialPage = page ?? 1;
       return {
-        content: [{ type: "text", text: `Opening PDF in SimplePDF: ${url}` }],
+        content: [{ type: "text", text: `Loading PDF in SimplePDF: ${url}` }],
         structuredContent: {
           url,
-          initialPage: page,
+          page: initialPage,
         },
       };
     },

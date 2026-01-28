@@ -123,11 +123,11 @@ const handleIframeMessage = (event: MessageEvent): void => {
 // Parse tool result
 const parseToolResult = (
   result: CallToolResult,
-): { url: string; initialPage: number } | null => {
-  return result.structuredContent as { url: string; initialPage: number } | null;
+): { url: string; page: number } | null => {
+  return result.structuredContent as { url: string; page: number } | null;
 };
 
-// Handle tool result (display_pdf invocation)
+// Handle tool result (load_pdf invocation)
 app.ontoolresult = (result): void => {
   log.info("Received tool result:", result);
 
@@ -138,15 +138,15 @@ app.ontoolresult = (result): void => {
   }
 
   pdfUrl = parsed.url;
-  currentPage = parsed.initialPage;
+  currentPage = parsed.page;
   totalPages = 0;
   documentId = null;
 
   log.info("Loading PDF:", pdfUrl, "starting at page:", currentPage);
 
-  // Construct SimplePDF iframe URL
+  // Construct SimplePDF iframe URL with page parameter
   const encodedUrl = encodeURIComponent(pdfUrl);
-  const iframeSrc = `${SIMPLEPDF_EMBED_ORIGIN}/editor?open=${encodedUrl}`;
+  const iframeSrc = `${SIMPLEPDF_EMBED_ORIGIN}/editor?open=${encodedUrl}&page=${currentPage}`;
 
   log.info("Setting iframe src:", iframeSrc);
   iframeEl.src = iframeSrc;

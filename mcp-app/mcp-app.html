@@ -8,7 +8,7 @@
   <body>
     <div class="main">
       <!-- Loading State -->
-      <div id="loading" class="loading" style="display: none">
+      <div id="loading" class="loading">
         <div class="spinner"></div>
         <p id="loading-text">Loading SimplePDF...</p>
       </div>
@@ -20,10 +20,9 @@
       </div>
 
       <!-- SimplePDF Editor -->
-      <div id="editor" class="editor">
+      <div id="editor" class="editor" style="display: none">
         <iframe
           id="simplepdf-iframe"
-          src="https://embed.simplepdf.com/editor?open=https%3A%2F%2Farxiv.org%2Fpdf%2F1706.03762"
           frameborder="0"
           allow="clipboard-write"
         ></iframe>
