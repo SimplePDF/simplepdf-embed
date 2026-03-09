@@ -9,7 +9,7 @@ const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: window.simplePDF not initia
 const UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED = 'Unexpected: SimplePDF iframe not instantiated';
 
 const editorContext: EditorContext = {
-  getFromConfig: (key: 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
+  getFromConfig: (key: 'baseDomain' | 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
   log: (message: string, details: Record<string, unknown>) => {
     const debugAttribute = document.currentScript?.getAttribute('debug');
     const isDebug = debugAttribute !== null && debugAttribute !== undefined;
@@ -32,9 +32,15 @@ const editorContext: EditorContext = {
   },
 };
 
-const isSimplePDFLink = (url: string) => {
-  const regex = /^https:\/\/[^.]+\.simplepdf\.com(\/[^\/]+)?\/(form|documents)\/.+/;
-  return regex.test(url);
+export const isSimplePDFLink = ({ url, baseDomain }: { url: string; baseDomain?: string }): boolean => {
+  try {
+    const domain = baseDomain ?? 'simplepdf.com';
+    const escapedDomain = domain.replace(/\./g, '\\.').replace(/:/g, '\\:');
+    const regex = new RegExp(`^https?://[^.]+\\.${escapedDomain}(/[^/]+)?/(form|documents)/.+`);
+    return regex.test(url);
+  } catch {
+    return false;
+  }
 };
 
 const isPDFLink = (url: string) => url.endsWith('.pdf');
@@ -69,12 +75,16 @@ const getLocale = (): Locale => {
 };
 
 export const config: EditorConfig = {
-  locale: getLocale(),
+  autoOpen: false,
+  baseDomain:
+    editorContext.getFromConfig('baseDomain') ??
+    document.currentScript?.getAttribute('baseDomain') ??
+    'simplepdf.com',
   companyIdentifier:
     editorContext.getFromConfig('companyIdentifier') ??
     document.currentScript?.getAttribute('companyIdentifier') ??
     'embed',
-  autoOpen: false,
+  locale: getLocale(),
 };
 
 export const setConfig: ConfigSetter = (params) => {
@@ -122,7 +132,7 @@ export const getSimplePDFElements = (document: Document): Element[] => {
         return false;
       }
 
-      return isPDFLink(anchor.href) || anchor.classList.contains('simplepdf') || isSimplePDFLink(anchor.href);
+      return isPDFLink(anchor.href) || anchor.classList.contains('simplepdf') || isSimplePDFLink({ url: anchor.href, baseDomain: editorContext.getFromConfig('baseDomain') ?? undefined });
     });
 
     return anchorsWithPDF;
@@ -139,28 +149,48 @@ export const getSimplePDFElements = (document: Document): Element[] => {
   return [...getNonAnchors(), ...getAnchors()];
 };
 
+const buildEditorDomain = (): string => {
+  const { getFromConfig } = editorContext;
+  const baseDomain = getFromConfig('baseDomain') ?? 'simplepdf.com';
+  const companyIdentifier = getFromConfig('companyIdentifier') ?? 'embed';
+  const isLocalDev = baseDomain.includes('.nil') || baseDomain.includes('localhost');
+  const protocol = isLocalDev ? 'http' : 'https';
+  return `${protocol}://${companyIdentifier}.${baseDomain}`;
+};
+
 export const closeEditor = (): void => {
   removeIframe();
   document.body.style.overflow = 'initial';
 };
 
+export const deriveTrustedOrigin = ({
+  iframeSrc,
+  fallbackDomain,
+}: {
+  iframeSrc: string | undefined;
+  fallbackDomain: string;
+}): string => {
+  const rawOrigin = iframeSrc ?? fallbackDomain;
+  return new URL(rawOrigin).origin;
+};
+
 const eventsListener = (event: MessageEvent) => {
-  const { getEditor, outgoingEventsQueue, getFromConfig, log } = editorContext;
+  const { getEditor, outgoingEventsQueue, log } = editorContext;
   const iframe = getEditor().iframe;
-  const editorDomain = `https://${getFromConfig('companyIdentifier')}.simplepdf.com`;
+  const editorDomain = buildEditorDomain();
 
   const eventOrigin = new URL(event.origin).origin;
-  const iframeOrigin = new URL(editorDomain).origin;
+  const trustedOrigin = deriveTrustedOrigin({ iframeSrc: iframe?.src, fallbackDomain: editorDomain });
 
-  if (eventOrigin !== iframeOrigin) {
-    log('Incoming message from untrusted origin', { eventOrigin, iframeOrigin });
+  if (eventOrigin !== trustedOrigin) {
+    log('Incoming message from untrusted origin', { eventOrigin, trustedOrigin });
     return;
   }
 
   const isTrustedIframe = event.source === iframe?.contentWindow;
 
   if (!isTrustedIframe) {
-    log('Incoming message from untrusted iframe', { eventOrigin, iframeOrigin });
+    log('Incoming message from untrusted iframe', { eventOrigin, trustedOrigin });
     return;
   }
 
@@ -222,8 +252,9 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
     return;
   }
 
-  const companyIdentifier = getFromConfig('companyIdentifier');
+  const baseDomain = getFromConfig('baseDomain') ?? 'simplepdf.com';
   const locale = getFromConfig('locale');
+  const editorDomain = buildEditorDomain();
 
   const encodedContext = (() => {
     if (!context) {
@@ -238,15 +269,26 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
     }
   })();
 
-  const iframeURL = new URL(`/${locale}/editor`, `https://${companyIdentifier}.simplepdf.com`);
+  const isSimplePDFDocumentLink = href !== null && isSimplePDFLink({ url: href, baseDomain });
 
-  if (href) {
-    iframeURL.searchParams.set('loadingPlaceholder', 'true');
-  }
+  const iframeURL = (() => {
+    if (isSimplePDFDocumentLink) {
+      const directURL = new URL(href);
+      if (encodedContext) {
+        directURL.searchParams.set('context', encodedContext);
+      }
+      return directURL;
+    }
 
-  if (encodedContext) {
-    iframeURL.searchParams.set('context', encodedContext);
-  }
+    const editorURL = new URL(`/${locale}/editor`, editorDomain);
+    if (href) {
+      editorURL.searchParams.set('loadingPlaceholder', 'true');
+    }
+    if (encodedContext) {
+      editorURL.searchParams.set('context', encodedContext);
+    }
+    return editorURL;
+  })();
 
   const modal = `
     <style id="${MODAL_STYLE_ID}">
@@ -343,7 +385,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
   document.body.style.overflow = 'hidden';
   document.body.insertAdjacentHTML('beforebegin', modal);
 
-  if (href) {
+  if (href && !isSimplePDFDocumentLink) {
     const fetchedDocumentBlob = async (): Promise<string> => {
       const response = await fetch(href ?? '', {
         method: 'GET',

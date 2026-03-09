@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { sendEvent, EmbedActions, useEmbed } from './hook';
-import { buildEditorDomain, encodeContext, buildEditorURL, extractDocumentName, type Locale } from './utils';
+import { buildEditorDomain, encodeContext, buildEditorURL, extractDocumentName, isSimplePDFDocumentURL, type Locale } from './utils';
 
 import './styles.scss';
 
@@ -242,8 +242,13 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     ? (props.documentURL ?? null)
     : ((props.children as { props?: { href: string } })?.props?.href ?? null);
 
+  const isSimplePDFDocument = React.useMemo(
+    () => url !== null && isSimplePDFDocumentURL({ url, baseDomain }),
+    [url, baseDomain],
+  );
+
   React.useEffect(() => {
-    if (!url) {
+    if (!url || isSimplePDFDocument) {
       return;
     }
 
@@ -292,7 +297,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
           value: url,
         }));
       });
-  }, [url]);
+  }, [url, isSimplePDFDocument]);
 
   React.useEffect(() => {
     if (!documentState.isEditorReady || documentState.type !== 'iframe_event' || documentState.value === null) {
@@ -312,9 +317,10 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
   const embedEventHandler = React.useCallback(
     async (event: MessageEvent<string>) => {
       const eventOrigin = new URL(event.origin).origin;
-      const iframeOrigin = new URL(editorDomain).origin;
+      const iframeSrc = iframeRef.current?.getAttribute('src');
+      const trustedOrigin = iframeSrc ? new URL(iframeSrc).origin : new URL(editorDomain).origin;
 
-      if (eventOrigin !== iframeOrigin) {
+      if (eventOrigin !== trustedOrigin) {
         return;
       }
 
@@ -382,17 +388,24 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
 
   const encodedContext = React.useMemo(() => encodeContext(context), [JSON.stringify(context)]);
 
+  const document = React.useMemo((): Parameters<typeof buildEditorURL>[0]['document'] => {
+    if (url === null) {
+      return null;
+    }
+
+    if (isSimplePDFDocument) {
+      return { type: 'simplepdf', url };
+    }
+
+    const corsProxyFallbackUrl =
+      documentState?.type === 'cors_proxy_fallback' && documentState?.value !== null ? documentState.value : null;
+
+    return { type: 'external', url, corsProxyFallbackUrl };
+  }, [url, isSimplePDFDocument, documentState]);
+
   const editorURL = React.useMemo(
-    () =>
-      buildEditorURL({
-        editorDomain,
-        locale,
-        encodedContext,
-        hasDocumentUrl: Boolean(url),
-        corsProxyFallbackUrl:
-          documentState?.type === 'cors_proxy_fallback' && documentState?.value !== null ? documentState.value : null,
-      }),
-    [editorDomain, url, encodedContext, documentState, locale],
+    () => buildEditorURL({ editorDomain, locale, encodedContext, document }),
+    [editorDomain, encodedContext, document, locale],
   );
 
   const isInline = isInlineComponent(props);

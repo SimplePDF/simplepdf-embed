@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { buildEditorDomain, encodeContext, buildEditorURL, extractDocumentName, generateRandomID } from './utils';
+import { buildEditorDomain, encodeContext, buildEditorURL, extractDocumentName, generateRandomID, isSimplePDFDocumentURL } from './utils';
 
 describe(generateRandomID.name, () => {
   it('generates unique IDs with timestamp_randomstring format', () => {
@@ -117,13 +117,44 @@ describe(encodeContext.name, () => {
   });
 });
 
+describe(isSimplePDFDocumentURL.name, () => {
+  describe('default domain', () => {
+    it.each([
+      { url: 'https://company.simplepdf.com/documents/abc123', expected: true, description: 'documents URL' },
+      { url: 'https://company.simplepdf.com/form/abc123', expected: true, description: 'form URL' },
+      { url: 'https://company.simplepdf.com/fr/documents/abc123', expected: true, description: 'documents URL with locale' },
+      { url: 'https://company.simplepdf.com/en/form/abc123', expected: true, description: 'form URL with locale' },
+      { url: 'https://other.simplepdf.com/documents/xyz', expected: true, description: 'different subdomain' },
+      { url: 'https://example.com/documents/abc123', expected: false, description: 'non-simplepdf domain' },
+      { url: 'https://company.simplepdf.com/editor', expected: false, description: 'editor URL (no documents/form)' },
+      { url: 'https://company.simplepdf.com/file.pdf', expected: false, description: 'PDF file on simplepdf domain' },
+      { url: 'https://company.simplepdf.com/documents/abc123?page=3', expected: true, description: 'documents URL with page param' },
+      { url: 'https://company.simplepdf.com/form/abc123?page=5', expected: true, description: 'form URL with page param' },
+      { url: 'https://company.simplepdf.com/documents/', expected: false, description: 'documents path without ID' },
+      { url: 'not-a-url', expected: false, description: 'invalid URL' },
+    ])('returns $expected for $description', ({ url, expected }) => {
+      expect(isSimplePDFDocumentURL({ url, baseDomain: undefined })).toBe(expected);
+    });
+  });
+
+  describe('custom baseDomain', () => {
+    it.each([
+      { url: 'https://company.custom.com/documents/abc123', baseDomain: 'custom.com', expected: true, description: 'custom domain documents URL' },
+      { url: 'http://e2e.simplepdf.nil:3000/documents/abc123', baseDomain: 'simplepdf.nil:3000', expected: true, description: 'local dev with port' },
+      { url: 'http://e2e.simplepdf.nil:3000/fr/form/abc123', baseDomain: 'simplepdf.nil:3000', expected: true, description: 'local dev with locale and form' },
+      { url: 'https://company.simplepdf.com/documents/abc123', baseDomain: 'custom.com', expected: false, description: 'simplepdf URL with custom domain configured' },
+    ])('returns $expected for $description', ({ url, baseDomain, expected }) => {
+      expect(isSimplePDFDocumentURL({ url, baseDomain })).toBe(expected);
+    });
+  });
+});
+
 describe(buildEditorURL.name, () => {
   const defaults = {
     editorDomain: 'https://company.simplepdf.com',
     locale: undefined,
     encodedContext: null,
-    hasDocumentUrl: false,
-    corsProxyFallbackUrl: null,
+    document: null,
   } as const;
 
   it.each([
@@ -146,15 +177,25 @@ describe(buildEditorURL.name, () => {
       description: 'adds context query param',
     },
     {
-      params: { ...defaults, hasDocumentUrl: true },
+      params: {
+        ...defaults,
+        document: { type: 'external' as const, url: 'https://example.com/doc.pdf', corsProxyFallbackUrl: null },
+      },
       expectedPath: '/en/editor',
       expectedParams: { loadingPlaceholder: 'true' },
-      description: 'adds loadingPlaceholder when hasDocumentUrl',
+      description: 'adds loadingPlaceholder for external document',
     },
     {
-      params: { ...defaults, corsProxyFallbackUrl: 'https://example.com/doc.pdf' },
+      params: {
+        ...defaults,
+        document: {
+          type: 'external' as const,
+          url: 'https://example.com/doc.pdf',
+          corsProxyFallbackUrl: 'https://example.com/doc.pdf',
+        },
+      },
       expectedPath: '/en/editor',
-      expectedParams: { open: 'https://example.com/doc.pdf' },
+      expectedParams: { loadingPlaceholder: 'true', open: 'https://example.com/doc.pdf' },
       description: 'adds open param for CORS fallback',
     },
     {
@@ -162,8 +203,11 @@ describe(buildEditorURL.name, () => {
         editorDomain: 'https://test.simplepdf.com',
         locale: 'de' as const,
         encodedContext: 'ctx123',
-        hasDocumentUrl: true,
-        corsProxyFallbackUrl: 'https://example.com/file.pdf',
+        document: {
+          type: 'external' as const,
+          url: 'https://example.com/file.pdf',
+          corsProxyFallbackUrl: 'https://example.com/file.pdf',
+        },
       },
       expectedPath: '/de/editor',
       expectedParams: { context: 'ctx123', loadingPlaceholder: 'true', open: 'https://example.com/file.pdf' },
@@ -185,6 +229,59 @@ describe(buildEditorURL.name, () => {
     });
     const expectedParamCount = Object.keys(expectedParams).length;
     expect([...url.searchParams.keys()].length).toBe(expectedParamCount);
+  });
+
+  describe('SimplePDF document', () => {
+    it('returns the SimplePDF document URL directly', () => {
+      const result = buildEditorURL({
+        ...defaults,
+        document: { type: 'simplepdf', url: 'https://company.simplepdf.com/documents/abc123' },
+      });
+      expect(result).toBe('https://company.simplepdf.com/documents/abc123');
+    });
+
+    it('appends context to the SimplePDF document URL', () => {
+      const result = buildEditorURL({
+        ...defaults,
+        encodedContext: 'ctx123',
+        document: { type: 'simplepdf', url: 'https://company.simplepdf.com/documents/abc123' },
+      });
+      const url = new URL(result);
+      expect(url.origin).toBe('https://company.simplepdf.com');
+      expect(url.pathname).toBe('/documents/abc123');
+      expect(url.searchParams.get('context')).toBe('ctx123');
+    });
+
+    it('preserves existing query params like page', () => {
+      const result = buildEditorURL({
+        ...defaults,
+        document: { type: 'simplepdf', url: 'https://company.simplepdf.com/documents/abc123?page=3' },
+      });
+      const url = new URL(result);
+      expect(url.pathname).toBe('/documents/abc123');
+      expect(url.searchParams.get('page')).toBe('3');
+    });
+
+    it('preserves page param alongside context', () => {
+      const result = buildEditorURL({
+        ...defaults,
+        encodedContext: 'ctx123',
+        document: { type: 'simplepdf', url: 'https://company.simplepdf.com/documents/abc123?page=5' },
+      });
+      const url = new URL(result);
+      expect(url.searchParams.get('page')).toBe('5');
+      expect(url.searchParams.get('context')).toBe('ctx123');
+    });
+
+    it('does not add loadingPlaceholder or open params', () => {
+      const result = buildEditorURL({
+        ...defaults,
+        document: { type: 'simplepdf', url: 'https://company.simplepdf.com/documents/abc123' },
+      });
+      const url = new URL(result);
+      expect(url.searchParams.get('loadingPlaceholder')).toBeNull();
+      expect(url.searchParams.get('open')).toBeNull();
+    });
   });
 });
 

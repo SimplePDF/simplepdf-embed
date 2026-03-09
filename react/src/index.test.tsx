@@ -805,6 +805,128 @@ describe('EmbedPDF', () => {
     });
   });
 
+  describe('SimplePDF document URLs', () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(() => {
+      originalFetch = globalThis.fetch;
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it('uses SimplePDF document URL directly as iframe src', async () => {
+      const fetchMock = vi.fn();
+      globalThis.fetch = fetchMock;
+
+      render(<EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/documents/abc123" />);
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.href).toBe('https://company.simplepdf.com/documents/abc123');
+      });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('preserves existing query params like page', async () => {
+      render(<EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/documents/abc123?page=3" />);
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.pathname).toBe('/documents/abc123');
+        expect(url.searchParams.get('page')).toBe('3');
+      });
+    });
+
+    it('does not add loadingPlaceholder for SimplePDF document URLs', async () => {
+      render(<EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/documents/abc123" />);
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.searchParams.get('loadingPlaceholder')).toBeNull();
+      });
+    });
+
+    it('appends context param to SimplePDF document URL', async () => {
+      render(
+        <EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/documents/abc123" context={{ key: 'value' }} />,
+      );
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.pathname).toBe('/documents/abc123');
+        const encodedContext = url.searchParams.get('context');
+        if (encodedContext === null) {
+          throw new Error('Expected context param to be present');
+        }
+        const decodedContext = JSON.parse(atob(decodeURIComponent(encodedContext)));
+        expect(decodedContext).toEqual({ key: 'value' });
+      });
+    });
+
+    it('preserves page param alongside context', async () => {
+      render(
+        <EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/documents/abc123?page=5" context={{ key: 'value' }} />,
+      );
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.pathname).toBe('/documents/abc123');
+        expect(url.searchParams.get('page')).toBe('5');
+        const encodedContext = url.searchParams.get('context');
+        if (encodedContext === null) {
+          throw new Error('Expected context param to be present');
+        }
+        const decodedContext = JSON.parse(atob(decodeURIComponent(encodedContext)));
+        expect(decodedContext).toEqual({ key: 'value' });
+      });
+    });
+
+    it('handles /form/ URLs the same way', async () => {
+      const fetchMock = vi.fn();
+      globalThis.fetch = fetchMock;
+
+      render(<EmbedPDF mode="inline" documentURL="https://company.simplepdf.com/form/abc123" />);
+
+      await waitFor(() => {
+        const url = getIframeSrcUrl();
+        expect(url.href).toBe('https://company.simplepdf.com/form/abc123');
+      });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('accepts events from SimplePDF document URL origin', async () => {
+      const onEmbedEvent = vi.fn();
+
+      render(
+        <EmbedPDF
+          mode="inline"
+          documentURL="https://other.simplepdf.com/documents/abc123"
+          onEmbedEvent={onEmbedEvent}
+        />,
+      );
+
+      const iframe = getIframe();
+      const mockContentWindow = { postMessage: vi.fn() };
+      Object.defineProperty(iframe, 'contentWindow', { value: mockContentWindow, writable: true });
+
+      await act(async () => {
+        messageHandler?.(
+          createMessageEvent({
+            origin: 'https://other.simplepdf.com',
+            source: mockContentWindow as unknown as Window,
+            data: JSON.stringify({ type: 'EDITOR_READY', data: {} }),
+          }),
+        );
+      });
+
+      expect(onEmbedEvent).toHaveBeenCalledWith({ type: 'EDITOR_READY', data: {} });
+    });
+  });
+
   describe('unknown event types', () => {
     it('ignores unknown event types', async () => {
       const onEmbedEvent = vi.fn();

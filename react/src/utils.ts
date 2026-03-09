@@ -38,30 +38,50 @@ export const buildEditorURL = ({
   editorDomain,
   locale,
   encodedContext,
-  hasDocumentUrl,
-  corsProxyFallbackUrl,
+  document,
 }: {
   editorDomain: string;
   locale: Locale | undefined;
   encodedContext: string | null;
-  hasDocumentUrl: boolean;
-  corsProxyFallbackUrl: string | null;
+  document:
+    | null
+    | { type: 'simplepdf'; url: string }
+    | { type: 'external'; url: string; corsProxyFallbackUrl: string | null };
 }): string => {
+  if (document?.type === 'simplepdf') {
+    const directURL = new URL(document.url);
+    if (encodedContext) {
+      directURL.searchParams.set('context', encodedContext);
+    }
+    return directURL.href;
+  }
+
   const simplePDFEditorURL = new URL(`/${locale ?? DEFAULT_LOCALE}/editor`, editorDomain);
 
   if (encodedContext) {
     simplePDFEditorURL.searchParams.set('context', encodedContext);
   }
 
-  if (hasDocumentUrl) {
+  if (document !== null) {
     simplePDFEditorURL.searchParams.set('loadingPlaceholder', 'true');
   }
 
-  if (corsProxyFallbackUrl !== null) {
-    simplePDFEditorURL.searchParams.set('open', corsProxyFallbackUrl);
+  if (document?.corsProxyFallbackUrl !== null && document?.corsProxyFallbackUrl !== undefined) {
+    simplePDFEditorURL.searchParams.set('open', document.corsProxyFallbackUrl);
   }
 
   return simplePDFEditorURL.href;
+};
+
+export const isSimplePDFDocumentURL = ({ url, baseDomain }: { url: string; baseDomain: string | undefined }): boolean => {
+  try {
+    const domain = baseDomain ?? 'simplepdf.com';
+    const escapedDomain = domain.replace(/\./g, '\\.').replace(/:/g, '\\:');
+    const regex = new RegExp(`^https?://[^.]+\\.${escapedDomain}(/[^/]+)?/(form|documents)/.+`);
+    return regex.test(url);
+  } catch {
+    return false;
+  }
 };
 
 export const extractDocumentName = (url: string): string => {

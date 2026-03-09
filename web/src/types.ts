@@ -11,7 +11,7 @@ export type OutgoingIframeEvent = {
 };
 
 export type EditorContext = {
-  getFromConfig: (key: 'companyIdentifier' | 'locale') => string | null;
+  getFromConfig: (key: 'baseDomain' | 'companyIdentifier' | 'locale') => string | null;
   log: (message: string, details: Record<string, unknown>) => void;
   autoOpenListeners: Map<Element, EventListener>;
   outgoingEventsQueue: OutgoingIframeEvent[];
@@ -24,9 +24,10 @@ export type EditorContext = {
 };
 
 export type EditorConfig = {
+  autoOpen: boolean;
+  baseDomain: string;
   companyIdentifier: string;
   locale: Locale;
-  autoOpen: boolean;
 };
 
 export type ConfigSetter = (params: Partial<EditorConfig>) => EditorConfig;
