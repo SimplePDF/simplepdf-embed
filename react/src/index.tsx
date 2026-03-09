@@ -189,13 +189,13 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     });
   }, []);
 
-  const clearFields: EmbedActions['clearFields'] = React.useCallback(async (options) => {
+  const removeFields: EmbedActions['removeFields'] = React.useCallback(async (options) => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
     await ensureEditorReady();
     return sendEvent(iframeRef.current, {
-      type: 'CLEAR_FIELDS',
+      type: 'REMOVE_FIELDS',
       data: { field_ids: options?.fieldIds, page: options?.page },
     });
   }, []);
@@ -227,7 +227,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     goTo,
     selectTool,
     createField,
-    clearFields,
+    removeFields,
     getDocumentContent,
     submit,
   }));

@@ -286,7 +286,7 @@ Currently, page manipulation (add/remove/re-arrange/rotate) is only available th
 | `goTo`                 | Navigate to a specific page                                                                                |
 | `selectTool`           | Select a tool (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `PICTURE`, `SIGNATURE`) or `null` for cursor              |
 | `createField`          | Create a field at a specified position                                                                     |
-| `clearFields`          | Clear fields by ID, by page, or all fields                                                                 |
+| `removeFields`         | Remove fields by ID, by page, or all fields                                                                |
 | `getDocumentContent`   | Extract text content from the document                                                                     |
 | `submit`               | Submit the document (with optional device download)                                                        |
 | `loadDocument` (Iframe)| Load a document programmatically (Iframe API only)                                                         |

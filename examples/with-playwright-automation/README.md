@@ -247,7 +247,7 @@ The tool uses the SimplePDF editor's iframe postMessage API:
 
 1. Embeds the editor in an iframe
 2. Waits for `DOCUMENT_LOADED` event
-3. Sends `CLEAR_FIELDS` to remove existing fields
+3. Sends `REMOVE_FIELDS` to remove existing fields
 4. Sends `CREATE_FIELD` for each configured field
 5. Leaves browser open for inspection
 

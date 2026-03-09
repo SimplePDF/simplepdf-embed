@@ -6,7 +6,7 @@ import type { AutomationConfig } from './schema';
 type AutomationErrorCode =
   | 'document_load_failed'
   | 'field_creation_failed'
-  | 'clear_fields_failed';
+  | 'remove_fields_failed';
 
 type AutomationResult =
   | { success: true; data: null }
@@ -217,17 +217,17 @@ const runAutomation = async ({ config, baseUrl }: RunAutomationArgs): Promise<Au
     await waitForDocumentLoaded();
     console.log('Document loaded');
 
-    console.log('Clearing existing fields...');
-    const clearRequestId = await sendEvent({ type: 'CLEAR_FIELDS', data: {} });
-    const clearResult = await waitForEvent('REQUEST_RESULT', { requestId: clearRequestId });
+    console.log('Removing existing fields...');
+    const removeRequestId = await sendEvent({ type: 'REMOVE_FIELDS', data: {} });
+    const removeResult = await waitForEvent('REQUEST_RESULT', { requestId: removeRequestId });
 
-    if (!isRequestResultData(clearResult.event.data) || !clearResult.event.data.result.success) {
+    if (!isRequestResultData(removeResult.event.data) || !removeResult.event.data.result.success) {
       return {
         success: false,
-        error: { code: 'clear_fields_failed', message: 'Failed to clear existing fields' },
+        error: { code: 'remove_fields_failed', message: 'Failed to remove existing fields' },
       };
     }
-    console.log('Fields cleared');
+    console.log('Fields removed');
 
     console.log(`Creating ${config.fields.length} fields...`);
     for (let i = 0; i < config.fields.length; i++) {

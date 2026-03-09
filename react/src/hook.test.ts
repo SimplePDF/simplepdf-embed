@@ -260,9 +260,9 @@ describe('useEmbed', () => {
       expect(actionResult).toEqual(expectedError);
     });
 
-    it('clearFields returns error when embedRef not attached', async () => {
+    it('removeFields returns error when embedRef not attached', async () => {
       const { result } = renderHook(() => useEmbed());
-      const actionResult = await result.current.actions.clearFields({});
+      const actionResult = await result.current.actions.removeFields({});
       expect(actionResult).toEqual(expectedError);
     });
 
@@ -288,7 +288,7 @@ describe('useEmbed', () => {
         goTo: vi.fn().mockResolvedValue({ success: true }),
         selectTool: vi.fn().mockResolvedValue({ success: true }),
         createField: vi.fn().mockResolvedValue({ success: true }),
-        clearFields: vi.fn().mockResolvedValue({ success: true }),
+        removeFields: vi.fn().mockResolvedValue({ success: true }),
         getDocumentContent: vi.fn().mockResolvedValue({ success: true }),
         submit: vi.fn().mockResolvedValue({ success: true }),
       };
@@ -333,14 +333,14 @@ describe('useEmbed', () => {
       expect(actionResult).toEqual({ success: true });
     });
 
-    it('clearFields delegates to ref.clearFields', async () => {
+    it('removeFields delegates to ref.removeFields', async () => {
       const { result } = renderHook(() => useEmbed());
       const { ref, spies } = createMockEmbedRef();
       (result.current.embedRef as React.MutableRefObject<EmbedActions>).current = ref;
 
-      const actionResult = await result.current.actions.clearFields({});
+      const actionResult = await result.current.actions.removeFields({});
 
-      expect(spies.clearFields).toHaveBeenCalledWith({});
+      expect(spies.removeFields).toHaveBeenCalledWith({});
       expect(actionResult).toEqual({ success: true });
     });
 
@@ -447,12 +447,12 @@ describe('Type assertions', () => {
       >();
     });
 
-    it('clearFields accepts optional { fieldIds?, page? } and returns ActionResult with cleared_count', () => {
-      expectTypeOf<EmbedActions['clearFields']>()
+    it('removeFields accepts optional { fieldIds?, page? } and returns ActionResult with removed_count', () => {
+      expectTypeOf<EmbedActions['removeFields']>()
         .parameter(0)
         .toEqualTypeOf<{ fieldIds?: string[]; page?: number } | undefined>();
-      expectTypeOf<EmbedActions['clearFields']>().returns.resolves.toExtend<
-        ExpectedActionResult<{ cleared_count: number }>
+      expectTypeOf<EmbedActions['removeFields']>().returns.resolves.toExtend<
+        ExpectedActionResult<{ removed_count: number }>
       >();
     });
 

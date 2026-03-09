@@ -131,7 +131,7 @@ Use `const { embedRef, actions } = useEmbed();` to programmatically control the 
 | `actions.goTo({ page })`                         | Navigate to a specific page                                                                                         |
 | `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'BOXED_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
 | `actions.createField(options)`                   | Create a field at specified position (see below)                                                                    |
-| `actions.clearFields(options?)`                  | Clear fields by `fieldIds` or `page`, or all fields if no options                                                   |
+| `actions.removeFields(options?)`                 | Remove fields by `fieldIds` or `page`, or all fields if no options                                                  |
 | `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                      |
 | `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                 |
 

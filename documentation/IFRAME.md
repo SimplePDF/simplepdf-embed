@@ -196,12 +196,12 @@ await sendEvent("CREATE_FIELD", {
   value: "Hello World",
 });
 
-// Clear all fields (or specific ones)
-await sendEvent("CLEAR_FIELDS", {}); // Clear all
-await sendEvent("CLEAR_FIELDS", { page: 1 }); // Clear page 1 only
-await sendEvent("CLEAR_FIELDS", {
+// Remove all fields (or specific ones)
+await sendEvent("REMOVE_FIELDS", {}); // Remove all
+await sendEvent("REMOVE_FIELDS", { page: 1 }); // Remove page 1 only
+await sendEvent("REMOVE_FIELDS", {
   field_ids: ["f_kj8n2hd9x3m1p", "f_q7v5c4b6a0wyz"],
-}); // Clear specific fields
+}); // Remove specific fields
 
 // Extract document content
 const content = await sendEvent("GET_DOCUMENT_CONTENT", {
@@ -319,20 +319,20 @@ Create a new field on the document.
 }
 ```
 
-#### CLEAR_FIELDS
+#### REMOVE_FIELDS
 
 Remove fields from the document.
 
 | Field       | Type       | Required | Description                                      |
 | ----------- | ---------- | -------- | ------------------------------------------------ |
-| `field_ids` | `string[]` | No       | Specific field IDs to remove (omit to clear all) |
-| `page`      | `number`   | No       | Only clear fields on this page                   |
+| `field_ids` | `string[]` | No       | Specific field IDs to remove (omit to remove all) |
+| `page`      | `number`   | No       | Only remove fields on this page                   |
 
 **Response data:**
 
 ```json
 {
-  "cleared_count": 5
+  "removed_count": 5
 }
 ```
 
