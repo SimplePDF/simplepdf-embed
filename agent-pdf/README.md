@@ -2,7 +2,25 @@
 
 Let AI agents edit and fill PDFs through [SimplePDF](https://simplepdf.com).
 
-`GET /` serves a [SKILL.md](./SKILL.md) that any AI agent can read to learn how to use this API.
+## Install as a skill
+
+Copy the [SKILL.md](./SKILL.md) file into your agent's skills directory:
+
+```bash
+# Claude Code
+cp SKILL.md ~/.claude/skills/simplepdf/SKILL.md
+
+# Cursor
+cp SKILL.md .cursor/skills/simplepdf/SKILL.md
+```
+
+Or point your agent at the hosted version:
+
+```
+https://agent.simplepdf.com
+```
+
+Any agent that fetches this URL gets the skill as `text/markdown`.
 
 ## Quick start
 
@@ -23,26 +41,3 @@ Returns:
   "react": "<EmbedPDF mode=\"inline\" companyIdentifier=\"ai\" documentURL=\"...\" />"
 }
 ```
-
-## Deploy
-
-Runs on any container platform. See [.do/app.yaml](.do/app.yaml) for a DigitalOcean App Platform reference config.
-
-Required env vars:
-
-| Variable | Description |
-|----------|-------------|
-| `S3_ENDPOINT` | S3-compatible endpoint URL |
-| `S3_BUCKET` | Bucket name |
-| `S3_KEY` | Access key (secret) |
-| `S3_SECRET` | Secret key (secret) |
-
-Optional:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `S3_REGION` | `us-east-1` | Bucket region |
-| `S3_PUBLIC_URL` | Same as `S3_ENDPOINT` | CDN or public URL prefix for uploaded files |
-| `DEFAULT_EDITOR_HOST` | `ai.simplepdf.com` | Editor host when no `companyIdentifier` is set |
-| `TRUST_PROXY` | `false` | Trust `X-Forwarded-For` for rate limiting |
-| `RATE_LIMIT_PER_MIN` | `30` | Requests per IP per minute |
