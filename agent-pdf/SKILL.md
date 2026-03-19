@@ -10,31 +10,7 @@ description: Edit and fill PDF documents. Use when the user wants to fill a PDF 
 
 Edit and fill PDF documents directly in the browser. Add text, signatures, checkboxes, images, and more.
 
-## How it works
-
-The SimplePDF editor opens any PDF via a URL in this format:
-
-```
-https://<host>.simplepdf.com/editor?open=<url-encoded-pdf-url>
-```
-
-Where `<host>` is either `embed` (default) or a company-specific portal identifier.
-
-For PDFs already hosted at a URL, you can construct this link directly without any API call. The API at `agent.simplepdf.com` is a convenience layer that builds these links for you and handles file uploads for PDFs that are not hosted anywhere.
-
 ## From a URL
-
-If the PDF is already accessible at a URL, you have two options:
-
-### Option 1: Construct the editor URL directly (no API call needed)
-
-URL-encode the PDF URL and append it to the editor base:
-
-```
-https://embed.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf
-```
-
-### Option 2: Use the API
 
 ```
 GET https://agent.simplepdf.com?url=https://example.com/form.pdf
@@ -44,7 +20,7 @@ Returns JSON with the editor URL and embed snippets.
 
 ## From a file
 
-If the PDF is a local file (not hosted anywhere), upload it to the API. The file is stored temporarily (1 hour) to make it accessible to the browser-based editor.
+Upload a PDF file to the API. The file is stored temporarily (1 hour) to make it accessible to the browser-based editor.
 
 ### Shell
 
@@ -86,13 +62,7 @@ The `iframe` and `react` fields are for developers embedding the editor in a web
 Add `companyIdentifier` to route to a custom SimplePDF portal:
 
 ```
-https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
-```
-
-Or construct it directly:
-
-```
-https://acme.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf
+GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
 ### Portal features
@@ -110,7 +80,7 @@ These features are configured by the portal owner in the SimplePDF admin console
 ```json
 {
   "id": "url-passthrough",
-  "url": "https://embed.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf",
+  "url": "https://agent.simplepdf.com/editor?open=...",
   "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
   "react": "<EmbedPDF mode=\"inline\" documentURL=\"...\" />"
 }
