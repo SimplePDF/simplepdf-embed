@@ -1,18 +1,21 @@
+use aws_sdk_s3::presigning::PresigningConfig;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::Client;
+use std::time::Duration;
 use uuid::Uuid;
 
 use crate::config::Config;
 use crate::error::AppError;
 
+const PRESIGN_EXPIRY: Duration = Duration::from_secs(24 * 60 * 60);
+
 pub struct Storage {
     client: Client,
     bucket: String,
-    public_url: String,
 }
 
 pub struct UploadResult {
-    pub public_url: String,
+    pub presigned_url: String,
 }
 
 impl Storage {
@@ -36,7 +39,6 @@ impl Storage {
         Self {
             client: Client::from_conf(s3_config),
             bucket: config.s3_bucket.clone(),
-            public_url: config.s3_public_url.clone(),
         }
     }
 
@@ -55,13 +57,24 @@ impl Storage {
             .body(ByteStream::from(bytes))
             .content_type("application/pdf")
             .content_disposition("attachment")
-            .acl(aws_sdk_s3::types::ObjectCannedAcl::PublicRead)
             .send()
             .await
             .map_err(|e| AppError::StorageFailed(e.to_string()))?;
 
-        let public_url = format!("{}/{key}", self.public_url);
+        let presign_config = PresigningConfig::expires_in(PRESIGN_EXPIRY)
+            .map_err(|e| AppError::StorageFailed(e.to_string()))?;
 
-        Ok(UploadResult { public_url })
+        let presigned_url = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(&key)
+            .presigned(presign_config)
+            .await
+            .map_err(|e| AppError::StorageFailed(e.to_string()))?
+            .uri()
+            .to_string();
+
+        Ok(UploadResult { presigned_url })
     }
 }

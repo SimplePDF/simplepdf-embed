@@ -142,7 +142,7 @@ async fn handle_post(
         let result = state.storage.upload(pdf_bytes).await?;
 
         Ok(Json(AgentResponse::new(
-            &result.public_url,
+            &result.presigned_url,
             &editor_base,
             company_identifier,
         )))

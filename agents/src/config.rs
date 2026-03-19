@@ -2,7 +2,6 @@ pub struct Config {
     pub s3_endpoint: String,
     pub s3_bucket: String,
     pub s3_region: String,
-    pub s3_public_url: String,
     pub default_editor_host: String,
     pub rate_limit_per_minute: u32,
     pub trust_proxy: bool,
@@ -14,7 +13,6 @@ impl Config {
             s3_endpoint: env("S3_ENDPOINT"),
             s3_bucket: env("S3_BUCKET"),
             s3_region: env("S3_REGION"),
-            s3_public_url: env("S3_PUBLIC_URL"),
             default_editor_host: env("DEFAULT_EDITOR_HOST"),
             rate_limit_per_minute: env("RATE_LIMIT_PER_MIN")
                 .parse()

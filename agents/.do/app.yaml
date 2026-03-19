@@ -29,9 +29,6 @@ services:
       - key: S3_REGION
         scope: RUN_TIME
         value: nyc3
-      - key: S3_PUBLIC_URL
-        scope: RUN_TIME
-        value: https://agent-pdf.nyc3.cdn.digitaloceanspaces.com
       - key: DEFAULT_EDITOR_HOST
         scope: RUN_TIME
         value: ai.simplepdf.com
