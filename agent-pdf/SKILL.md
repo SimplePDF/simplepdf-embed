@@ -10,22 +10,67 @@ description: Edit and fill PDF documents. Use when the user wants to fill a PDF 
 
 Edit and fill PDF documents directly in the browser. Add text, signatures, checkboxes, images, and more.
 
+## How it works
+
+The SimplePDF editor opens any PDF via a URL in this format:
+
+```
+https://<host>.simplepdf.com/editor?open=<url-encoded-pdf-url>
+```
+
+Where `<host>` is either `embed` (default) or a company-specific portal identifier.
+
+For PDFs already hosted at a URL, you can construct this link directly without any API call. The API at `agent.simplepdf.com` is a convenience layer that builds these links for you and handles file uploads for PDFs that are not hosted anywhere.
+
 ## From a URL
 
-Pass the PDF URL as a query parameter:
+If the PDF is already accessible at a URL, you have two options:
+
+### Option 1: Construct the editor URL directly (no API call needed)
+
+URL-encode the PDF URL and append it to the editor base:
 
 ```
-GET https://agent.simplepdf.com?url=https://example.com/document.pdf
+https://embed.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf
 ```
 
-Returns JSON with editor links. No POST needed.
+### Option 2: Use the API
+
+```
+GET https://agent.simplepdf.com?url=https://example.com/form.pdf
+```
+
+Returns JSON with the editor URL and embed snippets.
 
 ## From a file
 
-Upload a PDF file as multipart:
+If the PDF is a local file (not hosted anywhere), upload it to the API. The file is stored temporarily (1 hour) to make it accessible to the browser-based editor.
+
+### Shell
 
 ```bash
 curl -X POST https://agent.simplepdf.com -F file=@document.pdf
+```
+
+### TypeScript
+
+```typescript
+const form = new FormData();
+form.append("file", new Blob([pdfBytes], { type: "application/pdf" }), "document.pdf");
+
+const response = await fetch("https://agent.simplepdf.com", { method: "POST", body: form });
+const { url } = await response.json();
+```
+
+### Python
+
+```python
+import requests
+
+with open("document.pdf", "rb") as f:
+    response = requests.post("https://agent.simplepdf.com", files={"file": f})
+
+url = response.json()["url"]
 ```
 
 ## Presenting the result to the user
@@ -41,10 +86,14 @@ The `iframe` and `react` fields are for developers embedding the editor in a web
 Add `companyIdentifier` to route to a custom SimplePDF portal:
 
 ```
-GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
+https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
-This routes to `acme.simplepdf.com` instead of the default editor.
+Or construct it directly:
+
+```
+https://acme.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf
+```
 
 ### Portal features
 
