@@ -1,57 +1,48 @@
 # agent-pdf
 
-Lightweight Rust backend for SimplePDF's agentic PDF editing API. Accepts a PDF (URL or binary), returns ready-to-embed editor URLs.
+Let AI agents edit and fill PDFs through [SimplePDF](https://simplepdf.com).
 
-Hosted at `agent.simplepdf.com`. `GET /` without params serves the SKILL.md. `GET /?url=...` returns editor links. `POST /` handles file uploads.
+`GET /` serves a [SKILL.md](./SKILL.md) that any AI agent can read to learn how to use this API.
 
-## Endpoints
-
-### `GET /`
-
-Without `url` param: returns `SKILL.md` as `text/markdown` for agent discovery.
-
-With `url` param: returns JSON with editor embed codes.
+## Quick start
 
 ```bash
-# URL passthrough (no upload needed)
+# From a URL
 curl "https://agent.simplepdf.com?url=https://example.com/form.pdf"
 
-# With company-specific portal
-curl "https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme"
-```
-
-### `POST /`
-
-File upload via multipart. Stored in DO Spaces (expires after 1hr).
-
-```bash
+# From a file
 curl -X POST https://agent.simplepdf.com -F file=@document.pdf
-
-# With company-specific portal
-curl -X POST "https://agent.simplepdf.com?companyIdentifier=acme" -F file=@document.pdf
 ```
 
-### Query parameters
+Returns:
 
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `url` | GET only | PDF URL to open in the editor |
-| `companyIdentifier` | No | Routes to `<identifier>.simplepdf.com` instead of `embed.simplepdf.com` |
+```json
+{
+  "url": "https://ai.simplepdf.com/editor?open=...",
+  "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
+  "react": "<EmbedPDF mode=\"inline\" companyIdentifier=\"ai\" documentURL=\"...\" />"
+}
+```
 
 ## Deploy
 
-1. Create a DO Spaces bucket named `agent-pdf` with a lifecycle rule (1hr expiry)
-2. Set the bucket ACL to public-read
-3. Push to GitHub and deploy via App Platform (uses `.do/app.yaml`)
-4. Set `SPACES_KEY` and `SPACES_SECRET` in the App Platform console
+Runs on any container platform. See [.do/app.yaml](.do/app.yaml) for a DigitalOcean App Platform reference config.
 
-## Architecture
+Required env vars:
 
-```
-Agent → GET /?url=PDF_URL → JSON response (passthrough)
-Agent → POST / (file)    → Rust (upload to Spaces) → JSON response
-                                                          ↓
-User clicks URL → <identifier>.simplepdf.com/editor?open=PDF_URL → client-side editing
-```
+| Variable | Description |
+|----------|-------------|
+| `S3_ENDPOINT` | S3-compatible endpoint URL |
+| `S3_BUCKET` | Bucket name |
+| `S3_KEY` | Access key (secret) |
+| `S3_SECRET` | Secret key (secret) |
 
-No database. No auth. No sessions. Bucket lifecycle handles cleanup.
+Optional:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `S3_REGION` | `us-east-1` | Bucket region |
+| `S3_PUBLIC_URL` | Same as `S3_ENDPOINT` | CDN or public URL prefix for uploaded files |
+| `DEFAULT_EDITOR_HOST` | `ai.simplepdf.com` | Editor host when no `companyIdentifier` is set |
+| `TRUST_PROXY` | `false` | Trust `X-Forwarded-For` for rate limiting |
+| `RATE_LIMIT_PER_MIN` | `30` | Requests per IP per minute |
