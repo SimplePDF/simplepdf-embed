@@ -5,7 +5,7 @@ Let AI agents edit and fill PDFs through [SimplePDF](https://simplepdf.com).
 ## Install
 
 ```bash
-curl --create-dirs -o ~/.claude/skills/edit-pdf/SKILL.md https://agents.simplepdf.com
+curl --create-dirs -o ~/.claude/skills/edit-pdf/SKILL.md https://agents.simplepdf.com/SKILL.md
 ```
 
 ## Quick start

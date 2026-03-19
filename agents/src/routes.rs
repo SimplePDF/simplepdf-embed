@@ -10,12 +10,21 @@ use std::sync::Arc;
 use crate::error::AppError;
 use crate::AppState;
 
+const README_MD: &str = include_str!("../README.md");
 const SKILL_MD: &str = include_str!("../SKILL.md");
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(handle_get).post(handle_post))
+        .route("/SKILL.md", get(serve_skill))
         .route("/health", get(|| async { "ok" }))
+}
+
+async fn serve_skill() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/markdown; charset=utf-8")],
+        SKILL_MD,
+    )
 }
 
 #[derive(Deserialize)]
@@ -73,7 +82,7 @@ async fn handle_get(
         None => {
             return Ok((
                 [(header::CONTENT_TYPE, "text/markdown; charset=utf-8")],
-                SKILL_MD,
+                README_MD,
             )
                 .into_response());
         }
