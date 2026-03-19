@@ -5,6 +5,7 @@ pub struct Config {
     pub public_url_prefix: String,
     pub default_editor_host: String,
     pub rate_limit_per_minute: u32,
+    pub trust_proxy: bool,
 }
 
 impl Config {
@@ -18,6 +19,7 @@ impl Config {
             rate_limit_per_minute: env_or("RATE_LIMIT_PER_MIN", "30")
                 .parse()
                 .expect("RATE_LIMIT_PER_MIN must be a number"),
+            trust_proxy: env_or("TRUST_PROXY", "true") == "true",
         }
     }
 

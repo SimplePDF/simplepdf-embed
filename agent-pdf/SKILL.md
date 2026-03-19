@@ -2,47 +2,38 @@
 name: simplepdf
 description: Edit and fill PDF documents. Use when the user wants to fill a PDF form,
   add text/signatures/checkboxes/images to a PDF, or annotate a PDF. Accepts a PDF
-  URL or file upload and returns a ready-to-use editor link. Documents are processed
-  client-side and never stored on SimplePDF servers.
+  URL or file upload and returns a ready-to-use editor link. URL inputs are passed
+  through directly. File uploads are stored temporarily (1 hour) then deleted.
 ---
 
 # SimplePDF - PDF Editor
 
 Edit and fill PDF documents directly in the browser. Add text, signatures, checkboxes, images, and more.
 
-## Endpoint
+## From a URL
 
-`POST https://agents.simplepdf.com`
+Pass the PDF URL as a query parameter:
 
-## Usage
-
-### From a URL
-
-When you have a PDF URL, send it as JSON:
-
-```bash
-curl -X POST https://agents.simplepdf.com \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/document.pdf"}'
+```
+GET https://agent.simplepdf.com?url=https://example.com/document.pdf
 ```
 
-### From a file
+Returns JSON with editor links. No POST needed.
 
-When you have a PDF file, upload it as multipart:
+## From a file
+
+Upload a PDF file as multipart:
 
 ```bash
-curl -X POST https://agents.simplepdf.com \
-  -F file=@document.pdf
+curl -X POST https://agent.simplepdf.com -F file=@document.pdf
 ```
 
-### Company-specific editor
+## Company-specific editor
 
-If the user has a SimplePDF portal with a custom subdomain, pass it as a query parameter:
+Add `companyIdentifier` to route to a custom portal:
 
-```bash
-curl -X POST "https://agents.simplepdf.com?companyIdentifier=acme" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/form.pdf"}'
+```
+GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
 This routes to `acme.simplepdf.com` instead of the default editor.
@@ -51,8 +42,8 @@ This routes to `acme.simplepdf.com` instead of the default editor.
 
 ```json
 {
-  "id": "abc-123",
-  "url": "https://embed.simplepdf.com/editor?open=https://example.com/form.pdf",
+  "id": "url-passthrough",
+  "url": "https://embed.simplepdf.com/editor?open=https%3A%2F%2Fexample.com%2Fform.pdf",
   "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
   "react": "<EmbedPDF mode=\"inline\" documentURL=\"...\" />"
 }
@@ -71,6 +62,12 @@ This routes to `acme.simplepdf.com` instead of the default editor.
 - **`iframe`**: Use when embedding the editor in a web page
 - **`react`**: Use when integrating into a React application
 
+## Privacy
+
+- **URL input**: The PDF URL is passed directly to the browser-based editor. The PDF is never downloaded or stored by this service.
+- **File upload**: The PDF is temporarily stored for up to 1 hour to make it accessible to the browser-based editor, then automatically deleted.
+- **Editing**: All PDF editing happens client-side in the browser. The edited document is never sent to SimplePDF servers.
+
 ## Supported operations
 
 Once the user opens the editor link, they can:
@@ -88,3 +85,5 @@ Once the user opens the editor link, they can:
 - Maximum PDF size: 50 MB (file uploads only)
 - Uploaded files expire after 1 hour
 - Rate limit: 30 requests per minute per IP
+- URL must start with http:// or https://
+- companyIdentifier must be alphanumeric with hyphens (max 63 chars)

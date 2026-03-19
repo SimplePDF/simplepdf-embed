@@ -2,38 +2,40 @@
 
 Lightweight Rust backend for SimplePDF's agentic PDF editing API. Accepts a PDF (URL or binary), returns ready-to-embed editor URLs.
 
-Hosted at `agents.simplepdf.com`. `GET /` serves the skill description, `POST /` handles PDF submissions.
+Hosted at `agent.simplepdf.com`. `GET /` without params serves the SKILL.md. `GET /?url=...` returns editor links. `POST /` handles file uploads.
 
 ## Endpoints
 
 ### `GET /`
 
-Returns `SKILL.md` as `text/markdown`. Describes the API capabilities for AI agents and users.
+Without `url` param: returns `SKILL.md` as `text/markdown` for agent discovery.
+
+With `url` param: returns JSON with editor embed codes.
+
+```bash
+# URL passthrough (no upload needed)
+curl "https://agent.simplepdf.com?url=https://example.com/form.pdf"
+
+# With company-specific portal
+curl "https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme"
+```
 
 ### `POST /`
 
-Accepts JSON or multipart. Returns editor embed codes.
+File upload via multipart. Stored in DO Spaces (expires after 1hr).
 
 ```bash
-# Via URL (passthrough - no upload needed)
-curl -X POST https://agents.simplepdf.com \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/form.pdf"}'
-
-# Via file upload (stored in DO Spaces, expires after 1hr)
-curl -X POST https://agents.simplepdf.com \
-  -F file=@document.pdf
+curl -X POST https://agent.simplepdf.com -F file=@document.pdf
 
 # With company-specific portal
-curl -X POST "https://agents.simplepdf.com?companyIdentifier=acme" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/form.pdf"}'
+curl -X POST "https://agent.simplepdf.com?companyIdentifier=acme" -F file=@document.pdf
 ```
 
-#### Query parameters
+### Query parameters
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
+| `url` | GET only | PDF URL to open in the editor |
 | `companyIdentifier` | No | Routes to `<identifier>.simplepdf.com` instead of `embed.simplepdf.com` |
 
 ## Deploy
@@ -46,8 +48,9 @@ curl -X POST "https://agents.simplepdf.com?companyIdentifier=acme" \
 ## Architecture
 
 ```
-Agent → POST / → Rust (upload to Spaces or URL passthrough) → JSON response
-                                                                    ↓
+Agent → GET /?url=PDF_URL → JSON response (passthrough)
+Agent → POST / (file)    → Rust (upload to Spaces) → JSON response
+                                                          ↓
 User clicks URL → <identifier>.simplepdf.com/editor?open=PDF_URL → client-side editing
 ```
 

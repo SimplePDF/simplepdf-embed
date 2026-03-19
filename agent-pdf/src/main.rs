@@ -18,7 +18,7 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::init();
+    tracing_subscriber::fmt::init();
 
     let config = config::Config::from_env();
     let storage = storage::Storage::new(&config).await;
