@@ -28,15 +28,33 @@ Upload a PDF file as multipart:
 curl -X POST https://agent.simplepdf.com -F file=@document.pdf
 ```
 
+## Presenting the result to the user
+
+Always present the `url` field as a clickable link. This is the primary way users will open the editor.
+
+If you have access to a browser automation tool (e.g. agent-browser, Playwright, chrome-devtools MCP server), offer to open the `url` directly so the user can edit the PDF without leaving the conversation.
+
+The `iframe` and `react` fields are for developers embedding the editor in a web application. Only present these when the user is building a web app.
+
 ## Company-specific editor
 
-Add `companyIdentifier` to route to a custom portal:
+Add `companyIdentifier` to route to a custom SimplePDF portal:
 
 ```
 GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
 This routes to `acme.simplepdf.com` instead of the default editor.
+
+### Portal features
+
+When using a `companyIdentifier`, the portal owner has access to:
+
+- **Email notifications**: receive an email each time a user submits a filled PDF
+- **Webhook notifications**: receive submissions via webhook to integrate with any backend
+- **Bring Your Own Storage (BYOS)**: route submitted PDFs directly to the company's own S3 or Azure storage bucket
+
+These features are configured by the portal owner in the SimplePDF admin console. No additional API parameters are needed - they apply automatically when the `companyIdentifier` is set.
 
 ## Response
 
@@ -53,14 +71,8 @@ This routes to `acme.simplepdf.com` instead of the default editor.
 |----------|--------------------------------------------------|
 | `id`     | Unique identifier for the upload (or `url-passthrough` for URL inputs) |
 | `url`    | Direct link to open the PDF in the SimplePDF editor |
-| `iframe` | HTML snippet to embed the editor in a page       |
+| `iframe` | HTML snippet to embed the editor in a web page   |
 | `react`  | React component snippet using `EmbedPDF` from `@simplepdf/react-embed-pdf` |
-
-## When to use each field
-
-- **`url`**: Present this to the user as a clickable link to edit/fill the PDF
-- **`iframe`**: Use when embedding the editor in a web page
-- **`react`**: Use when integrating into a React application
 
 ## Privacy
 
