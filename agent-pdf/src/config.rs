@@ -19,7 +19,7 @@ impl Config {
             rate_limit_per_minute: env_or("RATE_LIMIT_PER_MIN", "30")
                 .parse()
                 .expect("RATE_LIMIT_PER_MIN must be a number"),
-            trust_proxy: env_or("TRUST_PROXY", "true") == "true",
+            trust_proxy: env_or("TRUST_PROXY", "false") == "true",
         }
     }
 

@@ -35,6 +35,9 @@ services:
       - key: DEFAULT_EDITOR_HOST
         scope: RUN_TIME
         value: embed.simplepdf.com
+      - key: TRUST_PROXY
+        scope: RUN_TIME
+        value: "true"
       - key: RATE_LIMIT_PER_MIN
         scope: RUN_TIME
         value: "30"

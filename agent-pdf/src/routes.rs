@@ -14,7 +14,7 @@ const SKILL_MD: &str = include_str!("../SKILL.md");
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/", get(handle_get).post(handle_upload))
+        .route("/", get(handle_get).post(handle_post))
         .route("/health", get(|| async { "ok" }))
 }
 
@@ -26,7 +26,14 @@ struct GetQuery {
 }
 
 #[derive(Deserialize)]
-struct UploadQuery {
+struct PostQuery {
+    #[serde(rename = "companyIdentifier")]
+    company_identifier: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct UrlInput {
+    url: String,
     #[serde(rename = "companyIdentifier")]
     company_identifier: Option<String>,
 }
@@ -100,10 +107,10 @@ async fn handle_get(
     .into_response())
 }
 
-async fn handle_upload(
+async fn handle_post(
     State(state): State<Arc<AppState>>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
-    Query(query): Query<UploadQuery>,
+    Query(query): Query<PostQuery>,
     request: axum::extract::Request,
 ) -> Result<Json<AgentResponse>, AppError> {
     let ip = client_ip(&request, addr.ip(), state.config.trust_proxy);
@@ -111,22 +118,61 @@ async fn handle_upload(
         return Err(AppError::RateLimited);
     }
 
-    let company_identifier = validate_company_identifier(query.company_identifier.as_deref())?;
-    let editor_base = state.config.editor_base_url(company_identifier);
+    let content_type = request
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
 
-    let multipart = Multipart::from_request(request, &state)
-        .await
-        .map_err(|_| {
-            AppError::BadRequest("Expected multipart/form-data with a 'file' field".into())
+    if content_type.starts_with("multipart/form-data") {
+        let company_identifier = validate_company_identifier(query.company_identifier.as_deref())?;
+        let editor_base = state.config.editor_base_url(company_identifier);
+
+        let multipart = Multipart::from_request(request, &state)
+            .await
+            .map_err(|_| {
+                AppError::BadRequest("Expected multipart/form-data with a 'file' field".into())
+            })?;
+        let pdf_bytes = extract_multipart(multipart).await?;
+        let result = state.storage.upload(pdf_bytes).await?;
+
+        Ok(Json(AgentResponse::new(
+            &result.public_url,
+            &editor_base,
+            company_identifier,
+        )))
+    } else {
+        let body = axum::body::to_bytes(request.into_body(), 1024 * 1024)
+            .await
+            .map_err(|_| AppError::BadRequest("Invalid request body".into()))?;
+
+        let input: UrlInput = serde_json::from_slice(&body).map_err(|_| {
+            AppError::BadRequest(
+                "Expected JSON with 'url' field or multipart/form-data with 'file' field".into(),
+            )
         })?;
-    let pdf_bytes = extract_multipart(multipart).await?;
-    let result = state.storage.upload(pdf_bytes).await?;
 
-    Ok(Json(AgentResponse::new(
-        &result.public_url,
-        &editor_base,
-        company_identifier,
-    )))
+        if !is_valid_url(&input.url) {
+            return Err(AppError::BadRequest(
+                "url must start with http:// or https://".into(),
+            ));
+        }
+
+        let company_identifier = validate_company_identifier(
+            input
+                .company_identifier
+                .as_deref()
+                .or(query.company_identifier.as_deref()),
+        )?;
+        let editor_base = state.config.editor_base_url(company_identifier);
+
+        Ok(Json(AgentResponse::new(
+            &input.url,
+            &editor_base,
+            company_identifier,
+        )))
+    }
 }
 
 async fn extract_multipart(mut multipart: Multipart) -> Result<Vec<u8>, AppError> {
@@ -158,7 +204,7 @@ fn client_ip(request: &axum::extract::Request, fallback: IpAddr, trust_proxy: bo
         .headers()
         .get("x-forwarded-for")
         .and_then(|v| v.to_str().ok())
-        .and_then(|v| v.split(',').next())
+        .and_then(|v| v.rsplit(',').next())
         .and_then(|v| v.trim().parse::<IpAddr>().ok())
         .unwrap_or(fallback)
 }

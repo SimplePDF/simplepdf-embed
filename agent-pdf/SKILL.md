@@ -12,11 +12,21 @@ Edit and fill PDF documents directly in the browser. Add text, signatures, check
 
 ## From a URL
 
+For public PDF URLs, use GET with the URL as a query parameter:
+
 ```
 GET https://agent.simplepdf.com?url=https://example.com/form.pdf
 ```
 
-Returns JSON with the editor URL and embed snippets.
+For signed or sensitive URLs (e.g. presigned S3 links), use POST with a JSON body to keep the URL out of logs and browser history:
+
+```bash
+curl -X POST https://agent.simplepdf.com \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://s3.amazonaws.com/bucket/doc.pdf?X-Amz-Signature=..."}'
+```
+
+Both return JSON with the editor URL and embed snippets.
 
 ## From a file
 
@@ -65,6 +75,12 @@ Add `companyIdentifier` to route to a custom SimplePDF portal:
 GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
+Or in a POST JSON body:
+
+```json
+{"url": "https://example.com/form.pdf", "companyIdentifier": "acme"}
+```
+
 ### Portal features
 
 When using a `companyIdentifier`, the portal owner has access to:
@@ -79,7 +95,7 @@ These features are configured by the portal owner in the SimplePDF admin console
 
 ```json
 {
-  "url": "https://agent.simplepdf.com/editor?open=...",
+  "url": "https://...",
   "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
   "react": "<EmbedPDF mode=\"inline\" documentURL=\"...\" />"
 }
