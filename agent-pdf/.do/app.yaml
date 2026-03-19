@@ -7,7 +7,7 @@ services:
       branch: main
       deploy_on_push: true
     source_dir: agent-pdf
-    buildpack: rust
+    dockerfile_path: Dockerfile
     instance_count: 1
     instance_size_slug: basic-xs
     http_port: 8080
