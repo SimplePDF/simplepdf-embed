@@ -30,6 +30,18 @@ async fn main() {
         config,
     });
 
+    tokio::spawn({
+        let state = Arc::clone(&state);
+        async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(60 * 60));
+            interval.tick().await;
+            loop {
+                interval.tick().await;
+                state.storage.cleanup_expired().await;
+            }
+        }
+    });
+
     let app = Router::new()
         .merge(routes::router())
         .layer(CorsLayer::permissive())

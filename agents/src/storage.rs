@@ -8,6 +8,7 @@ use crate::config::Config;
 use crate::error::AppError;
 
 const PRESIGN_EXPIRY: Duration = Duration::from_secs(24 * 60 * 60);
+const CLEANUP_MAX_AGE: Duration = Duration::from_secs(24 * 60 * 60);
 
 pub struct Storage {
     client: Client,
@@ -80,6 +81,76 @@ impl Storage {
             .to_string();
 
         Ok(UploadResult { presigned_url })
+    }
+
+    pub async fn cleanup_expired(&self) {
+        let cutoff = aws_sdk_s3::primitives::DateTime::from_secs_f64(
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs_f64()
+                - CLEANUP_MAX_AGE.as_secs_f64(),
+        );
+
+        let mut continuation_token: Option<String> = None;
+
+        loop {
+            let mut request = self
+                .client
+                .list_objects_v2()
+                .bucket(&self.bucket)
+                .prefix("uploads/");
+
+            if let Some(token) = &continuation_token {
+                request = request.continuation_token(token);
+            }
+
+            let response = match request.send().await {
+                Ok(response) => response,
+                Err(e) => {
+                    tracing::error!("cleanup: failed to list objects: {e}");
+                    return;
+                }
+            };
+
+            let mut deleted = 0;
+            for object in response.contents() {
+                let is_expired = object
+                    .last_modified()
+                    .map(|modified| *modified < cutoff)
+                    .unwrap_or(false);
+
+                if !is_expired {
+                    continue;
+                }
+
+                let Some(key) = object.key() else {
+                    continue;
+                };
+
+                if let Err(e) = self
+                    .client
+                    .delete_object()
+                    .bucket(&self.bucket)
+                    .key(key)
+                    .send()
+                    .await
+                {
+                    tracing::error!("cleanup: failed to delete {key}: {e}");
+                } else {
+                    deleted += 1;
+                }
+            }
+
+            if deleted > 0 {
+                tracing::info!("cleanup: deleted {deleted} expired files");
+            }
+
+            match response.next_continuation_token() {
+                Some(token) => continuation_token = Some(token.to_string()),
+                None => break,
+            }
+        }
     }
 }
 
