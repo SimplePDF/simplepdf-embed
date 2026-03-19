@@ -1,5 +1,5 @@
 ---
-name: simplepdf
+name: edit-pdf
 description: Edit and fill PDF documents. Use when the user wants to fill a PDF form,
   add text/signatures/checkboxes/images to a PDF, or annotate a PDF. Accepts a PDF
   URL or file upload and returns a ready-to-use editor link. URL inputs are passed
