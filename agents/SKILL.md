@@ -151,7 +151,7 @@ Once the user opens the editor link, they can:
 - Maximum PDF size: 50 MB (file uploads only)
 - Uploaded files expire after 24 hours
 - Rate limit: 30 requests per minute per IP
-- URL must start with http:// or https://
+- URL must start with https://
 - companyIdentifier must be a valid SimplePDF portal identifier
 
 ## Legal

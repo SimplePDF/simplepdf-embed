@@ -89,15 +89,13 @@ async fn handle_get(
         Some(url) => url,
     };
 
-    let ip = client_ip(&request, addr.ip(), state.config.trust_proxy);
+    let ip = client_ip(&request, addr.ip(), &state.config.trusted_ip_header);
     if !state.rate_limiter.check(ip) {
         return Err(AppError::RateLimited);
     }
 
     if !is_valid_url(&pdf_url) {
-        return Err(AppError::BadRequest(
-            "url must start with http:// or https://".into(),
-        ));
+        return Err(AppError::BadRequest("url must start with https://".into()));
     }
 
     let company_identifier = validate_company_identifier(query.company_identifier.as_deref())?;
@@ -117,7 +115,7 @@ async fn handle_post(
     Query(query): Query<PostQuery>,
     request: axum::extract::Request,
 ) -> Result<Json<AgentResponse>, AppError> {
-    let ip = client_ip(&request, addr.ip(), state.config.trust_proxy);
+    let ip = client_ip(&request, addr.ip(), &state.config.trusted_ip_header);
     if !state.rate_limiter.check(ip) {
         return Err(AppError::RateLimited);
     }
@@ -161,9 +159,7 @@ async fn handle_post(
         })?;
 
         if !is_valid_url(&input.url) {
-            return Err(AppError::BadRequest(
-                "url must start with http:// or https://".into(),
-            ));
+            return Err(AppError::BadRequest("url must start with https://".into()));
         }
 
         let company_identifier = validate_company_identifier(
@@ -211,16 +207,20 @@ async fn extract_multipart(mut multipart: Multipart) -> Result<MultipartUpload, 
     ))
 }
 
-fn client_ip(request: &axum::extract::Request, fallback: IpAddr, trust_proxy: bool) -> IpAddr {
-    if !trust_proxy {
+fn client_ip(
+    request: &axum::extract::Request,
+    fallback: IpAddr,
+    trusted_ip_header: &str,
+) -> IpAddr {
+    if trusted_ip_header.is_empty() {
         return fallback;
     }
 
     request
         .headers()
-        .get("x-forwarded-for")
+        .get(trusted_ip_header)
         .and_then(|v| v.to_str().ok())
-        .and_then(|v| v.rsplit(',').next())
+        .and_then(|v| v.split(',').next())
         .and_then(|v| v.trim().parse::<IpAddr>().ok())
         .unwrap_or(fallback)
 }
@@ -266,7 +266,7 @@ fn is_valid_subdomain(identifier: &str) -> bool {
 }
 
 fn is_valid_url(url: &str) -> bool {
-    url.starts_with("https://") || url.starts_with("http://")
+    url.starts_with("https://")
 }
 
 fn validate_company_identifier(identifier: Option<&str>) -> Result<Option<&str>, AppError> {

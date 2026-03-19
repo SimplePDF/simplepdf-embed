@@ -4,7 +4,7 @@ pub struct Config {
     pub s3_region: String,
     pub default_editor_host: String,
     pub rate_limit_per_minute: u32,
-    pub trust_proxy: bool,
+    pub trusted_ip_header: String,
 }
 
 impl Config {
@@ -17,7 +17,7 @@ impl Config {
             rate_limit_per_minute: env("RATE_LIMIT_PER_MIN")
                 .parse()
                 .expect("RATE_LIMIT_PER_MIN must be a number"),
-            trust_proxy: env("TRUST_PROXY") == "true",
+            trusted_ip_header: env("TRUSTED_IP_HEADER"),
         }
     }
 
