@@ -250,9 +250,11 @@ fn is_valid_url(url: &str) -> bool {
 
 fn validate_company_identifier(identifier: Option<&str>) -> Result<Option<&str>, AppError> {
     match identifier {
-        Some(id) if !is_valid_subdomain(id) => Err(AppError::BadRequest(
-            "companyIdentifier must be alphanumeric with hyphens (max 63 chars)".into(),
-        )),
+        Some(company_identifier) if !is_valid_subdomain(company_identifier) => {
+            Err(AppError::BadRequest(
+                "companyIdentifier must be alphanumeric with hyphens (max 63 chars)".into(),
+            ))
+        }
         other => Ok(other),
     }
 }

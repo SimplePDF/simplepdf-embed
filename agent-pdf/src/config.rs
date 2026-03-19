@@ -25,7 +25,7 @@ impl Config {
 
     pub fn editor_base_url(&self, company_identifier: Option<&str>) -> String {
         match company_identifier {
-            Some(id) => format!("https://{id}.simplepdf.com"),
+            Some(company_identifier) => format!("https://{company_identifier}.simplepdf.com"),
             None => format!("https://{}", self.default_editor_host),
         }
     }
