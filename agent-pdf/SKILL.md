@@ -81,15 +81,16 @@ Or in a POST JSON body:
 {"url": "https://example.com/form.pdf", "companyIdentifier": "acme"}
 ```
 
-### Portal features
+### SimplePDF account features
 
-When using a `companyIdentifier`, the portal owner has access to:
+When using a `companyIdentifier`, the account owner has access to:
 
+- **Custom branding**: customize the editor appearance ([guide](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding))
 - **Email notifications**: receive an email each time a user submits a filled PDF
-- **Webhook notifications**: receive submissions via webhook to integrate with any backend
-- **Bring Your Own Storage (BYOS)**: route submitted PDFs directly to the company's own S3 or Azure storage bucket
+- **Webhook notifications**: receive submissions via webhook to integrate with any backend ([guide](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions))
+- **Bring Your Own Storage (BYOS)**: route submitted PDFs directly to the company's own S3 or Azure storage bucket ([guide](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions))
 
-These features are configured by the portal owner in the SimplePDF admin console. No additional API parameters are needed - they apply automatically when the `companyIdentifier` is set.
+These features are configured in the SimplePDF admin console. No additional API parameters are needed - they apply automatically when the `companyIdentifier` is set.
 
 ## Response
 
