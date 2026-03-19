@@ -59,6 +59,7 @@ impl Storage {
             .key(&key)
             .body(ByteStream::from(bytes))
             .content_type("application/pdf")
+            .content_disposition("attachment")
             .acl(aws_sdk_s3::types::ObjectCannedAcl::PublicRead)
             .send()
             .await

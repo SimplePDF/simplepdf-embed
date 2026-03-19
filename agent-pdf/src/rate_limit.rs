@@ -33,15 +33,4 @@ impl RateLimiter {
         timestamps.push(now);
         true
     }
-
-    /// Periodic cleanup of stale IPs. Call from a background task.
-    pub fn cleanup(&self) {
-        let now = Instant::now();
-        let window = std::time::Duration::from_secs(60);
-
-        self.buckets.retain(|_, timestamps| {
-            timestamps.retain(|t| now.duration_since(*t) < window);
-            !timestamps.is_empty()
-        });
-    }
 }

@@ -4,13 +4,8 @@ use serde_json::json;
 
 #[derive(Debug)]
 pub enum AppError {
-    /// PDF too large or invalid
     BadRequest(String),
-    /// Rate limit exceeded
     RateLimited,
-    /// Failed to fetch URL
-    FetchFailed(String),
-    /// Storage error
     StorageFailed(String),
 }
 
@@ -22,7 +17,6 @@ impl IntoResponse for AppError {
                 StatusCode::TOO_MANY_REQUESTS,
                 "Rate limit exceeded. Try again shortly.".into(),
             ),
-            AppError::FetchFailed(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
             AppError::StorageFailed(msg) => {
                 tracing::error!("storage error: {msg}");
                 (

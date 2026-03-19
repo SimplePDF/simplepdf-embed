@@ -4,19 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.8"
-tokio = { version = "1", features = ["full"] }
-aws-sdk-s3 = "1"
-aws-config = { version = "1", features = ["behavior-version-latest"] }
-uuid = { version = "1", features = ["v4"] }
-reqwest = { version = "0.12", features = ["stream"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tower = "0.5"
-tower-http = { version = "0.6", features = ["cors", "limit"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-dashmap = "6"
+aws-sdk-s3 = "1.127.0"
+axum = "0.8.8"
+dashmap = "6.1.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.50.0", features = ["full"] }
+tower-http = { version = "0.6.8", features = ["cors", "limit"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
+uuid = { version = "1.22.0", features = ["v4"] }
 
 [profile.release]
 opt-level = "z"
