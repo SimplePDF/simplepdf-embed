@@ -42,13 +42,17 @@ impl Storage {
         }
     }
 
-    pub async fn upload(&self, bytes: Vec<u8>) -> Result<UploadResult, AppError> {
+    pub async fn upload(
+        &self,
+        bytes: Vec<u8>,
+        original_filename: Option<&str>,
+    ) -> Result<UploadResult, AppError> {
         if bytes.len() < 5 || &bytes[..5] != b"%PDF-" {
             return Err(AppError::BadRequest("Not a valid PDF file".into()));
         }
 
-        let id = Uuid::new_v4().to_string();
-        let key = format!("uploads/{id}.pdf");
+        let hash = &Uuid::new_v4().to_string()[..8];
+        let key = build_key(original_filename, hash);
 
         self.client
             .put_object()
@@ -76,5 +80,68 @@ impl Storage {
             .to_string();
 
         Ok(UploadResult { presigned_url })
+    }
+}
+
+fn build_key(original_filename: Option<&str>, hash: &str) -> String {
+    let stem_and_ext = original_filename
+        .filter(|name| !name.is_empty())
+        .map(|name| {
+            let name = name
+                .rsplit('/')
+                .next()
+                .unwrap_or(name)
+                .rsplit('\\')
+                .next()
+                .unwrap_or(name);
+
+            match name.rsplit_once('.') {
+                Some((stem, ext)) => (stem.to_string(), format!(".{ext}")),
+                None => (name.to_string(), String::new()),
+            }
+        });
+
+    match stem_and_ext {
+        Some((stem, ext)) => format!("uploads/{stem}-{hash}{ext}"),
+        None => format!("uploads/{hash}.pdf"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_key_with_filename() {
+        assert_eq!(
+            build_key(Some("invoice.pdf"), "a1b2c3d4"),
+            "uploads/invoice-a1b2c3d4.pdf"
+        );
+    }
+
+    #[test]
+    fn test_build_key_with_path() {
+        assert_eq!(
+            build_key(Some("path/to/report.pdf"), "a1b2c3d4"),
+            "uploads/report-a1b2c3d4.pdf"
+        );
+    }
+
+    #[test]
+    fn test_build_key_without_extension() {
+        assert_eq!(
+            build_key(Some("document"), "a1b2c3d4"),
+            "uploads/document-a1b2c3d4"
+        );
+    }
+
+    #[test]
+    fn test_build_key_none() {
+        assert_eq!(build_key(None, "a1b2c3d4"), "uploads/a1b2c3d4.pdf");
+    }
+
+    #[test]
+    fn test_build_key_empty() {
+        assert_eq!(build_key(Some(""), "a1b2c3d4"), "uploads/a1b2c3d4.pdf");
     }
 }

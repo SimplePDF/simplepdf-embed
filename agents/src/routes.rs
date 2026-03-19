@@ -138,8 +138,11 @@ async fn handle_post(
             .map_err(|_| {
                 AppError::BadRequest("Expected multipart/form-data with a 'file' field".into())
             })?;
-        let pdf_bytes = extract_multipart(multipart).await?;
-        let result = state.storage.upload(pdf_bytes).await?;
+        let upload = extract_multipart(multipart).await?;
+        let result = state
+            .storage
+            .upload(upload.bytes, upload.filename.as_deref())
+            .await?;
 
         Ok(Json(AgentResponse::new(
             &result.presigned_url,
@@ -179,18 +182,27 @@ async fn handle_post(
     }
 }
 
-async fn extract_multipart(mut multipart: Multipart) -> Result<Vec<u8>, AppError> {
+struct MultipartUpload {
+    bytes: Vec<u8>,
+    filename: Option<String>,
+}
+
+async fn extract_multipart(mut multipart: Multipart) -> Result<MultipartUpload, AppError> {
     while let Some(field) = multipart
         .next_field()
         .await
         .map_err(|_| AppError::BadRequest("Failed to read multipart field".into()))?
     {
         if field.name() == Some("file") {
+            let filename = field.file_name().map(String::from);
             let bytes = field
                 .bytes()
                 .await
                 .map_err(|_| AppError::BadRequest("Failed to read file".into()))?;
-            return Ok(bytes.to_vec());
+            return Ok(MultipartUpload {
+                bytes: bytes.to_vec(),
+                filename,
+            });
         }
     }
 
