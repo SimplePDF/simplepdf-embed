@@ -14,8 +14,7 @@ const SKILL_MD: &str = include_str!("../SKILL.md");
 
 pub fn router() -> Router<Arc<AppState>> {
     Router::new()
-        .route("/", get(serve_skill))
-        .route("/agents", post(handle_agents))
+        .route("/", get(serve_skill).post(handle_agents))
         .route("/health", get(|| async { "ok" }))
 }
 

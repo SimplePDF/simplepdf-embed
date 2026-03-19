@@ -2,30 +2,30 @@
 
 Lightweight Rust backend for SimplePDF's agentic PDF editing API. Accepts a PDF (URL or binary), returns ready-to-embed editor URLs.
 
-Hosted at `ai.simplepdf.com`. The root endpoint (`GET /`) serves `SKILL.md` as `text/markdown` for agent discovery.
+Hosted at `agents.simplepdf.com`. `GET /` serves the skill description, `POST /` handles PDF submissions.
 
 ## Endpoints
 
 ### `GET /`
 
-Returns the SKILL.md file as `text/markdown`. Describes the API capabilities for AI agents and users.
+Returns `SKILL.md` as `text/markdown`. Describes the API capabilities for AI agents and users.
 
-### `POST /agents`
+### `POST /`
 
 Accepts JSON or multipart. Returns editor embed codes.
 
 ```bash
 # Via URL (passthrough - no upload needed)
-curl -X POST https://ai.simplepdf.com/agents \
+curl -X POST https://agents.simplepdf.com \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com/form.pdf"}'
 
 # Via file upload (stored in DO Spaces, expires after 1hr)
-curl -X POST https://ai.simplepdf.com/agents \
+curl -X POST https://agents.simplepdf.com \
   -F file=@document.pdf
 
 # With company-specific portal
-curl -X POST "https://ai.simplepdf.com/agents?companyIdentifier=acme" \
+curl -X POST "https://agents.simplepdf.com?companyIdentifier=acme" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com/form.pdf"}'
 ```
@@ -46,8 +46,8 @@ curl -X POST "https://ai.simplepdf.com/agents?companyIdentifier=acme" \
 ## Architecture
 
 ```
-Agent → POST /agents → Rust (upload to Spaces or URL passthrough) → JSON response
-                                                                          ↓
+Agent → POST / → Rust (upload to Spaces or URL passthrough) → JSON response
+                                                                    ↓
 User clicks URL → <identifier>.simplepdf.com/editor?open=PDF_URL → client-side editing
 ```
 

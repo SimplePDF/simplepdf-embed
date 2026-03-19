@@ -12,7 +12,7 @@ Edit and fill PDF documents directly in the browser. Add text, signatures, check
 
 ## Endpoint
 
-`POST https://ai.simplepdf.com/agents`
+`POST https://agents.simplepdf.com`
 
 ## Usage
 
@@ -21,7 +21,7 @@ Edit and fill PDF documents directly in the browser. Add text, signatures, check
 When you have a PDF URL, send it as JSON:
 
 ```bash
-curl -X POST https://ai.simplepdf.com/agents \
+curl -X POST https://agents.simplepdf.com \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com/document.pdf"}'
 ```
@@ -31,7 +31,7 @@ curl -X POST https://ai.simplepdf.com/agents \
 When you have a PDF file, upload it as multipart:
 
 ```bash
-curl -X POST https://ai.simplepdf.com/agents \
+curl -X POST https://agents.simplepdf.com \
   -F file=@document.pdf
 ```
 
@@ -40,7 +40,7 @@ curl -X POST https://ai.simplepdf.com/agents \
 If the user has a SimplePDF portal with a custom subdomain, pass it as a query parameter:
 
 ```bash
-curl -X POST "https://ai.simplepdf.com/agents?companyIdentifier=acme" \
+curl -X POST "https://agents.simplepdf.com?companyIdentifier=acme" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com/form.pdf"}'
 ```
