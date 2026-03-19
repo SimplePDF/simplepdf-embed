@@ -11,9 +11,7 @@ pub struct Storage {
     public_url_prefix: String,
 }
 
-/// Result of a successful upload.
 pub struct UploadResult {
-    pub id: String,
     pub public_url: String,
 }
 
@@ -67,6 +65,6 @@ impl Storage {
 
         let public_url = format!("{}/{key}", self.public_url_prefix);
 
-        Ok(UploadResult { id, public_url })
+        Ok(UploadResult { public_url })
     }
 }

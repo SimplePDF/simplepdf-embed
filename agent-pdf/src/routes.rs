@@ -33,14 +33,13 @@ struct UploadQuery {
 
 #[derive(Serialize)]
 struct AgentResponse {
-    id: String,
     url: String,
     iframe: String,
     react: String,
 }
 
 impl AgentResponse {
-    fn new(id: String, pdf_url: &str, editor_base: &str, company_identifier: Option<&str>) -> Self {
+    fn new(pdf_url: &str, editor_base: &str, company_identifier: Option<&str>) -> Self {
         let encoded_pdf_url = url_encode(pdf_url);
         let url = format!("{editor_base}/editor?open={encoded_pdf_url}");
         let escaped_url = escape_html(&url);
@@ -58,12 +57,7 @@ impl AgentResponse {
             None => format!(r#"<EmbedPDF mode="inline" documentURL="{escaped_pdf_url}" />"#),
         };
 
-        Self {
-            id,
-            url,
-            iframe,
-            react,
-        }
+        Self { url, iframe, react }
     }
 }
 
@@ -99,7 +93,6 @@ async fn handle_get(
     let editor_base = state.config.editor_base_url(company_identifier);
 
     Ok(Json(AgentResponse::new(
-        "url-passthrough".into(),
         &pdf_url,
         &editor_base,
         company_identifier,
@@ -130,7 +123,6 @@ async fn handle_upload(
     let result = state.storage.upload(pdf_bytes).await?;
 
     Ok(Json(AgentResponse::new(
-        result.id,
         &result.public_url,
         &editor_base,
         company_identifier,

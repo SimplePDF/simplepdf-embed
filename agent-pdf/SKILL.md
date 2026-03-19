@@ -79,7 +79,6 @@ These features are configured by the portal owner in the SimplePDF admin console
 
 ```json
 {
-  "id": "url-passthrough",
   "url": "https://agent.simplepdf.com/editor?open=...",
   "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
   "react": "<EmbedPDF mode=\"inline\" documentURL=\"...\" />"
@@ -88,7 +87,6 @@ These features are configured by the portal owner in the SimplePDF admin console
 
 | Field    | Description                                      |
 |----------|--------------------------------------------------|
-| `id`     | Unique identifier for the upload (or `url-passthrough` for URL inputs) |
 | `url`    | Direct link to open the PDF in the SimplePDF editor |
 | `iframe` | HTML snippet to embed the editor in a web page   |
 | `react`  | React component snippet (see example below)      |
