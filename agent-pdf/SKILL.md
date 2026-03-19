@@ -84,4 +84,4 @@ Once the user opens the editor link, they can:
 - Uploaded files expire after 1 hour
 - Rate limit: 30 requests per minute per IP
 - URL must start with http:// or https://
-- companyIdentifier must be alphanumeric with hyphens (max 63 chars)
+- companyIdentifier must be a valid SimplePDF portal identifier
