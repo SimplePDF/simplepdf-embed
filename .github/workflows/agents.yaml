@@ -1,25 +1,25 @@
-name: Agent PDF
+name: Agents
 
 on:
   push:
     branches:
       - main
     paths:
-      - agent-pdf/**
-      - .github/workflows/agent-pdf.yaml
+      - agents/**
+      - .github/workflows/agents.yaml
   pull_request:
     branches:
       - main
     paths:
-      - agent-pdf/**
-      - .github/workflows/agent-pdf.yaml
+      - agents/**
+      - .github/workflows/agents.yaml
 
 jobs:
   check:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: agent-pdf
+        working-directory: agents
 
     steps:
       - name: Checkout code
@@ -36,8 +36,8 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            agent-pdf/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('agent-pdf/Cargo.lock') }}
+            agents/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('agents/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Format

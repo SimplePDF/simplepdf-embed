@@ -6,7 +6,7 @@ services:
       repo: SimplePDF/simplepdf-embed
       branch: main
       deploy_on_push: true
-    source_dir: agent-pdf
+    source_dir: agents
     dockerfile_path: Dockerfile
     instance_count: 1
     instance_size_slug: basic-xs

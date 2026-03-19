@@ -7,6 +7,6 @@ RUN cargo build --release
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /app/target/release/agent-pdf /usr/local/bin/agent-pdf
+COPY --from=builder /app/target/release/agents /usr/local/bin/agents
 EXPOSE 8080
-CMD ["agent-pdf"]
+CMD ["agents"]
