@@ -14,22 +14,22 @@ services:
     health_check:
       http_path: /health
     envs:
-      - key: SPACES_KEY
+      - key: S3_KEY
         scope: RUN_TIME
         type: SECRET
-      - key: SPACES_SECRET
+      - key: S3_SECRET
         scope: RUN_TIME
         type: SECRET
-      - key: SPACES_BUCKET
-        scope: RUN_TIME
-        value: agent-pdf
-      - key: SPACES_ENDPOINT
+      - key: S3_ENDPOINT
         scope: RUN_TIME
         value: https://nyc3.digitaloceanspaces.com
-      - key: SPACES_REGION
+      - key: S3_BUCKET
+        scope: RUN_TIME
+        value: agent-pdf
+      - key: S3_REGION
         scope: RUN_TIME
         value: nyc3
-      - key: SPACES_PUBLIC_URL
+      - key: S3_PUBLIC_URL
         scope: RUN_TIME
         value: https://agent-pdf.nyc3.cdn.digitaloceanspaces.com
       - key: DEFAULT_EDITOR_HOST

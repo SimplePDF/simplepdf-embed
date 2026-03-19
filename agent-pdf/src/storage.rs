@@ -8,7 +8,7 @@ use crate::error::AppError;
 pub struct Storage {
     client: Client,
     bucket: String,
-    public_url_prefix: String,
+    public_url: String,
 }
 
 pub struct UploadResult {
@@ -18,32 +18,29 @@ pub struct UploadResult {
 impl Storage {
     pub async fn new(config: &Config) -> Self {
         let creds = aws_sdk_s3::config::Credentials::new(
-            std::env::var("SPACES_KEY").expect("SPACES_KEY must be set"),
-            std::env::var("SPACES_SECRET").expect("SPACES_SECRET must be set"),
+            std::env::var("S3_KEY").expect("S3_KEY must be set"),
+            std::env::var("S3_SECRET").expect("S3_SECRET must be set"),
             None,
             None,
             "env",
         );
 
         let s3_config = aws_sdk_s3::Config::builder()
-            .endpoint_url(&config.spaces_endpoint)
-            .region(aws_sdk_s3::config::Region::new(
-                config.spaces_region.clone(),
-            ))
+            .behavior_version_latest()
+            .endpoint_url(&config.s3_endpoint)
+            .region(aws_sdk_s3::config::Region::new(config.s3_region.clone()))
             .credentials_provider(creds)
             .force_path_style(false)
             .build();
 
         Self {
             client: Client::from_conf(s3_config),
-            bucket: config.bucket.clone(),
-            public_url_prefix: config.public_url_prefix.clone(),
+            bucket: config.s3_bucket.clone(),
+            public_url: config.s3_public_url.clone(),
         }
     }
 
-    /// Upload raw PDF bytes. Returns the file ID and public URL.
     pub async fn upload(&self, bytes: Vec<u8>) -> Result<UploadResult, AppError> {
-        // Basic PDF validation: check magic bytes
         if bytes.len() < 5 || &bytes[..5] != b"%PDF-" {
             return Err(AppError::BadRequest("Not a valid PDF file".into()));
         }
@@ -63,7 +60,7 @@ impl Storage {
             .await
             .map_err(|e| AppError::StorageFailed(e.to_string()))?;
 
-        let public_url = format!("{}/{key}", self.public_url_prefix);
+        let public_url = format!("{}/{key}", self.public_url);
 
         Ok(UploadResult { public_url })
     }
