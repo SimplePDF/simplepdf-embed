@@ -140,7 +140,6 @@ With a company-specific portal, replace `"ai"` with the portal identifier:
 
 Once the user opens the editor link, they can:
 
-- Automatic detection of form fields
 - Fill form fields (text inputs, checkboxes, radio buttons, dropdowns)
 - Add free text annotations anywhere on the page
 - Draw or type signatures
