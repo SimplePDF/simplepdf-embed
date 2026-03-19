@@ -1,0 +1,40 @@
+name: agent-pdf
+region: nyc
+services:
+  - name: api
+    github:
+      repo: SimplePDF/simplepdf-embed
+      branch: main
+      deploy_on_push: true
+    source_dir: agents
+    dockerfile_path: Dockerfile
+    instance_count: 1
+    instance_size_slug: basic-xs
+    http_port: 8080
+    health_check:
+      http_path: /health
+    envs:
+      - key: S3_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: S3_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: S3_ENDPOINT
+        scope: RUN_TIME
+        value: https://nyc3.digitaloceanspaces.com
+      - key: S3_BUCKET
+        scope: RUN_TIME
+        value: agent-pdf
+      - key: S3_REGION
+        scope: RUN_TIME
+        value: nyc3
+      - key: DEFAULT_EDITOR_HOST
+        scope: RUN_TIME
+        value: ai.simplepdf.com
+      - key: TRUSTED_IP_HEADER
+        scope: RUN_TIME
+        value: do-connecting-ip
+      - key: RATE_LIMIT_PER_MIN
+        scope: RUN_TIME
+        value: "30"

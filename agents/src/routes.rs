@@ -1,0 +1,281 @@
+use axum::extract::{ConnectInfo, FromRequest, Multipart, Query, State};
+use axum::http::header;
+use axum::response::{IntoResponse, Json};
+use axum::routing::get;
+use axum::Router;
+use serde::{Deserialize, Serialize};
+use std::net::{IpAddr, SocketAddr};
+use std::sync::Arc;
+
+use crate::error::AppError;
+use crate::AppState;
+
+const README_MD: &str = include_str!("../README.md");
+const SKILL_MD: &str = include_str!("../SKILL.md");
+
+pub fn router() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/", get(handle_get).post(handle_post))
+        .route("/SKILL.md", get(serve_skill))
+        .route("/health", get(|| async { "ok" }))
+}
+
+async fn serve_skill() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/markdown; charset=utf-8")],
+        SKILL_MD,
+    )
+}
+
+#[derive(Deserialize)]
+struct GetQuery {
+    url: Option<String>,
+    #[serde(rename = "companyIdentifier")]
+    company_identifier: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct PostQuery {
+    #[serde(rename = "companyIdentifier")]
+    company_identifier: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct UrlInput {
+    url: String,
+    #[serde(rename = "companyIdentifier")]
+    company_identifier: Option<String>,
+}
+
+#[derive(Serialize)]
+struct AgentResponse {
+    url: String,
+    iframe: String,
+    react: String,
+}
+
+impl AgentResponse {
+    fn new(pdf_url: &str, editor_base: &str, company_identifier: Option<&str>) -> Self {
+        let encoded_pdf_url = url_encode(pdf_url);
+        let url = format!("{editor_base}/editor?open={encoded_pdf_url}");
+        let escaped_url = escape_html(&url);
+        let iframe = format!(
+            r#"<iframe src="{escaped_url}" width="100%" height="800" frameborder="0"></iframe>"#
+        );
+        let escaped_pdf_url = escape_html(pdf_url);
+        let react_identifier = escape_html(company_identifier.unwrap_or("ai"));
+        let react = format!(
+            r#"<EmbedPDF mode="inline" companyIdentifier="{react_identifier}" documentURL="{escaped_pdf_url}" />"#
+        );
+
+        Self { url, iframe, react }
+    }
+}
+
+async fn handle_get(
+    State(state): State<Arc<AppState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Query(query): Query<GetQuery>,
+    request: axum::extract::Request,
+) -> Result<axum::response::Response, AppError> {
+    let pdf_url = match query.url {
+        None => {
+            return Ok((
+                [(header::CONTENT_TYPE, "text/markdown; charset=utf-8")],
+                README_MD,
+            )
+                .into_response());
+        }
+        Some(url) => url,
+    };
+
+    let ip = client_ip(&request, addr.ip(), &state.config.trusted_ip_header);
+    if !state.rate_limiter.check(ip) {
+        return Err(AppError::RateLimited);
+    }
+
+    if !is_valid_url(&pdf_url) {
+        return Err(AppError::BadRequest("url must start with https://".into()));
+    }
+
+    let company_identifier = validate_company_identifier(query.company_identifier.as_deref())?;
+    let editor_base = state.config.editor_base_url(company_identifier);
+
+    Ok(Json(AgentResponse::new(
+        &pdf_url,
+        &editor_base,
+        company_identifier,
+    ))
+    .into_response())
+}
+
+async fn handle_post(
+    State(state): State<Arc<AppState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    Query(query): Query<PostQuery>,
+    request: axum::extract::Request,
+) -> Result<Json<AgentResponse>, AppError> {
+    let ip = client_ip(&request, addr.ip(), &state.config.trusted_ip_header);
+    if !state.rate_limiter.check(ip) {
+        return Err(AppError::RateLimited);
+    }
+
+    let content_type = request
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+
+    if content_type.starts_with("multipart/form-data") {
+        let company_identifier = validate_company_identifier(query.company_identifier.as_deref())?;
+        let editor_base = state.config.editor_base_url(company_identifier);
+
+        let multipart = Multipart::from_request(request, &state)
+            .await
+            .map_err(|_| {
+                AppError::BadRequest("Expected multipart/form-data with a 'file' field".into())
+            })?;
+        let upload = extract_multipart(multipart).await?;
+        let result = state
+            .storage
+            .upload(upload.bytes, upload.filename.as_deref())
+            .await?;
+
+        Ok(Json(AgentResponse::new(
+            &result.presigned_url,
+            &editor_base,
+            company_identifier,
+        )))
+    } else {
+        let body = axum::body::to_bytes(request.into_body(), 1024 * 1024)
+            .await
+            .map_err(|_| AppError::BadRequest("Invalid request body".into()))?;
+
+        let input: UrlInput = serde_json::from_slice(&body).map_err(|_| {
+            AppError::BadRequest(
+                "Expected JSON with 'url' field or multipart/form-data with 'file' field".into(),
+            )
+        })?;
+
+        if !is_valid_url(&input.url) {
+            return Err(AppError::BadRequest("url must start with https://".into()));
+        }
+
+        let company_identifier = validate_company_identifier(
+            input
+                .company_identifier
+                .as_deref()
+                .or(query.company_identifier.as_deref()),
+        )?;
+        let editor_base = state.config.editor_base_url(company_identifier);
+
+        Ok(Json(AgentResponse::new(
+            &input.url,
+            &editor_base,
+            company_identifier,
+        )))
+    }
+}
+
+struct MultipartUpload {
+    bytes: Vec<u8>,
+    filename: Option<String>,
+}
+
+async fn extract_multipart(mut multipart: Multipart) -> Result<MultipartUpload, AppError> {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|_| AppError::BadRequest("Failed to read multipart field".into()))?
+    {
+        if field.name() == Some("file") {
+            let filename = field.file_name().map(String::from);
+            let bytes = field
+                .bytes()
+                .await
+                .map_err(|_| AppError::BadRequest("Failed to read file".into()))?;
+            return Ok(MultipartUpload {
+                bytes: bytes.to_vec(),
+                filename,
+            });
+        }
+    }
+
+    Err(AppError::BadRequest(
+        "No 'file' field in multipart upload".into(),
+    ))
+}
+
+fn client_ip(
+    request: &axum::extract::Request,
+    fallback: IpAddr,
+    trusted_ip_header: &str,
+) -> IpAddr {
+    if trusted_ip_header.is_empty() {
+        return fallback;
+    }
+
+    request
+        .headers()
+        .get(trusted_ip_header)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .and_then(|v| v.trim().parse::<IpAddr>().ok())
+        .unwrap_or(fallback)
+}
+
+fn url_encode(input: &str) -> String {
+    let mut encoded = String::with_capacity(input.len());
+    for byte in input.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            _ => {
+                encoded.push_str(&format!("%{byte:02X}"));
+            }
+        }
+    }
+    encoded
+}
+
+fn escape_html(input: &str) -> String {
+    let mut escaped = String::with_capacity(input.len());
+    for ch in input.chars() {
+        match ch {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&#x27;"),
+            _ => escaped.push(ch),
+        }
+    }
+    escaped
+}
+
+fn is_valid_subdomain(identifier: &str) -> bool {
+    !identifier.is_empty()
+        && identifier.len() <= 63
+        && identifier
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
+        && !identifier.starts_with('-')
+        && !identifier.ends_with('-')
+}
+
+fn is_valid_url(url: &str) -> bool {
+    url.starts_with("https://")
+}
+
+fn validate_company_identifier(identifier: Option<&str>) -> Result<Option<&str>, AppError> {
+    match identifier {
+        Some(company_identifier) if !is_valid_subdomain(company_identifier) => {
+            Err(AppError::BadRequest(
+                "companyIdentifier must be alphanumeric with hyphens (max 63 chars)".into(),
+            ))
+        }
+        other => Ok(other),
+    }
+}
