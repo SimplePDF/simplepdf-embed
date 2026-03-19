@@ -15,13 +15,13 @@ Edit and fill PDF documents directly in the browser. Add text, signatures, check
 For public PDF URLs, use GET with the URL as a query parameter:
 
 ```
-GET https://agent.simplepdf.com?url=https://example.com/form.pdf
+GET https://agents.simplepdf.com?url=https://example.com/form.pdf
 ```
 
 For signed or sensitive URLs (e.g. presigned S3 links), use POST with a JSON body to keep the URL out of logs and browser history:
 
 ```bash
-curl -X POST https://agent.simplepdf.com \
+curl -X POST https://agents.simplepdf.com \
   -H "Content-Type: application/json" \
   -d '{"url": "https://s3.amazonaws.com/bucket/doc.pdf?X-Amz-Signature=..."}'
 ```
@@ -35,7 +35,7 @@ Upload a PDF file to the API. For security and privacy, the file is stored tempo
 ### Shell
 
 ```bash
-curl -X POST https://agent.simplepdf.com -F file=@document.pdf
+curl -X POST https://agents.simplepdf.com -F file=@document.pdf
 ```
 
 ### TypeScript
@@ -44,7 +44,7 @@ curl -X POST https://agent.simplepdf.com -F file=@document.pdf
 const form = new FormData();
 form.append("file", new Blob([pdfBytes], { type: "application/pdf" }), "document.pdf");
 
-const response = await fetch("https://agent.simplepdf.com", { method: "POST", body: form });
+const response = await fetch("https://agents.simplepdf.com", { method: "POST", body: form });
 const { url } = await response.json();
 ```
 
@@ -54,7 +54,7 @@ const { url } = await response.json();
 import requests
 
 with open("document.pdf", "rb") as f:
-    response = requests.post("https://agent.simplepdf.com", files={"file": f})
+    response = requests.post("https://agents.simplepdf.com", files={"file": f})
 
 url = response.json()["url"]
 ```
@@ -72,7 +72,7 @@ The `iframe` and `react` fields are for developers embedding the editor in a web
 Add `companyIdentifier` to route to a custom SimplePDF portal:
 
 ```
-GET https://agent.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
+GET https://agents.simplepdf.com?url=https://example.com/form.pdf&companyIdentifier=acme
 ```
 
 Or in a POST JSON body:
@@ -157,7 +157,7 @@ Once the user opens the editor link, they can:
 
 ## Open source
 
-The code powering `agent.simplepdf.com` is open source: [github.com/SimplePDF/simplepdf-embed/tree/main/agents](https://github.com/SimplePDF/simplepdf-embed/tree/main/agents)
+The code powering `agents.simplepdf.com` is open source: [github.com/SimplePDF/simplepdf-embed/tree/main/agents](https://github.com/SimplePDF/simplepdf-embed/tree/main/agents)
 
 ## Legal
 

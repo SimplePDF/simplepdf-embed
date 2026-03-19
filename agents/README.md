@@ -5,17 +5,17 @@ Let AI agents edit and fill PDFs through [SimplePDF](https://simplepdf.com).
 ## Install
 
 ```bash
-curl --create-dirs -o ~/.claude/skills/edit-pdf/SKILL.md https://agent.simplepdf.com
+curl --create-dirs -o ~/.claude/skills/edit-pdf/SKILL.md https://agents.simplepdf.com
 ```
 
 ## Quick start
 
 ```bash
 # From a URL
-curl "https://agent.simplepdf.com?url=https://example.com/form.pdf"
+curl "https://agents.simplepdf.com?url=https://example.com/form.pdf"
 
 # From a file
-curl -X POST https://agent.simplepdf.com -F file=@document.pdf
+curl -X POST https://agents.simplepdf.com -F file=@document.pdf
 ```
 
 Returns:
