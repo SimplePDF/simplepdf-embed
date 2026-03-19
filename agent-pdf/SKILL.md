@@ -121,7 +121,29 @@ These features are configured by the portal owner in the SimplePDF admin console
 | `id`     | Unique identifier for the upload (or `url-passthrough` for URL inputs) |
 | `url`    | Direct link to open the PDF in the SimplePDF editor |
 | `iframe` | HTML snippet to embed the editor in a web page   |
-| `react`  | React component snippet using `EmbedPDF` from `@simplepdf/react-embed-pdf` |
+| `react`  | React component snippet (see example below)      |
+
+### React integration
+
+Requires `@simplepdf/react-embed-pdf` (`npm install @simplepdf/react-embed-pdf`):
+
+```tsx
+import { EmbedPDF } from "@simplepdf/react-embed-pdf";
+
+const PDFEditor = ({ documentURL }: { documentURL: string }) => (
+  <EmbedPDF mode="inline" documentURL={documentURL} />
+);
+```
+
+With a company-specific portal:
+
+```tsx
+<EmbedPDF
+  mode="inline"
+  companyIdentifier="acme"
+  documentURL="https://example.com/form.pdf"
+/>
+```
 
 ## Privacy
 
