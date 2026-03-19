@@ -1,0 +1,40 @@
+name: agent-pdf
+region: ams
+services:
+  - name: api
+    github:
+      repo: SimplePDF/simplepdf-embed
+      branch: main
+      deploy_on_push: true
+    source_dir: agent-pdf
+    buildpack: rust
+    instance_count: 1
+    instance_size_slug: basic-xs
+    http_port: 8080
+    health_check:
+      http_path: /health
+    envs:
+      - key: SPACES_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: SPACES_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: SPACES_BUCKET
+        scope: RUN_TIME
+        value: agent-pdf
+      - key: SPACES_ENDPOINT
+        scope: RUN_TIME
+        value: https://ams3.digitaloceanspaces.com
+      - key: SPACES_REGION
+        scope: RUN_TIME
+        value: ams3
+      - key: SPACES_PUBLIC_URL
+        scope: RUN_TIME
+        value: https://agent-pdf.ams3.cdn.digitaloceanspaces.com
+      - key: SIMPLEPDF_URL
+        scope: RUN_TIME
+        value: https://simplepdf.com
+      - key: RATE_LIMIT_PER_MIN
+        scope: RUN_TIME
+        value: "30"
