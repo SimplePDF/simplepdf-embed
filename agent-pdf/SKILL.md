@@ -75,10 +75,8 @@ Once the user opens the editor link, they can:
 - Fill form fields (text inputs, checkboxes, radio buttons, dropdowns)
 - Add free text annotations anywhere on the page
 - Draw or type signatures
-- Add images and stamps
+- Add images
 - Add checkboxes and checkmarks
-- Highlight, underline, or strikethrough text
-- Add sticky notes
 
 ## Limits
 
