@@ -1,23 +1,40 @@
 # agent-pdf
 
-Lightweight Rust backend for SimplePDF's agentic PDF editing API. Accepts a PDF (URL or binary), stores it in DO Spaces, returns ready-to-embed URLs.
+Lightweight Rust backend for SimplePDF's agentic PDF editing API. Accepts a PDF (URL or binary), returns ready-to-embed editor URLs.
+
+Hosted at `ai.simplepdf.com`. The root endpoint (`GET /`) serves `SKILL.md` as `text/markdown` for agent discovery.
 
 ## Endpoints
 
+### `GET /`
+
+Returns the SKILL.md file as `text/markdown`. Describes the API capabilities for AI agents and users.
+
 ### `POST /agents`
 
-Full PDF editor. Accepts JSON or multipart.
+Accepts JSON or multipart. Returns editor embed codes.
 
 ```bash
-# Via URL
-curl -X POST https://your-app.ondigitalocean.app/agents \
+# Via URL (passthrough - no upload needed)
+curl -X POST https://ai.simplepdf.com/agents \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com/form.pdf"}'
 
-# Via file upload
-curl -X POST https://your-app.ondigitalocean.app/agents \
+# Via file upload (stored in DO Spaces, expires after 1hr)
+curl -X POST https://ai.simplepdf.com/agents \
   -F file=@document.pdf
+
+# With company-specific portal
+curl -X POST "https://ai.simplepdf.com/agents?companyIdentifier=acme" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/form.pdf"}'
 ```
+
+#### Query parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `companyIdentifier` | No | Routes to `<identifier>.simplepdf.com` instead of `embed.simplepdf.com` |
 
 ## Deploy
 
@@ -29,9 +46,9 @@ curl -X POST https://your-app.ondigitalocean.app/agents \
 ## Architecture
 
 ```
-Agent → POST /agents → Rust (upload to Spaces) → JSON response
-                                                         ↓
-User clicks URL → simplepdf.com/editor?open=SPACES_URL → client-side editing
+Agent → POST /agents → Rust (upload to Spaces or URL passthrough) → JSON response
+                                                                          ↓
+User clicks URL → <identifier>.simplepdf.com/editor?open=PDF_URL → client-side editing
 ```
 
 No database. No auth. No sessions. Bucket lifecycle handles cleanup.

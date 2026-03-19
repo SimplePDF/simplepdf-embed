@@ -1,16 +1,9 @@
 pub struct Config {
-    /// DO Spaces bucket name
     pub bucket: String,
-    /// DO Spaces endpoint (e.g. https://ams3.digitaloceanspaces.com)
     pub spaces_endpoint: String,
-    /// DO Spaces region (e.g. ams3)
     pub spaces_region: String,
-    /// CDN or direct URL prefix for public access
-    /// e.g. https://agent-pdf.ams3.cdn.digitaloceanspaces.com
     pub public_url_prefix: String,
-    /// SimplePDF base URL
-    pub simplepdf_url: String,
-    /// Requests per IP per minute
+    pub default_editor_host: String,
     pub rate_limit_per_minute: u32,
 }
 
@@ -21,10 +14,17 @@ impl Config {
             spaces_endpoint: env("SPACES_ENDPOINT"),
             spaces_region: env_or("SPACES_REGION", "nyc3"),
             public_url_prefix: env("SPACES_PUBLIC_URL"),
-            simplepdf_url: env_or("SIMPLEPDF_URL", "https://simplepdf.com"),
+            default_editor_host: env_or("DEFAULT_EDITOR_HOST", "embed.simplepdf.com"),
             rate_limit_per_minute: env_or("RATE_LIMIT_PER_MIN", "30")
                 .parse()
                 .expect("RATE_LIMIT_PER_MIN must be a number"),
+        }
+    }
+
+    pub fn editor_base_url(&self, company_identifier: Option<&str>) -> String {
+        match company_identifier {
+            Some(id) => format!("https://{id}.simplepdf.com"),
+            None => format!("https://{}", self.default_editor_host),
         }
     }
 }

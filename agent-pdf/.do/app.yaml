@@ -32,9 +32,9 @@ services:
       - key: SPACES_PUBLIC_URL
         scope: RUN_TIME
         value: https://agent-pdf.nyc3.cdn.digitaloceanspaces.com
-      - key: SIMPLEPDF_URL
+      - key: DEFAULT_EDITOR_HOST
         scope: RUN_TIME
-        value: https://simplepdf.com
+        value: embed.simplepdf.com
       - key: RATE_LIMIT_PER_MIN
         scope: RUN_TIME
         value: "30"
