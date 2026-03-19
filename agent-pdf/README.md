@@ -2,25 +2,15 @@
 
 Let AI agents edit and fill PDFs through [SimplePDF](https://simplepdf.com).
 
-## Install as a skill
+## Install
 
-Copy the [SKILL.md](./SKILL.md) file into your agent's skills directory:
-
-```bash
-# Claude Code
-cp SKILL.md ~/.claude/skills/simplepdf/SKILL.md
-
-# Cursor
-cp SKILL.md .cursor/skills/simplepdf/SKILL.md
-```
-
-Or point your agent at the hosted version:
+Point your agent at:
 
 ```
 https://agent.simplepdf.com
 ```
 
-Any agent that fetches this URL gets the skill as `text/markdown`.
+Returns the skill as `text/markdown`. Save it to your agent's skills directory.
 
 ## Quick start
 
