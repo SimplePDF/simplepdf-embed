@@ -34,7 +34,7 @@ services:
         value: https://agent-pdf.nyc3.cdn.digitaloceanspaces.com
       - key: DEFAULT_EDITOR_HOST
         scope: RUN_TIME
-        value: embed.simplepdf.com
+        value: ai.simplepdf.com
       - key: TRUST_PROXY
         scope: RUN_TIME
         value: "true"

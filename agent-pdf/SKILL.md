@@ -115,11 +115,11 @@ Requires `@simplepdf/react-embed-pdf` (`npm install @simplepdf/react-embed-pdf`)
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 const PDFEditor = ({ documentURL }: { documentURL: string }) => (
-  <EmbedPDF mode="inline" documentURL={documentURL} />
+  <EmbedPDF mode="inline" companyIdentifier="ai" documentURL={documentURL} />
 );
 ```
 
-With a company-specific portal:
+With a company-specific portal, replace `"ai"` with the portal identifier:
 
 ```tsx
 <EmbedPDF

@@ -54,15 +54,10 @@ impl AgentResponse {
             r#"<iframe src="{escaped_url}" width="100%" height="800" frameborder="0"></iframe>"#
         );
         let escaped_pdf_url = escape_html(pdf_url);
-        let react = match company_identifier {
-            Some(id) => {
-                let escaped_id = escape_html(id);
-                format!(
-                    r#"<EmbedPDF mode="inline" companyIdentifier="{escaped_id}" documentURL="{escaped_pdf_url}" />"#
-                )
-            }
-            None => format!(r#"<EmbedPDF mode="inline" documentURL="{escaped_pdf_url}" />"#),
-        };
+        let react_identifier = escape_html(company_identifier.unwrap_or("ai"));
+        let react = format!(
+            r#"<EmbedPDF mode="inline" companyIdentifier="{react_identifier}" documentURL="{escaped_pdf_url}" />"#
+        );
 
         Self { url, iframe, react }
     }

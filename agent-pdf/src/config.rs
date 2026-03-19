@@ -15,7 +15,7 @@ impl Config {
             spaces_endpoint: env("SPACES_ENDPOINT"),
             spaces_region: env_or("SPACES_REGION", "nyc3"),
             public_url_prefix: env("SPACES_PUBLIC_URL"),
-            default_editor_host: env_or("DEFAULT_EDITOR_HOST", "embed.simplepdf.com"),
+            default_editor_host: env_or("DEFAULT_EDITOR_HOST", "ai.simplepdf.com"),
             rate_limit_per_minute: env_or("RATE_LIMIT_PER_MIN", "30")
                 .parse()
                 .expect("RATE_LIMIT_PER_MIN must be a number"),
