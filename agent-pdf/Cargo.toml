@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 aws-sdk-s3 = "1.127.0"
-axum = "0.8.8"
+axum = { version = "0.8.8", features = ["multipart"] }
 dashmap = "6.1.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"

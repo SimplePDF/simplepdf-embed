@@ -4,7 +4,7 @@ use axum::response::{IntoResponse, Json};
 use axum::routing::{get, post};
 use axum::Router;
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 
 use crate::error::AppError;
@@ -21,6 +21,31 @@ pub fn router() -> Router<Arc<AppState>> {
 
 async fn serve_skill() -> impl IntoResponse {
     ([(header::CONTENT_TYPE, "text/markdown; charset=utf-8")], SKILL_MD)
+}
+
+fn client_ip(request: &axum::extract::Request, fallback: IpAddr) -> IpAddr {
+    request
+        .headers()
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').next())
+        .and_then(|v| v.trim().parse::<IpAddr>().ok())
+        .unwrap_or(fallback)
+}
+
+fn url_encode(input: &str) -> String {
+    let mut encoded = String::with_capacity(input.len());
+    for byte in input.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            _ => {
+                encoded.push_str(&format!("%{byte:02X}"));
+            }
+        }
+    }
+    encoded
 }
 
 #[derive(Deserialize)]
@@ -44,11 +69,14 @@ struct AgentResponse {
 
 impl AgentResponse {
     fn new(id: String, pdf_url: &str, editor_base: &str) -> Self {
-        let url = format!("{editor_base}/editor?open={pdf_url}");
+        let encoded_pdf_url = url_encode(pdf_url);
+        let url = format!("{editor_base}/editor?open={encoded_pdf_url}");
         let iframe = format!(
             r#"<iframe src="{url}" width="100%" height="800" frameborder="0"></iframe>"#
         );
-        let react = format!(r#"<SimplePDF src="{pdf_url}" />"#);
+        let react = format!(
+            r#"<EmbedPDF mode="inline" documentURL="{pdf_url}" />"#
+        );
 
         Self {
             id,
@@ -65,7 +93,9 @@ async fn handle_agents(
     Query(query): Query<AgentsQuery>,
     request: axum::extract::Request,
 ) -> Result<Json<AgentResponse>, AppError> {
-    if !state.rate_limiter.check(addr.ip()) {
+    let ip = client_ip(&request, addr.ip());
+
+    if !state.rate_limiter.check(ip) {
         return Err(AppError::RateLimited);
     }
 

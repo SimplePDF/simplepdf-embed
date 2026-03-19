@@ -54,7 +54,7 @@ This routes to `acme.simplepdf.com` instead of the default editor.
   "id": "abc-123",
   "url": "https://embed.simplepdf.com/editor?open=https://example.com/form.pdf",
   "iframe": "<iframe src=\"...\" width=\"100%\" height=\"800\" frameborder=\"0\"></iframe>",
-  "react": "<SimplePDF src=\"...\" />"
+  "react": "<EmbedPDF mode=\"inline\" documentURL=\"...\" />"
 }
 ```
 
@@ -63,7 +63,7 @@ This routes to `acme.simplepdf.com` instead of the default editor.
 | `id`     | Unique identifier for the upload (or `url-passthrough` for URL inputs) |
 | `url`    | Direct link to open the PDF in the SimplePDF editor |
 | `iframe` | HTML snippet to embed the editor in a page       |
-| `react`  | React component snippet using `@simplepdf/react-embed-pdf` |
+| `react`  | React component snippet using `EmbedPDF` from `@simplepdf/react-embed-pdf` |
 
 ## When to use each field
 
