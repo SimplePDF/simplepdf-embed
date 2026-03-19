@@ -155,10 +155,6 @@ Once the user opens the editor link, they can:
 - URL must start with http:// or https://
 - companyIdentifier must be a valid SimplePDF portal identifier
 
-## Open source
-
-The code powering `agents.simplepdf.com` is open source: [github.com/SimplePDF/simplepdf-embed/tree/main/agents](https://github.com/SimplePDF/simplepdf-embed/tree/main/agents)
-
 ## Legal
 
 SimplePDF is not responsible for the content of uploaded PDFs. By using this service, you agree that you have the right to process the documents you upload. For concerns or requests, contact support@simplepdf.com.

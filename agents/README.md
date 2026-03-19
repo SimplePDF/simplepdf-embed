@@ -27,3 +27,7 @@ Returns:
   "react": "<EmbedPDF mode=\"inline\" companyIdentifier=\"ai\" documentURL=\"...\" />"
 }
 ```
+
+## Source code
+
+[github.com/SimplePDF/simplepdf-embed/tree/main/agents](https://github.com/SimplePDF/simplepdf-embed/tree/main/agents)
