@@ -1,5 +1,5 @@
 name: agent-pdf
-region: ams
+region: nyc
 services:
   - name: api
     github:
@@ -25,13 +25,13 @@ services:
         value: agent-pdf
       - key: SPACES_ENDPOINT
         scope: RUN_TIME
-        value: https://ams3.digitaloceanspaces.com
+        value: https://nyc3.digitaloceanspaces.com
       - key: SPACES_REGION
         scope: RUN_TIME
-        value: ams3
+        value: nyc3
       - key: SPACES_PUBLIC_URL
         scope: RUN_TIME
-        value: https://agent-pdf.ams3.cdn.digitaloceanspaces.com
+        value: https://agent-pdf.nyc3.cdn.digitaloceanspaces.com
       - key: SIMPLEPDF_URL
         scope: RUN_TIME
         value: https://simplepdf.com

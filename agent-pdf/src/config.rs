@@ -19,7 +19,7 @@ impl Config {
         Self {
             bucket: env("SPACES_BUCKET"),
             spaces_endpoint: env("SPACES_ENDPOINT"),
-            spaces_region: env_or("SPACES_REGION", "ams3"),
+            spaces_region: env_or("SPACES_REGION", "nyc3"),
             public_url_prefix: env("SPACES_PUBLIC_URL"),
             simplepdf_url: env_or("SIMPLEPDF_URL", "https://simplepdf.com"),
             rate_limit_per_minute: env_or("RATE_LIMIT_PER_MIN", "30")
