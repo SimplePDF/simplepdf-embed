@@ -6,7 +6,7 @@ Playwright-based CLI tool for automatically detecting form fields in PDF documen
 
 ```bash
 npm install
-npx tsx src/index.ts https://example.com/form.pdf
+npx tsx src/index.ts https://cdn.simplepdf.com/simple-pdf/assets/forms/urla-1003.pdf
 ```
 
 ## Usage
@@ -25,9 +25,9 @@ Options:
 ### Examples
 
 ```bash
-npx tsx src/index.ts https://example.com/form.pdf
+npx tsx src/index.ts https://cdn.simplepdf.com/simple-pdf/assets/forms/urla-1003.pdf
 npx tsx src/index.ts ./documents/form.pdf
-npx tsx src/index.ts https://example.com/form.pdf --company-identifier mycompany
+npx tsx src/index.ts https://cdn.simplepdf.com/simple-pdf/assets/forms/urla-1003.pdf --company-identifier mycompany
 ```
 
 ## How It Works
