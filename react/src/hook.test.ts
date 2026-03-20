@@ -426,5 +426,4 @@ describe('Type assertions', () => {
       expectTypeOf<EmbedActions['submit']>().returns.resolves.toExtend<ExpectedActionResult>();
     });
   });
-
 });
