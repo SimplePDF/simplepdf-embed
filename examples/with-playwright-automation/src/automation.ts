@@ -191,6 +191,9 @@ const runAutomation = async ({ document, baseUrl }: { document: string; baseUrl:
     });
 
     if (!isUrl(document)) {
+      console.log('Waiting for editor to be ready...');
+      await waitForEvent('EDITOR_READY');
+
       console.log('Loading local file...');
       const dataUrl = readFileAsDataUrl({ filePath: document });
       const fileName = path.basename(document);
