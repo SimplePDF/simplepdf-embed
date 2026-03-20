@@ -26,6 +26,7 @@ type RequestResultData = {
   request_id: string;
   result: {
     success: boolean;
+    data?: { detected_count?: number };
     error?: { code: string; message: string };
   };
 };
@@ -217,7 +218,8 @@ const runAutomation = async ({ document, baseUrl }: { document: string; baseUrl:
         error: { code: 'detect_fields_failed', message: `Failed to detect fields: ${errorMessage}` },
       };
     }
-    console.log('Fields detected');
+    const detectedCount = detectResult.event.data.result.data?.detected_count ?? 0;
+    console.log(`Fields detected: ${detectedCount}`);
 
     await page.pause();
 
