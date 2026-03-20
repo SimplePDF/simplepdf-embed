@@ -183,7 +183,7 @@ const runAutomation = async ({ document, baseUrl }: { document: string; baseUrl:
 
     const editorUrl = isUrl(document)
       ? `${baseUrl}/editor?open=${encodeURIComponent(document)}`
-      : `${baseUrl}/editor`;
+      : `${baseUrl}/editor?loadingPlaceholder=true`;
 
     const { sendEvent, waitForEvent, waitForDocumentLoaded } = await setupIframePage({
       page,
@@ -191,10 +191,7 @@ const runAutomation = async ({ document, baseUrl }: { document: string; baseUrl:
     });
 
     if (!isUrl(document)) {
-      console.log('Waiting for editor to be ready...');
-      await waitForEvent('EDITOR_READY');
-      console.log('Editor ready, loading local file...');
-
+      console.log('Loading local file...');
       const dataUrl = readFileAsDataUrl({ filePath: document });
       const fileName = path.basename(document);
       await sendEvent({ type: 'LOAD_DOCUMENT', data: { data_url: dataUrl, name: fileName } });
