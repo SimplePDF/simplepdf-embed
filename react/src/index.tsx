@@ -178,14 +178,14 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     });
   }, []);
 
-  const createField: EmbedActions['createField'] = React.useCallback(async (options) => {
+  const detectFields: EmbedActions['detectFields'] = React.useCallback(async () => {
     if (!iframeRef.current) {
       return { success: false, error: { code: 'unexpected:iframe_not_available', message: 'Iframe not available' } };
     }
     await ensureEditorReady();
     return sendEvent(iframeRef.current, {
-      type: 'CREATE_FIELD',
-      data: options,
+      type: 'DETECT_FIELDS',
+      data: {},
     });
   }, []);
 
@@ -226,7 +226,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions, Props>((props, ref) => {
     loadDocument,
     goTo,
     selectTool,
-    createField,
+    detectFields,
     removeFields,
     getDocumentContent,
     submit,

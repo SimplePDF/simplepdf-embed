@@ -130,7 +130,7 @@ Use `const { embedRef, actions } = useEmbed();` to programmatically control the 
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `actions.goTo({ page })`                         | Navigate to a specific page                                                                                         |
 | `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'BOXED_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
-| `actions.createField(options)`                   | Create a field at specified position (see below)                                                                    |
+| `actions.detectFields()`                         | Automatically detect form fields in the document                                                                    |
 | `actions.removeFields(options?)`                 | Remove fields by `fieldIds` or `page`, or all fields if no options                                                  |
 | `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                      |
 | `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                 |
@@ -158,18 +158,10 @@ const Editor = () => {
     }
   };
 
-  const handleCreateTextField = async () => {
-    const result = await actions.createField({
-      type: 'TEXT',
-      page: 1,
-      x: 100,
-      y: 200,
-      width: 150,
-      height: 30,
-      value: 'Hello World',
-    });
+  const handleDetectFields = async () => {
+    const result = await actions.detectFields();
     if (result.success) {
-      console.log('Created field:', result.data.field_id);
+      console.log('Fields detected!');
     }
   };
 
@@ -177,7 +169,7 @@ const Editor = () => {
     <>
       <button onClick={handleSubmit}>Submit</button>
       <button onClick={handleExtract}>Extract Content</button>
-      <button onClick={handleCreateTextField}>Add Text Field</button>
+      <button onClick={handleDetectFields}>Detect Fields</button>
       <button onClick={() => actions.selectTool('TEXT')}>Select Text Tool</button>
       <button onClick={() => actions.goTo({ page: 2 })}>Go to Page 2</button>
       <EmbedPDF
@@ -191,19 +183,6 @@ const Editor = () => {
   );
 };
 ```
-
-#### `createField` options
-
-The `createField` action uses a discriminated union based on field type:
-
-| Type                  | `value` format                                              |
-| --------------------- | ----------------------------------------------------------- |
-| `TEXT` / `BOXED_TEXT` | Plain text content                                          |
-| `CHECKBOX`            | `'checked'` or `'unchecked'`                                |
-| `PICTURE`             | Data URL (base64)                                           |
-| `SIGNATURE`           | Data URL (base64) or plain text (generates typed signature) |
-
-All field types share these base options: `page`, `x`, `y`, `width`, `height` (coordinates in PDF points, origin at bottom-left).
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
 

@@ -185,16 +185,8 @@ await sendEvent("GO_TO", { page: 3 });
 // Select a tool
 await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE", "PICTURE", "BOXED_TEXT", null
 
-// Create a field
-await sendEvent("CREATE_FIELD", {
-  type: "TEXT",
-  page: 1,
-  x: 100,
-  y: 700,
-  width: 200,
-  height: 30,
-  value: "Hello World",
-});
+// Detect fields in the document
+await sendEvent("DETECT_FIELDS", {});
 
 // Remove all fields (or specific ones)
 await sendEvent("REMOVE_FIELDS", {}); // Remove all
@@ -290,34 +282,11 @@ Select a drawing tool or return to cursor mode.
 | ------ | ---------------- | -------- | ---------------------------------------------------------------------------------------- |
 | `tool` | `string \| null` | Yes      | `"TEXT"`, `"BOXED_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, `"PICTURE"`, or `null` for cursor |
 
-#### CREATE_FIELD
+#### DETECT_FIELDS
 
-Create a new field on the document.
+Automatically detect form fields in the document.
 
-| Field    | Type     | Required | Description                                                           |
-| -------- | -------- | -------- | --------------------------------------------------------------------- |
-| `type`   | `string` | Yes      | `"TEXT"`, `"BOXED_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, or `"PICTURE"` |
-| `page`   | `number` | Yes      | Page number (1-indexed)                                               |
-| `x`      | `number` | Yes      | X coordinate (PDF points from left)                                   |
-| `y`      | `number` | Yes      | Y coordinate (PDF points from bottom)                                 |
-| `width`  | `number` | Yes      | Field width in PDF points                                             |
-| `height` | `number` | Yes      | Field height in PDF points                                            |
-| `value`  | `string` | No       | Initial value (see value formats below)                               |
-
-**Value formats by field type:**
-
-- `TEXT` / `BOXED_TEXT`: Plain text content
-- `CHECKBOX`: `"checked"` or `"unchecked"`
-- `PICTURE`: Data URL (base64)
-- `SIGNATURE`: Data URL (base64 image) or plain text (generates a typed signature)
-
-**Response data:**
-
-```json
-{
-  "field_id": "f_kj8n2hd9x3m1p"
-}
-```
+_No data fields required._
 
 #### REMOVE_FIELDS
 

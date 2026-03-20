@@ -311,7 +311,7 @@ describe('EmbedPDF', () => {
 
       expect(typeof ref.current?.goTo).toBe('function');
       expect(typeof ref.current?.selectTool).toBe('function');
-      expect(typeof ref.current?.createField).toBe('function');
+      expect(typeof ref.current?.detectFields).toBe('function');
       expect(typeof ref.current?.removeFields).toBe('function');
       expect(typeof ref.current?.getDocumentContent).toBe('function');
       expect(typeof ref.current?.submit).toBe('function');
@@ -321,10 +321,7 @@ describe('EmbedPDF', () => {
       it.each([
         { action: 'goTo' as const, args: { page: 1 } },
         { action: 'selectTool' as const, args: 'TEXT' as const },
-        {
-          action: 'createField' as const,
-          args: { type: 'TEXT' as const, page: 1, x: 0, y: 0, width: 100, height: 20 },
-        },
+        { action: 'detectFields' as const, args: undefined },
         { action: 'removeFields' as const, args: {} },
         { action: 'getDocumentContent' as const, args: {} },
         { action: 'submit' as const, args: { downloadCopyOnDevice: false } },

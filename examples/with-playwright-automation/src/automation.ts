@@ -4,9 +4,8 @@ import * as path from 'path';
 import type { AutomationConfig } from './schema';
 
 type AutomationErrorCode =
-  | 'document_load_failed'
-  | 'field_creation_failed'
-  | 'remove_fields_failed';
+  | 'detect_fields_failed'
+  | 'document_load_failed';
 
 type AutomationResult =
   | { success: true; data: null }
@@ -163,38 +162,6 @@ const setupIframePage = async ({
   };
 };
 
-const resolveValueToString = ({ value }: { value: string }): string => {
-  if (value.startsWith('data:') || value.startsWith('http://') || value.startsWith('https://')) {
-    return value;
-  }
-
-  const absolutePath = path.isAbsolute(value) ? value : path.resolve(process.cwd(), value);
-
-  if (!fs.existsSync(absolutePath)) {
-    throw new Error(`File not found: ${absolutePath}`);
-  }
-
-  const buffer = fs.readFileSync(absolutePath);
-  const ext = path.extname(absolutePath).toLowerCase();
-  const mimeType = (() => {
-    switch (ext) {
-      case '.jpg':
-      case '.jpeg':
-        return 'image/jpeg';
-      case '.png':
-        return 'image/png';
-      case '.gif':
-        return 'image/gif';
-      case '.webp':
-        return 'image/webp';
-      default:
-        return 'image/png';
-    }
-  })();
-
-  return `data:${mimeType};base64,${buffer.toString('base64')}`;
-};
-
 const runAutomation = async ({ config, baseUrl }: RunAutomationArgs): Promise<AutomationResult> => {
   let browser: Browser | null = null;
 
@@ -217,74 +184,21 @@ const runAutomation = async ({ config, baseUrl }: RunAutomationArgs): Promise<Au
     await waitForDocumentLoaded();
     console.log('Document loaded');
 
-    console.log('Removing existing fields...');
-    const removeRequestId = await sendEvent({ type: 'REMOVE_FIELDS', data: {} });
-    const removeResult = await waitForEvent('REQUEST_RESULT', { requestId: removeRequestId });
+    console.log('Detecting fields...');
+    const detectRequestId = await sendEvent({ type: 'DETECT_FIELDS', data: {} });
+    const detectResult = await waitForEvent('REQUEST_RESULT', { requestId: detectRequestId, timeout: 120000 });
 
-    if (!isRequestResultData(removeResult.event.data) || !removeResult.event.data.result.success) {
+    if (!isRequestResultData(detectResult.event.data) || !detectResult.event.data.result.success) {
+      const errorMessage = isRequestResultData(detectResult.event.data)
+        ? detectResult.event.data.result.error?.message ?? 'Unknown error'
+        : 'Invalid response';
       return {
         success: false,
-        error: { code: 'remove_fields_failed', message: 'Failed to remove existing fields' },
+        error: { code: 'detect_fields_failed', message: `Failed to detect fields: ${errorMessage}` },
       };
     }
-    console.log('Fields removed');
+    console.log('Fields detected');
 
-    console.log(`Creating ${config.fields.length} fields...`);
-    for (let i = 0; i < config.fields.length; i++) {
-      const field = config.fields[i];
-
-      if (!field) {
-        continue;
-      }
-
-      const fieldValue = ((): string | boolean | undefined => {
-        if (field.value === undefined) {
-          return undefined;
-        }
-
-        if (typeof field.value === 'boolean') {
-          return field.value;
-        }
-
-        if (field.type === 'PICTURE' || field.type === 'SIGNATURE') {
-          return resolveValueToString({ value: field.value });
-        }
-
-        return field.value;
-      })();
-
-      const requestId = await sendEvent({
-        type: 'CREATE_FIELD',
-        data: {
-          type: field.type,
-          x: field.x,
-          y: field.y,
-          width: field.width,
-          height: field.height,
-          page: field.page,
-          ...(fieldValue !== undefined ? { value: fieldValue } : {}),
-        },
-      });
-
-      const result = await waitForEvent('REQUEST_RESULT', { requestId });
-
-      if (!isRequestResultData(result.event.data) || !result.event.data.result.success) {
-        const errorMessage = isRequestResultData(result.event.data)
-          ? result.event.data.result.error?.message ?? 'Unknown error'
-          : 'Invalid response';
-        return {
-          success: false,
-          error: {
-            code: 'field_creation_failed',
-            message: `Failed to create ${field.type} field at page ${field.page}: ${errorMessage}`,
-          },
-        };
-      }
-
-      console.log(`  [${i + 1}/${config.fields.length}] Created ${field.type} on page ${field.page}`);
-    }
-
-    console.log('All fields created');
     await page.pause();
 
     return { success: true, data: null };

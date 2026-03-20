@@ -189,7 +189,7 @@ SimplePDF Embed uses a **fully client-side architecture** for PDF processing:
 
 | Limitation                        | Description                                     | Workaround                                                 |
 | --------------------------------- | ----------------------------------------------- | ---------------------------------------------------------- |
-| **No server-side PDF generation** | Cannot generate PDFs from templates server-side | Use client-side field creation via `createField()`         |
+| **No server-side PDF generation** | Cannot generate PDFs from templates server-side | Use client-side field detection via `detectFields()`       |
 | **No bulk processing**            | Cannot process multiple PDFs in batch           | Process sequentially or use dedicated server-side library  |
 | **No programmatic PDF retrieval** | Cannot get modified PDF as Blob/Base64 in JS    | Use webhooks + server storage for programmatic access      |
 | **No persistent storage**         | PDFs don't persist without user action          | Use `companyIdentifier` for server-side submission storage |
@@ -285,7 +285,7 @@ Currently, page manipulation (add/remove/re-arrange/rotate) is only available th
 | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `goTo`                 | Navigate to a specific page                                                                                |
 | `selectTool`           | Select a tool (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `PICTURE`, `SIGNATURE`) or `null` for cursor              |
-| `createField`          | Create a field at a specified position                                                                     |
+| `detectFields`         | Automatically detect form fields in the document                                                           |
 | `removeFields`         | Remove fields by ID, by page, or all fields                                                                |
 | `getDocumentContent`   | Extract text content from the document                                                                     |
 | `submit`               | Submit the document (with optional device download)                                                        |

@@ -247,16 +247,9 @@ describe('useEmbed', () => {
       expect(actionResult).toEqual(expectedError);
     });
 
-    it('createField returns error when embedRef not attached', async () => {
+    it('detectFields returns error when embedRef not attached', async () => {
       const { result } = renderHook(() => useEmbed());
-      const actionResult = await result.current.actions.createField({
-        type: 'TEXT',
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 20,
-      });
+      const actionResult = await result.current.actions.detectFields();
       expect(actionResult).toEqual(expectedError);
     });
 
@@ -287,7 +280,7 @@ describe('useEmbed', () => {
       const spies = {
         goTo: vi.fn().mockResolvedValue({ success: true }),
         selectTool: vi.fn().mockResolvedValue({ success: true }),
-        createField: vi.fn().mockResolvedValue({ success: true }),
+        detectFields: vi.fn().mockResolvedValue({ success: true }),
         removeFields: vi.fn().mockResolvedValue({ success: true }),
         getDocumentContent: vi.fn().mockResolvedValue({ success: true }),
         submit: vi.fn().mockResolvedValue({ success: true }),
@@ -321,15 +314,14 @@ describe('useEmbed', () => {
       expect(actionResult).toEqual({ success: true });
     });
 
-    it('createField delegates to ref.createField', async () => {
+    it('detectFields delegates to ref.detectFields', async () => {
       const { result } = renderHook(() => useEmbed());
       const { ref, spies } = createMockEmbedRef();
       (result.current.embedRef as React.MutableRefObject<EmbedActions>).current = ref;
 
-      const fieldOptions = { type: 'TEXT' as const, page: 1, x: 0, y: 0, width: 100, height: 20 };
-      const actionResult = await result.current.actions.createField(fieldOptions);
+      const actionResult = await result.current.actions.detectFields();
 
-      expect(spies.createField).toHaveBeenCalledWith(fieldOptions);
+      expect(spies.detectFields).toHaveBeenCalled();
       expect(actionResult).toEqual({ success: true });
     });
 
@@ -384,40 +376,6 @@ describe('Type assertions', () => {
 
   type ExpectedToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
 
-  type ExpectedBaseFieldOptions = {
-    page: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-
-  type ExpectedTextFieldOptions = ExpectedBaseFieldOptions & {
-    type: 'TEXT' | 'BOXED_TEXT';
-    value?: string;
-  };
-
-  type ExpectedCheckboxFieldOptions = ExpectedBaseFieldOptions & {
-    type: 'CHECKBOX';
-    value?: 'checked' | 'unchecked';
-  };
-
-  type ExpectedPictureFieldOptions = ExpectedBaseFieldOptions & {
-    type: 'PICTURE';
-    value?: string;
-  };
-
-  type ExpectedSignatureFieldOptions = ExpectedBaseFieldOptions & {
-    type: 'SIGNATURE';
-    value?: string;
-  };
-
-  type ExpectedCreateFieldOptions =
-    | ExpectedTextFieldOptions
-    | ExpectedCheckboxFieldOptions
-    | ExpectedPictureFieldOptions
-    | ExpectedSignatureFieldOptions;
-
   type ExpectedErrorResult = {
     success: false;
     error: { code: string; message: string };
@@ -440,11 +398,9 @@ describe('Type assertions', () => {
       expectTypeOf<EmbedActions['selectTool']>().returns.resolves.toExtend<ExpectedActionResult>();
     });
 
-    it('createField accepts CreateFieldOptions and returns ActionResult with field_id', () => {
-      expectTypeOf<EmbedActions['createField']>().parameter(0).toEqualTypeOf<ExpectedCreateFieldOptions>();
-      expectTypeOf<EmbedActions['createField']>().returns.resolves.toExtend<
-        ExpectedActionResult<{ field_id: string }>
-      >();
+    it('detectFields accepts no arguments and returns ActionResult', () => {
+      expectTypeOf<EmbedActions['detectFields']>().parameters.toEqualTypeOf<[]>();
+      expectTypeOf<EmbedActions['detectFields']>().returns.resolves.toExtend<ExpectedActionResult>();
     });
 
     it('removeFields accepts optional { fieldIds?, page? } and returns ActionResult with removed_count', () => {
@@ -471,81 +427,4 @@ describe('Type assertions', () => {
     });
   });
 
-  describe('createField discriminated union', () => {
-    it('TEXT field options are accepted', () => {
-      const textField = {
-        type: 'TEXT' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 20,
-        value: 'hello',
-      };
-      expectTypeOf(textField).toExtend<ExpectedCreateFieldOptions>();
-    });
-
-    it('BOXED_TEXT field options are accepted', () => {
-      const boxedTextField = {
-        type: 'BOXED_TEXT' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 20,
-        value: 'hello',
-      };
-      expectTypeOf(boxedTextField).toExtend<ExpectedCreateFieldOptions>();
-    });
-
-    it('CHECKBOX field accepts only checked/unchecked values', () => {
-      const checkedField = {
-        type: 'CHECKBOX' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 20,
-        height: 20,
-        value: 'checked' as const,
-      };
-      expectTypeOf(checkedField).toExtend<ExpectedCreateFieldOptions>();
-
-      const uncheckedField = {
-        type: 'CHECKBOX' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 20,
-        height: 20,
-        value: 'unchecked' as const,
-      };
-      expectTypeOf(uncheckedField).toExtend<ExpectedCreateFieldOptions>();
-    });
-
-    it('PICTURE field options are accepted', () => {
-      const pictureField = {
-        type: 'PICTURE' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100,
-        value: 'data:image/png;base64,...',
-      };
-      expectTypeOf(pictureField).toExtend<ExpectedCreateFieldOptions>();
-    });
-
-    it('SIGNATURE field options are accepted', () => {
-      const signatureField = {
-        type: 'SIGNATURE' as const,
-        page: 1,
-        x: 0,
-        y: 0,
-        width: 150,
-        height: 50,
-        value: 'John Doe',
-      };
-      expectTypeOf(signatureField).toExtend<ExpectedCreateFieldOptions>();
-    });
-  });
 });

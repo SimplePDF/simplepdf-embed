@@ -26,27 +26,8 @@ Options:
 
 Configuration file format:
 {
-  "document": "https://example.com/document.pdf",
-  "fields": [
-    {
-      "type": "TEXT",
-      "x": 100,
-      "y": 700,
-      "width": 200,
-      "height": 20,
-      "page": 1,
-      "value": "Hello World"
-    }
-  ]
+  "document": "https://example.com/document.pdf"
 }
-
-Field types: TEXT, BOXED_TEXT, SIGNATURE, PICTURE, CHECKBOX
-
-Coordinate System:
-  Uses PDF standard coordinates:
-  - Origin at bottom-left corner of page
-  - Y increases upward
-  - Units in points (1/72 inch)
 
 Examples:
   npx tsx src/index.ts example.config.json
@@ -133,7 +114,6 @@ const main = async (): Promise<void> => {
 
   console.log('Starting automation...');
   console.log(`Document: ${config.document}`);
-  console.log(`Fields: ${config.fields.length}`);
   console.log(`Editor: ${baseUrl}`);
   console.log('');
 
