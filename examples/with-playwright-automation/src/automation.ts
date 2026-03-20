@@ -1,7 +1,6 @@
 import { chromium, Browser, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { AutomationConfig } from './schema';
 
 type AutomationErrorCode =
   | 'detect_fields_failed'
@@ -10,11 +9,6 @@ type AutomationErrorCode =
 type AutomationResult =
   | { success: true; data: null }
   | { success: false; error: { code: AutomationErrorCode; message: string } };
-
-type RunAutomationArgs = {
-  config: AutomationConfig;
-  baseUrl: string;
-};
 
 type IframeEvent = {
   type: string;
@@ -162,7 +156,7 @@ const setupIframePage = async ({
   };
 };
 
-const runAutomation = async ({ config, baseUrl }: RunAutomationArgs): Promise<AutomationResult> => {
+const runAutomation = async ({ document, baseUrl }: { document: string; baseUrl: string }): Promise<AutomationResult> => {
   let browser: Browser | null = null;
 
   try {
@@ -174,7 +168,7 @@ const runAutomation = async ({ config, baseUrl }: RunAutomationArgs): Promise<Au
 
     const page = await context.newPage();
 
-    const editorUrl = buildEditorUrl({ document: config.document, baseUrl });
+    const editorUrl = buildEditorUrl({ document, baseUrl });
     const { sendEvent, waitForEvent, waitForDocumentLoaded } = await setupIframePage({
       page,
       editorUrl,

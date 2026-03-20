@@ -2,52 +2,33 @@
 
 Playwright-based CLI tool for automatically detecting form fields in PDF documents using the SimplePDF editor.
 
-## Features
-
-- Automatically detect form fields
-- Browser opens for visual inspection after detection
-
 ## Quick Start
 
 ```bash
 npm install
-npx tsx src/index.ts example.config.json
+npx tsx src/index.ts https://example.com/form.pdf
 ```
 
 ## Usage
 
 ```bash
-npx tsx src/index.ts <config.json> [options]
+npx tsx src/index.ts <document> [options]
+
+Arguments:
+  document              URL or local file path to a PDF
 
 Options:
   --company-identifier  Your SimplePDF company identifier (default: embed)
   --help                Show help
 ```
 
-### Using Your Company Identifier
+### Examples
 
 ```bash
-npx tsx src/index.ts config.json --company-identifier mycompany
+npx tsx src/index.ts https://example.com/form.pdf
+npx tsx src/index.ts ./documents/form.pdf
+npx tsx src/index.ts https://example.com/form.pdf --company-identifier mycompany
 ```
-
-This connects to `https://mycompany.simplepdf.com`.
-
-## Configuration
-
-Create a JSON configuration file:
-
-```json
-{
-  "document": "https://example.com/document.pdf"
-}
-```
-
-### Document Source
-
-| Format | Example |
-|--------|---------|
-| URL | `"https://example.com/doc.pdf"` |
-| Local file | `"./documents/form.pdf"` |
 
 ## How It Works
 
