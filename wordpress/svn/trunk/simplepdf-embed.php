@@ -5,7 +5,7 @@ Plugin URI:        https://simplepdf.com/embed
 Author:            SimplePDF
 Author URI:        https://simplepdf.com
 Description:       Your visitors can fill & sign PDFs without leaving your website.
-Version:           1.1.2
+Version:           1.1.3
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -64,7 +64,7 @@ function enqueue_simplepdf_script() {
   $plugin_url = plugin_dir_url(__FILE__);
   $script_src = $plugin_url . 'build/web-embed-pdf.js';
 
-  wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.8.2', true);
+  wp_enqueue_script('simplepdf-web-embed-pdf', $script_src, array(), '1.8.4', true);
 
   $company_identifier = get_option('simplepdf_company_identifier');
   $companyIdentifier = empty($company_identifier) ? 'wordpress' : $company_identifier;

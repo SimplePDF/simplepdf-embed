@@ -1,8 +1,8 @@
 === SimplePDF Embed ===
 Contributors:      bendersej
 Tags:              pdf, embed pdf, fill & sign PDF, pdf editor
-Tested up to:      6.7.1
-Stable tag:        1.1.2
+Tested up to:      6.9.4
+Stable tag:        1.1.3
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
@@ -90,4 +90,7 @@ Our Github repository contains both the code for the Wordpress plugin as well as
 * Move to SimplePDF.com (from SimplePDF.eu)
 = 1.1.2 =
 * Plugin tested with the latest wordpress version (6.7.1)
+= 1.1.3 =
+* Update web-embed-pdf to 1.8.4
+* Plugin tested with the latest wordpress version (6.9.4)
 
