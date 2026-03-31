@@ -36,6 +36,16 @@ Easily add [SimplePDF](https://simplepdf.com) to your React app, by using the `E
 npm install @simplepdf/react-embed-pdf
 ```
 
+## Related documentation
+
+For shared product behavior and account-specific features, see the main embed README:
+
+- [Data Privacy & `companyIdentifier`](../README.md#data-privacy--companyidentifier)
+- [Branding Configuration](../README.md#branding-configuration)
+- [Retrieving PDF Data](../README.md#retrieving-pdf-data)
+- [Page Manipulation](../README.md#page-manipulation)
+- [FAQ](../README.md#faq)
+
 ## How to use it
 
 The `EmbedPDF` component has two modes: `"modal"` (default) and `"inline"`.
@@ -48,10 +58,9 @@ _The features below require a [SimplePDF account](https://simplepdf.com/pricing#
 
 While the component does not require any account to be used (without any limits), you can specify the `companyIdentifier` to:
 
-- [Automatically collect your users' submissions](https://simplepdf.com/embed)
-- [Customize the editor and use your own branding](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding)
-- [Configure webhooks](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
-- **Use your own storage**: [S3-compatible](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions) / [Azure Blob Storage](https://simplepdf.com/help/how-to/use-your-own-azure-blob-storage-for-pdf-documents)
+- [Automatically collect your users' submissions, configure webhooks, and use BYOS](../README.md#retrieving-pdf-data)
+- [Customize branding and white-label behavior](../README.md#branding-configuration)
+- [Use company mode instead of the default mode](../README.md#data-privacy--companyidentifier)
 
 _Example_
 
@@ -120,9 +129,11 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 />;
 ```
 
+See [Data Privacy & `companyIdentifier`](../README.md#data-privacy--companyidentifier) for reserved values and mode behavior.
+
 ### Programmatic Control
 
-_Some actions require a SimplePDF account_
+_Some actions require a SimplePDF account. See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for storage and submission behavior._
 
 Use `const { embedRef, actions } = useEmbed();` to programmatically control the embed editor:
 

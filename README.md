@@ -79,7 +79,7 @@ SimplePDF Embed operates in two distinct modes with different privacy characteri
 - Submissions are stored and accessible via your dashboard
 - Enables webhook integration for form automation (Basic plan+) - [learn more](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
 - Custom branding - remove "Powered by SimplePDF", add your own logo, headless mode... (Pro plan+) - [learn more](https://simplepdf.com/help/how-to/customize-the-pdf-editor-and-add-branding)
-- Use your own S3/Azure Blob Storage for PDF documents (Pro plan+) - [learn more](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
+- Use your own storage for PDF documents: S3-compatible or Azure Blob Storage (Pro plan+), SharePoint (Premium plan) - [learn more](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions)
 
 **Data Flow:**
 
@@ -97,7 +97,7 @@ User fills PDF -> Clicks Submit -> Metadata sent to SimplePDF -> Webhook trigger
 | Submissions collected | No                        | Yes (Basic plan+)                           |
 | Branding              | "Powered by SimplePDF"    | Customizable (Pro plan+)                    |
 | Webhooks              | Not available             | Available (Basic plan+)                     |
-| BYOS (S3/Azure)       | Not available             | Available (Pro plan+)                       |
+| BYOS (S3/Azure/SharePoint) | Not available        | Available (plan-dependent)                  |
 | Price                 | Free                      | [Paid plans](https://simplepdf.com/pricing) |
 
 # Branding Configuration
@@ -166,10 +166,10 @@ SimplePDF Embed uses a **fully client-side architecture** for PDF processing:
 |                   SimplePDF Servers                 |
 |         Submission storage, webhooks, etc.          |
 +-----------------------------------------------------+
-                    | (BYOS - Pro plan, optional)
+                    | (BYOS - paid plans, optional)
                     v
 +-----------------------------------------------------+
-|        Your Own Storage (S3/Azure Blob Storage)     |
+|   Your Own Storage (S3/Azure Blob Storage/SharePoint)|
 |         For HIPAA compliance, data residency, etc.  |
 +-----------------------------------------------------+
 ```
@@ -230,12 +230,12 @@ SimplePDF handles PDF generation and storage so you don't have to. When users su
 | ------------------------------------------- | ----------------------------- | ------------------------------------ |
 | `submit` with `downloadCopyOnDevice: true`  | Browser downloads the PDF     | End-user saves their work            |
 | `submit` with `downloadCopyOnDevice: false` | PDF sent to SimplePDF servers | Server-side collection via webhooks  |
-| S3/Azure Integration                        | PDF stored in your bucket     | Programmatic access via your storage |
+| S3/Azure/SharePoint Integration             | PDF stored in your storage    | Programmatic access via your storage |
 
 **Available integrations:**
 
 - **Webhooks**: Get notified when submissions are received - [Configure webhooks](https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions)
-- **Bring Your Own Storage (BYOS)**: Store submissions directly in your storage - [S3 setup](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions) / [Azure setup](https://simplepdf.com/help/how-to/use-your-own-azure-blob-storage-for-pdf-documents)
+- **Bring Your Own Storage (BYOS)**: Store submissions directly in your storage - [S3 setup](https://simplepdf.com/help/how-to/use-your-own-s3-bucket-storage-for-pdf-form-submissions) / [Azure setup](https://simplepdf.com/help/how-to/bring-your-own-azure-blob-storage-for-pdf-storage) / [SharePoint setup](https://simplepdf.com/help/how-to/connect-sharepoint-as-your-own-storage-for-pdf-submissions)
 
 # Page Manipulation
 
