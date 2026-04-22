@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ToolInvocationCard } from './tool_invocation_card'
+import { getToolKind, ToolIcon } from './tool_icons'
 
 export type ToolInvocationPart = {
   key: string
@@ -42,7 +43,12 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
         aria-expanded={isExpanded}
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-100"
       >
-        <span>{t('toolInvocation.groupSummary', { count: parts.length })}</span>
+        <span className="flex items-center gap-2.5">
+          <span className={groupIconTone(parts)}>
+            <ToolIcon kind={dominantKind(parts)} />
+          </span>
+          <span>{t('toolInvocation.groupSummary', { count: parts.length })}</span>
+        </span>
         <Caret isOpen={isExpanded} />
       </button>
       {isExpanded ? (
@@ -62,6 +68,22 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
       ) : null}
     </div>
   )
+}
+
+const dominantKind = (parts: ToolInvocationPart[]): 'read' | 'write' => {
+  return parts.some((part) => getToolKind(part.toolName) === 'write') ? 'write' : 'read'
+}
+
+const groupIconTone = (parts: ToolInvocationPart[]): string => {
+  const hasError = parts.some((part) => part.state === 'output-error')
+  if (hasError) {
+    return 'text-rose-500'
+  }
+  const allDone = parts.every((part) => part.state === 'output-available')
+  if (allDone) {
+    return 'text-emerald-500'
+  }
+  return 'text-slate-500'
 }
 
 const Caret = ({ isOpen }: { isOpen: boolean }) => (

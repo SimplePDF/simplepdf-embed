@@ -73,7 +73,9 @@ export const ToolInvocationCard = ({
     <div className="my-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2.5 font-medium text-slate-800">
-          <ToolIcon kind={getToolKind(toolName)} />
+          <span className="text-slate-500">
+            <ToolIcon kind={getToolKind(toolName)} />
+          </span>
           {t(`toolInvocation.names.${toolName}`, { defaultValue: t('toolInvocation.fallbackName', { tool: toolName }) })}
         </span>
         <StateBadge state={state} />
