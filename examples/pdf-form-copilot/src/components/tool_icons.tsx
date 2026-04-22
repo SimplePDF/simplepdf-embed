@@ -1,6 +1,12 @@
 type ToolKind = 'read' | 'write'
 
-const READING_TOOL_NAMES = new Set<string>(['get_fields', 'get_document_content', 'focus_field', 'go_to_page'])
+const READING_TOOL_NAMES = new Set<string>([
+  'get_fields',
+  'get_document_content',
+  'detect_fields',
+  'focus_field',
+  'go_to_page',
+])
 
 export const getToolKind = (toolName: string): ToolKind => (READING_TOOL_NAMES.has(toolName) ? 'read' : 'write')
 

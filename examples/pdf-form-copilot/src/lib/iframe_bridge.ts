@@ -62,6 +62,7 @@ const generateRequestId = (): string => {
 
 export type IframeBridge = {
   isEditorReady: () => boolean
+  isDocumentLoaded: () => boolean
   loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
   goTo: (args: { page: number }) => Promise<BridgeResult>
   selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
@@ -79,11 +80,18 @@ type CreateBridgeArgs = {
   iframeRef: RefObject<HTMLIFrameElement | null>
   editorOrigin: string
   onReady: () => void
+  onDocumentLoaded: () => void
 }
 
-const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): { bridge: IframeBridge; dispose: () => void } => {
+const createBridge = ({
+  iframeRef,
+  editorOrigin,
+  onReady,
+  onDocumentLoaded,
+}: CreateBridgeArgs): { bridge: IframeBridge; dispose: () => void } => {
   const pending = new Map<string, PendingRequest>()
   let isEditorReady = false
+  let isDocumentLoaded = false
 
   const sendRequest = <TData>(type: string, data: Record<string, unknown>): Promise<BridgeResult<TData>> => {
     return new Promise((resolve) => {
@@ -112,7 +120,12 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
   }
 
   const markReady = (source: 'editor_ready_event' | 'fallback_timeout'): void => {
+    // A new EDITOR_READY means the iframe has (re)mounted; a fresh document
+    // load cycle is starting. Reset isDocumentLoaded so consumers wait for
+    // the new DOCUMENT_LOADED event before treating the editor as usable.
+    isDocumentLoaded = false
     if (isEditorReady) {
+      onReady()
       return
     }
     isEditorReady = true
@@ -122,6 +135,15 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
       console.info('[copilot] EDITOR_READY received')
     }
     onReady()
+  }
+
+  const markDocumentLoaded = (): void => {
+    if (isDocumentLoaded) {
+      return
+    }
+    isDocumentLoaded = true
+    console.info('[copilot] DOCUMENT_LOADED received')
+    onDocumentLoaded()
   }
 
   const readyTimeout = setTimeout(() => {
@@ -156,6 +178,11 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
       return
     }
 
+    if (payload.type === 'DOCUMENT_LOADED') {
+      markDocumentLoaded()
+      return
+    }
+
     if (payload.type !== 'REQUEST_RESULT') {
       return
     }
@@ -178,6 +205,7 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
 
   const bridge: IframeBridge = {
     isEditorReady: () => isEditorReady,
+    isDocumentLoaded: () => isDocumentLoaded,
     loadDocument: ({ dataUrl, name, initialPage }) =>
       sendRequest('LOAD_DOCUMENT', { data_url: dataUrl, name, page: initialPage }),
     goTo: ({ page }) => sendRequest('GO_TO', { page }),
@@ -209,43 +237,64 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
 type UseIframeBridgeArgs = {
   iframeRef: RefObject<HTMLIFrameElement | null>
   editorOrigin: string
+  // When this key changes, the bridge is disposed and re-created. Use it to
+  // force a full reset of all iframe state (isEditorReady + isDocumentLoaded +
+  // pending requests) whenever the iframe is about to remount — e.g. on a
+  // form switch.
+  resetKey: string
 }
 
 export const useIframeBridge = ({
   iframeRef,
   editorOrigin,
-}: UseIframeBridgeArgs): { bridge: IframeBridge | null; isEditorReady: boolean } => {
+  resetKey,
+}: UseIframeBridgeArgs): {
+  bridge: IframeBridge | null
+  isEditorReady: boolean
+  isDocumentLoaded: boolean
+} => {
   const bridgeRef = useRef<IframeBridge | null>(null)
-  const readyListenersRef = useRef<Set<() => void>>(new Set())
+  const listenersRef = useRef<Set<() => void>>(new Set())
 
   useEffect(() => {
+    const notify = () => {
+      for (const listener of listenersRef.current) {
+        listener()
+      }
+    }
     const { bridge, dispose } = createBridge({
       iframeRef,
       editorOrigin,
-      onReady: () => {
-        for (const listener of readyListenersRef.current) {
-          listener()
-        }
-      },
+      onReady: notify,
+      onDocumentLoaded: notify,
     })
     bridgeRef.current = bridge
+    // Notify subscribers so the fresh false snapshot is picked up immediately.
+    for (const listener of listenersRef.current) {
+      listener()
+    }
     return () => {
       dispose()
       bridgeRef.current = null
+      for (const listener of listenersRef.current) {
+        listener()
+      }
     }
-  }, [iframeRef, editorOrigin])
+  }, [iframeRef, editorOrigin, resetKey])
 
   const subscribe = useCallback((listener: () => void): (() => void) => {
-    readyListenersRef.current.add(listener)
+    listenersRef.current.add(listener)
     return () => {
-      readyListenersRef.current.delete(listener)
+      listenersRef.current.delete(listener)
     }
   }, [])
 
-  const getSnapshot = useCallback((): boolean => bridgeRef.current?.isEditorReady() ?? false, [])
+  const getEditorReadySnapshot = useCallback((): boolean => bridgeRef.current?.isEditorReady() ?? false, [])
+  const getDocumentLoadedSnapshot = useCallback((): boolean => bridgeRef.current?.isDocumentLoaded() ?? false, [])
   const getServerSnapshot = useCallback((): boolean => false, [])
 
-  const isEditorReady = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const isEditorReady = useSyncExternalStore(subscribe, getEditorReadySnapshot, getServerSnapshot)
+  const isDocumentLoaded = useSyncExternalStore(subscribe, getDocumentLoadedSnapshot, getServerSnapshot)
 
-  return { bridge: bridgeRef.current, isEditorReady }
+  return { bridge: bridgeRef.current, isEditorReady, isDocumentLoaded }
 }

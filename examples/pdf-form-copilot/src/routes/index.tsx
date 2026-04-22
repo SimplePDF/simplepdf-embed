@@ -53,7 +53,11 @@ function Home() {
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const { bridge, isEditorReady } = useIframeBridge({ iframeRef, editorOrigin: EDITOR_ORIGIN })
+  const { bridge, isEditorReady, isDocumentLoaded } = useIframeBridge({
+    iframeRef,
+    editorOrigin: EDITOR_ORIGIN,
+    resetKey: currentForm.id,
+  })
 
   const handleLanguageChange = useCallback(
     (nextLang: string): void => {
@@ -86,7 +90,7 @@ function Home() {
         ) : (
           <ChatPane
             bridge={bridge}
-            isEditorReady={isEditorReady}
+            isReady={isDocumentLoaded}
             language={lang}
             onLanguageChange={handleLanguageChange}
             showToolDetails={debug}

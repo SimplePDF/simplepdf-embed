@@ -14,7 +14,7 @@ import { Toolbar, type ToolbarTool } from './toolbar'
 
 type ChatPaneProps = {
   bridge: IframeBridge | null
-  isEditorReady: boolean
+  isReady: boolean
   language: string
   onLanguageChange: (code: string) => void
   showToolDetails: boolean
@@ -197,7 +197,7 @@ const dispatchTool = async (
   }
 }
 
-export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, showToolDetails }: ChatPaneProps) => {
+export const ChatPane = ({ bridge, isReady, language, onLanguageChange, showToolDetails }: ChatPaneProps) => {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
@@ -314,7 +314,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, sh
   )
 
   useEffect(() => {
-    if (toolbarTool === null || bridge === null || !isEditorReady) {
+    if (toolbarTool === null || bridge === null || !isReady) {
       fieldBaselineRef.current = null
       return
     }
@@ -348,10 +348,10 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, sh
       cancelled = true
       clearInterval(interval)
     }
-  }, [toolbarTool, bridge, isEditorReady, sendMessage])
+  }, [toolbarTool, bridge, isReady, sendMessage])
 
   const isStreaming = status === 'streaming' || status === 'submitted'
-  const canSend = isEditorReady && !isStreaming
+  const canSend = isReady && !isStreaming
   const languageLabel = getLanguageByCode(language)?.label ?? 'English'
 
   const handleSend = useCallback(
@@ -372,7 +372,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, sh
         <div>
           <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
           <p className="text-xs text-slate-500">
-            {isEditorReady ? t('chat.subtitleReady') : t('chat.subtitleWaiting')}
+            {isReady ? t('chat.subtitleReady') : t('chat.subtitleWaiting')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -388,7 +388,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, sh
           ) : null}
         </div>
       </div>
-      <Toolbar selected={toolbarTool} onSelect={handleToolbarSelect} disabled={!isEditorReady} />
+      <Toolbar selected={toolbarTool} onSelect={handleToolbarSelect} disabled={!isReady} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col">
