@@ -29,8 +29,9 @@ export const Route = createFileRoute('/')({
   },
 })
 
-const EDITOR_HOST = 'https://pdf-form-copilot.simplepdf.com/editor'
-const EDITOR_ORIGIN = 'https://pdf-form-copilot.simplepdf.com'
+const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
+const EDITOR_ORIGIN = `https://${COMPANY_IDENTIFIER}.simplepdf.com`
+const EDITOR_HOST = `${EDITOR_ORIGIN}/editor`
 
 const buildEditorSrc = ({ pdfUrl }: { pdfUrl: string }): string => {
   if (pdfUrl === '') {
