@@ -173,9 +173,8 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
                   >
                     <span className="flex w-full items-center justify-between gap-2">
                       <span className="font-medium">{t(entry.labelKey)}</span>
-                      {isSelected ? (
-                        <span className="text-sky-600">✓</span>
-                      ) : isComingSoon ? (
+                      {isSelected ? <span className="text-sky-600">✓</span> : null}
+                      {isExpanded ? (
                         <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase text-slate-500">
                           {t('chat.modelPicker.comingSoon')}
                         </span>
