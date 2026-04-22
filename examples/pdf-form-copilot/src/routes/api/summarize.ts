@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
-import { getClientIp, hashIp, rateLimiter } from '../../server/rate_limit'
+import { getClientIp, hashIp, isOriginAllowed, rateLimiter } from '../../server/rate_limit'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_INPUT_CHARS = 20_000
@@ -78,6 +78,9 @@ export const Route = createFileRoute('/api/summarize')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!isOriginAllowed(request)) {
+          return Response.json({ error: 'forbidden_origin' }, { status: 403 })
+        }
         const apiKey = process.env.ANTHROPIC_API_KEY
         if (apiKey === undefined || apiKey === '') {
           return Response.json(

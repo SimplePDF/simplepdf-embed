@@ -1,3 +1,5 @@
+import { persistence, type PersistedState } from './rate_limit_persistence'
+
 type BucketState = {
   hits: number
 }
@@ -24,6 +26,36 @@ export type RateLimitDecision =
 export const createRateLimiter = () => {
   const buckets = new Map<string, BucketState>()
 
+  // Hydrate from persisted state (DO Spaces) in the background. Requests that
+  // land before hydration completes start from an empty counter; this is a
+  // small fairness loss at cold boot but avoids blocking every request on S3.
+  let hydrated = false
+  if (persistence.enabled) {
+    void persistence
+      .load()
+      .then((state) => {
+        if (state !== null) {
+          for (const entry of state.entries) {
+            const existing = buckets.get(entry.ipHash)
+            const hits = existing === undefined ? entry.hits : Math.max(existing.hits, entry.hits)
+            buckets.set(entry.ipHash, { hits })
+          }
+        }
+        hydrated = true
+      })
+      .catch(() => {
+        hydrated = true
+      })
+  } else {
+    hydrated = true
+  }
+
+  const snapshotState = (): PersistedState => ({
+    version: 1,
+    updatedAt: Date.now(),
+    entries: Array.from(buckets.entries()).map(([ipHash, { hits }]) => ({ ipHash, hits })),
+  })
+
   const check = (ipHash: string): RateLimitDecision => {
     const existing = buckets.get(ipHash)
     const state: BucketState = existing ?? { hits: 0 }
@@ -36,6 +68,10 @@ export const createRateLimiter = () => {
     state.hits += 1
     buckets.set(ipHash, state)
 
+    if (persistence.enabled && hydrated) {
+      persistence.scheduleWrite(snapshotState())
+    }
+
     return {
       allowed: true,
       remaining: LIMITS.lifetime - state.hits,
@@ -45,6 +81,9 @@ export const createRateLimiter = () => {
   const reset = (): number => {
     const previous = buckets.size
     buckets.clear()
+    if (persistence.enabled) {
+      persistence.scheduleWrite(snapshotState())
+    }
     return previous
   }
 
@@ -64,6 +103,37 @@ export const getClientIp = (request: Request): string => {
     }
   }
   return 'unknown'
+}
+
+// Origin allow-list: when ALLOWED_ORIGINS is set (comma-separated), only
+// requests whose Origin or Referer header starts with one of those origins
+// are accepted. Defeats drive-by curl / scraper traffic that doesn't bother
+// to set a browser-style Origin.
+const parseAllowedOrigins = (): string[] | null => {
+  const raw = process.env.ALLOWED_ORIGINS
+  if (raw === undefined || raw.trim() === '') {
+    return null
+  }
+  return raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== '')
+}
+
+export const isOriginAllowed = (request: Request): boolean => {
+  const allowed = parseAllowedOrigins()
+  if (allowed === null) {
+    return true
+  }
+  const origin = request.headers.get('origin')
+  if (origin !== null && allowed.some((entry) => origin === entry)) {
+    return true
+  }
+  const referer = request.headers.get('referer')
+  if (referer !== null && allowed.some((entry) => referer.startsWith(entry))) {
+    return true
+  }
+  return false
 }
 
 export const hashIp = async (ip: string): Promise<string> => {
