@@ -453,7 +453,17 @@ const MessageView = ({ message }: MessageViewProps) => {
           if (part.type === 'text') {
             return (
               <div key={key} className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
-                <ReactMarkdown>{part.text}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    strong: ({ children }) => (
+                      <strong className={isUser ? 'font-semibold' : 'font-semibold text-sky-700'}>
+                        {children}
+                      </strong>
+                    ),
+                  }}
+                >
+                  {part.text}
+                </ReactMarkdown>
               </div>
             )
           }
