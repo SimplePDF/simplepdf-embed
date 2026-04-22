@@ -51,6 +51,7 @@ type PendingRequest = {
 }
 
 const REQUEST_TIMEOUT_MS = 30_000
+const EDITOR_READY_FALLBACK_MS = 4_000
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -110,8 +111,28 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
     })
   }
 
+  const markReady = (source: 'editor_ready_event' | 'fallback_timeout'): void => {
+    if (isEditorReady) {
+      return
+    }
+    isEditorReady = true
+    if (source === 'fallback_timeout') {
+      console.warn('[copilot] EDITOR_READY never arrived; flipping isEditorReady optimistically after timeout')
+    } else {
+      console.info('[copilot] EDITOR_READY received')
+    }
+    onReady()
+  }
+
+  const readyTimeout = setTimeout(() => {
+    markReady('fallback_timeout')
+  }, EDITOR_READY_FALLBACK_MS)
+
   const onMessage = (event: MessageEvent<string>) => {
     if (event.origin !== editorOrigin) {
+      if (event.origin !== '' && typeof event.data === 'string' && event.data.length < 200) {
+        console.debug('[copilot] ignored message from', event.origin, '(expected', editorOrigin + ')')
+      }
       return
     }
     if (event.source !== iframeRef.current?.contentWindow) {
@@ -131,10 +152,7 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
     }
 
     if (payload.type === 'EDITOR_READY') {
-      if (!isEditorReady) {
-        isEditorReady = true
-        onReady()
-      }
+      markReady('editor_ready_event')
       return
     }
 
@@ -177,6 +195,7 @@ const createBridge = ({ iframeRef, editorOrigin, onReady }: CreateBridgeArgs): {
 
   const dispose = () => {
     window.removeEventListener('message', onMessage)
+    clearTimeout(readyTimeout)
     for (const { timeoutId, resolve } of pending.values()) {
       clearTimeout(timeoutId)
       resolve({ success: false, error: { code: 'bridge_disposed', message: 'Iframe bridge was disposed' } })
