@@ -19,7 +19,7 @@ export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => 
         <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           {editor}
         </section>
-        <aside className="flex w-[380px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <aside className="flex w-[296px] min-w-[296px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           {chat}
         </aside>
       </main>
