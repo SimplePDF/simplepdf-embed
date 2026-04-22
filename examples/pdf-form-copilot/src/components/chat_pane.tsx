@@ -1,17 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
-import type { FormId } from '../lib/forms'
-import { SuggestedPrompts } from './suggested_prompts'
+import { DEFAULT_LANGUAGE_CODE, getLanguageByCode } from '../lib/languages'
+import { LanguagePicker } from './language_picker'
 import { ToolInvocationCard } from './tool_invocation_card'
 
 type ChatPaneProps = {
   bridge: IframeBridge | null
   isEditorReady: boolean
-  formId: FormId
 }
 
 type ToolInput = Record<string, unknown>
@@ -58,14 +57,29 @@ const dispatchTool = async (
   }
 }
 
-export const ChatPane = ({ bridge, isEditorReady, formId }: ChatPaneProps) => {
+export const ChatPane = ({ bridge, isEditorReady }: ChatPaneProps) => {
   const [draft, setDraft] = useState('')
+  const [languageCode, setLanguageCode] = useState<string>(DEFAULT_LANGUAGE_CODE)
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
+  const languageRef = useRef(languageCode)
+  languageRef.current = languageCode
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: '/api/chat',
+        body: () => {
+          const language = getLanguageByCode(languageRef.current)
+          return { language_label: language !== null ? language.label : 'English' }
+        },
+      }),
+    [],
+  )
+
   const { messages, status, error, sendMessage, stop, addToolOutput } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    transport,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onToolCall: ({ toolCall }) => {
       if (toolCall.dynamic) {
@@ -107,6 +121,7 @@ export const ChatPane = ({ bridge, isEditorReady, formId }: ChatPaneProps) => {
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   const canSend = isEditorReady && !isStreaming
+  const languageLabel = getLanguageByCode(languageCode)?.label ?? 'English'
 
   const handleSend = useCallback(
     (prompt: string): void => {
@@ -122,26 +137,37 @@ export const ChatPane = ({ bridge, isEditorReady, formId }: ChatPaneProps) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-900">Chat</h2>
           <p className="text-xs text-slate-500">
             {isEditorReady ? 'Claude Haiku 4.5 · in-memory rate limit' : 'Waiting for the editor to load…'}
           </p>
         </div>
-        {isStreaming ? (
-          <button
-            type="button"
-            onClick={stop}
-            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
-          >
-            Stop
-          </button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <LanguagePicker value={languageCode} onChange={setLanguageCode} disabled={isStreaming} />
+          {isStreaming ? (
+            <button
+              type="button"
+              onClick={stop}
+              className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+            >
+              Stop
+            </button>
+          ) : null}
+        </div>
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
-          <SuggestedPrompts formId={formId} onSelect={handleSend} disabled={!canSend} />
+          <div className="p-6 text-sm text-slate-500">
+            <p className="text-slate-700">
+              Ask the copilot anything about the form. Replies are in{' '}
+              <span className="font-medium text-slate-900">{languageLabel}</span>.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              Try: &ldquo;Help me fill this form&rdquo; or &ldquo;Which fields are still empty?&rdquo;
+            </p>
+          </div>
         ) : (
           <div className="space-y-4 p-4">
             {messages.map((message) => (

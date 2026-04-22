@@ -51,7 +51,7 @@ function Home() {
         debug ? (
           <DebugPanel bridge={bridge} isEditorReady={isEditorReady} />
         ) : (
-          <ChatPane bridge={bridge} isEditorReady={isEditorReady} formId={form} />
+          <ChatPane bridge={bridge} isEditorReady={isEditorReady} />
         )
       }
     />

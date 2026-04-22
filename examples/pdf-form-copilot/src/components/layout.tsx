@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { Link } from '@tanstack/react-router'
-import { FORMS, type FormId, otherFormId } from '../lib/forms'
+import { useNavigate } from '@tanstack/react-router'
+import { FORM_ORDER, FORMS, isFormId, type FormId } from '../lib/forms'
 import { InfoModal } from './info_modal'
 
 type LayoutProps = {
@@ -30,12 +30,22 @@ type HeaderProps = {
 }
 
 const Header = ({ currentFormId }: HeaderProps) => {
-  const alternateId = otherFormId(currentFormId)
-  const alternate = FORMS[alternateId]
+  const navigate = useNavigate()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
 
+  const handleFormChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const next = event.target.value
+    if (!isFormId(next)) {
+      return
+    }
+    void navigate({
+      to: '/',
+      search: (prev) => ({ form: next, debug: prev.debug ?? false }),
+    })
+  }
+
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+    <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
       <div className="flex items-baseline gap-3">
         <span className="text-lg font-semibold text-slate-900">Form Copilot</span>
         <span className="text-sm text-slate-500">AI that helps users fill PDF forms step by step</span>
@@ -49,13 +59,20 @@ const Header = ({ currentFormId }: HeaderProps) => {
         </button>
       </div>
       <div className="flex items-center gap-4 text-xs">
-        <Link
-          to="/"
-          search={(prev) => ({ form: alternateId, debug: prev.debug ?? false })}
-          className="font-medium text-sky-600 hover:text-sky-700"
-        >
-          {alternate.switchLabel}
-        </Link>
+        <label className="flex items-center gap-2 text-slate-500">
+          <span>Use case</span>
+          <select
+            value={currentFormId}
+            onChange={handleFormChange}
+            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:border-sky-300 focus:border-sky-500 focus:outline-none"
+          >
+            {FORM_ORDER.map((id) => (
+              <option key={id} value={id}>
+                {FORMS[id].useCase} — {FORMS[id].label}
+              </option>
+            ))}
+          </select>
+        </label>
         <a
           href="https://simplepdf.com"
           target="_blank"

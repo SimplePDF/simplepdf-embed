@@ -15,9 +15,13 @@ import { getClientIp, hashIp, rateLimiter } from '../../server/rate_limit'
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
 
-type ChatRequestBody = { messages: UIMessage[] }
+type ChatRequestBody = { messages: UIMessage[]; language_label?: string }
 
-const parseBody = async (request: Request): Promise<{ success: true; messages: UIMessage[] } | { success: false; status: number; message: string }> => {
+type ParsedBody =
+  | { success: true; messages: UIMessage[]; languageLabel: string }
+  | { success: false; status: number; message: string }
+
+const parseBody = async (request: Request): Promise<ParsedBody> => {
   if (request.headers.get('content-type')?.includes('application/json') !== true) {
     return { success: false, status: 415, message: 'Expected application/json' }
   }
@@ -35,7 +39,9 @@ const parseBody = async (request: Request): Promise<{ success: true; messages: U
   if (parsed === null || typeof parsed !== 'object' || !Array.isArray((parsed as ChatRequestBody).messages)) {
     return { success: false, status: 400, message: 'Expected { messages: UIMessage[] }' }
   }
-  return { success: true, messages: (parsed as ChatRequestBody).messages }
+  const rawLabel = (parsed as ChatRequestBody).language_label
+  const languageLabel = typeof rawLabel === 'string' && rawLabel.trim() !== '' ? rawLabel.trim() : 'English'
+  return { success: true, messages: (parsed as ChatRequestBody).messages, languageLabel }
 }
 
 export const Route = createFileRoute('/api/chat')({
@@ -76,9 +82,11 @@ export const Route = createFileRoute('/api/chat')({
 
         const anthropic = createAnthropic({ apiKey })
 
+        const systemPrompt = `${SYSTEM_PROMPT}\n\nLanguage: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
+
         const result = streamText({
           model: anthropic(MODEL_ID),
-          system: SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: await convertToModelMessages(body.messages),
           maxRetries: 1,
           tools: {
@@ -115,6 +123,7 @@ export const Route = createFileRoute('/api/chat')({
           remaining_hour: decision.remaining.hour,
           remaining_day: decision.remaining.day,
           message_count: body.messages.length,
+          language: body.languageLabel,
         })
 
         return result.toUIMessageStreamResponse()
