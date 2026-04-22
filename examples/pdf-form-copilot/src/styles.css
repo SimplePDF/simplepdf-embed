@@ -4,6 +4,8 @@
 @theme {
   --color-sky-600: #3665e1;
   --color-sky-700: #2a52ba;
+  --color-emerald-500: #29dca7;
+  --color-rose-500: #ff535a;
 }
 
 * {
