@@ -51,7 +51,7 @@ const DEFAULT_FORMS: Record<FormId, FormConfig> = {
   },
 }
 
-const DEFAULT_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned', 'custom']
+const DEFAULT_ORDER: FormId[] = ['custom', 'w9', 'healthcare', 'hr', 'state', 'state_scanned']
 
 export const DEFAULT_FORM_ID: FormId = 'w9'
 
