@@ -1,19 +1,20 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { FORM_ORDER, FORMS, isFormId, type FormId } from '../lib/forms'
+import { getFormsForLocale, isFormId, type FormId } from '../lib/forms'
 import { InfoModal } from './info_modal'
 
 type LayoutProps = {
+  locale: string
   currentFormId: FormId
   editor: ReactNode
   chat: ReactNode
 }
 
-export const Layout = ({ currentFormId, editor, chat }: LayoutProps) => {
+export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => {
   return (
     <div className="flex h-screen flex-col bg-slate-50">
-      <Header currentFormId={currentFormId} />
+      <Header locale={locale} currentFormId={currentFormId} />
       <main className="flex min-h-0 flex-1 gap-4 p-4">
         <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           {editor}
@@ -27,13 +28,15 @@ export const Layout = ({ currentFormId, editor, chat }: LayoutProps) => {
 }
 
 type HeaderProps = {
+  locale: string
   currentFormId: FormId
 }
 
-const Header = ({ currentFormId }: HeaderProps) => {
+const Header = ({ locale, currentFormId }: HeaderProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const { order, forms } = getFormsForLocale(locale)
 
   const switchForm = (next: FormId): void => {
     void navigate({
@@ -76,8 +79,8 @@ const Header = ({ currentFormId }: HeaderProps) => {
             onChange={handleFormChange}
             className="rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:border-sky-300 focus:border-sky-500 focus:outline-none"
           >
-            {FORM_ORDER.map((id) => {
-              const form = FORMS[id]
+            {order.map((id) => {
+              const form = forms[id]
               return (
                 <option key={id} value={id}>
                   {t(form.useCaseKey)} — {t(form.labelKey)}

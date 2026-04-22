@@ -47,7 +47,7 @@
   },
   "chat": {
     "heading": "Chat",
-    "subtitleReady": "Claude Haiku 4.5 · in-memory rate limit",
+    "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Waiting for the editor to load…",
     "stop": "Stop",
     "thinking": "Thinking…",

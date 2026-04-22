@@ -1,13 +1,18 @@
 export type FormId = 'w9' | 'healthcare' | 'hr' | 'state' | 'state_scanned'
 
-type FormConfig = {
+export type FormConfig = {
   id: FormId
   useCaseKey: string
   labelKey: string
   pdfUrl: string
 }
 
-export const FORMS: Record<FormId, FormConfig> = {
+export type LocaleForms = {
+  order: FormId[]
+  forms: Record<FormId, FormConfig>
+}
+
+const DEFAULT_FORMS: Record<FormId, FormConfig> = {
   w9: {
     id: 'w9',
     useCaseKey: 'forms.useCases.tax',
@@ -40,8 +45,17 @@ export const FORMS: Record<FormId, FormConfig> = {
   },
 }
 
+const DEFAULT_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned']
+
 export const DEFAULT_FORM_ID: FormId = 'w9'
-export const FORM_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned']
+
+// Forms can be differentiated per locale later. For now every locale shares
+// the same list; consumers must still route through getFormsForLocale so
+// swapping in locale-specific variants is a one-file change.
+export const getFormsForLocale = (_locale: string): LocaleForms => ({
+  order: DEFAULT_ORDER,
+  forms: DEFAULT_FORMS,
+})
 
 export const isFormId = (value: unknown): value is FormId =>
   value === 'w9' ||
