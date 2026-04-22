@@ -84,7 +84,25 @@ export const Route = createFileRoute('/api/chat')({
 
         const anthropic = createAnthropic({ apiKey })
 
-        const modelMessages = await convertToModelMessages(body.messages)
+        const rawModelMessages = await convertToModelMessages(body.messages)
+        const modelMessages = rawModelMessages.map((message, index) => {
+          if (index !== rawModelMessages.length - 1) {
+            return message
+          }
+          const existingProviderOptions = (message.providerOptions ?? {}) as Record<string, unknown>
+          const existingAnthropic =
+            (existingProviderOptions.anthropic as Record<string, unknown> | undefined) ?? {}
+          return {
+            ...message,
+            providerOptions: {
+              ...existingProviderOptions,
+              anthropic: {
+                ...existingAnthropic,
+                cacheControl: { type: 'ephemeral' },
+              },
+            },
+          }
+        })
         const languageInstruction = `Language: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
 
         const result = streamText({
