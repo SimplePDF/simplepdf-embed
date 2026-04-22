@@ -43,8 +43,8 @@ export const Toolbar = ({ selected, onSelect, disabled }: ToolbarProps) => {
             title={label}
             className={`flex h-7 w-7 items-center justify-center rounded border transition disabled:cursor-not-allowed disabled:opacity-40 ${
               isActive
-                ? 'border-sky-400 bg-sky-100 text-sky-700'
-                : 'border-slate-200 bg-white text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600'
+                ? 'border-sky-600 bg-white text-sky-600'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-sky-600'
             }`}
           >
             <Icon size={14} strokeWidth={2} />
