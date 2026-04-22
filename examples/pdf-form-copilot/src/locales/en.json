@@ -60,7 +60,7 @@
   "suggestedPrompts": {
     "lead": "Try one of these:",
     "helpFill": "Help me fill this form",
-    "explainFields": "Explain each field in one sentence"
+    "explainFields": "What's this form about?"
   },
   "languagePicker": {
     "label": "Language",
