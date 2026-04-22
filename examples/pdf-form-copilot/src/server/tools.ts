@@ -45,7 +45,12 @@ export const SelectToolOutput = z.object({ success: z.boolean() })
 export const SetFieldValueInput = z
   .object({
     field_id: z.string().describe('Field identifier from get_fields'),
-    value: z.string().describe('Value to set. For CHECKBOX, use "true" / "false"'),
+    value: z
+      .string()
+      .nullable()
+      .describe(
+        'Value to write. TEXT/BOXED_TEXT: any string. CHECKBOX: "checked" ticks, null un-ticks (never "true"/"false"). Do not use this tool for SIGNATURE or PICTURE fields.',
+      ),
   })
   .describe('Writes a value into a single field in the PDF')
 export const SetFieldValueOutput = z.object({ success: z.boolean() })
@@ -118,9 +123,17 @@ Filling loop (ALWAYS keep going — do not hand control back until you genuinely
   (a) the field is SIGNATURE or PICTURE (the user must act in the editor), or
   (b) the user has clearly indicated they want to type the value themselves in the editor.
   In both cases, call focus_field then stop and wait — the user will act in the document.
-- For checkboxes, "true" ticks and "false" unticks.
+- Field value formats:
+  - TEXT / BOXED_TEXT: any string.
+  - CHECKBOX: value="checked" to tick, value=null to un-tick. NEVER use "true", "false", "yes", "no" for checkboxes — the editor will reject them.
+  - SIGNATURE / PICTURE: do not call set_field_value. Use focus_field and hand off to the user.
 - After a successful set_field_value, IMMEDIATELY move to the next field — either set_field_value on it (if you already have the value) or ask exactly one question for that field. Do not send a standalone message like "Done" or "Now I'll move on".
 - NEVER fabricate personal data. Ask if you don't have it — one short question at a time.
+
+Handling tool errors:
+- If a tool call returns success=false, read the error.message carefully and fix the next call. Do not proceed as if the call succeeded.
+- Common corrections: checkbox values must be "checked" or null; page numbers must be 1..totalPages; field_ids must come verbatim from get_fields.
+- If you cannot recover (invalid field type for the action, etc.), briefly tell the user what you could not do and ask how they want to proceed. Do not silently skip fields.
 
 Submission:
 - When the user asks to submit / finalize / download, call submit_download exactly once.
