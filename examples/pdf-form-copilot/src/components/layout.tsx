@@ -33,11 +33,7 @@ const Header = ({ currentFormId }: HeaderProps) => {
   const navigate = useNavigate()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
 
-  const handleFormChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const next = event.target.value
-    if (!isFormId(next)) {
-      return
-    }
+  const switchForm = (next: FormId): void => {
     void navigate({
       to: '/',
       search: (prev) => ({
@@ -46,6 +42,14 @@ const Header = ({ currentFormId }: HeaderProps) => {
         lang: prev.lang ?? 'en',
       }),
     })
+  }
+
+  const handleFormChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const next = event.target.value
+    if (!isFormId(next)) {
+      return
+    }
+    switchForm(next)
   }
 
   return (
@@ -86,7 +90,7 @@ const Header = ({ currentFormId }: HeaderProps) => {
           Powered by SimplePDF
         </a>
       </div>
-      <InfoModal open={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
+      <InfoModal open={isInfoOpen} onClose={() => setIsInfoOpen(false)} onSelectForm={switchForm} />
     </header>
   )
 }

@@ -2,10 +2,12 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import {
+  DetectFieldsInput,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
+  SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
   SYSTEM_PROMPT,
@@ -106,6 +108,16 @@ export const Route = createFileRoute('/api/chat')({
             get_document_content: {
               description: 'Extracts the textual content of the document page by page.',
               inputSchema: GetDocumentContentInput,
+            },
+            detect_fields: {
+              description:
+                'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
+              inputSchema: DetectFieldsInput,
+            },
+            select_tool: {
+              description:
+                'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor). Use TEXT to invite the user to drop fields on a scanned document that has no native fields.',
+              inputSchema: SelectToolInput,
             },
             set_field_value: {
               description: 'Writes a value into a single field. Always focus_field first.',

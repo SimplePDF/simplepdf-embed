@@ -1,36 +1,43 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import type { FormId } from '../lib/forms'
 
 type InfoModalProps = {
   open: boolean
   onClose: () => void
+  onSelectForm: (formId: FormId) => void
 }
 
 type UseCase = {
   title: string
   body: string
+  formId: FormId | null
 }
 
 const USE_CASES: UseCase[] = [
   {
     title: 'Healthcare',
     body: 'Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider\'s own storage and LLM provider.',
+    formId: 'healthcare',
   },
   {
     title: 'Insurance',
     body: 'ACORD applications, claim forms and policy endorsements. Carriers and brokers cut customer friction by letting the copilot pre-fill known data, explain coverages and route the finished PDF to the underwriter\'s system.',
+    formId: null,
   },
   {
     title: 'State bureaucracy',
     body: 'Scanned government forms become instantly fillable thanks to SimplePDF\'s field detection. Particularly useful when the form is in a language the user does not speak — the copilot translates, explains, and fills step by step.',
+    formId: 'state',
   },
   {
     title: 'HR onboarding',
     body: 'NDAs, offer letters, W-9, I-9. The copilot prefills what it can from context, hands off to the human for signatures, and submits into the HR workflow.',
+    formId: 'hr',
   },
 ]
 
-export const InfoModal = ({ open, onClose }: InfoModalProps) => {
+export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
   useEffect(() => {
     if (!open) {
       return
@@ -147,17 +154,41 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
           <section>
             <h3 className="text-sm font-semibold text-slate-900">Saving time for everyone</h3>
             <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {USE_CASES.map((useCase) => (
-                <div key={useCase.title} className="flex flex-col rounded-md border border-slate-200 bg-slate-50 p-3">
-                  <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
-                </div>
-              ))}
+              {USE_CASES.map((useCase) => {
+                const isClickable = useCase.formId !== null
+                const baseClass = 'flex flex-col rounded-md border p-3 text-left transition'
+                if (isClickable) {
+                  return (
+                    <button
+                      key={useCase.title}
+                      type="button"
+                      onClick={() => {
+                        if (useCase.formId === null) {
+                          return
+                        }
+                        onSelectForm(useCase.formId)
+                        onClose()
+                      }}
+                      className={`${baseClass} cursor-pointer border-slate-200 bg-slate-50 hover:border-sky-300 hover:bg-sky-50`}
+                    >
+                      <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
+                      <span className="mt-2 text-[11px] font-medium text-sky-600">Try this form →</span>
+                    </button>
+                  )
+                }
+                return (
+                  <div
+                    key={useCase.title}
+                    className={`${baseClass} border-slate-200 bg-slate-50`}
+                  >
+                    <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
+                  </div>
+                )
+              })}
             </div>
-            <p className="mt-3 text-xs text-slate-500">
-              Switch between the examples using the <span className="font-medium">Use case</span> selector in the
-              header.
-            </p>
+            <p className="mt-3 text-xs text-slate-500">Click on any of the use cases above to switch forms.</p>
           </section>
 
         </div>

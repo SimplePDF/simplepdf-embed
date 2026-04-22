@@ -8,6 +8,7 @@ import { getLanguageByCode } from '../lib/languages'
 import { LanguagePicker } from './language_picker'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ToolInvocationCard } from './tool_invocation_card'
+import { Toolbar, type ToolbarTool } from './toolbar'
 
 type ChatPaneProps = {
   bridge: IframeBridge | null
@@ -100,7 +101,17 @@ const compactGetDocumentContent = async (
   }
 }
 
-type DispatchContext = { languageLabel: string }
+type DispatchContext = {
+  languageLabel: string
+  onToolbarChange: (tool: ToolbarTool) => void
+}
+
+const isToolbarTool = (value: unknown): value is ToolbarTool =>
+  value === null ||
+  value === 'TEXT' ||
+  value === 'CHECKBOX' ||
+  value === 'SIGNATURE' ||
+  value === 'PICTURE'
 
 const dispatchTool = async (
   bridge: IframeBridge,
@@ -117,6 +128,20 @@ const dispatchTool = async (
         await bridge.getDocumentContent({ extractionMode: extraction }),
         context.languageLabel,
       )
+    }
+    case 'detect_fields':
+      return bridge.detectFields()
+    case 'select_tool': {
+      const rawTool = input.tool
+      if (rawTool !== undefined && rawTool !== null && !isToolbarTool(rawTool)) {
+        return { success: false, error: { code: 'bad_input', message: `Unsupported tool: ${String(rawTool)}` } }
+      }
+      const toolbarTool: ToolbarTool = rawTool === undefined ? null : (rawTool as ToolbarTool)
+      const result = await bridge.selectTool({ tool: toolbarTool })
+      if (result.success) {
+        context.onToolbarChange(toolbarTool)
+      }
+      return result
     }
     case 'set_field_value': {
       const fieldId = typeof input.field_id === 'string' ? input.field_id : null
@@ -150,11 +175,13 @@ const dispatchTool = async (
 
 export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: ChatPaneProps) => {
   const [draft, setDraft] = useState('')
+  const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
   const languageRef = useRef(language)
   languageRef.current = language
   const scrollRef = useRef<HTMLDivElement>(null)
+  const fieldBaselineRef = useRef<number | null>(null)
 
   const transport = useMemo(
     () =>
@@ -198,7 +225,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
       const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
       void dispatchTool(
         activeBridge,
-        { languageLabel },
+        { languageLabel, onToolbarChange: setToolbarTool },
         toolName,
         (toolCall.input as ToolInput) ?? {},
       ).then((result) => {
@@ -214,6 +241,55 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
+
+  const handleToolbarSelect = useCallback(
+    (tool: ToolbarTool): void => {
+      setToolbarTool(tool)
+      const activeBridge = bridgeRef.current
+      if (activeBridge === null) {
+        return
+      }
+      void activeBridge.selectTool({ tool })
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (toolbarTool === null || bridge === null || !isEditorReady) {
+      fieldBaselineRef.current = null
+      return
+    }
+    let cancelled = false
+    const interval = setInterval(async () => {
+      const activeBridge = bridgeRef.current
+      if (activeBridge === null) {
+        return
+      }
+      const result = await activeBridge.getFields()
+      if (cancelled || !result.success) {
+        return
+      }
+      const count = result.data.fields.length
+      if (fieldBaselineRef.current === null) {
+        fieldBaselineRef.current = count
+        return
+      }
+      if (count > fieldBaselineRef.current) {
+        const delta = count - fieldBaselineRef.current
+        fieldBaselineRef.current = count
+        void sendMessage({
+          text:
+            delta === 1
+              ? 'A new field was just added to the document. Please continue helping me with it.'
+              : `${delta} new fields were just added to the document. Please continue helping me with them.`,
+        })
+      }
+    }, 500)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [toolbarTool, bridge, isEditorReady, sendMessage])
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   const canSend = isEditorReady && !isStreaming
@@ -253,6 +329,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
           ) : null}
         </div>
       </div>
+      <Toolbar selected={toolbarTool} onSelect={handleToolbarSelect} disabled={!isEditorReady} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col">
