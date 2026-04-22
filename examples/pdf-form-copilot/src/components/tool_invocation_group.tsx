@@ -19,7 +19,9 @@ type ToolInvocationGroupProps = {
 
 export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupProps) => {
   const { t } = useTranslation()
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isManuallyExpanded, setIsManuallyExpanded] = useState(false)
+  const hasError = parts.some((part) => part.state === 'output-error')
+  const isExpanded = isManuallyExpanded || hasError
 
   if (parts.length === 1) {
     const part = parts[0]
@@ -39,12 +41,12 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
     <div className="my-2 rounded-md border border-slate-200 bg-slate-50">
       <button
         type="button"
-        onClick={() => setIsExpanded((open) => !open)}
+        onClick={() => setIsManuallyExpanded((open) => !open)}
         aria-expanded={isExpanded}
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-100"
       >
         <span className="flex items-center gap-2.5">
-          <span className={groupIconTone(parts)}>
+          <span className="text-slate-500">
             <ToolIcon kind={dominantKind(parts)} />
           </span>
           <span>{t('toolInvocation.groupSummary', { count: parts.length })}</span>
@@ -72,18 +74,6 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
 
 const dominantKind = (parts: ToolInvocationPart[]): 'read' | 'write' => {
   return parts.some((part) => getToolKind(part.toolName) === 'write') ? 'write' : 'read'
-}
-
-const groupIconTone = (parts: ToolInvocationPart[]): string => {
-  const hasError = parts.some((part) => part.state === 'output-error')
-  if (hasError) {
-    return 'text-rose-500'
-  }
-  const allDone = parts.every((part) => part.state === 'output-available')
-  if (allDone) {
-    return 'text-emerald-500'
-  }
-  return 'text-slate-500'
 }
 
 const Caret = ({ isOpen }: { isOpen: boolean }) => (
