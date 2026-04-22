@@ -146,6 +146,7 @@
       "loonheffingen": "Loonheffingen (NL)",
       "loonheffingenScanned": "Loonheffingen scanned",
       "custom": "Pick your own PDF"
-    }
+    },
+    "customPrivacyNote": "The document you load never leaves your device"
   }
 }
