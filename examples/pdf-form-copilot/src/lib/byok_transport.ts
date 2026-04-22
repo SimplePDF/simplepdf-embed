@@ -1,5 +1,4 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
-import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { DefaultChatTransport } from 'ai'
@@ -35,10 +34,6 @@ const buildModel = (config: ByokConfig) => {
     case 'openai': {
       const openai = createOpenAI({ apiKey: config.apiKey })
       return openai(config.model)
-    }
-    case 'mistral': {
-      const mistral = createMistral({ apiKey: config.apiKey })
-      return mistral(config.model)
     }
     default:
       config.provider satisfies never

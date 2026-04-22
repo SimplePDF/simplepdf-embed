@@ -1,4 +1,4 @@
-export type ByokProviderId = 'anthropic' | 'openai' | 'mistral'
+export type ByokProviderId = 'anthropic' | 'openai'
 
 export type ByokModel = {
   id: string
@@ -21,7 +21,7 @@ type ProviderSpec = {
 }
 
 type UnsupportedProviderSpec = {
-  id: 'google' | 'xai' | 'groq'
+  id: 'azure' | 'bedrock' | 'vertex' | 'databricks'
   labelKey: string
   supported: false
 }
@@ -67,28 +67,10 @@ export const PROVIDER_ENTRIES: ProviderEntry[] = [
       },
     ],
   },
-  {
-    id: 'mistral',
-    labelKey: 'chat.modelPicker.providerMistral',
-    supported: true,
-    models: [
-      {
-        id: 'mistral-small-latest',
-        label: 'Mistral Small',
-        description: 'Cheapest tier with tool support — fine for most form-filling',
-        recommended: true,
-      },
-      {
-        id: 'mistral-large-latest',
-        label: 'Mistral Large',
-        description: 'Higher reasoning for tricky forms',
-        recommended: false,
-      },
-    ],
-  },
-  { id: 'google', labelKey: 'chat.modelPicker.providerGoogle', supported: false },
-  { id: 'xai', labelKey: 'chat.modelPicker.providerXai', supported: false },
-  { id: 'groq', labelKey: 'chat.modelPicker.providerGroq', supported: false },
+  { id: 'azure', labelKey: 'chat.modelPicker.providerAzure', supported: false },
+  { id: 'bedrock', labelKey: 'chat.modelPicker.providerBedrock', supported: false },
+  { id: 'vertex', labelKey: 'chat.modelPicker.providerVertex', supported: false },
+  { id: 'databricks', labelKey: 'chat.modelPicker.providerDatabricks', supported: false },
 ]
 
 export const findProvider = (id: ByokProviderId): ProviderSpec => {

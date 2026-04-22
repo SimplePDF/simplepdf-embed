@@ -76,12 +76,12 @@
       "cancelButton": "Cancel",
       "comingSoon": "Coming soon",
       "resetToDefault": "Back to demo (our Anthropic key)",
-      "providerGoogle": "Google Gemini",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
-      "providerMistral": "Mistral",
-      "providerXai": "xAI (Grok)",
-      "providerGroq": "Groq"
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
     },
     "stop": "Stop",
     "thinking": "Thinking…",
