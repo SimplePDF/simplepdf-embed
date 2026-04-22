@@ -82,12 +82,20 @@ export const Route = createFileRoute('/api/chat')({
 
         const anthropic = createAnthropic({ apiKey })
 
-        const systemPrompt = `${SYSTEM_PROMPT}\n\nLanguage: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
+        const modelMessages = await convertToModelMessages(body.messages)
+        const languageInstruction = `Language: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
 
         const result = streamText({
           model: anthropic(MODEL_ID),
-          system: systemPrompt,
-          messages: await convertToModelMessages(body.messages),
+          messages: [
+            {
+              role: 'system',
+              content: SYSTEM_PROMPT,
+              providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+            },
+            { role: 'system', content: languageInstruction },
+            ...modelMessages,
+          ],
           maxRetries: 2,
           maxOutputTokens: 500,
           tools: {
@@ -117,6 +125,14 @@ export const Route = createFileRoute('/api/chat')({
             },
           },
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
+          onFinish: ({ usage }) => {
+            console.info('chat.finished', {
+              ip_hash: ipHash,
+              input_tokens: usage.inputTokens,
+              output_tokens: usage.outputTokens,
+              cached_input_tokens: usage.cachedInputTokens,
+            })
+          },
         })
 
         console.info('chat.streaming', {
