@@ -27,6 +27,10 @@ export const Route = createRootRoute({
         rel: 'stylesheet',
         href: appCss,
       },
+      {
+        rel: 'icon',
+        href: 'https://simplepdf.com/favicon.ico',
+      },
     ],
   }),
   shellComponent: RootDocument,
