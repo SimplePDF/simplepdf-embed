@@ -85,13 +85,10 @@ export const Route = createFileRoute('/api/chat')({
             {
               error: 'rate_limited',
               reason: decision.reason,
-              retry_after_seconds: decision.retryAfterSeconds,
               message:
-                decision.reason === 'hour'
-                  ? `Rate limit reached. Try again in about ${Math.ceil(decision.retryAfterSeconds / 60)} minutes.`
-                  : `Daily limit reached. Try again tomorrow (in ${Math.ceil(decision.retryAfterSeconds / 3600)} hours).`,
+                "You've reached the demo's free limit for this IP. Switch to your own API key (OpenAI or Anthropic) to keep going — the 'Switch AI model' link above does it in a couple of clicks.",
             },
-            { status: 429, headers: { 'retry-after': decision.retryAfterSeconds.toString() } },
+            { status: 429 },
           )
         }
 
@@ -183,8 +180,7 @@ export const Route = createFileRoute('/api/chat')({
         console.info('chat.streaming', {
           ip_hash: ipHash,
           counted_against_limit: shouldCountAgainstLimit,
-          remaining_hour: decision !== null && decision.allowed ? decision.remaining.hour : null,
-          remaining_day: decision !== null && decision.allowed ? decision.remaining.day : null,
+          remaining_lifetime: decision !== null && decision.allowed ? decision.remaining : null,
           message_count: body.messages.length,
           language: body.languageLabel,
         })

@@ -96,8 +96,8 @@ export const Route = createFileRoute('/api/summarize')({
         const decision = rateLimiter.check(ipHash)
         if (!decision.allowed) {
           return Response.json(
-            { error: 'rate_limited', reason: decision.reason, retry_after_seconds: decision.retryAfterSeconds },
-            { status: 429, headers: { 'retry-after': decision.retryAfterSeconds.toString() } },
+            { error: 'rate_limited', reason: decision.reason },
+            { status: 429 },
           )
         }
 
