@@ -114,7 +114,7 @@ export const FormPicker = ({ value, options, onChange, disabled = false }: FormP
                     <span>
                       <span className="block font-medium">{t(form.labelKey)}</span>
                       <span className="block text-[11px] text-slate-400">
-                        {form.id === 'custom' ? t('forms.customPrivacyNote') : t(form.useCaseKey)}
+                        {form.id === 'custom' ? t('forms.customSubtitle') : t(form.useCaseKey)}
                       </span>
                     </span>
                     {isSelected ? <span className="text-xs text-sky-600">✓</span> : null}
