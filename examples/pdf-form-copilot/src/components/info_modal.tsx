@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
 
 type InfoModalProps = {
@@ -8,36 +9,23 @@ type InfoModalProps = {
   onSelectForm: (formId: FormId) => void
 }
 
+type UseCaseKey = 'healthcare' | 'insurance' | 'state' | 'hr'
+
 type UseCase = {
-  title: string
-  body: string
+  key: UseCaseKey
   formId: FormId | null
 }
 
 const USE_CASES: UseCase[] = [
-  {
-    title: 'Healthcare',
-    body: 'Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider\'s own storage and LLM provider.',
-    formId: 'healthcare',
-  },
-  {
-    title: 'Insurance',
-    body: 'ACORD applications, claim forms and policy endorsements. Carriers and brokers cut customer friction by letting the copilot pre-fill known data, explain coverages and route the finished PDF to the underwriter\'s system.',
-    formId: null,
-  },
-  {
-    title: 'State bureaucracy',
-    body: 'Scanned government forms become instantly fillable thanks to SimplePDF\'s field detection. Particularly useful when the form is in a language the user does not speak — the copilot translates, explains, and fills step by step.',
-    formId: 'state',
-  },
-  {
-    title: 'HR onboarding',
-    body: 'NDAs, offer letters, W-9, I-9. The copilot prefills what it can from context, hands off to the human for signatures, and submits into the HR workflow.',
-    formId: 'hr',
-  },
+  { key: 'healthcare', formId: 'healthcare' },
+  { key: 'insurance', formId: null },
+  { key: 'state', formId: 'state' },
+  { key: 'hr', formId: 'hr' },
 ]
 
 export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
+  const { t } = useTranslation()
+
   useEffect(() => {
     if (!open) {
       return
@@ -71,12 +59,12 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id="info-modal-title" className="text-lg font-semibold text-slate-900">
-            AI-assisted form filling, humans in the loop
+            {t('infoModal.title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('infoModal.close')}
             className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -88,16 +76,16 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
         <div className="mt-4 space-y-5 text-sm leading-relaxed text-slate-700">
           <section className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
             <p>
-              Powered by the SimplePDF{' '}
+              {t('infoModal.poweredBySimplePdfPro')}{' '}
               <a
                 href="https://simplepdf.com/pricing"
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium text-sky-600 hover:text-sky-700"
               >
-                Pro plan
+                {t('infoModal.proPlanLink')}
               </a>
-              . Field detection, programmatic field control and bring-your-own-storage are all Pro features.
+              {t('infoModal.proPlanSuffix')}
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <a
@@ -106,10 +94,10 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
                 rel="noreferrer"
                 className="font-medium text-sky-600 hover:text-sky-700"
               >
-                Source code on GitHub
+                {t('infoModal.sourceCode')}
               </a>
               <iframe
-                title="Star SimplePDF/simplepdf-embed on GitHub"
+                title={t('infoModal.githubStarTitle')}
                 src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
                 frameBorder={0}
                 scrolling="0"
@@ -120,47 +108,38 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
           </section>
 
           <section className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <p>{t('infoModal.disclaimer')}</p>
             <p>
-              This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming
-              proxy only.
-            </p>
-            <p>
-              <strong>Heads up:</strong> data you type or dictate to the assistant is sent to the LLM provider
-              (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).
+              <strong>{t('infoModal.piiWarningLeadIn')}</strong> {t('infoModal.piiWarning')}
             </p>
           </section>
 
           <section>
-            <h3 className="text-sm font-semibold text-slate-900">Why it matters</h3>
-            <p className="mt-1">
-              AI is undeniably great at automating tasks, including filling forms. But the trust is not there yet.
-            </p>
+            <h3 className="text-sm font-semibold text-slate-900">{t('infoModal.whyItMattersTitle')}</h3>
+            <p className="mt-1">{t('infoModal.whyItMattersBody')}</p>
           </section>
 
           <section>
-            <h3 className="text-sm font-semibold text-slate-900">
-              SimplePDF fills forms with AI while the user stays in control
-            </h3>
+            <h3 className="text-sm font-semibold text-slate-900">{t('infoModal.humanInTheLoopTitle')}</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>The human sees fields getting filled in real time, in the editor.</li>
-              <li>The AI can hand off to the user for fields it should not auto-fill (for example signatures).</li>
-              <li>
-                Privacy-first by architecture: documents are processed locally and, on paid plans, shipped straight to
-                your own storage (S3, Azure Blob Storage, or SharePoint) without round-tripping through our servers.
-              </li>
+              <li>{t('infoModal.humanInTheLoopBullet1')}</li>
+              <li>{t('infoModal.humanInTheLoopBullet2')}</li>
+              <li>{t('infoModal.humanInTheLoopBullet3')}</li>
             </ul>
           </section>
 
           <section>
-            <h3 className="text-sm font-semibold text-slate-900">Saving time for everyone</h3>
+            <h3 className="text-sm font-semibold text-slate-900">{t('infoModal.useCasesTitle')}</h3>
             <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {USE_CASES.map((useCase) => {
                 const isClickable = useCase.formId !== null
                 const baseClass = 'flex flex-col rounded-md border p-3 text-left transition'
+                const title = t(`infoModal.useCases.${useCase.key}.title`)
+                const body = t(`infoModal.useCases.${useCase.key}.body`)
                 if (isClickable) {
                   return (
                     <button
-                      key={useCase.title}
+                      key={useCase.key}
                       type="button"
                       onClick={() => {
                         if (useCase.formId === null) {
@@ -171,26 +150,22 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
                       }}
                       className={`${baseClass} cursor-pointer border-slate-200 bg-slate-50 hover:border-sky-300 hover:bg-sky-50`}
                     >
-                      <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
-                      <span className="mt-2 text-[11px] font-medium text-sky-600">Try this form →</span>
+                      <div className="text-sm font-semibold text-slate-900">{title}</div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
+                      <span className="mt-2 text-[11px] font-medium text-sky-600">{t('infoModal.tryThisForm')}</span>
                     </button>
                   )
                 }
                 return (
-                  <div
-                    key={useCase.title}
-                    className={`${baseClass} border-slate-200 bg-slate-50`}
-                  >
-                    <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
+                  <div key={useCase.key} className={`${baseClass} border-slate-200 bg-slate-50`}>
+                    <div className="text-sm font-semibold text-slate-900">{title}</div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
                   </div>
                 )
               })}
             </div>
-            <p className="mt-3 text-xs text-slate-500">Click on any of the use cases above to switch forms.</p>
+            <p className="mt-3 text-xs text-slate-500">{t('infoModal.useCasesFooter')}</p>
           </section>
-
         </div>
       </div>
     </div>,

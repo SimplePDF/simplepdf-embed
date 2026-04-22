@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
+import { useTranslation } from 'react-i18next'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
@@ -195,6 +196,7 @@ const dispatchTool = async (
 }
 
 export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: ChatPaneProps) => {
+  const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
@@ -360,9 +362,9 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">Chat</h2>
+          <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
           <p className="text-xs text-slate-500">
-            {isEditorReady ? 'Claude Haiku 4.5 · in-memory rate limit' : 'Waiting for the editor to load…'}
+            {isEditorReady ? t('chat.subtitleReady') : t('chat.subtitleWaiting')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -373,7 +375,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
               onClick={stop}
               className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
             >
-              Stop
+              {t('chat.stop')}
             </button>
           ) : null}
         </div>
@@ -383,7 +385,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
         {messages.length === 0 ? (
           <div className="flex h-full flex-col">
             <div className="border-b border-slate-200 px-4 py-3 text-xs text-slate-500">
-              Replies will be in <span className="font-medium text-slate-900">{languageLabel}</span>.
+              {t('chat.repliesWillBeIn')} <span className="font-medium text-slate-900">{languageLabel}</span>.
             </div>
             <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
           </div>
@@ -395,12 +397,12 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
             {isStreaming ? (
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-sky-500" />
-                Thinking…
+                {t('chat.thinking')}
               </div>
             ) : null}
             {error !== undefined ? (
               <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <div className="font-medium">Something went wrong.</div>
+                <div className="font-medium">{t('chat.errorTitle')}</div>
                 <div className="mt-1 break-all">{error.message}</div>
               </div>
             ) : null}
@@ -419,7 +421,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             disabled={!canSend}
-            placeholder={canSend ? 'Ask the copilot…' : 'Please wait…'}
+            placeholder={canSend ? t('chat.inputPlaceholderReady') : t('chat.inputPlaceholderWaiting')}
             className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 disabled:bg-slate-50 disabled:text-slate-400"
           />
           <button
@@ -427,7 +429,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
             disabled={!canSend || draft.trim() === ''}
             className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            Send
+            {t('chat.send')}
           </button>
         </form>
       </div>

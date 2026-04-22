@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 
 type DebugPanelProps = {
@@ -21,6 +22,7 @@ const short = (value: unknown): string => {
 }
 
 export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
+  const { t } = useTranslation()
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [pinnedFieldId, setPinnedFieldId] = useState<string | null>(null)
 
@@ -46,7 +48,10 @@ export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
       call: () => Promise<BridgeResult<TData>>,
     ): Promise<BridgeResult<TData>> => {
       if (bridge === null) {
-        const result: BridgeResult<TData> = { success: false, error: { code: 'no_bridge', message: 'Bridge not ready' } }
+        const result: BridgeResult<TData> = {
+          success: false,
+          error: { code: 'no_bridge', message: t('debugPanel.errors.noBridge') },
+        }
         log(tool, args, result)
         return result
       }
@@ -68,7 +73,7 @@ export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
     if (pinnedFieldId === null) {
       await run('focusField', { note: 'no_pinned_field' }, async () => ({
         success: false,
-        error: { code: 'no_field', message: 'Run getFields first to pin a field' },
+        error: { code: 'no_field', message: t('debugPanel.errors.noField') },
       }))
       return
     }
@@ -81,7 +86,7 @@ export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
     if (pinnedFieldId === null) {
       await run('setFieldValue', { note: 'no_pinned_field' }, async () => ({
         success: false,
-        error: { code: 'no_field', message: 'Run getFields first to pin a field' },
+        error: { code: 'no_field', message: t('debugPanel.errors.noField') },
       }))
       return
     }
@@ -125,27 +130,27 @@ export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-slate-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-slate-900">Debug panel</h2>
+        <h2 className="text-sm font-semibold text-slate-900">{t('debugPanel.title')}</h2>
         <p className="text-xs text-slate-500">
-          Status: {isEditorReady ? 'editor ready' : 'waiting for EDITOR_READY'}
-          {pinnedFieldId !== null ? ` · pinned ${pinnedFieldId.slice(0, 8)}…` : ''}
+          {isEditorReady ? t('debugPanel.statusReady') : t('debugPanel.statusWaiting')}
+          {pinnedFieldId !== null ? ` · ${t('debugPanel.pinnedFieldPrefix')} ${pinnedFieldId.slice(0, 8)}…` : ''}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2 border-b border-slate-200 px-3 py-3 text-xs">
-        <DebugButton label="getFields" onClick={handleGetFields} disabled={!isEditorReady} />
-        <DebugButton label="focusField (pinned)" onClick={handleFocusField} disabled={!isEditorReady} />
-        <DebugButton label="setFieldValue (pinned)" onClick={handleSetFieldValue} disabled={!isEditorReady} />
-        <DebugButton label="goTo page 1" onClick={handleGoToPage1} disabled={!isEditorReady} />
-        <DebugButton label="detectFields" onClick={handleDetectFields} disabled={!isEditorReady} />
-        <DebugButton label="getDocumentContent" onClick={handleGetContent} disabled={!isEditorReady} />
-        <DebugButton label="selectTool TEXT" onClick={handleSelectText} disabled={!isEditorReady} />
-        <DebugButton label="removeFields (all)" onClick={handleRemoveAll} disabled={!isEditorReady} />
-        <DebugButton label="submit (download)" onClick={handleSubmitDownload} disabled={!isEditorReady} />
-        <DebugButton label="clear log" onClick={handleClear} tone="ghost" />
+        <DebugButton label={t('debugPanel.buttons.getFields')} onClick={handleGetFields} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.focusField')} onClick={handleFocusField} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.setFieldValue')} onClick={handleSetFieldValue} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.goToPage1')} onClick={handleGoToPage1} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.detectFields')} onClick={handleDetectFields} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.getDocumentContent')} onClick={handleGetContent} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.selectToolText')} onClick={handleSelectText} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.removeFieldsAll')} onClick={handleRemoveAll} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.buttons.submitDownload')} onClick={handleSubmitDownload} disabled={!isEditorReady} />
+        <DebugButton label={t('debugPanel.clearLog')} onClick={handleClear} tone="ghost" />
       </div>
       <div className="flex-1 overflow-y-auto p-3 text-xs">
         {logs.length === 0 ? (
-          <p className="text-slate-400">No calls yet. Click a button above.</p>
+          <p className="text-slate-400">{t('debugPanel.emptyLog')}</p>
         ) : (
           <ul className="space-y-2">
             {logs.map((entry) => (
@@ -159,12 +164,13 @@ export const DebugPanel = ({ bridge, isEditorReady }: DebugPanelProps) => {
                         : 'rounded bg-rose-100 px-1.5 py-0.5 text-rose-700'
                     }
                   >
-                    {entry.result.success ? 'ok' : entry.result.error.code}
+                    {entry.result.success ? t('debugPanel.resultOk') : entry.result.error.code}
                   </span>
                 </div>
                 <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-all text-[11px] text-slate-500">
-                  args: {short(entry.args)}
-                  {'\n'}result: {short(entry.result)}
+                  {t('toolInvocation.argsLabel')} {short(entry.args)}
+                  {'\n'}
+                  {short(entry.result)}
                 </pre>
               </li>
             ))}

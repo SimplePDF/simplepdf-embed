@@ -1,0 +1,126 @@
+{
+  "header": {
+    "brand": "Form Copilot",
+    "tagline": "AI that helps users fill PDF forms step by step",
+    "whatIsThisDemo": "What is this demo?",
+    "useCase": "Use case",
+    "poweredBy": "Powered by SimplePDF"
+  },
+  "infoModal": {
+    "title": "AI-assisted form filling, humans in the loop",
+    "close": "Close",
+    "poweredBySimplePdfPro": "Powered by the SimplePDF",
+    "proPlanLink": "Pro plan",
+    "proPlanSuffix": ". Field detection, programmatic field control and bring-your-own-storage are all Pro features.",
+    "sourceCode": "Source code on GitHub",
+    "githubStarTitle": "Star SimplePDF/simplepdf-embed on GitHub",
+    "disclaimer": "This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming proxy only.",
+    "piiWarningLeadIn": "Heads up:",
+    "piiWarning": "data you type or dictate to the assistant is sent to the LLM provider (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).",
+    "whyItMattersTitle": "Why it matters",
+    "whyItMattersBody": "AI is undeniably great at automating tasks, including filling forms. But the trust is not there yet.",
+    "humanInTheLoopTitle": "SimplePDF fills forms with AI while the user stays in control",
+    "humanInTheLoopBullet1": "The human sees fields getting filled in real time, in the editor.",
+    "humanInTheLoopBullet2": "The AI can hand off to the user for fields it should not auto-fill (for example signatures).",
+    "humanInTheLoopBullet3": "Privacy-first by architecture: documents are processed locally and, on paid plans, shipped straight to your own storage (S3, Azure Blob Storage, or SharePoint) without round-tripping through our servers.",
+    "useCasesTitle": "Saving time for everyone",
+    "useCasesFooter": "Click on any of the use cases above to switch forms.",
+    "tryThisForm": "Try this form →",
+    "useCases": {
+      "healthcare": {
+        "title": "Healthcare",
+        "body": "Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider's own storage and LLM provider."
+      },
+      "insurance": {
+        "title": "Insurance",
+        "body": "ACORD applications, claim forms and policy endorsements. Carriers and brokers cut customer friction by letting the copilot pre-fill known data, explain coverages and route the finished PDF to the underwriter's system."
+      },
+      "state": {
+        "title": "State bureaucracy",
+        "body": "Scanned government forms become instantly fillable thanks to SimplePDF's field detection. Particularly useful when the form is in a language the user does not speak — the copilot translates, explains, and fills step by step."
+      },
+      "hr": {
+        "title": "HR onboarding",
+        "body": "NDAs, offer letters, W-9, I-9. The copilot prefills what it can from context, hands off to the human for signatures, and submits into the HR workflow."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chat",
+    "subtitleReady": "Claude Haiku 4.5 · in-memory rate limit",
+    "subtitleWaiting": "Waiting for the editor to load…",
+    "stop": "Stop",
+    "thinking": "Thinking…",
+    "errorTitle": "Something went wrong.",
+    "repliesWillBeIn": "Replies will be in",
+    "inputPlaceholderReady": "Ask the copilot…",
+    "inputPlaceholderWaiting": "Please wait…",
+    "send": "Send"
+  },
+  "suggestedPrompts": {
+    "lead": "Try one of these:",
+    "helpFill": "Help me fill this form",
+    "explainFields": "Explain each field in one sentence"
+  },
+  "languagePicker": {
+    "label": "Language",
+    "search": "Search languages…",
+    "noMatches": "No matches"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Text",
+    "checkbox": "Checkbox",
+    "signature": "Signature",
+    "picture": "Picture"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "preparing",
+      "input-available": "running",
+      "output-available": "done",
+      "output-error": "error"
+    },
+    "argsLabel": "args:"
+  },
+  "debugPanel": {
+    "title": "Debug panel",
+    "statusReady": "editor ready",
+    "statusWaiting": "waiting for EDITOR_READY",
+    "pinnedFieldPrefix": "pinned",
+    "emptyLog": "No calls yet. Click a button above.",
+    "clearLog": "clear log",
+    "errors": {
+      "noBridge": "Bridge not ready",
+      "noField": "Run getFields first to pin a field"
+    },
+    "buttons": {
+      "getFields": "getFields",
+      "focusField": "focusField (pinned)",
+      "setFieldValue": "setFieldValue (pinned)",
+      "goToPage1": "goTo page 1",
+      "detectFields": "detectFields",
+      "getDocumentContent": "getDocumentContent",
+      "selectToolText": "selectTool TEXT",
+      "removeFieldsAll": "removeFields (all)",
+      "submitDownload": "submit (download)"
+    },
+    "resultOk": "ok"
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Tax",
+      "healthcare": "Healthcare",
+      "hr": "HR onboarding",
+      "state": "State bureaucracy",
+      "stateScanned": "State bureaucracy (scanned PDF)"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 claim form",
+      "mnda": "Mutual NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen scanned"
+    }
+  }
+}

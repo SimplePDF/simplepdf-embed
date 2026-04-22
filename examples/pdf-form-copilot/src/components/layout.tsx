@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { FORM_ORDER, FORMS, isFormId, type FormId } from '../lib/forms'
 import { InfoModal } from './info_modal'
 
@@ -30,6 +31,7 @@ type HeaderProps = {
 }
 
 const Header = ({ currentFormId }: HeaderProps) => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
 
@@ -55,12 +57,12 @@ const Header = ({ currentFormId }: HeaderProps) => {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
       <div className="flex items-baseline gap-3">
-        <span className="text-lg font-semibold text-slate-900">Form Copilot</span>
-        <span className="text-sm text-slate-500">AI that helps users fill PDF forms step by step</span>
+        <span className="text-lg font-semibold text-slate-900">{t('header.brand')}</span>
+        <span className="text-sm text-slate-500">{t('header.tagline')}</span>
         <button
           type="button"
           onClick={() => setIsInfoOpen(true)}
-          aria-label="What is this demo?"
+          aria-label={t('header.whatIsThisDemo')}
           className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[11px] font-semibold text-slate-500 transition hover:border-sky-400 hover:text-sky-600"
         >
           ?
@@ -68,17 +70,20 @@ const Header = ({ currentFormId }: HeaderProps) => {
       </div>
       <div className="flex items-center gap-4 text-xs">
         <label className="flex items-center gap-2 text-slate-500">
-          <span>Use case</span>
+          <span>{t('header.useCase')}</span>
           <select
             value={currentFormId}
             onChange={handleFormChange}
             className="rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:border-sky-300 focus:border-sky-500 focus:outline-none"
           >
-            {FORM_ORDER.map((id) => (
-              <option key={id} value={id}>
-                {FORMS[id].useCase} — {FORMS[id].label}
-              </option>
-            ))}
+            {FORM_ORDER.map((id) => {
+              const form = FORMS[id]
+              return (
+                <option key={id} value={id}>
+                  {t(form.useCaseKey)} — {t(form.labelKey)}
+                </option>
+              )
+            })}
           </select>
         </label>
         <a
@@ -87,7 +92,7 @@ const Header = ({ currentFormId }: HeaderProps) => {
           rel="noreferrer"
           className="text-slate-400 hover:text-slate-600"
         >
-          Powered by SimplePDF
+          {t('header.poweredBy')}
         </a>
       </div>
       <InfoModal open={isInfoOpen} onClose={() => setIsInfoOpen(false)} onSelectForm={switchForm} />

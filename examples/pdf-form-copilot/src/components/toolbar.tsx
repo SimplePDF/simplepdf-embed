@@ -1,5 +1,6 @@
 import { Check, ImageIcon, MousePointer, PenTool, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export type ToolbarTool = 'TEXT' | 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | null
 
@@ -11,33 +12,35 @@ type ToolbarProps = {
 
 type ToolOption = {
   value: ToolbarTool
-  label: string
+  labelKey: string
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
 const OPTIONS: ToolOption[] = [
-  { value: null, label: 'Cursor', icon: MousePointer },
-  { value: 'TEXT', label: 'Text', icon: Type },
-  { value: 'CHECKBOX', label: 'Checkbox', icon: Check },
-  { value: 'SIGNATURE', label: 'Signature', icon: PenTool },
-  { value: 'PICTURE', label: 'Picture', icon: ImageIcon },
+  { value: null, labelKey: 'toolbar.cursor', icon: MousePointer },
+  { value: 'TEXT', labelKey: 'toolbar.text', icon: Type },
+  { value: 'CHECKBOX', labelKey: 'toolbar.checkbox', icon: Check },
+  { value: 'SIGNATURE', labelKey: 'toolbar.signature', icon: PenTool },
+  { value: 'PICTURE', labelKey: 'toolbar.picture', icon: ImageIcon },
 ]
 
 export const Toolbar = ({ selected, onSelect, disabled }: ToolbarProps) => {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2">
       {OPTIONS.map((option) => {
         const isActive = option.value === selected
         const Icon = option.icon
+        const label = t(option.labelKey)
         return (
           <button
-            key={option.label}
+            key={option.labelKey}
             type="button"
             disabled={disabled}
             onClick={() => onSelect(option.value)}
-            aria-label={option.label}
+            aria-label={label}
             aria-pressed={isActive}
-            title={option.label}
+            title={label}
             className={`flex h-7 w-7 items-center justify-center rounded border transition disabled:cursor-not-allowed disabled:opacity-40 ${
               isActive
                 ? 'border-sky-400 bg-sky-100 text-sky-700'
