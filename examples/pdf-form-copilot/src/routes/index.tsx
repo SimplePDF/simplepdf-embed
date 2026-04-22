@@ -83,6 +83,7 @@ function Home() {
             isEditorReady={isEditorReady}
             language={lang}
             onLanguageChange={handleLanguageChange}
+            showToolDetails={debug}
           />
         )
       }

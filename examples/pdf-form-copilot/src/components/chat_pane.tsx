@@ -17,6 +17,7 @@ type ChatPaneProps = {
   isEditorReady: boolean
   language: string
   onLanguageChange: (code: string) => void
+  showToolDetails: boolean
 }
 
 type ToolInput = Record<string, unknown>
@@ -196,7 +197,7 @@ const dispatchTool = async (
   }
 }
 
-export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: ChatPaneProps) => {
+export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, showToolDetails }: ChatPaneProps) => {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
@@ -393,7 +394,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
         ) : (
           <div className="space-y-4 p-4">
             {messages.map((message) => (
-              <MessageView key={message.id} message={message} />
+              <MessageView key={message.id} message={message} showToolDetails={showToolDetails} />
             ))}
             {isStreaming ? <ThinkingIndicator /> : null}
             {error !== undefined ? (
@@ -435,9 +436,10 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
 
 type MessageViewProps = {
   message: UIMessage
+  showToolDetails: boolean
 }
 
-const MessageView = ({ message }: MessageViewProps) => {
+const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
   const isUser = message.role === 'user'
   return (
     <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
@@ -480,6 +482,7 @@ const MessageView = ({ message }: MessageViewProps) => {
                 key={key}
                 toolName={toolName}
                 state={toolPart.state}
+                showDetails={showToolDetails}
                 input={toolPart.input}
                 output={toolPart.output}
                 errorText={toolPart.errorText}

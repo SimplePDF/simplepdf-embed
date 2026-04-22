@@ -1,6 +1,11 @@
 
 @import "tailwindcss";
 
+@theme {
+  --color-sky-600: #3665e1;
+  --color-sky-700: #2a52ba;
+}
+
 * {
   box-sizing: border-box;
 }
