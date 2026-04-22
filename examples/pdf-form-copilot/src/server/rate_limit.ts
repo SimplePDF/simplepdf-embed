@@ -49,6 +49,12 @@ export const createRateLimiter = ({ clock = defaultClock }: CreateLimiterArgs = 
     return window
   }
 
+  const reset = (): number => {
+    const previous = buckets.size
+    buckets.clear()
+    return previous
+  }
+
   const check = (ipHash: string): RateLimitDecision => {
     const now = clock()
     const existing = buckets.get(ipHash)
@@ -91,7 +97,7 @@ export const createRateLimiter = ({ clock = defaultClock }: CreateLimiterArgs = 
     }
   }
 
-  return { check }
+  return { check, reset }
 }
 
 export const getClientIp = (request: Request): string => {

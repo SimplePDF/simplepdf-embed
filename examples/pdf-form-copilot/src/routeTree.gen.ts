@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSummarizeRouteImport } from './routes/api/summarize'
+import { Route as ApiRateLimitResetRouteImport } from './routes/api/rate-limit-reset'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ApiSummarizeRoute = ApiSummarizeRouteImport.update({
   path: '/api/summarize',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRateLimitResetRoute = ApiRateLimitResetRouteImport.update({
+  id: '/api/rate-limit-reset',
+  path: '/api/rate-limit-reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -32,30 +38,39 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/rate-limit-reset': typeof ApiRateLimitResetRoute
   '/api/summarize': typeof ApiSummarizeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/rate-limit-reset': typeof ApiRateLimitResetRoute
   '/api/summarize': typeof ApiSummarizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/rate-limit-reset': typeof ApiRateLimitResetRoute
   '/api/summarize': typeof ApiSummarizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat' | '/api/summarize'
+  fullPaths: '/' | '/api/chat' | '/api/rate-limit-reset' | '/api/summarize'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat' | '/api/summarize'
-  id: '__root__' | '/' | '/api/chat' | '/api/summarize'
+  to: '/' | '/api/chat' | '/api/rate-limit-reset' | '/api/summarize'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/chat'
+    | '/api/rate-limit-reset'
+    | '/api/summarize'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiRateLimitResetRoute: typeof ApiRateLimitResetRoute
   ApiSummarizeRoute: typeof ApiSummarizeRoute
 }
 
@@ -75,6 +90,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSummarizeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rate-limit-reset': {
+      id: '/api/rate-limit-reset'
+      path: '/api/rate-limit-reset'
+      fullPath: '/api/rate-limit-reset'
+      preLoaderRoute: typeof ApiRateLimitResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -88,6 +110,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiRateLimitResetRoute: ApiRateLimitResetRoute,
   ApiSummarizeRoute: ApiSummarizeRoute,
 }
 export const routeTree = rootRouteImport
