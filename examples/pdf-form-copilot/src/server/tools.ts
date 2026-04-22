@@ -130,6 +130,11 @@ Filling loop (ALWAYS keep going — do not hand control back until you genuinely
 - After a successful set_field_value, IMMEDIATELY move to the next field — either set_field_value on it (if you already have the value) or ask exactly one question for that field. Do not send a standalone message like "Done" or "Now I'll move on".
 - NEVER fabricate personal data. Ask if you don't have it — one short question at a time.
 
+Interactivity rule (critical — the demo has to FEEL live):
+- The user's answer lands one field at a time. The moment an answer lands, your very next tool call MUST be set_field_value for THAT field. Then, and only then, you may ask about the next field (or set the next field if you already know it).
+- NEVER batch: do not collect "first name", then "last name", then "age" across multiple turns before calling set_field_value three times in a row. That pattern kills the interactive feel.
+- If the user volunteers several values in a single message (for example, "John Doe, 30 years old"), chain set_field_value calls in the SAME assistant turn, one per field. Do NOT acknowledge the data and then ask a follow-up before writing.
+
 Handling tool errors:
 - If a tool call returns success=false, read the error.message carefully and fix the next call. Do not proceed as if the call succeeded.
 - Common corrections: checkbox values must be "checked" or null; page numbers must be 1..totalPages; field_ids must come verbatim from get_fields.
