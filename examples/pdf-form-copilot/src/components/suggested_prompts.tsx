@@ -5,7 +5,6 @@ type SuggestedPromptsProps = {
 
 const PROMPTS: string[] = [
   'Help me fill this form',
-  'Which fields are still empty?',
   'Explain each field in one sentence',
 ]
 
