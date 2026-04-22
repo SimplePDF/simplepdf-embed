@@ -120,10 +120,16 @@ const createBridge = ({
   }
 
   const markReady = (source: 'editor_ready_event' | 'fallback_timeout'): void => {
-    // A new EDITOR_READY means the iframe has (re)mounted; a fresh document
-    // load cycle is starting. Reset isDocumentLoaded so consumers wait for
-    // the new DOCUMENT_LOADED event before treating the editor as usable.
-    isDocumentLoaded = false
+    if (source === 'editor_ready_event') {
+      // A fresh EDITOR_READY event means the iframe has (re)mounted and a new
+      // document load cycle is starting. Reset isDocumentLoaded so consumers
+      // wait for the new DOCUMENT_LOADED event before treating the editor as
+      // usable. The fallback timeout path (used when the editor is loaded
+      // without loadingPlaceholder=true and therefore never emits
+      // EDITOR_READY) must NOT touch isDocumentLoaded — the user may already
+      // have picked a document, and resetting here would disable the chat.
+      isDocumentLoaded = false
+    }
     if (isEditorReady) {
       onReady()
       return
