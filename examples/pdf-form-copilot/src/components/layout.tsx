@@ -43,7 +43,7 @@ const Header = ({ currentFormId }: HeaderProps) => {
       <div className="flex items-center gap-4 text-xs">
         <Link
           to="/"
-          search={{ form: alternateId }}
+          search={(prev) => ({ form: alternateId, debug: prev.debug ?? false })}
           className="font-medium text-sky-600 hover:text-sky-700"
         >
           {alternate.switchLabel}
