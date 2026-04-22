@@ -12,15 +12,22 @@ export const SuggestedPrompts = ({ onSelect, disabled }: SuggestedPromptsProps) 
   return (
     <div className="space-y-2 p-4">
       <p className="text-xs font-medium text-slate-500">{t('suggestedPrompts.lead')}</p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-row gap-2">
         {PROMPT_KEYS.map((key, index) => {
           const prompt = t(key)
           const isPrimary = index === 0
-          const className = isPrimary
-            ? 'rounded-md bg-sky-600 px-3 py-2 text-left text-sm font-medium text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300'
-            : 'rounded border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40'
+          const base = 'flex-1 rounded-md px-2 py-1.5 text-left text-xs leading-snug transition disabled:cursor-not-allowed'
+          const theme = isPrimary
+            ? 'bg-sky-600 font-medium text-white hover:bg-sky-700 disabled:bg-slate-300'
+            : 'border border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:bg-sky-50 disabled:opacity-40'
           return (
-            <button key={key} type="button" disabled={disabled} onClick={() => onSelect(prompt)} className={className}>
+            <button
+              key={key}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelect(prompt)}
+              className={`${base} ${theme}`}
+            >
               {prompt}
             </button>
           )
