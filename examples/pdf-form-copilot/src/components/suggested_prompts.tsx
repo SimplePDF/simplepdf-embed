@@ -16,7 +16,7 @@ export const SuggestedPrompts = ({ onSelect, disabled }: SuggestedPromptsProps) 
         {PROMPT_KEYS.map((key, index) => {
           const prompt = t(key)
           const isPrimary = index === 0
-          const base = 'flex-1 rounded-md px-2 py-1.5 text-left text-xs leading-snug transition disabled:cursor-not-allowed'
+          const base = 'flex-1 cursor-pointer rounded-md px-2 py-1.5 text-left text-xs leading-snug transition disabled:cursor-not-allowed'
           const theme = isPrimary
             ? 'bg-sky-600 font-medium text-white hover:bg-sky-700 disabled:bg-slate-300'
             : 'border border-slate-200 bg-white text-slate-700 hover:border-sky-600 disabled:opacity-40'

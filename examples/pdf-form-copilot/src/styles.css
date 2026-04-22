@@ -25,6 +25,11 @@ body {
   margin: 0;
 }
 
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 @keyframes pdf-copilot-shimmer {
   0% {
     background-position: 200% 50%;
