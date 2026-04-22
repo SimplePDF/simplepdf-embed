@@ -30,6 +30,7 @@ const buildEditorSrc = ({ pdfUrl }: { pdfUrl: string }): string => {
   const params = new URLSearchParams({
     open: pdfUrl,
     loadingPlaceholder: 'true',
+    ignoreExistingFields: 'true',
   })
   return `${EDITOR_HOST}?${params.toString()}`
 }
