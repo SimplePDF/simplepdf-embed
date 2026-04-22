@@ -19,6 +19,7 @@ type ChatPaneProps = {
 type ToolInput = Record<string, unknown>
 
 const MAX_CONTENT_CHARS_PER_PAGE = 900
+const SUMMARIZE_THRESHOLD_CHARS = 1500
 
 const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
   if (!result.success) {
@@ -45,7 +46,21 @@ const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> 
   return { success: true, data: { fields: compacted } }
 }
 
-const compactGetDocumentContent = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
+const truncatePages = (
+  pages: Array<{ page: number; content: string }>,
+): Array<{ page: number; content: string }> =>
+  pages.map((page) => ({
+    page: page.page,
+    content:
+      page.content.length > MAX_CONTENT_CHARS_PER_PAGE
+        ? `${page.content.slice(0, MAX_CONTENT_CHARS_PER_PAGE)}… [truncated]`
+        : page.content,
+  }))
+
+const compactGetDocumentContent = async (
+  result: BridgeResult<unknown>,
+  languageLabel: string,
+): Promise<BridgeResult<unknown>> => {
   if (!result.success) {
     return result
   }
@@ -53,18 +68,43 @@ const compactGetDocumentContent = (result: BridgeResult<unknown>): BridgeResult<
   if (!Array.isArray(data.pages)) {
     return result
   }
-  const pages = data.pages.map((page) => ({
-    page: page.page,
-    content:
-      page.content.length > MAX_CONTENT_CHARS_PER_PAGE
-        ? `${page.content.slice(0, MAX_CONTENT_CHARS_PER_PAGE)}… [truncated]`
-        : page.content,
-  }))
-  return { success: true, data: { name: data.name ?? null, pages } }
+
+  const totalChars = data.pages.reduce((sum, page) => sum + page.content.length, 0)
+  if (totalChars < SUMMARIZE_THRESHOLD_CHARS) {
+    return { success: true, data: { name: data.name ?? null, pages: data.pages } }
+  }
+
+  try {
+    const response = await fetch('/api/summarize', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name ?? null,
+        pages: data.pages,
+        language_label: languageLabel,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`summarize_failed:${response.status}`)
+    }
+    const payload = (await response.json()) as { summary?: unknown }
+    if (typeof payload.summary !== 'string' || payload.summary === '') {
+      throw new Error('summarize_missing_summary')
+    }
+    return {
+      success: true,
+      data: { name: data.name ?? null, summary: payload.summary },
+    }
+  } catch {
+    return { success: true, data: { name: data.name ?? null, pages: truncatePages(data.pages) } }
+  }
 }
+
+type DispatchContext = { languageLabel: string }
 
 const dispatchTool = async (
   bridge: IframeBridge,
+  context: DispatchContext,
   toolName: ClientToolName,
   input: ToolInput,
 ): Promise<BridgeResult<unknown>> => {
@@ -73,7 +113,10 @@ const dispatchTool = async (
       return compactGetFields(await bridge.getFields())
     case 'get_document_content': {
       const extraction = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
-      return compactGetDocumentContent(await bridge.getDocumentContent({ extractionMode: extraction }))
+      return compactGetDocumentContent(
+        await bridge.getDocumentContent({ extractionMode: extraction }),
+        context.languageLabel,
+      )
     }
     case 'set_field_value': {
       const fieldId = typeof input.field_id === 'string' ? input.field_id : null
@@ -152,7 +195,13 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
         })
         return
       }
-      void dispatchTool(activeBridge, toolName, (toolCall.input as ToolInput) ?? {}).then((result) => {
+      const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
+      void dispatchTool(
+        activeBridge,
+        { languageLabel },
+        toolName,
+        (toolCall.input as ToolInput) ?? {},
+      ).then((result) => {
         addToolOutput({
           tool: toolName,
           toolCallId: toolCall.toolCallId,

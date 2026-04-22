@@ -14,7 +14,7 @@ type UseCase = {
 const USE_CASES: UseCase[] = [
   {
     title: 'Healthcare',
-    body: 'Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider\'s own storage.',
+    body: 'Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider\'s own storage and LLM provider.',
   },
   {
     title: 'State bureaucracy',
@@ -108,6 +108,17 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
             </div>
           </section>
 
+          <section className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            <p>
+              This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming
+              proxy only.
+            </p>
+            <p>
+              <strong>Heads up:</strong> data you type or dictate to the assistant is sent to the LLM provider
+              (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).
+            </p>
+          </section>
+
           <section>
             <h3 className="text-sm font-semibold text-slate-900">Why it matters</h3>
             <p className="mt-1">
@@ -143,17 +154,6 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
                 header.
               </p>
             </div>
-          </section>
-
-          <section className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-            <p>
-              This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming
-              proxy only.
-            </p>
-            <p>
-              <strong>Heads up:</strong> data you type or dictate to the assistant is sent to the LLM provider
-              (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).
-            </p>
           </section>
 
         </div>
