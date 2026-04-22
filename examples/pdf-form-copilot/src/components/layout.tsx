@@ -53,13 +53,15 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
       <div className="flex items-center gap-3">
-        <img
-          src="https://simplepdf.com/android-chrome-512x512.png"
-          alt=""
-          aria-hidden="true"
-          className="h-6 w-6 rounded"
-        />
-        <span className="text-lg font-semibold text-slate-900">{t('header.brand')}</span>
+        <div className="flex items-center gap-1.5">
+          <img
+            src="https://simplepdf.com/android-chrome-512x512.png"
+            alt=""
+            aria-hidden="true"
+            className="h-6 w-6 rounded"
+          />
+          <span className="text-lg font-semibold text-slate-900">{t('header.brand')}</span>
+        </div>
         <span className="text-sm text-slate-500">{t('header.tagline')}</span>
         <button
           type="button"
