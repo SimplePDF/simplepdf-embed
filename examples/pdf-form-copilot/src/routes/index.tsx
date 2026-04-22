@@ -33,6 +33,12 @@ const EDITOR_HOST = 'https://pdf-form-copilot.simplepdf.com/editor'
 const EDITOR_ORIGIN = 'https://pdf-form-copilot.simplepdf.com'
 
 const buildEditorSrc = ({ pdfUrl }: { pdfUrl: string }): string => {
+  if (pdfUrl === '') {
+    // Custom / user-picked PDF: the editor falls back to its native file picker
+    // when no ?open= is provided. We also drop loadingPlaceholder so the picker
+    // is not hidden behind a loading screen.
+    return `${EDITOR_HOST}?ignoreExistingFields=true`
+  }
   const params = new URLSearchParams({
     open: pdfUrl,
     loadingPlaceholder: 'true',

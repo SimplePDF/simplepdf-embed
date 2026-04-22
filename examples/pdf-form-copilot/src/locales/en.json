@@ -135,14 +135,16 @@
       "healthcare": "Healthcare",
       "hr": "HR onboarding",
       "state": "State bureaucracy",
-      "stateScanned": "State bureaucracy (scanned PDF)"
+      "stateScanned": "State bureaucracy (scanned PDF)",
+      "custom": "Your PDF"
     },
     "labels": {
       "w9": "IRS W-9",
       "cms1500": "CMS-1500 claim form",
       "mnda": "Mutual NDA",
       "loonheffingen": "Loonheffingen (NL)",
-      "loonheffingenScanned": "Loonheffingen scanned"
+      "loonheffingenScanned": "Loonheffingen scanned",
+      "custom": "Pick your own PDF"
     }
   }
 }

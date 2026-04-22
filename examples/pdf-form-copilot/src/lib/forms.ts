@@ -1,4 +1,4 @@
-export type FormId = 'w9' | 'healthcare' | 'hr' | 'state' | 'state_scanned'
+export type FormId = 'w9' | 'healthcare' | 'hr' | 'state' | 'state_scanned' | 'custom'
 
 export type FormConfig = {
   id: FormId
@@ -43,9 +43,15 @@ const DEFAULT_FORMS: Record<FormId, FormConfig> = {
     labelKey: 'forms.labels.loonheffingenScanned',
     pdfUrl: 'https://cdn.simplepdf.com/simple-pdf/assets/demo/loonheffingen-scanned.pdf',
   },
+  custom: {
+    id: 'custom',
+    useCaseKey: 'forms.useCases.custom',
+    labelKey: 'forms.labels.custom',
+    pdfUrl: '',
+  },
 }
 
-const DEFAULT_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned']
+const DEFAULT_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned', 'custom']
 
 export const DEFAULT_FORM_ID: FormId = 'w9'
 
@@ -62,4 +68,5 @@ export const isFormId = (value: unknown): value is FormId =>
   value === 'healthcare' ||
   value === 'hr' ||
   value === 'state' ||
-  value === 'state_scanned'
+  value === 'state_scanned' ||
+  value === 'custom'
