@@ -423,10 +423,7 @@ export const ChatPane = ({
             ))}
             {isStreaming ? <ThinkingIndicator /> : null}
             {error !== undefined ? (
-              <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                <div className="font-medium">{t('chat.errorTitle')}</div>
-                <div className="mt-1 break-all">{error.message}</div>
-              </div>
+              <ErrorBanner error={error} messages={messages} showDetails={showToolDetails} />
             ) : null}
           </div>
         )}
@@ -463,6 +460,51 @@ export const ChatPane = ({
 type MessageViewProps = {
   message: UIMessage
   showToolDetails: boolean
+}
+
+type ErrorBannerProps = {
+  error: Error
+  messages: UIMessage[]
+  showDetails: boolean
+}
+
+const findLastAttemptedToolName = (messages: UIMessage[]): string | null => {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i]
+    if (message.role !== 'assistant') {
+      continue
+    }
+    for (let j = message.parts.length - 1; j >= 0; j -= 1) {
+      const part = message.parts[j]
+      if (part.type.startsWith('tool-')) {
+        return part.type.slice('tool-'.length)
+      }
+    }
+  }
+  return null
+}
+
+const ErrorBanner = ({ error, messages, showDetails }: ErrorBannerProps) => {
+  const { t } = useTranslation()
+  const body = (() => {
+    if (showDetails) {
+      return <div className="mt-1 break-all">{error.message}</div>
+    }
+    const toolName = findLastAttemptedToolName(messages)
+    if (toolName !== null) {
+      const actionLabel = t(`toolInvocation.names.${toolName}`, {
+        defaultValue: t('toolInvocation.fallbackName', { tool: toolName }),
+      }).toLowerCase()
+      return <div className="mt-1">{t('chat.errorFriendlyWithAction', { action: actionLabel })}</div>
+    }
+    return <div className="mt-1">{t('chat.errorFriendlyGeneric')}</div>
+  })()
+  return (
+    <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+      <div className="font-medium">{t('chat.errorTitle')}</div>
+      {body}
+    </div>
+  )
 }
 
 type RenderBlock =
