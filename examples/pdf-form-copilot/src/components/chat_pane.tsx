@@ -214,6 +214,7 @@ export const ChatPane = ({
   const languageRef = useRef(language)
   languageRef.current = language
   const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
 
   const transport = useMemo(
@@ -362,6 +363,12 @@ export const ChatPane = ({
   const canSend = isReady && !isStreaming
   const languageLabel = getLanguageByCode(language)?.label ?? 'English'
 
+  useEffect(() => {
+    if (canSend) {
+      inputRef.current?.focus()
+    }
+  }, [canSend])
+
   const handleSend = useCallback(
     (prompt: string): void => {
       const trimmed = prompt.trim()
@@ -433,6 +440,7 @@ export const ChatPane = ({
           className="flex gap-2"
         >
           <input
+            ref={inputRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             disabled={!canSend}
