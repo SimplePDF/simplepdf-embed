@@ -1,0 +1,62 @@
+import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
+import { FORMS, type FormId, otherFormId } from '../lib/forms'
+
+type LayoutProps = {
+  currentFormId: FormId
+  editor: ReactNode
+  chat: ReactNode
+}
+
+export const Layout = ({ currentFormId, editor, chat }: LayoutProps) => {
+  return (
+    <div className="flex h-screen flex-col bg-slate-50">
+      <Header currentFormId={currentFormId} />
+      <main className="flex min-h-0 flex-1 gap-4 p-4">
+        <section className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          {editor}
+        </section>
+        <aside className="flex w-[380px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          {chat}
+        </aside>
+      </main>
+    </div>
+  )
+}
+
+type HeaderProps = {
+  currentFormId: FormId
+}
+
+const Header = ({ currentFormId }: HeaderProps) => {
+  const alternateId = otherFormId(currentFormId)
+  const alternate = FORMS[alternateId]
+
+  return (
+    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
+      <div className="flex items-baseline gap-3">
+        <span className="text-lg font-semibold text-slate-900">Form Copilot</span>
+        <span className="text-sm text-slate-500">
+          AI that helps users fill PDF forms step by step
+        </span>
+      </div>
+      <div className="flex items-center gap-4 text-xs">
+        <Link
+          to="/"
+          search={{ form: alternateId }}
+          className="font-medium text-sky-600 hover:text-sky-700"
+        >
+          {alternate.switchLabel}
+        </Link>
+        <a
+          href="https://simplepdf.com"
+          target="_blank"
+          rel="noreferrer"
+          className="text-slate-400 hover:text-slate-600"
+        >
+          Powered by SimplePDF
+        </a>
+      </div>
+    </header>
+  )
+}
