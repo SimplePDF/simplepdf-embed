@@ -83,6 +83,8 @@
     },
     "argsLabel": "args:",
     "fallbackName": "Calling {{tool}}",
+    "groupSummary_one": "{{count}} action",
+    "groupSummary_other": "{{count}} actions",
     "names": {
       "get_fields": "Retrieving the fields",
       "get_document_content": "Reading the document",

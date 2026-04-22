@@ -9,7 +9,7 @@ import { getLanguageByCode } from '../lib/languages'
 import { LanguagePicker } from './language_picker'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
-import { ToolInvocationCard } from './tool_invocation_card'
+import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { Toolbar, type ToolbarTool } from './toolbar'
 
 type ChatPaneProps = {
@@ -439,8 +439,50 @@ type MessageViewProps = {
   showToolDetails: boolean
 }
 
+type RenderBlock =
+  | { kind: 'text'; key: string; text: string }
+  | { kind: 'tool-group'; key: string; parts: ToolInvocationPart[] }
+
+const toBlocks = (message: UIMessage): RenderBlock[] => {
+  const blocks: RenderBlock[] = []
+  message.parts.forEach((part, index) => {
+    const key = `${message.id}_${index}`
+    if (part.type === 'text') {
+      blocks.push({ kind: 'text', key, text: part.text })
+      return
+    }
+    if (part.type.startsWith('tool-')) {
+      const toolPart = part as {
+        type: `tool-${string}`
+        toolCallId: string
+        state: ToolInvocationPart['state']
+        input?: unknown
+        output?: unknown
+        errorText?: string
+      }
+      const toolName = toolPart.type.slice('tool-'.length)
+      const entry: ToolInvocationPart = {
+        key,
+        toolName,
+        state: toolPart.state,
+        input: toolPart.input,
+        output: toolPart.output,
+        errorText: toolPart.errorText,
+      }
+      const last = blocks[blocks.length - 1]
+      if (last !== undefined && last.kind === 'tool-group') {
+        last.parts.push(entry)
+        return
+      }
+      blocks.push({ kind: 'tool-group', key, parts: [entry] })
+    }
+  })
+  return blocks
+}
+
 const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
   const isUser = message.role === 'user'
+  const blocks = toBlocks(message)
   return (
     <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
       <div
@@ -448,11 +490,10 @@ const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
           isUser ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-900'
         }`}
       >
-        {message.parts.map((part, index) => {
-          const key = `${message.id}_${index}`
-          if (part.type === 'text') {
+        {blocks.map((block) => {
+          if (block.kind === 'text') {
             return (
-              <div key={key} className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+              <div key={block.key} className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
                 <ReactMarkdown
                   components={{
                     strong: ({ children }) => (
@@ -462,34 +503,12 @@ const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
                     ),
                   }}
                 >
-                  {part.text}
+                  {block.text}
                 </ReactMarkdown>
               </div>
             )
           }
-          if (part.type.startsWith('tool-')) {
-            const toolPart = part as {
-              type: `tool-${string}`
-              toolCallId: string
-              state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
-              input?: unknown
-              output?: unknown
-              errorText?: string
-            }
-            const toolName = toolPart.type.slice('tool-'.length)
-            return (
-              <ToolInvocationCard
-                key={key}
-                toolName={toolName}
-                state={toolPart.state}
-                showDetails={showToolDetails}
-                input={toolPart.input}
-                output={toolPart.output}
-                errorText={toolPart.errorText}
-              />
-            )
-          }
-          return null
+          return <ToolInvocationGroup key={block.key} parts={block.parts} showDetails={showToolDetails} />
         })}
       </div>
     </div>
