@@ -15,6 +15,7 @@ import { Toolbar, type ToolbarTool } from './toolbar'
 type ChatPaneProps = {
   bridge: IframeBridge | null
   isReady: boolean
+  requiresUserUpload: boolean
   language: string
   onLanguageChange: (code: string) => void
   showToolDetails: boolean
@@ -197,7 +198,14 @@ const dispatchTool = async (
   }
 }
 
-export const ChatPane = ({ bridge, isReady, language, onLanguageChange, showToolDetails }: ChatPaneProps) => {
+export const ChatPane = ({
+  bridge,
+  isReady,
+  requiresUserUpload,
+  language,
+  onLanguageChange,
+  showToolDetails,
+}: ChatPaneProps) => {
   const { t } = useTranslation()
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
@@ -372,7 +380,11 @@ export const ChatPane = ({ bridge, isReady, language, onLanguageChange, showTool
         <div>
           <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
           <p className="text-xs text-slate-500">
-            {isReady ? t('chat.subtitleReady') : t('chat.subtitleWaiting')}
+            {isReady
+              ? t('chat.subtitleReady')
+              : requiresUserUpload
+                ? t('chat.subtitleNoDocument')
+                : t('chat.subtitleWaiting')}
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -92,6 +92,7 @@ function Home() {
           <ChatPane
             bridge={bridge}
             isReady={isDocumentLoaded}
+            requiresUserUpload={form === 'custom'}
             language={lang}
             onLanguageChange={handleLanguageChange}
             showToolDetails={debug}

@@ -35,7 +35,7 @@ npm run dev              # http://localhost:3001
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `ANTHROPIC_API_KEY` | Phase 3+ | Server-only; passed to the Vercel AI SDK's Anthropic provider. Never exposed to the client bundle. |
-| `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | No (defaults to `pdf-form-copilot`) | The `<company>.simplepdf.com` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. |
+| `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | No (defaults to `pdf-form-copilot`) | The `<company>.simplepdf.com` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. Get your own company identifier: https://simplepdf.com/auth/signup |
 
 ## Status
 
