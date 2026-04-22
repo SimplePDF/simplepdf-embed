@@ -17,6 +17,10 @@ const USE_CASES: UseCase[] = [
     body: 'Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider\'s own storage and LLM provider.',
   },
   {
+    title: 'Insurance',
+    body: 'ACORD applications, claim forms and policy endorsements. Carriers and brokers cut customer friction by letting the copilot pre-fill known data, explain coverages and route the finished PDF to the underwriter\'s system.',
+  },
+  {
     title: 'State bureaucracy',
     body: 'Scanned government forms become instantly fillable thanks to SimplePDF\'s field detection. Particularly useful when the form is in a language the user does not speak — the copilot translates, explains, and fills step by step.',
   },
@@ -55,7 +59,7 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] max-w-xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
@@ -142,18 +146,18 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
 
           <section>
             <h3 className="text-sm font-semibold text-slate-900">Saving time for everyone</h3>
-            <div className="mt-2 space-y-3">
+            <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {USE_CASES.map((useCase) => (
-                <div key={useCase.title} className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div key={useCase.title} className="flex flex-col rounded-md border border-slate-200 bg-slate-50 p-3">
                   <div className="text-sm font-semibold text-slate-900">{useCase.title}</div>
                   <p className="mt-1 text-xs leading-relaxed text-slate-600">{useCase.body}</p>
                 </div>
               ))}
-              <p className="text-xs text-slate-500">
-                Switch between the examples using the <span className="font-medium">Use case</span> selector in the
-                header.
-              </p>
             </div>
+            <p className="mt-3 text-xs text-slate-500">
+              Switch between the examples using the <span className="font-medium">Use case</span> selector in the
+              header.
+            </p>
           </section>
 
         </div>

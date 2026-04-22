@@ -1,4 +1,4 @@
-export type FormId = 'w9' | 'healthcare' | 'hr' | 'state'
+export type FormId = 'w9' | 'healthcare' | 'hr' | 'state' | 'state_scanned'
 
 type FormConfig = {
   id: FormId
@@ -37,10 +37,22 @@ export const FORMS: Record<FormId, FormConfig> = {
     summary: 'Dutch wage-tax declaration. Perfect example of a non-English form an expat has to fill on day one.',
     pdfUrl: 'https://cdn.simplepdf.com/simple-pdf/assets/demo/loonheffingen.pdf',
   },
+  state_scanned: {
+    id: 'state_scanned',
+    useCase: 'State bureaucracy (scanned PDF)',
+    label: 'Loonheffingen scanned',
+    summary:
+      'Same Dutch tax form, rasterized to emulate a scanned document. Showcases SimplePDF\'s field detection + OCR path on forms that have no native form fields.',
+    pdfUrl: 'https://cdn.simplepdf.com/simple-pdf/assets/demo/loonheffingen-scanned.pdf',
+  },
 }
 
 export const DEFAULT_FORM_ID: FormId = 'w9'
-export const FORM_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state']
+export const FORM_ORDER: FormId[] = ['w9', 'healthcare', 'hr', 'state', 'state_scanned']
 
 export const isFormId = (value: unknown): value is FormId =>
-  value === 'w9' || value === 'healthcare' || value === 'hr' || value === 'state'
+  value === 'w9' ||
+  value === 'healthcare' ||
+  value === 'hr' ||
+  value === 'state' ||
+  value === 'state_scanned'
