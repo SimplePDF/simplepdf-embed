@@ -58,36 +58,11 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 id="info-modal-title" className="text-lg font-semibold text-slate-900">
-            {t('infoModal.title')}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t('infoModal.close')}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-5 text-sm leading-relaxed text-slate-700">
-          <section className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-            <p>
-              {t('infoModal.poweredBySimplePdfPro')}{' '}
-              <a
-                href="https://simplepdf.com/pricing"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-600 hover:text-sky-700"
-              >
-                {t('infoModal.proPlanLink')}
-              </a>
-              {t('infoModal.proPlanSuffix')}
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
+            <h2 id="info-modal-title" className="text-lg font-semibold text-slate-900">
+              {t('infoModal.title')}
+            </h2>
+            <div className="flex items-center gap-3 text-xs">
               <a
                 href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
                 target="_blank"
@@ -105,6 +80,32 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
                 height={20}
               />
             </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('infoModal.close')}
+            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-5 text-sm leading-relaxed text-slate-700">
+          <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+            <p>
+              {t('infoModal.poweredBySimplePdfPro')}{' '}
+              <a
+                href="https://simplepdf.com/pricing"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-600 hover:text-sky-700"
+              >
+                {t('infoModal.proPlanLink')}
+              </a>
+            </p>
           </section>
 
           <section className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">

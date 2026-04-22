@@ -11,7 +11,6 @@
     "close": "Close",
     "poweredBySimplePdfPro": "Powered by the SimplePDF",
     "proPlanLink": "Pro plan",
-    "proPlanSuffix": ". Field detection, programmatic field control and bring-your-own-storage are all Pro features.",
     "sourceCode": "Source code on GitHub",
     "githubStarTitle": "Star SimplePDF/simplepdf-embed on GitHub",
     "disclaimer": "This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming proxy only.",
