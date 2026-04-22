@@ -19,7 +19,8 @@ type ChatPaneProps = {
 
 type ToolInput = Record<string, unknown>
 
-const MAX_CONTENT_CHARS_PER_PAGE = 900
+const MAX_CONTENT_CHARS_PER_PAGE = 400
+const MAX_CONTENT_PAGES = 4
 const SUMMARIZE_THRESHOLD_CHARS = 1500
 
 const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
@@ -49,14 +50,22 @@ const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> 
 
 const truncatePages = (
   pages: Array<{ page: number; content: string }>,
-): Array<{ page: number; content: string }> =>
-  pages.map((page) => ({
+): Array<{ page: number; content: string }> => {
+  const kept = pages.slice(0, MAX_CONTENT_PAGES).map((page) => ({
     page: page.page,
     content:
       page.content.length > MAX_CONTENT_CHARS_PER_PAGE
         ? `${page.content.slice(0, MAX_CONTENT_CHARS_PER_PAGE)}… [truncated]`
         : page.content,
   }))
+  if (pages.length > MAX_CONTENT_PAGES) {
+    kept.push({
+      page: -1,
+      content: `[${pages.length - MAX_CONTENT_PAGES} more page(s) omitted to stay within token budget]`,
+    })
+  }
+  return kept
+}
 
 const summaryCache = new Map<string, string>()
 
