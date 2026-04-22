@@ -23,8 +23,8 @@ export const Route = createFileRoute('/')({
   }),
 })
 
-const EDITOR_HOST = 'https://headless.simplepdf.com/editor'
-const EDITOR_ORIGIN = 'https://headless.simplepdf.com'
+const EDITOR_HOST = 'https://pdf-form-copilot.simplepdf.com/editor'
+const EDITOR_ORIGIN = 'https://pdf-form-copilot.simplepdf.com'
 
 const buildEditorSrc = ({ pdfUrl }: { pdfUrl: string }): string => {
   const params = new URLSearchParams({

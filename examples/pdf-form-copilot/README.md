@@ -5,7 +5,7 @@
 Standalone TanStack Start app that combines the SimplePDF editor (left pane) with an AI chat sidebar (right pane). The assistant can read, fill, navigate, and submit the PDF through the SimplePDF iframe `postMessage` bridge.
 
 - **Framework**: TanStack Start (Vite + Nitro)
-- **PDF editor**: embedded iframe at `headless.simplepdf.com`
+- **PDF editor**: embedded iframe at `pdf-form-copilot.simplepdf.com`
 - **LLM**: Claude Haiku 4.5 via the Vercel AI SDK (`ai` + `@ai-sdk/anthropic`), streamed through a TanStack Start server function
 - **Tools**: executed client-side via iframe `postMessage` (no tool execution on the server)
 - **Rate limit**: per-IP, in-memory (single-instance deploy)
