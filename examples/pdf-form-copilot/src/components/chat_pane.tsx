@@ -7,6 +7,7 @@ import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
 import { LanguagePicker } from './language_picker'
+import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
@@ -216,6 +217,7 @@ export const ChatPane = ({
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
+  const [isModelPickerOpen, setIsModelPickerOpen] = useState(false)
 
   const transport = useMemo(
     () =>
@@ -384,14 +386,25 @@ export const ChatPane = ({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
-          <p className="text-xs text-slate-500">
-            {isReady
-              ? t('chat.subtitleReady')
-              : requiresUserUpload
-                ? t('chat.subtitleNoDocument')
-                : t('chat.subtitleWaiting')}
-          </p>
+          {isReady ? (
+            <>
+              <h2 className="text-sm font-semibold text-slate-900">{t('chat.modelNameReady')}</h2>
+              <button
+                type="button"
+                onClick={() => setIsModelPickerOpen(true)}
+                className="text-xs font-medium text-sky-600 hover:text-sky-700"
+              >
+                {t('chat.switchModel')}
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
+              <p className="text-xs text-slate-500">
+                {requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')}
+              </p>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <LanguagePicker value={language} onChange={onLanguageChange} disabled={isStreaming} />
@@ -448,6 +461,7 @@ export const ChatPane = ({
           </button>
         </form>
       </div>
+      <ModelPickerModal open={isModelPickerOpen} onClose={() => setIsModelPickerOpen(false)} />
     </div>
   )
 }
