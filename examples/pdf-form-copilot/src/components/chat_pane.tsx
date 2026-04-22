@@ -1,0 +1,234 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
+import ReactMarkdown from 'react-markdown'
+import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
+import { isClientToolName, type ClientToolName } from '../server/tools'
+import type { FormId } from '../lib/forms'
+import { SuggestedPrompts } from './suggested_prompts'
+import { ToolInvocationCard } from './tool_invocation_card'
+
+type ChatPaneProps = {
+  bridge: IframeBridge | null
+  isEditorReady: boolean
+  formId: FormId
+}
+
+type ToolInput = Record<string, unknown>
+
+const dispatchTool = async (
+  bridge: IframeBridge,
+  toolName: ClientToolName,
+  input: ToolInput,
+): Promise<BridgeResult<unknown>> => {
+  switch (toolName) {
+    case 'get_fields':
+      return bridge.getFields()
+    case 'get_document_content': {
+      const extraction = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
+      return bridge.getDocumentContent({ extractionMode: extraction })
+    }
+    case 'set_field_value': {
+      const fieldId = typeof input.field_id === 'string' ? input.field_id : null
+      const value = typeof input.value === 'string' ? input.value : null
+      if (fieldId === null) {
+        return { success: false, error: { code: 'bad_input', message: 'field_id is required' } }
+      }
+      return bridge.setFieldValue({ fieldId, value })
+    }
+    case 'focus_field': {
+      const fieldId = typeof input.field_id === 'string' ? input.field_id : null
+      if (fieldId === null) {
+        return { success: false, error: { code: 'bad_input', message: 'field_id is required' } }
+      }
+      return bridge.focusField({ fieldId })
+    }
+    case 'go_to_page': {
+      const page = typeof input.page === 'number' ? input.page : null
+      if (page === null) {
+        return { success: false, error: { code: 'bad_input', message: 'page must be a number' } }
+      }
+      return bridge.goTo({ page })
+    }
+    case 'submit_download':
+      return bridge.submit({ downloadCopy: true })
+    default:
+      toolName satisfies never
+      return { success: false, error: { code: 'unknown_tool', message: `Unknown tool: ${String(toolName)}` } }
+  }
+}
+
+export const ChatPane = ({ bridge, isEditorReady, formId }: ChatPaneProps) => {
+  const [draft, setDraft] = useState('')
+  const bridgeRef = useRef(bridge)
+  bridgeRef.current = bridge
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const { messages, status, error, sendMessage, stop, addToolOutput } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    onToolCall: ({ toolCall }) => {
+      if (toolCall.dynamic) {
+        return
+      }
+      const toolName = toolCall.toolName
+      if (!isClientToolName(toolName)) {
+        addToolOutput({
+          tool: toolName,
+          toolCallId: toolCall.toolCallId,
+          state: 'output-error',
+          errorText: `Unknown tool: ${toolName}`,
+        })
+        return
+      }
+      const activeBridge = bridgeRef.current
+      if (activeBridge === null) {
+        addToolOutput({
+          tool: toolName,
+          toolCallId: toolCall.toolCallId,
+          state: 'output-error',
+          errorText: 'Iframe bridge is not ready yet',
+        })
+        return
+      }
+      void dispatchTool(activeBridge, toolName, (toolCall.input as ToolInput) ?? {}).then((result) => {
+        addToolOutput({
+          tool: toolName,
+          toolCallId: toolCall.toolCallId,
+          output: result,
+        })
+      })
+    },
+  })
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages])
+
+  const isStreaming = status === 'streaming' || status === 'submitted'
+  const canSend = isEditorReady && !isStreaming
+
+  const handleSend = useCallback(
+    (prompt: string): void => {
+      const trimmed = prompt.trim()
+      if (trimmed === '') {
+        return
+      }
+      void sendMessage({ text: trimmed })
+      setDraft('')
+    },
+    [sendMessage],
+  )
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Chat</h2>
+          <p className="text-xs text-slate-500">
+            {isEditorReady ? 'Claude Haiku 4.5 · in-memory rate limit' : 'Waiting for the editor to load…'}
+          </p>
+        </div>
+        {isStreaming ? (
+          <button
+            type="button"
+            onClick={stop}
+            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+          >
+            Stop
+          </button>
+        ) : null}
+      </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {messages.length === 0 ? (
+          <SuggestedPrompts formId={formId} onSelect={handleSend} disabled={!canSend} />
+        ) : (
+          <div className="space-y-4 p-4">
+            {messages.map((message) => (
+              <MessageView key={message.id} message={message} />
+            ))}
+            {error !== undefined ? (
+              <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+                {error.message}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+      <div className="border-t border-slate-200 p-3">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            handleSend(draft)
+          }}
+          className="flex gap-2"
+        >
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            disabled={!canSend}
+            placeholder={canSend ? 'Ask the copilot…' : 'Please wait…'}
+            className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 disabled:bg-slate-50 disabled:text-slate-400"
+          />
+          <button
+            type="submit"
+            disabled={!canSend || draft.trim() === ''}
+            className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+type MessageViewProps = {
+  message: UIMessage
+}
+
+const MessageView = ({ message }: MessageViewProps) => {
+  const isUser = message.role === 'user'
+  return (
+    <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
+      <div
+        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed ${
+          isUser ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-900'
+        }`}
+      >
+        {message.parts.map((part, index) => {
+          const key = `${message.id}_${index}`
+          if (part.type === 'text') {
+            return (
+              <div key={key} className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                <ReactMarkdown>{part.text}</ReactMarkdown>
+              </div>
+            )
+          }
+          if (part.type.startsWith('tool-')) {
+            const toolPart = part as {
+              type: `tool-${string}`
+              toolCallId: string
+              state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
+              input?: unknown
+              output?: unknown
+              errorText?: string
+            }
+            const toolName = toolPart.type.slice('tool-'.length)
+            return (
+              <ToolInvocationCard
+                key={key}
+                toolName={toolName}
+                state={toolPart.state}
+                input={toolPart.input}
+                output={toolPart.output}
+                errorText={toolPart.errorText}
+              />
+            )
+          }
+          return null
+        })}
+      </div>
+    </div>
+  )
+}
