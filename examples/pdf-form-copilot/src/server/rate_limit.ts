@@ -11,9 +11,20 @@ type BucketState = {
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS = 24 * HOUR_MS
 
+const parsePositiveInt = (raw: string | undefined, fallback: number): number => {
+  if (raw === undefined || raw.trim() === '') {
+    return fallback
+  }
+  const parsed = Number.parseInt(raw, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback
+  }
+  return parsed
+}
+
 export const LIMITS = {
-  perHour: 10,
-  perDay: 50,
+  perHour: parsePositiveInt(process.env.RATE_LIMIT_PER_HOUR, 10),
+  perDay: parsePositiveInt(process.env.RATE_LIMIT_PER_DAY, 50),
 } as const
 
 export type RateLimitDecision =
