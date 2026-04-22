@@ -8,6 +8,7 @@ import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
 import { LanguagePicker } from './language_picker'
 import { SuggestedPrompts } from './suggested_prompts'
+import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationCard } from './tool_invocation_card'
 import { Toolbar, type ToolbarTool } from './toolbar'
 
@@ -394,12 +395,7 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
             {messages.map((message) => (
               <MessageView key={message.id} message={message} />
             ))}
-            {isStreaming ? (
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-sky-500" />
-                {t('chat.thinking')}
-              </div>
-            ) : null}
+            {isStreaming ? <ThinkingIndicator /> : null}
             {error !== undefined ? (
               <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
                 <div className="font-medium">{t('chat.errorTitle')}</div>

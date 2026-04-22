@@ -15,3 +15,43 @@ body {
   margin: 0;
 }
 
+@keyframes pdf-copilot-shimmer {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgb(148 163 184) 0%,
+    rgb(148 163 184) 40%,
+    rgb(15 23 42) 50%,
+    rgb(148 163 184) 60%,
+    rgb(148 163 184) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pdf-copilot-shimmer 1.8s linear infinite;
+}
+
+.shimmer-icon {
+  color: rgb(148 163 184);
+  animation: pdf-copilot-shimmer-icon 1.8s ease-in-out infinite;
+}
+
+@keyframes pdf-copilot-shimmer-icon {
+  0%,
+  100% {
+    color: rgb(148 163 184);
+  }
+  50% {
+    color: rgb(15 23 42);
+  }
+}
+
