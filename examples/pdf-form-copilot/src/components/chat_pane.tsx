@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
+import { findProvider, type ByokConfig } from '../lib/byok'
+import { createByokTransport } from '../lib/byok_transport'
 import { LanguagePicker } from './language_picker'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
@@ -218,18 +220,18 @@ export const ChatPane = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
   const [isModelPickerOpen, setIsModelPickerOpen] = useState(false)
+  const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
 
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: '/api/chat',
-        body: () => {
-          const language = getLanguageByCode(languageRef.current)
-          return { language_label: language !== null ? language.label : 'English' }
-        },
-      }),
-    [],
-  )
+  const transport = useMemo(() => {
+    const bodyFn = () => {
+      const languageEntry = getLanguageByCode(languageRef.current)
+      return { language_label: languageEntry !== null ? languageEntry.label : 'English' }
+    }
+    if (byokConfig !== null) {
+      return createByokTransport({ config: byokConfig, body: bodyFn })
+    }
+    return new DefaultChatTransport({ api: '/api/chat', body: bodyFn })
+  }, [byokConfig])
 
   const { messages, status, error, sendMessage, stop, addToolOutput } = useChat({
     transport,
@@ -388,7 +390,12 @@ export const ChatPane = ({
         <div>
           {isReady ? (
             <>
-              <h2 className="text-sm font-semibold text-slate-900">{t('chat.modelNameReady')}</h2>
+              <h2 className="text-sm font-semibold text-slate-900">
+                {byokConfig === null
+                  ? t('chat.modelNameReady')
+                  : findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
+                    byokConfig.model}
+              </h2>
               <button
                 type="button"
                 onClick={() => setIsModelPickerOpen(true)}
@@ -461,7 +468,13 @@ export const ChatPane = ({
           </button>
         </form>
       </div>
-      <ModelPickerModal open={isModelPickerOpen} onClose={() => setIsModelPickerOpen(false)} />
+      <ModelPickerModal
+        open={isModelPickerOpen}
+        onClose={() => setIsModelPickerOpen(false)}
+        activeConfig={byokConfig}
+        onApply={setByokConfig}
+        onReset={() => setByokConfig(null)}
+      />
     </div>
   )
 }

@@ -1,38 +1,40 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  defaultModelFor,
+  findProvider,
+  PROVIDER_ENTRIES,
+  type ByokConfig,
+  type ByokProviderId,
+} from '../lib/byok'
 
 type ModelPickerModalProps = {
   open: boolean
   onClose: () => void
+  activeConfig: ByokConfig | null
+  onApply: (config: ByokConfig) => void
+  onReset: () => void
 }
 
-type ProviderId = 'anthropic' | 'openai' | 'google' | 'mistral' | 'xai' | 'groq'
-
-type Provider = {
-  id: ProviderId
-  labelKey: string
-}
-
-const PROVIDERS: Provider[] = [
-  { id: 'openai', labelKey: 'chat.modelPicker.providerOpenai' },
-  { id: 'google', labelKey: 'chat.modelPicker.providerGoogle' },
-  { id: 'anthropic', labelKey: 'chat.modelPicker.providerAnthropic' },
-  { id: 'mistral', labelKey: 'chat.modelPicker.providerMistral' },
-  { id: 'xai', labelKey: 'chat.modelPicker.providerXai' },
-  { id: 'groq', labelKey: 'chat.modelPicker.providerGroq' },
-]
-
-export const ModelPickerModal = ({ open, onClose }: ModelPickerModalProps) => {
+export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset }: ModelPickerModalProps) => {
   const { t } = useTranslation()
-  const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(null)
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
   const [apiKeyDraft, setApiKeyDraft] = useState('')
 
   useEffect(() => {
     if (!open) {
-      setSelectedProvider(null)
-      setApiKeyDraft('')
       return
+    }
+    if (activeConfig !== null) {
+      setSelectedProvider(activeConfig.provider)
+      setSelectedModelId(activeConfig.model)
+      setApiKeyDraft(activeConfig.apiKey)
+    } else {
+      setSelectedProvider(null)
+      setSelectedModelId(null)
+      setApiKeyDraft('')
     }
     const handleKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
@@ -43,13 +45,32 @@ export const ModelPickerModal = ({ open, onClose }: ModelPickerModalProps) => {
     return () => {
       window.removeEventListener('keydown', handleKey)
     }
-  }, [open, onClose])
+  }, [open, onClose, activeConfig])
 
   if (!open || typeof document === 'undefined') {
     return null
   }
 
-  const selectedLabel = selectedProvider === null ? '' : t(PROVIDERS.find((p) => p.id === selectedProvider)?.labelKey ?? '')
+  const handlePickProvider = (providerId: ByokProviderId): void => {
+    setSelectedProvider(providerId)
+    setSelectedModelId(defaultModelFor(providerId).id)
+  }
+
+  const providerSpec = selectedProvider === null ? null : findProvider(selectedProvider)
+  const providerLabel = providerSpec === null ? '' : t(providerSpec.labelKey)
+  const canApply = selectedProvider !== null && selectedModelId !== null && apiKeyDraft.trim() !== ''
+
+  const handleApply = (): void => {
+    if (selectedProvider === null || selectedModelId === null || apiKeyDraft.trim() === '') {
+      return
+    }
+    onApply({
+      provider: selectedProvider,
+      model: selectedModelId,
+      apiKey: apiKeyDraft.trim(),
+    })
+    onClose()
+  }
 
   return createPortal(
     <div
@@ -86,12 +107,34 @@ export const ModelPickerModal = ({ open, onClose }: ModelPickerModalProps) => {
             </div>
             <div className="mt-1 flex items-center justify-between gap-2">
               <div>
-                <div className="text-sm font-semibold text-slate-900">{t('chat.modelPicker.currentModel')}</div>
-                <div className="text-[11px] text-slate-500">{t('chat.modelPicker.currentProvider')}</div>
+                <div className="text-sm font-semibold text-slate-900">
+                  {activeConfig === null
+                    ? t('chat.modelPicker.currentModel')
+                    : findProvider(activeConfig.provider).models.find((m) => m.id === activeConfig.model)?.label ??
+                      activeConfig.model}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {activeConfig === null
+                    ? t('chat.modelPicker.currentProvider')
+                    : t(findProvider(activeConfig.provider).labelKey)}
+                </div>
               </div>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700">
-                {t('chat.modelPicker.currentBadge')}
-              </span>
+              {activeConfig === null ? (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700">
+                  {t('chat.modelPicker.currentBadge')}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onReset()
+                    onClose()
+                  }}
+                  className="text-[11px] font-medium text-sky-600 hover:text-sky-700"
+                >
+                  {t('chat.modelPicker.resetToDefault')}
+                </button>
+              )}
             </div>
           </section>
 
@@ -100,38 +143,90 @@ export const ModelPickerModal = ({ open, onClose }: ModelPickerModalProps) => {
             <p className="mt-1 text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {PROVIDERS.map((provider) => {
-                const isSelected = provider.id === selectedProvider
+              {PROVIDER_ENTRIES.map((entry) => {
+                const isSelected = entry.supported && entry.id === selectedProvider
+                const isDisabled = !entry.supported
                 return (
                   <button
-                    key={provider.id}
+                    key={entry.id}
                     type="button"
-                    onClick={() => setSelectedProvider(provider.id)}
-                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs transition ${
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (entry.supported) {
+                        handlePickProvider(entry.id)
+                      }
+                    }}
+                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs transition disabled:cursor-not-allowed ${
                       isSelected
                         ? 'border-sky-600 text-sky-700'
-                        : 'border-slate-200 text-slate-700 hover:border-sky-600'
+                        : isDisabled
+                          ? 'border-slate-200 text-slate-400'
+                          : 'border-slate-200 text-slate-700 hover:border-sky-600'
                     }`}
                   >
-                    <span className="font-medium">{t(provider.labelKey)}</span>
-                    {isSelected ? <span className="text-sky-600">✓</span> : null}
+                    <span className="font-medium">{t(entry.labelKey)}</span>
+                    {isSelected ? (
+                      <span className="text-sky-600">✓</span>
+                    ) : isDisabled ? (
+                      <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase text-slate-500">
+                        {t('chat.modelPicker.comingSoon')}
+                      </span>
+                    ) : null}
                   </button>
                 )
               })}
             </div>
 
-            {selectedProvider !== null ? (
-              <div className="mt-4 space-y-2">
-                <input
-                  type="password"
-                  value={apiKeyDraft}
-                  onChange={(event) => setApiKeyDraft(event.target.value)}
-                  placeholder={t('chat.modelPicker.keyInputPlaceholder', { provider: selectedLabel })}
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none"
-                  style={{ borderWidth: '1px' }}
-                  autoComplete="off"
-                />
-                <p className="text-[11px] text-slate-500">{t('chat.modelPicker.keyInputHint')}</p>
+            {providerSpec !== null ? (
+              <div className="mt-4 space-y-3">
+                <div>
+                  <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                    {t('chat.modelPicker.modelSectionTitle')}
+                  </div>
+                  <div className="mt-1 space-y-1.5">
+                    {providerSpec.models.map((model) => {
+                      const isSelected = model.id === selectedModelId
+                      return (
+                        <button
+                          key={model.id}
+                          type="button"
+                          onClick={() => setSelectedModelId(model.id)}
+                          className={`flex w-full items-start justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition ${
+                            isSelected
+                              ? 'border-sky-600'
+                              : 'border-slate-200 hover:border-sky-600'
+                          }`}
+                        >
+                          <span>
+                            <span className="flex items-center gap-2">
+                              <span className="font-medium text-slate-900">{model.label}</span>
+                              {model.recommended ? (
+                                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-emerald-700">
+                                  {t('chat.modelPicker.recommendedBadge')}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="mt-0.5 block text-[11px] text-slate-500">{model.description}</span>
+                          </span>
+                          {isSelected ? <span className="text-sky-600">✓</span> : null}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    value={apiKeyDraft}
+                    onChange={(event) => setApiKeyDraft(event.target.value)}
+                    placeholder={t('chat.modelPicker.keyInputPlaceholder', { provider: providerLabel })}
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none"
+                    style={{ borderWidth: '1px' }}
+                    autoComplete="off"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.keyInputHint')}</p>
+                </div>
               </div>
             ) : null}
 
@@ -151,9 +246,9 @@ export const ModelPickerModal = ({ open, onClose }: ModelPickerModalProps) => {
             </button>
             <button
               type="button"
-              disabled={selectedProvider === null || apiKeyDraft.trim() === ''}
+              disabled={!canApply}
+              onClick={handleApply}
               className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-              title={t('chat.modelPicker.comingSoon')}
             >
               {t('chat.modelPicker.applyButton')}
             </button>
