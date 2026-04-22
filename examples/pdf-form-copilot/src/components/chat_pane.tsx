@@ -252,14 +252,20 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange, sh
       }
       const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
       const startedAt = performance.now()
+      const callInput = (toolCall.input as ToolInput) ?? {}
+      console.info('[copilot] tool call', toolName, callInput)
       void dispatchTool(
         activeBridge,
         { languageLabel, useSummarizer: false, onToolbarChange: setToolbarTool },
         toolName,
-        (toolCall.input as ToolInput) ?? {},
+        callInput,
       ).then((result) => {
         const elapsedMs = Math.round(performance.now() - startedAt)
-        console.info('[copilot] tool dispatched', toolName, `${elapsedMs}ms`, result)
+        if (result.success) {
+          console.info(`[copilot] tool done ${toolName} ${elapsedMs}ms`, result.data)
+        } else {
+          console.warn(`[copilot] tool failed ${toolName} ${elapsedMs}ms`, { input: callInput, error: result.error })
+        }
         addToolOutput({
           tool: toolName,
           toolCallId: toolCall.toolCallId,
