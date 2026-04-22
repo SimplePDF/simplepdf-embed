@@ -58,9 +58,12 @@ const truncatePages = (
         : page.content,
   }))
 
+const summaryCache = new Map<string, string>()
+
 const compactGetDocumentContent = async (
   result: BridgeResult<unknown>,
   languageLabel: string,
+  useSummarizer: boolean,
 ): Promise<BridgeResult<unknown>> => {
   if (!result.success) {
     return result
@@ -71,8 +74,14 @@ const compactGetDocumentContent = async (
   }
 
   const totalChars = data.pages.reduce((sum, page) => sum + page.content.length, 0)
-  if (totalChars < SUMMARIZE_THRESHOLD_CHARS) {
-    return { success: true, data: { name: data.name ?? null, pages: data.pages } }
+  if (!useSummarizer || totalChars < SUMMARIZE_THRESHOLD_CHARS) {
+    return { success: true, data: { name: data.name ?? null, pages: truncatePages(data.pages) } }
+  }
+
+  const cacheKey = `${languageLabel}::${data.name ?? 'unknown'}::${totalChars}`
+  const cached = summaryCache.get(cacheKey)
+  if (cached !== undefined) {
+    return { success: true, data: { name: data.name ?? null, summary: cached } }
   }
 
   try {
@@ -92,6 +101,7 @@ const compactGetDocumentContent = async (
     if (typeof payload.summary !== 'string' || payload.summary === '') {
       throw new Error('summarize_missing_summary')
     }
+    summaryCache.set(cacheKey, payload.summary)
     return {
       success: true,
       data: { name: data.name ?? null, summary: payload.summary },
@@ -103,6 +113,7 @@ const compactGetDocumentContent = async (
 
 type DispatchContext = {
   languageLabel: string
+  useSummarizer: boolean
   onToolbarChange: (tool: ToolbarTool) => void
 }
 
@@ -127,6 +138,7 @@ const dispatchTool = async (
       return compactGetDocumentContent(
         await bridge.getDocumentContent({ extractionMode: extraction }),
         context.languageLabel,
+        context.useSummarizer,
       )
     }
     case 'detect_fields':
@@ -223,12 +235,15 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
         return
       }
       const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
+      const startedAt = performance.now()
       void dispatchTool(
         activeBridge,
-        { languageLabel, onToolbarChange: setToolbarTool },
+        { languageLabel, useSummarizer: false, onToolbarChange: setToolbarTool },
         toolName,
         (toolCall.input as ToolInput) ?? {},
       ).then((result) => {
+        const elapsedMs = Math.round(performance.now() - startedAt)
+        console.info('[copilot] tool dispatched', toolName, `${elapsedMs}ms`, result)
         addToolOutput({
           tool: toolName,
           toolCallId: toolCall.toolCallId,
@@ -241,6 +256,28 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
+
+  const turnStartAtRef = useRef<number | null>(null)
+  const firstTokenLoggedRef = useRef(false)
+  useEffect(() => {
+    if (status === 'submitted') {
+      turnStartAtRef.current = performance.now()
+      firstTokenLoggedRef.current = false
+      console.info('[copilot] turn start')
+      return
+    }
+    if (status === 'streaming' && !firstTokenLoggedRef.current && turnStartAtRef.current !== null) {
+      const elapsed = Math.round(performance.now() - turnStartAtRef.current)
+      console.info(`[copilot] first-token ${elapsed}ms`)
+      firstTokenLoggedRef.current = true
+      return
+    }
+    if (status === 'ready' && turnStartAtRef.current !== null) {
+      const elapsed = Math.round(performance.now() - turnStartAtRef.current)
+      console.info(`[copilot] turn done ${elapsed}ms`)
+      turnStartAtRef.current = null
+    }
+  }, [status])
 
   const handleToolbarSelect = useCallback(
     (tool: ToolbarTool): void => {

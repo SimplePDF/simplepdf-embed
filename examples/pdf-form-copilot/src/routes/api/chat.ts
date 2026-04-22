@@ -143,10 +143,12 @@ export const Route = createFileRoute('/api/chat')({
               input_tokens: usage.inputTokens,
               output_tokens: usage.outputTokens,
               cached_input_tokens: usage.cachedInputTokens,
+              elapsed_ms: Date.now() - streamStartedAt,
             })
           },
         })
 
+        const streamStartedAt = Date.now()
         console.info('chat.streaming', {
           ip_hash: ipHash,
           remaining_hour: decision.remaining.hour,
