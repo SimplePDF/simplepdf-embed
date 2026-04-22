@@ -81,7 +81,20 @@
       "output-available": "done",
       "output-error": "error"
     },
-    "argsLabel": "args:"
+    "argsLabel": "args:",
+    "fallbackName": "Calling {{tool}}",
+    "names": {
+      "get_fields": "Retrieving the fields",
+      "get_document_content": "Reading the document",
+      "detect_fields": "Detecting the fields",
+      "focus_field": "Highlighting the field",
+      "go_to_page": "Going to the page",
+      "set_field_value": "Filling the field",
+      "select_tool": "Switching tool",
+      "create_field": "Creating a field",
+      "remove_fields": "Removing fields",
+      "submit_download": "Preparing the download"
+    }
   },
   "debugPanel": {
     "title": "Debug panel",
