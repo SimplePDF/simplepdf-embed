@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { getFormsForLocale, isFormId, type FormId } from '../lib/forms'
+import { getFormsForLocale, type FormId } from '../lib/forms'
+import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
 
 type LayoutProps = {
@@ -36,7 +37,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [isInfoOpen, setIsInfoOpen] = useState(false)
-  const { order, forms } = getFormsForLocale(locale)
+  const localeForms = getFormsForLocale(locale)
 
   const switchForm = (next: FormId): void => {
     void navigate({
@@ -47,14 +48,6 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
         lang: prev.lang ?? 'en',
       }),
     })
-  }
-
-  const handleFormChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
-    const next = event.target.value
-    if (!isFormId(next)) {
-      return
-    }
-    switchForm(next)
   }
 
   return (
@@ -72,23 +65,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
         </button>
       </div>
       <div className="flex items-center gap-4 text-xs">
-        <label className="flex items-center gap-2 text-slate-500">
-          <span>{t('header.useCase')}</span>
-          <select
-            value={currentFormId}
-            onChange={handleFormChange}
-            className="rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:border-sky-300 focus:border-sky-500 focus:outline-none"
-          >
-            {order.map((id) => {
-              const form = forms[id]
-              return (
-                <option key={id} value={id}>
-                  {t(form.useCaseKey)} — {t(form.labelKey)}
-                </option>
-              )
-            })}
-          </select>
-        </label>
+        <FormPicker value={currentFormId} options={localeForms} onChange={switchForm} />
         <a
           href="https://simplepdf.com"
           target="_blank"
