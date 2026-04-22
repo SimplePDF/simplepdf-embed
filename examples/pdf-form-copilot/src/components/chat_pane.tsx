@@ -442,7 +442,8 @@ export const ChatPane = ({
             onChange={(event) => setDraft(event.target.value)}
             disabled={!canSend}
             placeholder={canSend ? t('chat.inputPlaceholderReady') : t('chat.inputPlaceholderWaiting')}
-            className="flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 disabled:bg-slate-50 disabled:text-slate-400"
+            className="flex-1 rounded-md border border-solid border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+            style={{ borderWidth: '1px' }}
           />
           <button
             type="submit"
