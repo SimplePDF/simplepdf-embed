@@ -94,20 +94,6 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
         </div>
 
         <div className="mt-4 space-y-5 text-sm leading-relaxed text-slate-700">
-          <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-            <p>
-              {t('infoModal.poweredBySimplePdfPro')}{' '}
-              <a
-                href="https://simplepdf.com/pricing"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-600 hover:text-sky-700"
-              >
-                {t('infoModal.proPlanLink')}
-              </a>
-            </p>
-          </section>
-
           <section className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
             <p>{t('infoModal.disclaimer')}</p>
             <p>
@@ -184,6 +170,18 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
               })}
             </div>
             <p className="mt-3 text-xs text-slate-500">{t('infoModal.useCasesFooter')}</p>
+          </section>
+
+          <section className="border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
+            {t('infoModal.poweredBySimplePdfPro')}{' '}
+            <a
+              href="https://simplepdf.com/pricing"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-sky-600 hover:text-sky-700"
+            >
+              {t('infoModal.proPlanLink')}
+            </a>
           </section>
         </div>
       </div>
