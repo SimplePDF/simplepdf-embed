@@ -4,13 +4,16 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type
 import ReactMarkdown from 'react-markdown'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
-import { DEFAULT_LANGUAGE_CODE, getLanguageByCode } from '../lib/languages'
+import { getLanguageByCode } from '../lib/languages'
 import { LanguagePicker } from './language_picker'
+import { SuggestedPrompts } from './suggested_prompts'
 import { ToolInvocationCard } from './tool_invocation_card'
 
 type ChatPaneProps = {
   bridge: IframeBridge | null
   isEditorReady: boolean
+  language: string
+  onLanguageChange: (code: string) => void
 }
 
 type ToolInput = Record<string, unknown>
@@ -57,13 +60,12 @@ const dispatchTool = async (
   }
 }
 
-export const ChatPane = ({ bridge, isEditorReady }: ChatPaneProps) => {
+export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: ChatPaneProps) => {
   const [draft, setDraft] = useState('')
-  const [languageCode, setLanguageCode] = useState<string>(DEFAULT_LANGUAGE_CODE)
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
-  const languageRef = useRef(languageCode)
-  languageRef.current = languageCode
+  const languageRef = useRef(language)
+  languageRef.current = language
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const transport = useMemo(
@@ -121,7 +123,7 @@ export const ChatPane = ({ bridge, isEditorReady }: ChatPaneProps) => {
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   const canSend = isEditorReady && !isStreaming
-  const languageLabel = getLanguageByCode(languageCode)?.label ?? 'English'
+  const languageLabel = getLanguageByCode(language)?.label ?? 'English'
 
   const handleSend = useCallback(
     (prompt: string): void => {
@@ -145,7 +147,7 @@ export const ChatPane = ({ bridge, isEditorReady }: ChatPaneProps) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <LanguagePicker value={languageCode} onChange={setLanguageCode} disabled={isStreaming} />
+          <LanguagePicker value={language} onChange={onLanguageChange} disabled={isStreaming} />
           {isStreaming ? (
             <button
               type="button"
@@ -159,14 +161,11 @@ export const ChatPane = ({ bridge, isEditorReady }: ChatPaneProps) => {
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="p-6 text-sm text-slate-500">
-            <p className="text-slate-700">
-              Ask the copilot anything about the form. Replies are in{' '}
-              <span className="font-medium text-slate-900">{languageLabel}</span>.
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Try: &ldquo;Help me fill this form&rdquo; or &ldquo;Which fields are still empty?&rdquo;
-            </p>
+          <div className="flex h-full flex-col">
+            <div className="border-b border-slate-200 px-4 py-3 text-xs text-slate-500">
+              Replies will be in <span className="font-medium text-slate-900">{languageLabel}</span>.
+            </div>
+            <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
           </div>
         ) : (
           <div className="space-y-4 p-4">

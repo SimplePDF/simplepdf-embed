@@ -11,6 +11,7 @@ export const LANGUAGES: Language[] = [
   { code: 'cs', label: 'Czech', native: 'Čeština' },
   { code: 'da', label: 'Danish', native: 'Dansk' },
   { code: 'nl', label: 'Dutch', native: 'Nederlands' },
+  { code: 'et', label: 'Estonian', native: 'Eesti' },
   { code: 'fi', label: 'Finnish', native: 'Suomi' },
   { code: 'fr', label: 'French', native: 'Français' },
   { code: 'de', label: 'German', native: 'Deutsch' },
@@ -24,7 +25,6 @@ export const LANGUAGES: Language[] = [
   { code: 'pl', label: 'Polish', native: 'Polski' },
   { code: 'pt', label: 'Portuguese', native: 'Português' },
   { code: 'ro', label: 'Romanian', native: 'Română' },
-  { code: 'ru', label: 'Russian', native: 'Русский' },
   { code: 'es', label: 'Spanish', native: 'Español' },
   { code: 'sv', label: 'Swedish', native: 'Svenska' },
   { code: 'tr', label: 'Turkish', native: 'Türkçe' },
@@ -36,6 +36,9 @@ export const DEFAULT_LANGUAGE_CODE = 'en'
 
 export const getLanguageByCode = (code: string): Language | null =>
   LANGUAGES.find((language) => language.code === code) ?? null
+
+export const isLanguageCode = (value: unknown): value is string =>
+  typeof value === 'string' && LANGUAGES.some((language) => language.code === value)
 
 const normalize = (value: string): string =>
   value

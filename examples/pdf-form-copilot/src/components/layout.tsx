@@ -40,7 +40,11 @@ const Header = ({ currentFormId }: HeaderProps) => {
     }
     void navigate({
       to: '/',
-      search: (prev) => ({ form: next, debug: prev.debug ?? false }),
+      search: (prev) => ({
+        form: next,
+        debug: prev.debug ?? false,
+        lang: prev.lang ?? 'en',
+      }),
     })
   }
 
