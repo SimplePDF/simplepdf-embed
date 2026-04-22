@@ -51,7 +51,8 @@ type PendingRequest = {
 }
 
 const REQUEST_TIMEOUT_MS = 30_000
-const EDITOR_READY_FALLBACK_MS = 4_000
+const EDITOR_READY_PROBE_INTERVAL_MS = 500
+const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -119,28 +120,50 @@ const createBridge = ({
     })
   }
 
-  const markReady = (source: 'editor_ready_event' | 'fallback_timeout'): void => {
+  const probeRequestIds = new Set<string>()
+  let probeInterval: ReturnType<typeof setInterval> | null = null
+
+  const markReady = (source: 'editor_ready_event' | 'probe_response' | 'fallback_timeout'): void => {
     if (source === 'editor_ready_event') {
       // A fresh EDITOR_READY event means the iframe has (re)mounted and a new
       // document load cycle is starting. Reset isDocumentLoaded so consumers
       // wait for the new DOCUMENT_LOADED event before treating the editor as
-      // usable. The fallback timeout path (used when the editor is loaded
-      // without loadingPlaceholder=true and therefore never emits
-      // EDITOR_READY) must NOT touch isDocumentLoaded — the user may already
-      // have picked a document, and resetting here would disable the chat.
+      // usable. Neither the probe nor the hard-fallback path touches
+      // isDocumentLoaded — the user may already have a document loaded, and
+      // resetting here would disable the chat.
       isDocumentLoaded = false
     }
+    if (probeInterval !== null) {
+      clearInterval(probeInterval)
+      probeInterval = null
+    }
+    probeRequestIds.clear()
     if (isEditorReady) {
       onReady()
       return
     }
     isEditorReady = true
     if (source === 'fallback_timeout') {
-      console.warn('[copilot] EDITOR_READY never arrived; flipping isEditorReady optimistically after timeout')
+      console.warn(`[copilot] editor readiness hard-fallback after ${EDITOR_READY_HARD_FALLBACK_MS}ms`)
+    } else if (source === 'probe_response') {
+      console.info('[copilot] editor ready via GET_FIELDS probe response')
     } else {
       console.info('[copilot] EDITOR_READY received')
     }
     onReady()
+  }
+
+  const sendProbe = (): void => {
+    const iframe = iframeRef.current
+    if (iframe === null || iframe.contentWindow === null) {
+      return
+    }
+    const probeId = generateRequestId()
+    probeRequestIds.add(probeId)
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ type: 'GET_FIELDS', request_id: probeId, data: {} }),
+      editorOrigin,
+    )
   }
 
   const markDocumentLoaded = (): void => {
@@ -154,7 +177,14 @@ const createBridge = ({
 
   const readyTimeout = setTimeout(() => {
     markReady('fallback_timeout')
-  }, EDITOR_READY_FALLBACK_MS)
+  }, EDITOR_READY_HARD_FALLBACK_MS)
+
+  // Active probing: fire a GET_FIELDS request every 500ms until the editor
+  // answers. First response = iframe is alive + postMessage bridge is up,
+  // regardless of whether the document has loaded. Much faster than the
+  // earlier 4s fixed fallback.
+  sendProbe()
+  probeInterval = setInterval(sendProbe, EDITOR_READY_PROBE_INTERVAL_MS)
 
   const onMessage = (event: MessageEvent<string>) => {
     if (event.origin !== editorOrigin) {
@@ -197,6 +227,14 @@ const createBridge = ({
     if (requestId === null) {
       return
     }
+    if (probeRequestIds.has(requestId)) {
+      // First response to our readiness probe — the iframe is alive and the
+      // postMessage bridge is listening. Regardless of success/failure payload,
+      // we treat this as "editor ready".
+      probeRequestIds.delete(requestId)
+      markReady('probe_response')
+      return
+    }
     const entry = pending.get(requestId)
     if (!entry) {
       return
@@ -230,6 +268,11 @@ const createBridge = ({
   const dispose = () => {
     window.removeEventListener('message', onMessage)
     clearTimeout(readyTimeout)
+    if (probeInterval !== null) {
+      clearInterval(probeInterval)
+      probeInterval = null
+    }
+    probeRequestIds.clear()
     for (const { timeoutId, resolve } of pending.values()) {
       clearTimeout(timeoutId)
       resolve({ success: false, error: { code: 'bridge_disposed', message: 'Iframe bridge was disposed' } })

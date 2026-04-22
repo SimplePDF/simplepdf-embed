@@ -7,6 +7,7 @@ import {
   PROVIDER_ENTRIES,
   type ByokConfig,
   type ByokProviderId,
+  type ProviderEntry,
 } from '../lib/byok'
 
 type ModelPickerModalProps = {
@@ -22,6 +23,7 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
   const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(null)
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
   const [apiKeyDraft, setApiKeyDraft] = useState('')
+  const [comingSoonProviderKey, setComingSoonProviderKey] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) {
@@ -36,6 +38,7 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
       setSelectedModelId(null)
       setApiKeyDraft('')
     }
+    setComingSoonProviderKey(null)
     const handleKey = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         onClose()
@@ -143,33 +146,53 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
             <p className="mt-1 text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {PROVIDER_ENTRIES.map((entry) => {
+              {PROVIDER_ENTRIES.map((entry: ProviderEntry) => {
                 const isSelected = entry.supported && entry.id === selectedProvider
-                const isDisabled = !entry.supported
+                const isComingSoon = !entry.supported
+                const isExpanded = isComingSoon && comingSoonProviderKey === entry.id
                 return (
                   <button
                     key={entry.id}
                     type="button"
-                    disabled={isDisabled}
                     onClick={() => {
                       if (entry.supported) {
+                        setComingSoonProviderKey(null)
                         handlePickProvider(entry.id)
+                        return
                       }
+                      setSelectedProvider(null)
+                      setComingSoonProviderKey(isExpanded ? null : entry.id)
                     }}
-                    className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs transition disabled:cursor-not-allowed ${
+                    className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2 text-left text-xs transition ${
                       isSelected
                         ? 'border-sky-600 text-sky-700'
-                        : isDisabled
-                          ? 'border-slate-200 text-slate-400'
+                        : isExpanded
+                          ? 'border-sky-600 text-slate-700'
                           : 'border-slate-200 text-slate-700 hover:border-sky-600'
                     }`}
                   >
-                    <span className="font-medium">{t(entry.labelKey)}</span>
-                    {isSelected ? (
-                      <span className="text-sky-600">✓</span>
-                    ) : isDisabled ? (
-                      <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase text-slate-500">
-                        {t('chat.modelPicker.comingSoon')}
+                    <span className="flex w-full items-center justify-between gap-2">
+                      <span className="font-medium">{t(entry.labelKey)}</span>
+                      {isSelected ? (
+                        <span className="text-sky-600">✓</span>
+                      ) : isComingSoon ? (
+                        <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase text-slate-500">
+                          {t('chat.modelPicker.comingSoon')}
+                        </span>
+                      ) : null}
+                    </span>
+                    {isExpanded ? (
+                      <span className="mt-1 block text-[11px] leading-snug text-slate-500">
+                        {t('chat.modelPicker.comingSoonEmailLead')}{' '}
+                        <a
+                          href={`mailto:${t('chat.modelPicker.comingSoonEmail')}?subject=${encodeURIComponent(
+                            `Form Copilot: ${t(entry.labelKey)} interest`,
+                          )}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className="font-medium text-sky-600 hover:text-sky-700"
+                        >
+                          {t('chat.modelPicker.comingSoonEmail')}
+                        </a>
                       </span>
                     ) : null}
                   </button>

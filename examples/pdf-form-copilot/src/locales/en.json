@@ -1,6 +1,6 @@
 {
   "header": {
-    "brand": "Form Copilot",
+    "brand": "Form Copilot Demo",
     "tagline": "AI that helps users fill PDF forms step by step",
     "whatIsThisDemo": "What is this demo?",
     "useCase": "Loaded PDF",
@@ -75,6 +75,8 @@
       "applyButton": "Use this provider",
       "cancelButton": "Cancel",
       "comingSoon": "Coming soon",
+      "comingSoonEmailLead": "Register your interest:",
+      "comingSoonEmail": "hello@simplepdf.com",
       "resetToDefault": "Back to demo (our Anthropic key)",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
