@@ -210,6 +210,9 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
   const { messages, status, error, sendMessage, stop, addToolOutput } = useChat({
     transport,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    onError: (err) => {
+      console.error('[copilot] chat error', err)
+    },
     onToolCall: ({ toolCall }) => {
       if (toolCall.dynamic) {
         return
@@ -380,9 +383,16 @@ export const ChatPane = ({ bridge, isEditorReady, language, onLanguageChange }: 
             {messages.map((message) => (
               <MessageView key={message.id} message={message} />
             ))}
+            {isStreaming ? (
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-sky-500" />
+                Thinking…
+              </div>
+            ) : null}
             {error !== undefined ? (
               <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-                {error.message}
+                <div className="font-medium">Something went wrong.</div>
+                <div className="mt-1 break-all">{error.message}</div>
               </div>
             ) : null}
           </div>

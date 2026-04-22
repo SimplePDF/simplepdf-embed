@@ -98,7 +98,7 @@ export const Route = createFileRoute('/api/chat')({
             { role: 'system', content: languageInstruction },
             ...modelMessages,
           ],
-          maxRetries: 2,
+          maxRetries: 0,
           maxOutputTokens: 500,
           tools: {
             get_fields: {
