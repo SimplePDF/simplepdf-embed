@@ -173,14 +173,14 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
           </section>
 
           <section className="border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
-            {t('infoModal.poweredBySimplePdfPro')}{' '}
+            {t('infoModal.poweredByPrefix')}{' '}
             <a
               href="https://simplepdf.com/pricing"
               target="_blank"
               rel="noreferrer"
               className="font-medium text-sky-600 hover:text-sky-700"
             >
-              {t('infoModal.proPlanLink')}
+              {t('infoModal.simplepdfProPlan')}
             </a>
           </section>
         </div>

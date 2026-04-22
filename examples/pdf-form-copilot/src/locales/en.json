@@ -9,8 +9,8 @@
   "infoModal": {
     "title": "AI-assisted form filling, humans in the loop",
     "close": "Close",
-    "poweredBySimplePdfPro": "Powered by the SimplePDF",
-    "proPlanLink": "Pro plan",
+    "poweredByPrefix": "Powered by the",
+    "simplepdfProPlan": "SimplePDF Pro plan",
     "sourceCode": "Source code on GitHub",
     "githubStarTitle": "Star SimplePDF/simplepdf-embed on GitHub",
     "disclaimer": "This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming proxy only.",
