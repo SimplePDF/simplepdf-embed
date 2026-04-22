@@ -122,6 +122,39 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
               (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).
             </p>
           </section>
+
+          <section className="space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-600">
+            <p>
+              Powered by the SimplePDF{' '}
+              <a
+                href="https://simplepdf.com/pricing"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-600 hover:text-sky-700"
+              >
+                Pro plan
+              </a>
+              . Field detection, programmatic field control and bring-your-own-storage are all Pro features.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-600 hover:text-sky-700"
+              >
+                Source code on GitHub
+              </a>
+              <iframe
+                title="Star SimplePDF/simplepdf-embed on GitHub"
+                src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
+                frameBorder={0}
+                scrolling="0"
+                width={110}
+                height={20}
+              />
+            </div>
+          </section>
         </div>
       </div>
     </div>,
