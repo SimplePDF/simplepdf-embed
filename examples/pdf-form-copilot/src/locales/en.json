@@ -61,7 +61,6 @@
     "errorTitle": "Something went wrong.",
     "errorFriendlyGeneric": "I wasn't able to complete that. Could you rephrase what you'd like me to do?",
     "errorFriendlyWithAction": "I wasn't able to {{action}}. Could you rephrase what you'd like me to do?",
-    "repliesWillBeIn": "Replies will be in",
     "inputPlaceholderReady": "Ask the copilot…",
     "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"

@@ -361,7 +361,6 @@ export const ChatPane = ({
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   const canSend = isReady && !isStreaming
-  const languageLabel = getLanguageByCode(language)?.label ?? 'English'
 
   useEffect(() => {
     if (canSend) {
@@ -410,12 +409,7 @@ export const ChatPane = ({
       <Toolbar selected={toolbarTool} onSelect={handleToolbarSelect} disabled={!isReady} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col">
-            <div className="border-b border-slate-200 px-4 py-3 text-xs text-slate-500">
-              {t('chat.repliesWillBeIn')} <span className="font-medium text-slate-900">{languageLabel}</span>.
-            </div>
-            <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
-          </div>
+          <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
         ) : (
           <div className="space-y-4 p-4">
             {messages.map((message) => (
