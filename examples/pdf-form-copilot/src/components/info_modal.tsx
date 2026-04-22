@@ -124,7 +124,25 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps) => {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>{t('infoModal.humanInTheLoopBullet1')}</li>
               <li>{t('infoModal.humanInTheLoopBullet2')}</li>
-              <li>{t('infoModal.humanInTheLoopBullet3')}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold text-slate-900">{t('infoModal.aboutTitle')}</h3>
+            <p className="mt-1 text-xs text-slate-600">{t('infoModal.aboutIntro')}</p>
+            <ul className="mt-2 space-y-2 text-xs">
+              <li>
+                <span className="font-semibold text-slate-900">{t('infoModal.aboutBullet1Title')}</span>{' '}
+                <span className="text-slate-600">{t('infoModal.aboutBullet1Body')}</span>
+              </li>
+              <li>
+                <span className="font-semibold text-slate-900">{t('infoModal.aboutBullet2Title')}</span>{' '}
+                <span className="text-slate-600">{t('infoModal.aboutBullet2Body')}</span>
+              </li>
+              <li>
+                <span className="font-semibold text-slate-900">{t('infoModal.aboutBullet3Title')}</span>{' '}
+                <span className="text-slate-600">{t('infoModal.aboutBullet3Body')}</span>
+              </li>
             </ul>
           </section>
 
