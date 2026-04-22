@@ -23,6 +23,18 @@ type ParsedBody =
   | { success: true; messages: UIMessage[]; languageLabel: string }
   | { success: false; status: number; message: string }
 
+const isFreshUserTurn = (messages: UIMessage[]): boolean => {
+  const last = messages[messages.length - 1]
+  if (last === undefined || last.role !== 'user') {
+    return false
+  }
+  const parts = last.parts
+  if (!Array.isArray(parts)) {
+    return false
+  }
+  return parts.some((part) => part.type === 'text')
+}
+
 const parseBody = async (request: Request): Promise<ParsedBody> => {
   if (request.headers.get('content-type')?.includes('application/json') !== true) {
     return { success: false, status: 415, message: 'Expected application/json' }
@@ -65,8 +77,9 @@ export const Route = createFileRoute('/api/chat')({
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        const decision = rateLimiter.check(ipHash)
-        if (!decision.allowed) {
+        const shouldCountAgainstLimit = isFreshUserTurn(body.messages)
+        const decision = shouldCountAgainstLimit ? rateLimiter.check(ipHash) : null
+        if (decision !== null && !decision.allowed) {
           console.info('chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
             {
@@ -169,8 +182,9 @@ export const Route = createFileRoute('/api/chat')({
         const streamStartedAt = Date.now()
         console.info('chat.streaming', {
           ip_hash: ipHash,
-          remaining_hour: decision.remaining.hour,
-          remaining_day: decision.remaining.day,
+          counted_against_limit: shouldCountAgainstLimit,
+          remaining_hour: decision !== null && decision.allowed ? decision.remaining.hour : null,
+          remaining_day: decision !== null && decision.allowed ? decision.remaining.day : null,
           message_count: body.messages.length,
           language: body.languageLabel,
         })

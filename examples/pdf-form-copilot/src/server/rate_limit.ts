@@ -23,8 +23,8 @@ const parsePositiveInt = (raw: string | undefined, fallback: number): number => 
 }
 
 export const LIMITS = {
-  perHour: parsePositiveInt(process.env.RATE_LIMIT_PER_HOUR, 20),
-  perDay: parsePositiveInt(process.env.RATE_LIMIT_PER_DAY, 100),
+  perHour: parsePositiveInt(process.env.RATE_LIMIT_PER_HOUR, 30),
+  perDay: parsePositiveInt(process.env.RATE_LIMIT_PER_DAY, 150),
 } as const
 
 export type RateLimitDecision =
