@@ -75,6 +75,39 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
         </div>
 
         <div className="mt-4 space-y-5 text-sm leading-relaxed text-slate-700">
+          <section className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+            <p>
+              Powered by the SimplePDF{' '}
+              <a
+                href="https://simplepdf.com/pricing"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-600 hover:text-sky-700"
+              >
+                Pro plan
+              </a>
+              . Field detection, programmatic field control and bring-your-own-storage are all Pro features.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-sky-600 hover:text-sky-700"
+              >
+                Source code on GitHub
+              </a>
+              <iframe
+                title="Star SimplePDF/simplepdf-embed on GitHub"
+                src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
+                frameBorder={0}
+                scrolling="0"
+                width={110}
+                height={20}
+              />
+            </div>
+          </section>
+
           <section>
             <h3 className="text-sm font-semibold text-slate-900">Why it matters</h3>
             <p className="mt-1">
@@ -123,38 +156,6 @@ export const InfoModal = ({ open, onClose }: InfoModalProps) => {
             </p>
           </section>
 
-          <section className="space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-600">
-            <p>
-              Powered by the SimplePDF{' '}
-              <a
-                href="https://simplepdf.com/pricing"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-600 hover:text-sky-700"
-              >
-                Pro plan
-              </a>
-              . Field detection, programmatic field control and bring-your-own-storage are all Pro features.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <a
-                href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-sky-600 hover:text-sky-700"
-              >
-                Source code on GitHub
-              </a>
-              <iframe
-                title="Star SimplePDF/simplepdf-embed on GitHub"
-                src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
-                frameBorder={0}
-                scrolling="0"
-                width={110}
-                height={20}
-              />
-            </div>
-          </section>
         </div>
       </div>
     </div>,

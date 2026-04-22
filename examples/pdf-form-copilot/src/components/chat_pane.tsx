@@ -18,6 +18,51 @@ type ChatPaneProps = {
 
 type ToolInput = Record<string, unknown>
 
+const MAX_CONTENT_CHARS_PER_PAGE = 900
+
+const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
+  if (!result.success) {
+    return result
+  }
+  const data = result.data as { fields?: Array<{ field_id: string; name: string | null; type: string; page: number; value: string | null }> }
+  if (!Array.isArray(data.fields)) {
+    return result
+  }
+  const compacted = data.fields.map((field) => {
+    const entry: Record<string, unknown> = {
+      id: field.field_id,
+      type: field.type,
+      page: field.page,
+    }
+    if (field.value !== null && field.value !== '') {
+      entry.value = field.value
+    }
+    if (field.name !== null && field.name !== '' && field.name !== field.field_id) {
+      entry.name = field.name
+    }
+    return entry
+  })
+  return { success: true, data: { fields: compacted } }
+}
+
+const compactGetDocumentContent = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
+  if (!result.success) {
+    return result
+  }
+  const data = result.data as { name?: string; pages?: Array<{ page: number; content: string }> }
+  if (!Array.isArray(data.pages)) {
+    return result
+  }
+  const pages = data.pages.map((page) => ({
+    page: page.page,
+    content:
+      page.content.length > MAX_CONTENT_CHARS_PER_PAGE
+        ? `${page.content.slice(0, MAX_CONTENT_CHARS_PER_PAGE)}… [truncated]`
+        : page.content,
+  }))
+  return { success: true, data: { name: data.name ?? null, pages } }
+}
+
 const dispatchTool = async (
   bridge: IframeBridge,
   toolName: ClientToolName,
@@ -25,10 +70,10 @@ const dispatchTool = async (
 ): Promise<BridgeResult<unknown>> => {
   switch (toolName) {
     case 'get_fields':
-      return bridge.getFields()
+      return compactGetFields(await bridge.getFields())
     case 'get_document_content': {
       const extraction = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
-      return bridge.getDocumentContent({ extractionMode: extraction })
+      return compactGetDocumentContent(await bridge.getDocumentContent({ extractionMode: extraction }))
     }
     case 'set_field_value': {
       const fieldId = typeof input.field_id === 'string' ? input.field_id : null

@@ -88,7 +88,8 @@ export const Route = createFileRoute('/api/chat')({
           model: anthropic(MODEL_ID),
           system: systemPrompt,
           messages: await convertToModelMessages(body.messages),
-          maxRetries: 1,
+          maxRetries: 2,
+          maxOutputTokens: 500,
           tools: {
             get_fields: {
               description: 'Lists every fillable field currently on the document.',
