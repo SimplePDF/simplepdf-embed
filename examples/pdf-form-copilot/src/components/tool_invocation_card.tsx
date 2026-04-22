@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getToolKind, ToolIcon } from './tool_icons'
 
 type ToolInvocationState = 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
 
@@ -39,7 +40,10 @@ export const ToolInvocationCard = ({ toolName, state, input, output, errorText }
   return (
     <div className="my-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
       <div className="flex items-center justify-between">
-        <span className="font-mono font-semibold text-slate-800">{toolName}</span>
+        <span className="flex items-center gap-1.5 font-mono font-semibold text-slate-800">
+          <ToolIcon kind={getToolKind(toolName)} />
+          {toolName}
+        </span>
         <StateBadge state={state} />
       </div>
       {input !== undefined ? (
