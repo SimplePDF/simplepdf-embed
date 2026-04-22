@@ -1,34 +1,20 @@
 import { z } from 'zod'
+import type { UIMessage } from 'ai'
+import { isLanguageCode, LANGUAGES } from '../lib/languages'
 
 export const GetFieldsInput = z.object({}).describe('Lists every fillable field currently on the document')
-export const GetFieldsOutput = z.object({
-  fields: z.array(
-    z.object({
-      field_id: z.string(),
-      name: z.string().nullable(),
-      type: z.enum(['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE']),
-      page: z.number().int(),
-      value: z.string().nullable(),
-    }),
-  ),
-})
 
 export const GetDocumentContentInput = z
   .object({
     extraction_mode: z.enum(['auto', 'ocr']).default('auto'),
   })
   .describe('Returns extracted text per page. Use "ocr" for scanned documents, otherwise "auto"')
-export const GetDocumentContentOutput = z.object({
-  name: z.string(),
-  pages: z.array(z.object({ page: z.number().int(), content: z.string() })),
-})
 
 export const DetectFieldsInput = z
   .object({})
   .describe(
     'Asks the editor to auto-detect and create fields on the document. Use when get_fields returned 0 fields before asking the user to add fields manually.',
   )
-export const DetectFieldsOutput = z.object({ detected_count: z.number().int() })
 
 export const SelectToolInput = z
   .object({
@@ -40,7 +26,6 @@ export const SelectToolInput = z
   .describe(
     'Switches the active editor tool. Use tool="TEXT" to let the user drop text fields on the document when the form has no native fields.',
   )
-export const SelectToolOutput = z.object({ success: z.boolean() })
 
 export const SetFieldValueInput = z
   .object({
@@ -53,41 +38,20 @@ export const SetFieldValueInput = z
       ),
   })
   .describe('Writes a value into a single field in the PDF')
-export const SetFieldValueOutput = z.object({ success: z.boolean() })
 
 export const FocusFieldInput = z
   .object({ field_id: z.string().describe('Field identifier from get_fields') })
   .describe('Scrolls to and visually highlights a field so the user can see what will be filled next')
-export const FocusFieldOutput = z.object({
-  hint: z
-    .object({
-      type: z.literal('user_action_expected'),
-      message: z.string(),
-    })
-    .nullable(),
-})
 
 export const GoToPageInput = z
   .object({ page: z.number().int().positive().describe('1-based page number') })
   .describe('Scrolls the editor to a given page')
-export const GoToPageOutput = z.object({ success: z.boolean() })
 
 export const SubmitDownloadInput = z
   .object({})
   .describe('Finalizes the filled PDF and triggers a download for the user')
-export const SubmitDownloadOutput = z.object({ success: z.boolean() })
 
-export type ClientToolName =
-  | 'get_fields'
-  | 'get_document_content'
-  | 'detect_fields'
-  | 'select_tool'
-  | 'set_field_value'
-  | 'focus_field'
-  | 'go_to_page'
-  | 'submit_download'
-
-export const CLIENT_TOOL_NAMES: ClientToolName[] = [
+const CLIENT_TOOL_NAMES = [
   'get_fields',
   'get_document_content',
   'detect_fields',
@@ -96,10 +60,48 @@ export const CLIENT_TOOL_NAMES: ClientToolName[] = [
   'focus_field',
   'go_to_page',
   'submit_download',
-]
+] as const
+
+export type ClientToolName = (typeof CLIENT_TOOL_NAMES)[number]
 
 export const isClientToolName = (value: unknown): value is ClientToolName =>
-  typeof value === 'string' && (CLIENT_TOOL_NAMES as string[]).includes(value)
+  typeof value === 'string' && CLIENT_TOOL_NAMES.some((candidate) => candidate === value)
+
+const KNOWN_LANGUAGE_LABELS: readonly string[] = LANGUAGES.map((language) => language.label)
+
+// Request body schemas — trusted boundary between client and server. Shapes
+// mirror what DefaultChatTransport (ai-sdk) POSTs; we don't try to validate
+// the full UIMessage tree (that's ai-sdk's job), just the envelope fields we
+// use directly.
+const LanguageLabelSchema = z
+  .string()
+  .trim()
+  .transform((value) => (KNOWN_LANGUAGE_LABELS.includes(value) ? value : 'English'))
+  .catch('English')
+
+// Typed as UIMessage[] via z.custom — we rely on ai-sdk's convertToModelMessages
+// to validate the message shape at the call site. Zod here enforces "must be an
+// array" and the envelope scalar fields; the inner shape is ai-sdk's problem.
+const UIMessageArraySchema = z.array(z.custom<UIMessage>(() => true))
+
+export const ChatRequestSchema = z.object({
+  messages: UIMessageArraySchema,
+  language_label: LanguageLabelSchema.optional(),
+})
+
+export const SummarizePageSchema = z.object({
+  page: z.number(),
+  content: z.string(),
+})
+export type SummarizePage = z.infer<typeof SummarizePageSchema>
+
+export const SummarizeRequestSchema = z.object({
+  name: z.string().nullable().optional(),
+  pages: z.array(SummarizePageSchema),
+  language_label: LanguageLabelSchema.optional(),
+})
+
+export { isLanguageCode }
 
 export const SYSTEM_PROMPT = `You are Form Copilot, a polite concierge that fills a PDF form for a non-technical user inside the SimplePDF editor.
 

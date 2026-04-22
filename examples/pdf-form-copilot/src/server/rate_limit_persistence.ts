@@ -1,12 +1,18 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { z } from 'zod'
 
-export type PersistedEntry = { ipHash: string; hits: number }
+const PersistedEntrySchema = z.object({
+  ipHash: z.string(),
+  hits: z.number().int().nonnegative(),
+})
 
-export type PersistedState = {
-  version: 1
-  updatedAt: number
-  entries: PersistedEntry[]
-}
+const PersistedStateSchema = z.object({
+  version: z.literal(1),
+  updatedAt: z.number(),
+  entries: z.array(PersistedEntrySchema),
+})
+
+export type PersistedState = z.infer<typeof PersistedStateSchema>
 
 type PersistenceConfig = {
   client: S3Client
@@ -41,6 +47,19 @@ export type Persistence = {
 }
 
 const WRITE_DEBOUNCE_MS = 30_000
+// Safety net: the persisted JSON can grow unbounded as unique IPs churn in.
+// Drop zero-hit entries before writing and cap the total to the top N by hits
+// (oldest by insertion order break ties).
+const MAX_PERSISTED_ENTRIES = 10_000
+
+const compactForPersistence = (state: PersistedState): PersistedState => {
+  const nonZero = state.entries.filter((entry) => entry.hits > 0)
+  if (nonZero.length <= MAX_PERSISTED_ENTRIES) {
+    return { ...state, entries: nonZero }
+  }
+  const topN = [...nonZero].sort((a, b) => b.hits - a.hits).slice(0, MAX_PERSISTED_ENTRIES)
+  return { ...state, entries: topN }
+}
 
 export const createPersistence = (): Persistence => {
   const config = readConfig()
@@ -58,19 +77,20 @@ export const createPersistence = (): Persistence => {
   let pendingState: PersistedState | null = null
 
   const writeNow = async (state: PersistedState): Promise<void> => {
+    const compact = compactForPersistence(state)
     try {
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,
           Key: key,
-          Body: JSON.stringify(state),
+          Body: JSON.stringify(compact),
           ContentType: 'application/json',
           ACL: 'private',
         }),
       )
-      console.info('[copilot] rate-limit state flushed to s3', { entries: state.entries.length })
+      console.info('[copilot] rate_limit.flushed', { entries: compact.entries.length })
     } catch (error) {
-      console.error('[copilot] rate-limit state flush failed', error)
+      console.error('[copilot] rate_limit.flush_failed', error)
     }
   }
 
@@ -108,23 +128,28 @@ export const createPersistence = (): Persistence => {
       if (body === undefined || body === '') {
         return null
       }
-      const parsed = JSON.parse(body) as unknown
-      if (
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        'version' in parsed &&
-        (parsed as { version: unknown }).version === 1 &&
-        Array.isArray((parsed as PersistedState).entries)
-      ) {
-        return parsed as PersistedState
-      }
-      return null
-    } catch (error) {
-      // NoSuchKey is the common case on first boot — do not log as error.
-      if ((error as { name?: string }).name === 'NoSuchKey') {
+      const raw = ((): unknown => {
+        try {
+          return JSON.parse(body)
+        } catch {
+          return null
+        }
+      })()
+      if (raw === null) {
         return null
       }
-      console.warn('[copilot] rate-limit state load failed', error)
+      const parsed = PersistedStateSchema.safeParse(raw)
+      if (!parsed.success) {
+        console.warn('[copilot] rate_limit.load_invalid_shape')
+        return null
+      }
+      return parsed.data
+    } catch (error) {
+      // NoSuchKey is the common case on first boot.
+      if (error instanceof Error && error.name === 'NoSuchKey') {
+        return null
+      }
+      console.warn('[copilot] rate_limit.load_failed', error)
       return null
     }
   }

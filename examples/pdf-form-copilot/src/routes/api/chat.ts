@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import {
+  ChatRequestSchema,
   DetectFieldsInput,
   FocusFieldInput,
   GetDocumentContentInput,
@@ -16,12 +17,58 @@ import { getClientIp, hashIp, isOriginAllowed, rateLimiter } from '../../server/
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
-
-type ChatRequestBody = { messages: UIMessage[]; language_label?: string }
+const MAX_BODY_BYTES = 256 * 1024
+// Cap on consecutive non-user POSTs (auto-continuations) per IP hash before a
+// follow-up request is treated as fresh and counted against the rate limit.
+// Defeats the 'always send a tool-result as the last message' free-ride trick.
+const MAX_CONSECUTIVE_NON_USER_TURNS = 10
+const consecutiveNonUserTurns = new Map<string, number>()
 
 type ParsedBody =
   | { success: true; messages: UIMessage[]; languageLabel: string }
-  | { success: false; status: number; message: string }
+  | { success: false; status: number; error: string; message: string }
+
+const readBodyText = async (request: Request): Promise<{ success: true; text: string } | { success: false; status: number; error: string; message: string }> => {
+  const declaredLength = Number.parseInt(request.headers.get('content-length') ?? '', 10)
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
+  }
+  const text = await request.text()
+  if (text.length > MAX_BODY_BYTES) {
+    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
+  }
+  return { success: true, text }
+}
+
+const parseBody = async (request: Request): Promise<ParsedBody> => {
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!contentType.startsWith('application/json')) {
+    return { success: false, status: 415, error: 'unsupported_media_type', message: 'Expected application/json' }
+  }
+  const bodyRead = await readBodyText(request)
+  if (!bodyRead.success) {
+    return bodyRead
+  }
+  if (bodyRead.text === '') {
+    return { success: false, status: 400, error: 'bad_request', message: 'Empty request body' }
+  }
+  const jsonParsed = ((): unknown => {
+    try {
+      return JSON.parse(bodyRead.text)
+    } catch {
+      return null
+    }
+  })()
+  if (jsonParsed === null) {
+    return { success: false, status: 400, error: 'bad_request', message: 'Invalid JSON body' }
+  }
+  const schemaParsed = ChatRequestSchema.safeParse(jsonParsed)
+  if (!schemaParsed.success) {
+    return { success: false, status: 400, error: 'bad_request', message: 'Body does not match { messages: UIMessage[], language_label?: string }' }
+  }
+  const languageLabel = schemaParsed.data.language_label ?? 'English'
+  return { success: true, messages: schemaParsed.data.messages, languageLabel }
+}
 
 const isFreshUserTurn = (messages: UIMessage[]): boolean => {
   const last = messages[messages.length - 1]
@@ -35,27 +82,23 @@ const isFreshUserTurn = (messages: UIMessage[]): boolean => {
   return parts.some((part) => part.type === 'text')
 }
 
-const parseBody = async (request: Request): Promise<ParsedBody> => {
-  if (request.headers.get('content-type')?.includes('application/json') !== true) {
-    return { success: false, status: 415, message: 'Expected application/json' }
+// Abuse guard: an attacker can craft a messages array ending in a fake
+// tool-result (role !== 'user') and get unlimited uncounted POSTs. Track how
+// many non-user tail turns a given IP has chained; once past the cap, treat
+// the next request as fresh.
+const shouldChargeAgainstLimit = ({ ipHash, freshUserTurn }: { ipHash: string; freshUserTurn: boolean }): boolean => {
+  if (freshUserTurn) {
+    consecutiveNonUserTurns.set(ipHash, 0)
+    return true
   }
-  const raw = await request.text()
-  if (raw === '') {
-    return { success: false, status: 400, message: 'Empty request body' }
+  const current = consecutiveNonUserTurns.get(ipHash) ?? 0
+  const next = current + 1
+  if (next >= MAX_CONSECUTIVE_NON_USER_TURNS) {
+    consecutiveNonUserTurns.set(ipHash, 0)
+    return true
   }
-  const parsed = ((): unknown => {
-    try {
-      return JSON.parse(raw)
-    } catch {
-      return null
-    }
-  })()
-  if (parsed === null || typeof parsed !== 'object' || !Array.isArray((parsed as ChatRequestBody).messages)) {
-    return { success: false, status: 400, message: 'Expected { messages: UIMessage[] }' }
-  }
-  const rawLabel = (parsed as ChatRequestBody).language_label
-  const languageLabel = typeof rawLabel === 'string' && rawLabel.trim() !== '' ? rawLabel.trim() : 'English'
-  return { success: true, messages: (parsed as ChatRequestBody).messages, languageLabel }
+  consecutiveNonUserTurns.set(ipHash, next)
+  return false
 }
 
 export const Route = createFileRoute('/api/chat')({
@@ -75,15 +118,15 @@ export const Route = createFileRoute('/api/chat')({
 
         const body = await parseBody(request)
         if (!body.success) {
-          return Response.json({ error: 'bad_request', message: body.message }, { status: body.status })
+          return Response.json({ error: body.error, message: body.message }, { status: body.status })
         }
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        const shouldCountAgainstLimit = isFreshUserTurn(body.messages)
-        const decision = shouldCountAgainstLimit ? rateLimiter.check(ipHash) : null
+        const charged = shouldChargeAgainstLimit({ ipHash, freshUserTurn: isFreshUserTurn(body.messages) })
+        const decision = charged ? rateLimiter.check(ipHash) : null
         if (decision !== null && !decision.allowed) {
-          console.info('chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
+          console.info('[copilot] chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
             {
               error: 'rate_limited',
@@ -102,9 +145,8 @@ export const Route = createFileRoute('/api/chat')({
           if (index !== rawModelMessages.length - 1) {
             return message
           }
-          const existingProviderOptions = (message.providerOptions ?? {}) as Record<string, unknown>
-          const existingAnthropic =
-            (existingProviderOptions.anthropic as Record<string, unknown> | undefined) ?? {}
+          const existingProviderOptions = message.providerOptions ?? {}
+          const existingAnthropic = existingProviderOptions.anthropic ?? {}
           return {
             ...message,
             providerOptions: {
@@ -117,6 +159,8 @@ export const Route = createFileRoute('/api/chat')({
           }
         })
         const languageInstruction = `Language: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
+
+        const streamStartedAt = Date.now()
 
         const result = streamText({
           model: anthropic(MODEL_ID),
@@ -169,7 +213,7 @@ export const Route = createFileRoute('/api/chat')({
           },
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {
-            console.info('chat.finished', {
+            console.info('[copilot] chat.finished', {
               ip_hash: ipHash,
               input_tokens: usage.inputTokens,
               output_tokens: usage.outputTokens,
@@ -179,10 +223,9 @@ export const Route = createFileRoute('/api/chat')({
           },
         })
 
-        const streamStartedAt = Date.now()
-        console.info('chat.streaming', {
+        console.info('[copilot] chat.streaming', {
           ip_hash: ipHash,
-          counted_against_limit: shouldCountAgainstLimit,
+          counted_against_limit: charged,
           remaining_lifetime: decision !== null && decision.allowed ? decision.remaining : null,
           message_count: body.messages.length,
           language: body.languageLabel,

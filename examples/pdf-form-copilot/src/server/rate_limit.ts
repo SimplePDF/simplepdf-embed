@@ -15,7 +15,7 @@ const parsePositiveInt = (raw: string | undefined, fallback: number): number => 
   return parsed
 }
 
-export const LIMITS = {
+const LIMITS = {
   lifetime: parsePositiveInt(process.env.RATE_LIMIT_LIFETIME, 75),
 } as const
 
@@ -78,16 +78,7 @@ export const createRateLimiter = () => {
     }
   }
 
-  const reset = (): number => {
-    const previous = buckets.size
-    buckets.clear()
-    if (persistence.enabled) {
-      persistence.scheduleWrite(snapshotState())
-    }
-    return previous
-  }
-
-  return { check, reset }
+  return { check }
 }
 
 export const getClientIp = (request: Request): string => {
@@ -136,9 +127,15 @@ export const isOriginAllowed = (request: Request): boolean => {
   return false
 }
 
+// Salts the SHA-256 IP hash with a server-side secret. Without a salt, a leak
+// of the persisted S3 object would let anyone brute-force the 2^32 IPv4 space
+// in minutes. The salt stays in the server's env and is never persisted with
+// the entries.
+const IP_HASH_SALT = process.env.IP_HASH_SALT ?? ''
+
 export const hashIp = async (ip: string): Promise<string> => {
   const encoder = new TextEncoder()
-  const data = encoder.encode(ip)
+  const data = encoder.encode(`${IP_HASH_SALT}:${ip}`)
   const buffer = await crypto.subtle.digest('SHA-256', data)
   const bytes = new Uint8Array(buffer)
   let hex = ''

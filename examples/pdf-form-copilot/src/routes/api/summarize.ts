@@ -1,19 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
+import { SummarizeRequestSchema, type SummarizePage } from '../../server/tools'
 import { getClientIp, hashIp, isOriginAllowed, rateLimiter } from '../../server/rate_limit'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_INPUT_CHARS = 20_000
 const MAX_OUTPUT_TOKENS = 350
-
-type SummarizePage = { page: number; content: string }
-
-type SummarizeRequestBody = { name?: string; pages?: SummarizePage[]; language_label?: string }
+const MAX_BODY_BYTES = 128 * 1024
 
 type ParsedBody =
   | { success: true; name: string | null; pages: SummarizePage[]; languageLabel: string }
-  | { success: false; status: number; message: string }
+  | { success: false; status: number; error: string; message: string }
 
 const SYSTEM_PROMPT = `You compress a PDF form's extracted text into a dense summary for another LLM that will help a user fill the form.
 
@@ -24,50 +22,58 @@ Rules:
 - Preserve section titles verbatim when the form uses them.
 - Plain text; bullet points per section are fine.`
 
+const readBodyText = async (request: Request): Promise<{ success: true; text: string } | { success: false; status: number; error: string; message: string }> => {
+  const declaredLength = Number.parseInt(request.headers.get('content-length') ?? '', 10)
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
+  }
+  const text = await request.text()
+  if (text.length > MAX_BODY_BYTES) {
+    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
+  }
+  return { success: true, text }
+}
+
 const parseBody = async (request: Request): Promise<ParsedBody> => {
-  if (request.headers.get('content-type')?.includes('application/json') !== true) {
-    return { success: false, status: 415, message: 'Expected application/json' }
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!contentType.startsWith('application/json')) {
+    return { success: false, status: 415, error: 'unsupported_media_type', message: 'Expected application/json' }
   }
-  const raw = await request.text()
-  if (raw === '') {
-    return { success: false, status: 400, message: 'Empty request body' }
+  const bodyRead = await readBodyText(request)
+  if (!bodyRead.success) {
+    return bodyRead
   }
-  const parsed = ((): unknown => {
+  if (bodyRead.text === '') {
+    return { success: false, status: 400, error: 'bad_request', message: 'Empty request body' }
+  }
+  const jsonParsed = ((): unknown => {
     try {
-      return JSON.parse(raw)
+      return JSON.parse(bodyRead.text)
     } catch {
       return null
     }
   })()
-  if (parsed === null || typeof parsed !== 'object') {
-    return { success: false, status: 400, message: 'Invalid JSON body' }
+  if (jsonParsed === null) {
+    return { success: false, status: 400, error: 'bad_request', message: 'Invalid JSON body' }
   }
-  const body = parsed as SummarizeRequestBody
-  if (!Array.isArray(body.pages)) {
-    return { success: false, status: 400, message: 'Expected { pages: [{ page, content }] }' }
+  const schemaParsed = SummarizeRequestSchema.safeParse(jsonParsed)
+  if (!schemaParsed.success) {
+    return { success: false, status: 400, error: 'bad_request', message: 'Body does not match { name?, pages: [{ page, content }], language_label? }' }
   }
-  const pages: SummarizePage[] = []
-  for (const raw of body.pages) {
-    if (raw === null || typeof raw !== 'object') {
-      return { success: false, status: 400, message: 'Each page must be an object' }
-    }
-    const page = (raw as { page?: unknown }).page
-    const content = (raw as { content?: unknown }).content
-    if (typeof page !== 'number' || typeof content !== 'string') {
-      return { success: false, status: 400, message: 'Each page needs { page: number, content: string }' }
-    }
-    pages.push({ page, content })
-  }
-  const name = typeof body.name === 'string' ? body.name : null
-  const rawLabel = body.language_label
-  const languageLabel = typeof rawLabel === 'string' && rawLabel.trim() !== '' ? rawLabel.trim() : 'English'
-  return { success: true, name, pages, languageLabel }
+  const name = schemaParsed.data.name ?? null
+  const languageLabel = schemaParsed.data.language_label ?? 'English'
+  return { success: true, name, pages: schemaParsed.data.pages, languageLabel }
 }
 
-const renderPages = (pages: SummarizePage[]): string => {
-  const joined = pages
-    .map((page) => `--- Page ${page.page} ---\n${page.content.trim()}`)
-    .join('\n\n')
+const generateDelimiter = (): string => {
+  const bytes = new Uint8Array(8)
+  crypto.getRandomValues(bytes)
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+  return `PAGE_${hex}`
+}
+
+const renderPages = ({ pages, delimiter }: { pages: SummarizePage[]; delimiter: string }): string => {
+  const joined = pages.map((page) => `--- ${delimiter} ${page.page} ---\n${page.content.trim()}`).join('\n\n')
   if (joined.length <= MAX_INPUT_CHARS) {
     return joined
   }
@@ -91,21 +97,19 @@ export const Route = createFileRoute('/api/summarize')({
 
         const body = await parseBody(request)
         if (!body.success) {
-          return Response.json({ error: 'bad_request', message: body.message }, { status: body.status })
+          return Response.json({ error: body.error, message: body.message }, { status: body.status })
         }
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
         const decision = rateLimiter.check(ipHash)
         if (!decision.allowed) {
-          return Response.json(
-            { error: 'rate_limited', reason: decision.reason },
-            { status: 429 },
-          )
+          return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
         }
 
         const anthropic = createAnthropic({ apiKey })
-        const userPrompt = `Document name: ${body.name ?? 'unknown'}\nResponse language: ${body.languageLabel}\n\n${renderPages(body.pages)}`
+        const delimiter = generateDelimiter()
+        const userPrompt = `Document name: ${body.name ?? 'unknown'}\nResponse language: ${body.languageLabel}\nPage delimiter: ${delimiter}\n\n${renderPages({ pages: body.pages, delimiter })}`
 
         const result = await generateText({
           model: anthropic(MODEL_ID),
@@ -115,7 +119,7 @@ export const Route = createFileRoute('/api/summarize')({
           maxRetries: 1,
         })
 
-        console.info('summarize.done', {
+        console.info('[copilot] summarize.done', {
           ip_hash: ipHash,
           input_chars: userPrompt.length,
           output_chars: result.text.length,
