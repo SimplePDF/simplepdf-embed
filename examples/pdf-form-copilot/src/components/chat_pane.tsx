@@ -19,8 +19,8 @@ type ChatPaneProps = {
 
 type ToolInput = Record<string, unknown>
 
-const MAX_CONTENT_CHARS_PER_PAGE = 400
-const MAX_CONTENT_PAGES = 4
+const MAX_CONTENT_CHARS_PER_PAGE = 1200
+const MAX_CONTENT_PAGES = 1
 const SUMMARIZE_THRESHOLD_CHARS = 1500
 
 const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
