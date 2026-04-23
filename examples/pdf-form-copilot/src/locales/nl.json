@@ -1,0 +1,175 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "AI die gebruikers stap voor stap helpt PDF-formulieren in te vullen",
+    "whatIsThisDemo": "Wat is deze demo?",
+    "useCase": "Geladen PDF",
+    "poweredBy": "Mogelijk gemaakt door SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot komt het best tot zijn recht op desktop",
+    "watchDemo": "Bekijk de demo",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "AI-ondersteund formulieren invullen, met een mens in de loop",
+    "close": "Sluiten",
+    "availableOn": "Form Copilot is beschikbaar in <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Broncode op GitHub",
+    "githubStarTitle": "Geef SimplePDF/simplepdf-embed een ster op GitHub",
+    "whyItMattersLead": "Automatisch formulieren invullen heeft zijn grenzen.",
+    "whyItMattersBody": "De gegevens die nodig zijn om een formulier in te vullen, kunnen ontbreken, onjuist of ongeldig zijn. Deze demo toont een veiliger model: AI helpt het formulier in te vullen terwijl een mens controleert, corrigeert en waar nodig aanvult.",
+    "humanInTheLoopTitle": "Hoe het werkt",
+    "humanInTheLoopBullet1": "Form Copilot vult velden in realtime in, binnen de editor.",
+    "humanInTheLoopBullet1Hint": "De uitwisseling van gegevens tussen Form Copilot en de editor vindt plaats in de browser.",
+    "humanInTheLoopBullet2": "De gebruiker kan elke wijziging zien, controleren en corrigeren.",
+    "humanInTheLoopBullet2Hint": "Form Copilot kan velden overdragen die niet automatisch ingevuld mogen worden, zoals handtekeningen.",
+    "humanInTheLoopBullet3": "Het document wordt verzonden naar uw opslag.",
+    "humanInTheLoopBullet3Hint": "Deze demo staat het indienen van het document niet toe om privacyredenen.",
+    "aboutTitle": "Privacy by design",
+    "aboutIntro": "SimplePDF is vanaf de basis gebouwd voor gevoelige workflows. Deze drie architecturale keuzes leggen uit waarom.",
+    "aboutBullet1Title": "Documentverwerking in de browser.",
+    "aboutBullet1Body": "PDF’s worden lokaal op uw apparaat bewerkt. De inhoud van het document zelf wordt niet geüpload naar SimplePDF-servers.",
+    "aboutBullet2Title": "Uw eigen AI meebrengen.",
+    "aboutBullet2Body": "In productie sluit u uw eigen provider, sleutels, RAG-pipelines en interne data aan, zodat het verkeer tussen uw server en uw AI-stack blijft.",
+    "aboutBullet3Title": "Uw eigen opslag meebrengen.",
+    "aboutBullet3Body": "Voltooide documenten worden direct vanuit de browser naar uw opslag verzonden, zodat gevoelige gegevens binnen uw infrastructuur blijven.",
+    "useCasesTitle": "Voorbeeldworkflows",
+    "useCasesFooter": "Selecteer hierboven een workflow om een ander formulier te laden.",
+    "architectureTitle": "Architectuur",
+    "architectureSubtext": "Van chat tot indiening, de architectuur is ontworpen om documenten en gevoelige data onder uw controle te houden, niet die van ons.",
+    "architectureLabel": "Hoe het werkt in productie",
+    "architectureDescription": "De browser draait Form Copilot en de SimplePDF-editor binnen een iframe. De twee communiceren via postMessage client-side toolaanroepen, zodat veldgegevens nooit de browser verlaten. Chatberichten worden via uw server doorgegeven aan uw AI-stack (provider, sleutels, RAG, interne data). De SimplePDF-server ontvangt alleen metadata zoals vooraf ondertekende upload-URL’s en ziet het document zelf nooit. Het voltooide document wordt direct vanuit de editor geupload naar uw opslag (S3, Azure Blob Storage of SharePoint) en omzeilt de SimplePDF-server. Wanneer een indiening is voltooid, kan een optionele webhook uw server op de hoogte stellen. De webhook bevat alleen metadata, nooit de inhoud van het document.",
+    "tryThisForm": "Probeer dit formulier →",
+    "useCases": {
+      "healthcare": {
+        "title": "Gezondheidszorg",
+        "body": "Intake- en claimformulieren voor patiënten bevatten vaak gevoelige gegevens en vereisen controle. Form Copilot helpt het formulier stap voor stap in te vullen met de door uw organisatie goedgekeurde AI-provider. Het document blijft in de browser en indieningen gaan direct naar de opslag en systemen die uw organisatie kiest."
+      },
+      "insurance": {
+        "title": "Verzekering",
+        "body": "Aanvragen, claims en bijvoegsels combineren vaak gestructureerde data met polisgebonden details. Form Copilot helpt met vooraf invullen waar mogelijk, legt velden uit en laat de uiteindelijke controle aan de gebruiker."
+      },
+      "state": {
+        "title": "Overheidsbureaucratie",
+        "body": "Overheidsformulieren zijn vaak gescand, complex of geschreven in een taal die de gebruiker niet spreekt. Form Copilot kan helpen het formulier uit te leggen, te vertalen en stap voor stap in te vullen terwijl de gebruiker het resultaat controleert."
+      },
+      "hr": {
+        "title": "HR-onboarding",
+        "body": "Arbeidscontracten, belastingformulieren en onboardingpakketten vereisen vaak zowel vooraf invullen als controle. Form Copilot vult in wat het kan en laat daarna handtekeningen en de laatste controles aan de gebruiker."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chat",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Wachten tot de editor is geladen…",
+    "subtitleNoDocument": "Laad een document",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "AI-model wisselen",
+    "modelPicker": {
+      "title": "AI-model wisselen",
+      "currentSectionTitle": "Momenteel actief",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · limiet",
+      "byokSectionTitle": "Gebruik uw eigen API key",
+      "byokIntro": "Kies een provider en plak uw sleutel om via die provider te chatten.",
+      "byokSecurityTitle": "Uw sleutel blijft op uw apparaat.",
+      "byokSecurityBody": "Sleutels worden alleen in het geheugen bewaard (nooit op schijf geschreven, nooit naar SimplePDF-servers verzonden) en elke LLM-aanvraag wordt rechtstreeks vanuit uw browser naar de door u gekozen provider gestuurd.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Aanbevolen",
+      "keyInputPlaceholder": "Plak uw {{provider}} API key",
+      "keyInputHint": "De sleutel verlaat uw browser niet, alleen in het geheugen opgeslagen voor dit tabblad.",
+      "applyButton": "Deze provider gebruiken",
+      "cancelButton": "Annuleren",
+      "comingSoon": "Binnenkort beschikbaar",
+      "registerInterest": "Meld uw interesse aan: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Terug naar demo (onze Anthropic-sleutel)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Stoppen",
+    "thinking": "Denkt na…",
+    "piiWarning": "Openbare demo. Gebruik alleen voorbeeldgegevens. Berichten worden verwerkt door de geselecteerde AI-provider.",
+    "newFieldHint": "Nieuw veld toegevoegd door de gebruiker",
+    "errorAuthTitle": "Verificatie mislukt.",
+    "errorAuthBody": "De AI-provider heeft uw API-sleutel geweigerd. <switchModel>Wissel van AI-model</switchModel> om de sleutel te verifiëren en probeer het opnieuw.",
+    "errorGenericTitle": "Volledige fout",
+    "inputPlaceholderReady": "Vraag Form Copilot…",
+    "inputPlaceholderWaiting": "Een ogenblik geduld…",
+    "send": "Verzenden"
+  },
+  "suggestedPrompts": {
+    "lead": "Probeer een van deze:",
+    "helpFill": "Help me dit formulier in te vullen",
+    "explainFields": "Waar gaat dit formulier over?"
+  },
+  "languagePicker": {
+    "label": "Taal",
+    "search": "Zoek talen…",
+    "noMatches": "Geen resultaten"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Tekst",
+    "checkbox": "Selectievakje",
+    "signature": "Handtekening",
+    "picture": "Afbeelding",
+    "submit": "Indienen"
+  },
+  "submitDemo": {
+    "headline": "Dit voorbeeld dient het document niet in.",
+    "body": "Bedrijven gebruiken SimplePDF al om documentworkflows te vereenvoudigen, en velen vertellen ons dat hun gebruikers de ervaring geweldig vinden. Form Copilot wordt hier momenteel als demo getoond.",
+    "bodySubtext": "SimplePDF laat teams ook <fields>verplichte velden, standaardwaarden</fields> en <flows>indieningsstromen</flows> configureren.",
+    "learnMore": "Meer weten",
+    "requestDemo": "Neem contact op",
+    "close": "Sluiten"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "voorbereiden",
+      "input-available": "bezig",
+      "output-available": "klaar",
+      "output-error": "fout"
+    },
+    "fallbackName": "{{tool}} aanroepen",
+    "groupSummary_one": "{{count}} actie",
+    "groupSummary_other": "{{count}} acties",
+    "names": {
+      "get_fields": "Velden ophalen",
+      "get_document_content": "Document lezen",
+      "detect_fields": "Velden detecteren",
+      "focus_field": "Veld markeren",
+      "go_to_page": "Naar de pagina gaan",
+      "set_field_value": "Veld invullen",
+      "select_tool": "Tool wisselen",
+      "create_field": "Een veld aanmaken",
+      "remove_fields": "Velden verwijderen",
+      "submit_download": "Download voorbereiden"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Belasting",
+      "healthcare": "Gezondheidszorg",
+      "hr": "HR-onboarding",
+      "state": "Overheidsbureaucratie",
+      "stateScanned": "Overheidsbureaucratie (gescande PDF)",
+      "custom": "Uw PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 claimformulier",
+      "mnda": "Wederzijdse NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen gescand",
+      "custom": "Kies uw eigen PDF"
+    },
+    "customSubtitle": "Elke PDF werkt"
+  }
+}

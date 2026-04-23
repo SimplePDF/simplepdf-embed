@@ -1,0 +1,175 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "AI som hjälper användare att fylla i PDF-formulär steg för steg",
+    "whatIsThisDemo": "Vad är denna demo?",
+    "useCase": "Laddad PDF",
+    "poweredBy": "Drivs av SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot upplevs bäst på datorn",
+    "watchDemo": "Se demon",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "AI-assisterad formulärifyllnad, med en människa i loopen",
+    "close": "Stäng",
+    "availableOn": "Form Copilot finns tillgänglig i <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Källkod på GitHub",
+    "githubStarTitle": "Ge SimplePDF/simplepdf-embed en stjärna på GitHub",
+    "whyItMattersLead": "Automatisk formulärifyllnad har sina gränser.",
+    "whyItMattersBody": "De uppgifter som behövs för att fylla i ett formulär kan saknas, vara felaktiga eller ogiltiga. Den här demon visar en säkrare modell: AI hjälper till att fylla i formuläret medan en människa granskar, korrigerar och kompletterar vid behov.",
+    "humanInTheLoopTitle": "Så fungerar det",
+    "humanInTheLoopBullet1": "Form Copilot fyller i fält i realtid, direkt i redigeraren.",
+    "humanInTheLoopBullet1Hint": "Datautbytet mellan Form Copilot och redigeraren sker i webbläsaren.",
+    "humanInTheLoopBullet2": "Användaren kan se varje ändring, granska den och korrigera den.",
+    "humanInTheLoopBullet2Hint": "Form Copilot kan lämna över fält som inte bör fyllas i automatiskt, till exempel underskrifter.",
+    "humanInTheLoopBullet3": "Dokumentet skickas till din lagring.",
+    "humanInTheLoopBullet3Hint": "Av integritetsskäl tillåter denna demo inte att dokumentet skickas in.",
+    "aboutTitle": "Integritet från grunden",
+    "aboutIntro": "SimplePDF är byggd från grunden för känsliga arbetsflöden. Dessa tre arkitektoniska val förklarar varför.",
+    "aboutBullet1Title": "Dokumentbehandling i webbläsaren.",
+    "aboutBullet1Body": "PDF-filer redigeras lokalt på din enhet. Själva dokumentinnehållet laddas inte upp till SimplePDF-servrar.",
+    "aboutBullet2Title": "Ta med din egen AI.",
+    "aboutBullet2Body": "I produktion kopplar du in din egen leverantör, nycklar, RAG-pipelines och interna data så att trafiken stannar mellan din server och din AI-stack.",
+    "aboutBullet3Title": "Ta med din egen lagring.",
+    "aboutBullet3Body": "Färdiga dokument skickas direkt från webbläsaren till din lagring, så att känsliga data stannar i din infrastruktur.",
+    "useCasesTitle": "Exempel på arbetsflöden",
+    "useCasesFooter": "Välj ett arbetsflöde ovan för att ladda ett annat formulär.",
+    "architectureTitle": "Arkitektur",
+    "architectureSubtext": "Från chatt till inlämning är arkitekturen utformad för att hålla dokument och känsliga data under din kontroll, inte vår.",
+    "architectureLabel": "Så fungerar det i produktion",
+    "architectureDescription": "Webbläsaren kör Form Copilot och SimplePDF-redigeraren i en iframe. De två kommunicerar via postMessage-verktygsanrop på klientsidan, så att fältdata aldrig lämnar webbläsaren. Chattmeddelanden proxas via din server till din AI-stack (leverantör, nycklar, RAG, interna data). SimplePDF-servern tar endast emot metadata, som förhandssignerade uppladdnings-URL:er, och ser aldrig själva dokumentet. Det färdiga dokumentet laddas upp direkt från redigeraren till din lagring (S3, Azure Blob Storage eller SharePoint), förbi SimplePDF-servern. När en inlämning slutförs kan en valfri webhook meddela din server. Webhooken bär bara metadata, aldrig dokumentinnehållet.",
+    "tryThisForm": "Prova detta formulär →",
+    "useCases": {
+      "healthcare": {
+        "title": "Sjukvård",
+        "body": "Patientintagsformulär och skadeformulär innehåller ofta känsliga uppgifter och kräver granskning. Form Copilot hjälper till att fylla i formuläret steg för steg med den AI-leverantör som din organisation godkänner. Dokumentet stannar i webbläsaren och inlämningar går direkt till den lagring och de system din organisation väljer."
+      },
+      "insurance": {
+        "title": "Försäkring",
+        "body": "Ansökningar, skador och tillägg kombinerar ofta strukturerad data med policyspecifika detaljer. Form Copilot hjälper till att förfylla det den kan, förklarar fält och låter användaren göra den slutliga granskningen."
+      },
+      "state": {
+        "title": "Statlig byråkrati",
+        "body": "Myndighetsformulär är ofta inskannade, komplexa eller skrivna på ett språk som användaren inte talar. Form Copilot kan hjälpa till att förklara formuläret, översätta det och fylla i det steg för steg medan användaren granskar resultatet."
+      },
+      "hr": {
+        "title": "HR-onboarding",
+        "body": "Erbjudandebrev, skatteformulär och onboardingpaket kräver ofta både förifyllnad och granskning. Form Copilot fyller i det den kan och lämnar sedan över till användaren för underskrifter och slutliga kontroller."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chatt",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Väntar på att redigeraren ska laddas…",
+    "subtitleNoDocument": "Ladda ett dokument",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "Byt AI-modell",
+    "modelPicker": {
+      "title": "Byt AI-modell",
+      "currentSectionTitle": "Körs just nu",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · hastighetsbegränsad",
+      "byokSectionTitle": "Ta med din egen API key",
+      "byokIntro": "Välj en leverantör och klistra in din nyckel för att chatta via den istället.",
+      "byokSecurityTitle": "Din nyckel stannar på din enhet.",
+      "byokSecurityBody": "Nycklar hålls endast i minnet (skrivs aldrig till disk, skickas aldrig till SimplePDF:s servrar) och varje LLM-förfrågan skickas direkt från din webbläsare till den leverantör du valt.",
+      "modelSectionTitle": "Modell",
+      "recommendedBadge": "Rekommenderad",
+      "keyInputPlaceholder": "Klistra in din {{provider}} API key",
+      "keyInputHint": "Nyckeln lämnar aldrig din webbläsare, lagras i minnet endast för denna flik.",
+      "applyButton": "Använd denna leverantör",
+      "cancelButton": "Avbryt",
+      "comingSoon": "Kommer snart",
+      "registerInterest": "Anmäl ditt intresse: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Tillbaka till demon (vår Anthropic-nyckel)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Stoppa",
+    "thinking": "Tänker…",
+    "piiWarning": "Offentlig demo. Använd endast exempeldata. Meddelanden behandlas av den valda AI-leverantören.",
+    "newFieldHint": "Nytt fält tillagt av användaren",
+    "errorAuthTitle": "Autentiseringen misslyckades.",
+    "errorAuthBody": "AI-leverantören avvisade din API-nyckel. <switchModel>Byt AI-modell</switchModel> för att verifiera nyckeln och försök igen.",
+    "errorGenericTitle": "Fullständigt fel",
+    "inputPlaceholderReady": "Fråga Form Copilot…",
+    "inputPlaceholderWaiting": "Vänligen vänta…",
+    "send": "Skicka"
+  },
+  "suggestedPrompts": {
+    "lead": "Prova något av detta:",
+    "helpFill": "Hjälp mig att fylla i detta formulär",
+    "explainFields": "Vad handlar det här formuläret om?"
+  },
+  "languagePicker": {
+    "label": "Språk",
+    "search": "Sök språk…",
+    "noMatches": "Inga träffar"
+  },
+  "toolbar": {
+    "cursor": "Markör",
+    "text": "Text",
+    "checkbox": "Kryssruta",
+    "signature": "Signatur",
+    "picture": "Bild",
+    "submit": "Skicka in"
+  },
+  "submitDemo": {
+    "headline": "Detta exempel skickar inte in dokumentet.",
+    "body": "Företag använder redan SimplePDF för att förenkla dokumentflöden, och många berättar för oss att deras användare älskar upplevelsen. Form Copilot visas här just nu som en demo.",
+    "bodySubtext": "SimplePDF låter också team konfigurera <fields>obligatoriska fält, standardvärden</fields> och <flows>inlämningsflöden</flows>.",
+    "learnMore": "Läs mer",
+    "requestDemo": "Kontakta oss",
+    "close": "Stäng"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "förbereder",
+      "input-available": "pågår",
+      "output-available": "klart",
+      "output-error": "fel"
+    },
+    "fallbackName": "Anropar {{tool}}",
+    "groupSummary_one": "{{count}} åtgärd",
+    "groupSummary_other": "{{count}} åtgärder",
+    "names": {
+      "get_fields": "Hämtar fälten",
+      "get_document_content": "Läser dokumentet",
+      "detect_fields": "Identifierar fälten",
+      "focus_field": "Markerar fältet",
+      "go_to_page": "Går till sidan",
+      "set_field_value": "Fyller i fältet",
+      "select_tool": "Byter verktyg",
+      "create_field": "Skapar ett fält",
+      "remove_fields": "Tar bort fält",
+      "submit_download": "Förbereder nedladdning"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Skatt",
+      "healthcare": "Sjukvård",
+      "hr": "HR-onboarding",
+      "state": "Statlig byråkrati",
+      "stateScanned": "Statlig byråkrati (inskannad PDF)",
+      "custom": "Din PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 skadeformulär",
+      "mnda": "Ömsesidigt NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen inskannad",
+      "custom": "Välj din egen PDF"
+    },
+    "customSubtitle": "Alla PDF fungerar"
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "ذكاء اصطناعي يساعد المستخدمين على تعبئة نماذج PDF خطوة بخطوة",
+    "whatIsThisDemo": "ما هذا العرض التوضيحي؟",
+    "useCase": "PDF المحمّل",
+    "poweredBy": "مدعوم من SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot يُستخدم بأفضل شكل على سطح المكتب",
+    "watchDemo": "شاهد العرض التوضيحي",
+    "videoPlaceholder": "فيديو"
+  },
+  "infoModal": {
+    "title": "تعبئة نماذج بمساعدة الذكاء الاصطناعي، مع إشراف بشري",
+    "close": "إغلاق",
+    "availableOn": "Form Copilot متوفر على <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "الكود المصدري على GitHub",
+    "githubStarTitle": "ضع نجمة لـ SimplePDF/simplepdf-embed على GitHub",
+    "whyItMattersLead": "للتعبئة التلقائية للنماذج حدود.",
+    "whyItMattersBody": "قد تكون البيانات اللازمة لإكمال النموذج مفقودة أو غير صحيحة أو غير صالحة. يعرض هذا العرض نموذجًا أكثر أمانًا: يساعد الذكاء الاصطناعي في تعبئة النموذج بينما يراجع الإنسان ويصحح ويكمل عند الحاجة.",
+    "humanInTheLoopTitle": "كيف يعمل",
+    "humanInTheLoopBullet1": "يملأ Form Copilot الحقول في الوقت الفعلي، داخل المحرر.",
+    "humanInTheLoopBullet1Hint": "تبادل البيانات بين Form Copilot والمحرر يحدث داخل المتصفح.",
+    "humanInTheLoopBullet2": "يمكن للمستخدم رؤية كل تغيير ومراجعته وتصحيحه.",
+    "humanInTheLoopBullet2Hint": "يمكن لـ Form Copilot تسليم الحقول التي لا ينبغي تعبئتها تلقائيًا، مثل التوقيعات.",
+    "humanInTheLoopBullet3": "يُرسل المستند إلى وحدة التخزين الخاصة بك.",
+    "humanInTheLoopBullet3Hint": "هذا العرض لا يسمح بإرسال المستند لأسباب تتعلق بالخصوصية.",
+    "aboutTitle": "الخصوصية بالتصميم",
+    "aboutIntro": "تم بناء SimplePDF من الأساس لسير العمل الحساس. هذه الخيارات المعمارية الثلاثة توضح السبب.",
+    "aboutBullet1Title": "معالجة المستندات داخل المتصفح.",
+    "aboutBullet1Body": "يتم تحرير ملفات PDF محليًا على جهازك. محتوى المستند نفسه لا يُرفع إلى خوادم SimplePDF.",
+    "aboutBullet2Title": "استخدم الذكاء الاصطناعي الخاص بك.",
+    "aboutBullet2Body": "في مرحلة الإنتاج، يمكنك توصيل مزودك الخاص ومفاتيحك وخطوط معالجة RAG وبياناتك الداخلية بحيث تبقى حركة البيانات بين خادمك ومنظومة الذكاء الاصطناعي الخاصة بك.",
+    "aboutBullet3Title": "استخدم وحدة التخزين الخاصة بك.",
+    "aboutBullet3Body": "تُرسل المستندات المكتملة مباشرة إلى وحدة التخزين الخاصة بك من المتصفح، مما يضمن أن تبقى البيانات الحساسة داخل بنيتك التحتية.",
+    "useCasesTitle": "أمثلة على سير العمل",
+    "useCasesFooter": "اختر سير عمل أعلاه لتحميل نموذج مختلف.",
+    "architectureTitle": "المعمارية",
+    "architectureSubtext": "من الدردشة إلى الإرسال، تم تصميم المعمارية لإبقاء المستندات والبيانات الحساسة تحت سيطرتك، لا سيطرتنا.",
+    "architectureLabel": "كيف يعمل في مرحلة الإنتاج",
+    "architectureDescription": "يشغّل المتصفح Form Copilot ومحرر SimplePDF داخل iframe. يتواصل الاثنان عبر استدعاءات أدوات postMessage من جانب العميل، لذا لا تغادر بيانات الحقول المتصفح أبدًا. تُمرّر رسائل الدردشة عبر خادمك إلى منظومة الذكاء الاصطناعي الخاصة بك (المزود، المفاتيح، RAG، البيانات الداخلية). يستلم خادم SimplePDF فقط البيانات الوصفية مثل روابط الرفع الموقّعة مسبقًا ولا يرى المستند نفسه أبدًا. يُرفع المستند المكتمل مباشرة من المحرر إلى وحدة التخزين الخاصة بك (S3 أو Azure Blob Storage أو SharePoint)، متجاوزًا خادم SimplePDF. عند اكتمال الإرسال، يمكن لـ webhook اختياري إشعار خادمك. يحمل الـ webhook بيانات وصفية فقط، ولا يحمل محتوى المستند أبدًا.",
+    "tryThisForm": "جرّب هذا النموذج ←",
+    "useCases": {
+      "healthcare": {
+        "title": "الرعاية الصحية",
+        "body": "غالبًا ما تحتوي نماذج استقبال المرضى والمطالبات على بيانات حساسة وتتطلب المراجعة. يساعد Form Copilot في إكمال النموذج خطوة بخطوة باستخدام مزود الذكاء الاصطناعي المعتمد من مؤسستك. يبقى المستند داخل المتصفح، وتذهب عمليات الإرسال مباشرة إلى وحدات التخزين والأنظمة التي تختارها مؤسستك."
+      },
+      "insurance": {
+        "title": "التأمين",
+        "body": "غالبًا ما تجمع الطلبات والمطالبات والملحقات بين بيانات منظمة وتفاصيل خاصة بالبوليصة. يساعد Form Copilot في تعبئة ما يمكنه مسبقًا وشرح الحقول، ويترك المراجعة النهائية للمستخدم."
+      },
+      "state": {
+        "title": "البيروقراطية الحكومية",
+        "body": "النماذج الحكومية غالبًا ما تكون ممسوحة ضوئيًا أو معقدة أو مكتوبة بلغة لا يتحدثها المستخدم. يمكن لـ Form Copilot المساعدة في شرح النموذج وترجمته وتعبئته خطوة بخطوة بينما يراجع المستخدم النتيجة."
+      },
+      "hr": {
+        "title": "تأهيل الموارد البشرية",
+        "body": "غالبًا ما تتطلب خطابات العرض والنماذج الضريبية وحزم التأهيل تعبئة مسبقة ومراجعة. يملأ Form Copilot ما يمكنه، ثم يسلّم للمستخدم للتوقيعات والفحوصات النهائية."
+      }
+    }
+  },
+  "chat": {
+    "heading": "دردشة",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "في انتظار تحميل المحرر…",
+    "subtitleNoDocument": "حمّل مستندًا",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "تبديل نموذج الذكاء الاصطناعي",
+    "modelPicker": {
+      "title": "تبديل نموذج الذكاء الاصطناعي",
+      "currentSectionTitle": "قيد التشغيل حاليًا",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · محدود المعدل",
+      "byokSectionTitle": "استخدم مفتاح API الخاص بك",
+      "byokIntro": "اختر مزودًا وألصق مفتاحك للدردشة من خلاله بدلاً من ذلك.",
+      "byokSecurityTitle": "مفتاحك يبقى على جهازك.",
+      "byokSecurityBody": "تُحفظ المفاتيح في الذاكرة فقط (لا تُكتب على القرص أبدًا، ولا تُرسل إلى خوادم SimplePDF)، وتُطلق كل طلبات LLM مباشرة من متصفحك إلى المزود الذي اخترته.",
+      "modelSectionTitle": "النموذج",
+      "recommendedBadge": "موصى به",
+      "keyInputPlaceholder": "ألصق مفتاح API الخاص بـ {{provider}}",
+      "keyInputHint": "لن يغادر المفتاح متصفحك، ويُخزّن في الذاكرة لهذه العلامة التبويبية فقط.",
+      "applyButton": "استخدم هذا المزود",
+      "cancelButton": "إلغاء",
+      "comingSoon": "قريبًا",
+      "registerInterest": "سجّل اهتمامك: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "العودة إلى العرض التوضيحي (مفتاح Anthropic الخاص بنا)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "إيقاف",
+    "thinking": "جارٍ التفكير…",
+    "piiWarning": "عرض توضيحي عام. استخدم بيانات تجريبية فقط. تُعالج الرسائل بواسطة مزود الذكاء الاصطناعي المحدد.",
+    "newFieldHint": "حقل جديد أضافه المستخدم",
+    "errorAuthTitle": "فشل التحقق من الهوية.",
+    "errorAuthBody": "رفض مزود الذكاء الاصطناعي مفتاح API الخاص بك. <switchModel>بدّل نموذج الذكاء الاصطناعي</switchModel> للتحقق من المفتاح، ثم حاول مرة أخرى.",
+    "errorGenericTitle": "الخطأ الكامل",
+    "inputPlaceholderReady": "اسأل Form Copilot…",
+    "inputPlaceholderWaiting": "يرجى الانتظار…",
+    "send": "إرسال"
+  },
+  "suggestedPrompts": {
+    "lead": "جرّب إحدى هذه:",
+    "helpFill": "ساعدني في تعبئة هذا النموذج",
+    "explainFields": "ما موضوع هذا النموذج؟"
+  },
+  "languagePicker": {
+    "label": "اللغة",
+    "search": "بحث عن اللغات…",
+    "noMatches": "لا توجد نتائج"
+  },
+  "toolbar": {
+    "cursor": "مؤشر",
+    "text": "نص",
+    "checkbox": "مربع اختيار",
+    "signature": "توقيع",
+    "picture": "صورة",
+    "submit": "إرسال"
+  },
+  "submitDemo": {
+    "headline": "هذا المثال لا يرسل المستند.",
+    "body": "تستخدم الشركات بالفعل SimplePDF لتبسيط سير عمل المستندات، ويخبرنا العديد منهم أن مستخدميهم يحبون التجربة. يُعرض Form Copilot حاليًا هنا كعرض توضيحي.",
+    "bodySubtext": "يسمح SimplePDF أيضًا للفرق بتكوين <fields>الحقول المطلوبة، القيم الافتراضية</fields>، و<flows>تدفقات الإرسال</flows>.",
+    "learnMore": "اعرف المزيد",
+    "requestDemo": "تواصل معنا",
+    "close": "إغلاق"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "جارٍ التحضير",
+      "input-available": "قيد التنفيذ",
+      "output-available": "تم",
+      "output-error": "خطأ"
+    },
+    "fallbackName": "استدعاء {{tool}}",
+    "groupSummary_zero": "لا إجراءات",
+    "groupSummary_one": "إجراء واحد",
+    "groupSummary_two": "إجراءان",
+    "groupSummary_few": "{{count}} إجراءات",
+    "groupSummary_many": "{{count}} إجراءًا",
+    "groupSummary_other": "{{count}} إجراء",
+    "names": {
+      "get_fields": "جارٍ استرجاع الحقول",
+      "get_document_content": "جارٍ قراءة المستند",
+      "detect_fields": "جارٍ اكتشاف الحقول",
+      "focus_field": "جارٍ تمييز الحقل",
+      "go_to_page": "جارٍ الانتقال إلى الصفحة",
+      "set_field_value": "جارٍ تعبئة الحقل",
+      "select_tool": "جارٍ تبديل الأداة",
+      "create_field": "جارٍ إنشاء حقل",
+      "remove_fields": "جارٍ إزالة الحقول",
+      "submit_download": "جارٍ تحضير التنزيل"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "الضرائب",
+      "healthcare": "الرعاية الصحية",
+      "hr": "تأهيل الموارد البشرية",
+      "state": "البيروقراطية الحكومية",
+      "stateScanned": "البيروقراطية الحكومية (PDF ممسوح ضوئيًا)",
+      "custom": "PDF الخاص بك"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "نموذج مطالبة CMS-1500",
+      "mnda": "NDA متبادل",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen ممسوح ضوئيًا",
+      "custom": "اختر PDF الخاص بك"
+    },
+    "customSubtitle": "أي PDF يعمل"
+  }
+}

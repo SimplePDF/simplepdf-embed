@@ -1,0 +1,176 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "AI care ajută utilizatorii să completeze formulare PDF pas cu pas",
+    "whatIsThisDemo": "Ce este această demonstrație?",
+    "useCase": "PDF încărcat",
+    "poweredBy": "Susținut de SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot se bucură cel mai bine pe desktop",
+    "watchDemo": "Vezi demonstrația",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "Completarea formularelor asistată de AI, cu un om în buclă",
+    "close": "Închide",
+    "availableOn": "Form Copilot este disponibil pe <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Cod sursă pe GitHub",
+    "githubStarTitle": "Acordă o stea lui SimplePDF/simplepdf-embed pe GitHub",
+    "whyItMattersLead": "Completarea automată a formularelor are limitele sale.",
+    "whyItMattersBody": "Datele necesare pentru a completa un formular pot lipsi, pot fi incorecte sau nevalide. Această demonstrație prezintă un model mai sigur: AI-ul ajută la completarea formularului, în timp ce un om verifică, corectează și completează acolo unde este necesar.",
+    "humanInTheLoopTitle": "Cum funcționează",
+    "humanInTheLoopBullet1": "Form Copilot completează câmpurile în timp real, în editor.",
+    "humanInTheLoopBullet1Hint": "Schimbul de date dintre Form Copilot și editor are loc în browser.",
+    "humanInTheLoopBullet2": "Utilizatorul poate vedea fiecare modificare, o poate verifica și corecta.",
+    "humanInTheLoopBullet2Hint": "Form Copilot poate lăsa utilizatorului câmpurile care nu ar trebui completate automat, precum semnăturile.",
+    "humanInTheLoopBullet3": "Documentul este trimis către spațiul dumneavoastră de stocare.",
+    "humanInTheLoopBullet3Hint": "Din motive de confidențialitate, această demonstrație nu permite trimiterea documentului.",
+    "aboutTitle": "Confidențialitate prin design",
+    "aboutIntro": "SimplePDF este construit de la zero pentru fluxuri de lucru sensibile. Aceste trei alegeri arhitecturale explică de ce.",
+    "aboutBullet1Title": "Procesarea documentelor în browser.",
+    "aboutBullet1Body": "PDF-urile sunt editate local pe dispozitivul dumneavoastră. Conținutul documentului în sine nu este încărcat pe serverele SimplePDF.",
+    "aboutBullet2Title": "Folosește propriul AI.",
+    "aboutBullet2Body": "În producție, conectați propriul furnizor, cheile proprii, pipeline-urile RAG și datele interne, astfel încât traficul să rămână între serverul dumneavoastră și stiva dumneavoastră AI.",
+    "aboutBullet3Title": "Folosește propriul spațiu de stocare.",
+    "aboutBullet3Body": "Documentele finalizate sunt trimise direct din browser către spațiul dumneavoastră de stocare, asigurând că datele sensibile rămân în infrastructura dumneavoastră.",
+    "useCasesTitle": "Exemple de fluxuri de lucru",
+    "useCasesFooter": "Selectați un flux de lucru de mai sus pentru a încărca un alt formular.",
+    "architectureTitle": "Arhitectură",
+    "architectureSubtext": "De la chat la trimitere, arhitectura este concepută pentru ca documentele și datele sensibile să rămână sub controlul dumneavoastră, nu al nostru.",
+    "architectureLabel": "Cum funcționează în producție",
+    "architectureDescription": "Browserul rulează Form Copilot și editorul SimplePDF într-un iframe. Cele două comunică prin apeluri de instrumente pe partea clientului prin postMessage, astfel încât datele câmpurilor nu părăsesc niciodată browserul. Mesajele din chat sunt transmise prin serverul dumneavoastră către stiva dumneavoastră AI (furnizor, chei, RAG, date interne). Serverul SimplePDF primește doar metadate, precum URL-uri de încărcare presemnate, și nu vede niciodată documentul propriu-zis. Documentul finalizat este încărcat direct din editor către spațiul dumneavoastră de stocare (S3, Azure Blob Storage sau SharePoint), ocolind serverul SimplePDF. Când o trimitere se finalizează, un webhook opțional poate notifica serverul dumneavoastră. Webhook-ul transportă doar metadate, niciodată conținutul documentului.",
+    "tryThisForm": "Încearcă acest formular →",
+    "useCases": {
+      "healthcare": {
+        "title": "Sănătate",
+        "body": "Formularele de admitere a pacienților și de cereri de rambursare conțin adesea date sensibile și necesită verificare. Form Copilot ajută la completarea formularului pas cu pas folosind furnizorul AI aprobat de organizația dumneavoastră. Documentul rămâne în browser, iar trimiterile merg direct către spațiul de stocare și sistemele alese de organizație."
+      },
+      "insurance": {
+        "title": "Asigurări",
+        "body": "Cererile, daunele și actele adiționale combină adesea date structurate cu detalii specifice poliței. Form Copilot ajută la precompletarea a ceea ce poate, explică câmpurile și lasă verificarea finală utilizatorului."
+      },
+      "state": {
+        "title": "Birocrație de stat",
+        "body": "Formularele guvernamentale sunt adesea scanate, complexe sau scrise într-o limbă pe care utilizatorul nu o vorbește. Form Copilot poate ajuta la explicarea formularului, la traducerea acestuia și la completarea pas cu pas, în timp ce utilizatorul verifică rezultatul."
+      },
+      "hr": {
+        "title": "Integrare HR",
+        "body": "Scrisorile de ofertă, formularele fiscale și pachetele de integrare necesită adesea atât precompletare, cât și verificare. Form Copilot completează ce poate, iar apoi predă utilizatorului pentru semnături și verificări finale."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chat",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Se așteaptă încărcarea editorului…",
+    "subtitleNoDocument": "Încarcă un document",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "Schimbă modelul AI",
+    "modelPicker": {
+      "title": "Schimbă modelul AI",
+      "currentSectionTitle": "Rulează în prezent",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · limitat",
+      "byokSectionTitle": "Folosește propria API key",
+      "byokIntro": "Alege un furnizor și lipește cheia ta pentru a discuta prin el.",
+      "byokSecurityTitle": "Cheia ta rămâne pe dispozitivul tău.",
+      "byokSecurityBody": "Cheile sunt păstrate doar în memorie (niciodată scrise pe disc, niciodată trimise către serverele SimplePDF) și fiecare cerere LLM este trimisă direct din browserul tău către furnizorul ales.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Recomandat",
+      "keyInputPlaceholder": "Lipește cheia API {{provider}}",
+      "keyInputHint": "Cheia nu părăsește niciodată browserul, este păstrată în memorie doar pentru această filă.",
+      "applyButton": "Folosește acest furnizor",
+      "cancelButton": "Anulează",
+      "comingSoon": "În curând",
+      "registerInterest": "Înregistrează-ți interesul: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Înapoi la demonstrație (cheia noastră Anthropic)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Oprește",
+    "thinking": "Gândește…",
+    "piiWarning": "Demonstrație publică. Folosiți doar date de exemplu. Mesajele sunt procesate de furnizorul AI selectat.",
+    "newFieldHint": "Câmp nou adăugat de utilizator",
+    "errorAuthTitle": "Autentificarea a eșuat.",
+    "errorAuthBody": "Furnizorul AI ți-a respins cheia API. <switchModel>Schimbă modelul AI</switchModel> pentru a verifica cheia și încearcă din nou.",
+    "errorGenericTitle": "Eroare completă",
+    "inputPlaceholderReady": "Întreabă Form Copilot…",
+    "inputPlaceholderWaiting": "Te rog așteaptă…",
+    "send": "Trimite"
+  },
+  "suggestedPrompts": {
+    "lead": "Încearcă una dintre acestea:",
+    "helpFill": "Ajută-mă să completez acest formular",
+    "explainFields": "Despre ce este acest formular?"
+  },
+  "languagePicker": {
+    "label": "Limbă",
+    "search": "Caută limbi…",
+    "noMatches": "Fără rezultate"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Text",
+    "checkbox": "Casetă de selectare",
+    "signature": "Semnătură",
+    "picture": "Imagine",
+    "submit": "Trimite"
+  },
+  "submitDemo": {
+    "headline": "Acest exemplu nu trimite documentul.",
+    "body": "Companiile folosesc deja SimplePDF pentru a simplifica fluxurile de documente, iar multe ne spun că utilizatorii lor adoră experiența. Form Copilot este afișat aici în prezent ca demonstrație.",
+    "bodySubtext": "SimplePDF permite de asemenea echipelor să configureze <fields>câmpuri obligatorii, valori implicite</fields> și <flows>fluxuri de trimitere</flows>.",
+    "learnMore": "Află mai multe",
+    "requestDemo": "Contactează-ne",
+    "close": "Închide"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "se pregătește",
+      "input-available": "rulează",
+      "output-available": "finalizat",
+      "output-error": "eroare"
+    },
+    "fallbackName": "Se apelează {{tool}}",
+    "groupSummary_one": "{{count}} acțiune",
+    "groupSummary_few": "{{count}} acțiuni",
+    "groupSummary_other": "{{count}} de acțiuni",
+    "names": {
+      "get_fields": "Se obțin câmpurile",
+      "get_document_content": "Se citește documentul",
+      "detect_fields": "Se detectează câmpurile",
+      "focus_field": "Se evidențiază câmpul",
+      "go_to_page": "Se trece la pagină",
+      "set_field_value": "Se completează câmpul",
+      "select_tool": "Se schimbă instrumentul",
+      "create_field": "Se creează un câmp",
+      "remove_fields": "Se elimină câmpurile",
+      "submit_download": "Se pregătește descărcarea"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Taxe",
+      "healthcare": "Sănătate",
+      "hr": "Integrare HR",
+      "state": "Birocrație de stat",
+      "stateScanned": "Birocrație de stat (PDF scanat)",
+      "custom": "PDF-ul tău"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "Formular de cerere CMS-1500",
+      "mnda": "NDA reciproc",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen scanat",
+      "custom": "Alege propriul PDF"
+    },
+    "customSubtitle": "Orice PDF funcționează"
+  }
+}

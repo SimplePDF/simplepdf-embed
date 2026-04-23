@@ -1,8 +1,8 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
-import { DefaultChatTransport } from 'ai'
 import type { ByokConfig } from './byok'
+import { formatStreamError } from './error_classifier'
 import {
   DetectFieldsInput,
   FocusFieldInput,
@@ -46,91 +46,87 @@ type BrowserChatBody = {
   language_label?: string
 }
 
-type CreateByokTransportArgs = {
+type RunByokStreamArgs = {
   config: ByokConfig
-  body: () => Record<string, unknown>
+  init: RequestInit | undefined
 }
 
-export const createByokTransport = ({ config, body }: CreateByokTransportArgs): DefaultChatTransport<UIMessage> =>
-  new DefaultChatTransport<UIMessage>({
-    // `api` is still required by the type but we never hit the network — our
-    // custom fetch produces the UI-message stream locally in the browser.
-    api: 'byok://local',
-    body,
-    fetch: (async (_input: unknown, init: RequestInit | undefined) => {
-      const rawBody = typeof init?.body === 'string' ? init.body : ''
-      const parsed = ((): BrowserChatBody | null => {
-        try {
-          return JSON.parse(rawBody)
-        } catch {
-          return null
-        }
-      })()
-      if (parsed === null || !Array.isArray(parsed.messages)) {
-        return new Response(JSON.stringify({ error: 'bad_request' }), {
-          status: 400,
-          headers: { 'content-type': 'application/json' },
-        })
-      }
-      const languageLabel =
-        typeof parsed.language_label === 'string' && parsed.language_label.trim() !== ''
-          ? parsed.language_label.trim()
-          : 'English'
+export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promise<Response> => {
+  const rawBody = typeof init?.body === 'string' ? init.body : ''
+  const parsed = ((): BrowserChatBody | null => {
+    try {
+      return JSON.parse(rawBody)
+    } catch {
+      return null
+    }
+  })()
+  if (parsed === null || !Array.isArray(parsed.messages)) {
+    return new Response(JSON.stringify({ error: 'bad_request' }), {
+      status: 400,
+      headers: { 'content-type': 'application/json' },
+    })
+  }
+  const languageLabel =
+    typeof parsed.language_label === 'string' && parsed.language_label.trim() !== ''
+      ? parsed.language_label.trim()
+      : 'English'
 
-      const modelMessages = await convertToModelMessages(parsed.messages)
-      const result = streamText({
-        model: buildModel(config),
-        messages: [
-          {
-            role: 'system',
-            content: SYSTEM_PROMPT,
-            providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
-          },
-          { role: 'system', content: buildLanguageInstruction(languageLabel) },
-          ...modelMessages,
-        ],
-        maxRetries: 0,
-        maxOutputTokens: MAX_OUTPUT_TOKENS,
-        tools: {
-          get_fields: {
-            description: 'Lists every fillable field currently on the document.',
-            inputSchema: GetFieldsInput,
-          },
-          get_document_content: {
-            description: 'Extracts the textual content of the document page by page.',
-            inputSchema: GetDocumentContentInput,
-          },
-          detect_fields: {
-            description:
-              'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
-            inputSchema: DetectFieldsInput,
-          },
-          select_tool: {
-            description:
-              'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
-            inputSchema: SelectToolInput,
-          },
-          set_field_value: {
-            description: 'Writes a value into a single field. Always focus_field first.',
-            inputSchema: SetFieldValueInput,
-          },
-          focus_field: {
-            description: 'Scrolls to and visually highlights a field.',
-            inputSchema: FocusFieldInput,
-          },
-          go_to_page: {
-            description: 'Scrolls the editor to a given 1-based page.',
-            inputSchema: GoToPageInput,
-          },
-          submit_download: {
-            description: 'Finalizes the filled PDF and triggers a download.',
-            inputSchema: SubmitDownloadInput,
-          },
-        },
-        onError: ({ error }) => {
-          console.error('[copilot] BYOK streamText error', error)
-        },
-      })
-      return result.toUIMessageStreamResponse()
-    }) as typeof fetch,
+  const modelMessages = await convertToModelMessages(parsed.messages)
+  const result = streamText({
+    model: buildModel(config),
+    messages: [
+      {
+        role: 'system',
+        content: SYSTEM_PROMPT,
+        providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+      },
+      { role: 'system', content: buildLanguageInstruction(languageLabel) },
+      ...modelMessages,
+    ],
+    maxRetries: 0,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
+    tools: {
+      get_fields: {
+        description: 'Lists every fillable field currently on the document.',
+        inputSchema: GetFieldsInput,
+      },
+      get_document_content: {
+        description: 'Extracts the textual content of the document page by page.',
+        inputSchema: GetDocumentContentInput,
+      },
+      detect_fields: {
+        description:
+          'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
+        inputSchema: DetectFieldsInput,
+      },
+      select_tool: {
+        description:
+          'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
+        inputSchema: SelectToolInput,
+      },
+      set_field_value: {
+        description: 'Writes a value into a single field. Always focus_field first.',
+        inputSchema: SetFieldValueInput,
+      },
+      focus_field: {
+        description: 'Scrolls to and visually highlights a field.',
+        inputSchema: FocusFieldInput,
+      },
+      go_to_page: {
+        description: 'Scrolls the editor to a given 1-based page.',
+        inputSchema: GoToPageInput,
+      },
+      submit_download: {
+        description: 'Finalizes the filled PDF and triggers a download.',
+        inputSchema: SubmitDownloadInput,
+      },
+    },
+    onError: ({ error }) => {
+      console.error('[copilot] BYOK streamText error', error)
+    },
   })
+  return result.toUIMessageStreamResponse({
+    onError: formatStreamError,
+  })
+}
+

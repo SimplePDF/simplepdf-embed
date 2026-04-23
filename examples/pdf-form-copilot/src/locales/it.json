@@ -1,0 +1,175 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "IA che aiuta gli utenti a compilare moduli PDF passo dopo passo",
+    "whatIsThisDemo": "Cos’è questa demo?",
+    "useCase": "PDF caricato",
+    "poweredBy": "Alimentato da SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot dà il meglio su desktop",
+    "watchDemo": "Guarda la demo",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "Compilazione di moduli assistita dall’IA, con un umano nel ciclo",
+    "close": "Chiudi",
+    "availableOn": "Form Copilot è disponibile su <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Codice sorgente su GitHub",
+    "githubStarTitle": "Metti una stella a SimplePDF/simplepdf-embed su GitHub",
+    "whyItMattersLead": "La compilazione automatica dei moduli ha dei limiti.",
+    "whyItMattersBody": "I dati necessari per completare un modulo possono mancare, essere errati o non validi. Questa demo mostra un modello più sicuro: l’IA aiuta a compilare il modulo mentre una persona controlla, corregge e completa dove necessario.",
+    "humanInTheLoopTitle": "Come funziona",
+    "humanInTheLoopBullet1": "Form Copilot compila i campi in tempo reale, direttamente nell’editor.",
+    "humanInTheLoopBullet1Hint": "Lo scambio di dati tra Form Copilot e l’editor avviene nel browser.",
+    "humanInTheLoopBullet2": "L’utente può vedere ogni modifica, controllarla e correggerla.",
+    "humanInTheLoopBullet2Hint": "Form Copilot può lasciare all’utente i campi che non vanno compilati automaticamente, come le firme.",
+    "humanInTheLoopBullet3": "Il documento viene inviato al tuo storage.",
+    "humanInTheLoopBullet3Hint": "Per motivi di privacy, questa demo non consente l’invio del documento.",
+    "aboutTitle": "Privacy by design",
+    "aboutIntro": "SimplePDF è stato progettato dall’inizio per flussi di lavoro sensibili. Queste tre scelte architetturali spiegano perché.",
+    "aboutBullet1Title": "Elaborazione dei documenti nel browser.",
+    "aboutBullet1Body": "I PDF vengono modificati localmente sul tuo dispositivo. Il contenuto del documento non viene caricato sui server SimplePDF.",
+    "aboutBullet2Title": "Porta la tua IA.",
+    "aboutBullet2Body": "In produzione, collega il tuo provider, le tue chiavi, le pipeline RAG e i dati interni, così il traffico resta tra il tuo server e il tuo stack IA.",
+    "aboutBullet3Title": "Porta il tuo storage.",
+    "aboutBullet3Body": "I documenti completati vengono inviati direttamente dal browser al tuo storage, mantenendo i dati sensibili nella tua infrastruttura.",
+    "useCasesTitle": "Esempi di flussi di lavoro",
+    "useCasesFooter": "Seleziona sopra un flusso di lavoro per caricare un modulo diverso.",
+    "architectureTitle": "Architettura",
+    "architectureSubtext": "Dalla chat all’invio, l’architettura è progettata per tenere documenti e dati sensibili sotto il tuo controllo, non il nostro.",
+    "architectureLabel": "Come funziona in produzione",
+    "architectureDescription": "Il browser esegue Form Copilot e l’editor SimplePDF all’interno di un iframe. I due comunicano tramite chiamate di strumento client-side in postMessage, così i dati dei campi non lasciano mai il browser. I messaggi della chat vengono instradati attraverso il tuo server verso il tuo stack IA (provider, chiavi, RAG, dati interni). Il server SimplePDF riceve solo metadati, come URL di upload pre-firmate, e non vede mai il documento. Il documento completato viene caricato direttamente dall’editor al tuo storage (S3, Azure Blob Storage o SharePoint), aggirando il server SimplePDF. Quando un invio si completa, un webhook opzionale può avvisare il tuo server. Il webhook trasporta solo metadati, mai il contenuto del documento.",
+    "tryThisForm": "Prova questo modulo →",
+    "useCases": {
+      "healthcare": {
+        "title": "Sanità",
+        "body": "I moduli di accettazione paziente e di richiesta rimborso contengono spesso dati sensibili e richiedono revisione. Form Copilot aiuta a compilare il modulo passo dopo passo tramite il provider di IA approvato dalla tua organizzazione. Il documento resta nel browser e gli invii vanno direttamente allo storage e ai sistemi scelti dalla tua organizzazione."
+      },
+      "insurance": {
+        "title": "Assicurazione",
+        "body": "Domande, sinistri e appendici combinano spesso dati strutturati con dettagli specifici della polizza. Form Copilot aiuta a precompilare quello che può, spiega i campi e lascia all’utente la revisione finale."
+      },
+      "state": {
+        "title": "Burocrazia pubblica",
+        "body": "I moduli della pubblica amministrazione sono spesso scansionati, complessi o scritti in una lingua che l’utente non parla. Form Copilot può aiutare a spiegare il modulo, tradurlo e compilarlo passo dopo passo mentre l’utente revisiona il risultato."
+      },
+      "hr": {
+        "title": "Onboarding HR",
+        "body": "Lettere di offerta, moduli fiscali e kit di onboarding richiedono spesso sia precompilazione che revisione. Form Copilot compila ciò che può, poi passa il controllo all’utente per firme e verifiche finali."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chat",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "In attesa del caricamento dell’editor…",
+    "subtitleNoDocument": "Carica un documento",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "Cambia modello IA",
+    "modelPicker": {
+      "title": "Cambia modello IA",
+      "currentSectionTitle": "Attualmente in esecuzione",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · con limite",
+      "byokSectionTitle": "Porta la tua API key",
+      "byokIntro": "Scegli un provider e incolla la tua chiave per chattare tramite esso.",
+      "byokSecurityTitle": "La tua chiave resta sul tuo dispositivo.",
+      "byokSecurityBody": "Le chiavi sono tenute solo in memoria (mai scritte su disco, mai inviate ai server di SimplePDF) e ogni richiesta LLM viene inviata direttamente dal tuo browser al provider scelto.",
+      "modelSectionTitle": "Modello",
+      "recommendedBadge": "Consigliato",
+      "keyInputPlaceholder": "Incolla la tua API key di {{provider}}",
+      "keyInputHint": "La chiave non lascia mai il tuo browser, memorizzata solo per questa scheda.",
+      "applyButton": "Usa questo provider",
+      "cancelButton": "Annulla",
+      "comingSoon": "Prossimamente",
+      "registerInterest": "Registra il tuo interesse: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Torna alla demo (la nostra chiave Anthropic)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Ferma",
+    "thinking": "Sto pensando…",
+    "piiWarning": "Demo pubblica. Usa solo dati di esempio. I messaggi sono elaborati dal provider IA selezionato.",
+    "newFieldHint": "Nuovo campo aggiunto dall’utente",
+    "errorAuthTitle": "Autenticazione non riuscita.",
+    "errorAuthBody": "Il provider IA ha rifiutato la tua chiave API. <switchModel>Cambia modello IA</switchModel> per verificarla, poi riprova.",
+    "errorGenericTitle": "Errore completo",
+    "inputPlaceholderReady": "Chiedi a Form Copilot…",
+    "inputPlaceholderWaiting": "Attendere prego…",
+    "send": "Invia"
+  },
+  "suggestedPrompts": {
+    "lead": "Prova uno di questi:",
+    "helpFill": "Aiutami a compilare questo modulo",
+    "explainFields": "Di cosa parla questo modulo?"
+  },
+  "languagePicker": {
+    "label": "Lingua",
+    "search": "Cerca lingue…",
+    "noMatches": "Nessun risultato"
+  },
+  "toolbar": {
+    "cursor": "Cursore",
+    "text": "Testo",
+    "checkbox": "Casella di controllo",
+    "signature": "Firma",
+    "picture": "Immagine",
+    "submit": "Invia"
+  },
+  "submitDemo": {
+    "headline": "Questo esempio non invia il documento.",
+    "body": "Alcune aziende usano già SimplePDF per semplificare i flussi documentali e molte ci dicono che i loro utenti adorano l’esperienza. Form Copilot è attualmente mostrato qui come demo.",
+    "bodySubtext": "SimplePDF permette inoltre ai team di configurare <fields>campi obbligatori, valori predefiniti</fields> e <flows>flussi di invio</flows>.",
+    "learnMore": "Scopri di più",
+    "requestDemo": "Contattaci",
+    "close": "Chiudi"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "in preparazione",
+      "input-available": "in esecuzione",
+      "output-available": "completato",
+      "output-error": "errore"
+    },
+    "fallbackName": "Chiamata a {{tool}}",
+    "groupSummary_one": "{{count}} azione",
+    "groupSummary_other": "{{count}} azioni",
+    "names": {
+      "get_fields": "Recupero dei campi",
+      "get_document_content": "Lettura del documento",
+      "detect_fields": "Rilevamento dei campi",
+      "focus_field": "Evidenziazione del campo",
+      "go_to_page": "Passaggio alla pagina",
+      "set_field_value": "Compilazione del campo",
+      "select_tool": "Cambio strumento",
+      "create_field": "Creazione di un campo",
+      "remove_fields": "Rimozione dei campi",
+      "submit_download": "Preparazione del download"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Fiscale",
+      "healthcare": "Sanità",
+      "hr": "Onboarding HR",
+      "state": "Burocrazia pubblica",
+      "stateScanned": "Burocrazia pubblica (PDF scansionato)",
+      "custom": "Il tuo PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "Modulo di richiesta CMS-1500",
+      "mnda": "NDA reciproco",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen scansionato",
+      "custom": "Scegli il tuo PDF"
+    },
+    "customSubtitle": "Funziona qualsiasi PDF"
+  }
+}

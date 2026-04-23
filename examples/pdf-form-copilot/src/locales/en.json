@@ -6,6 +6,11 @@
     "useCase": "Loaded PDF",
     "poweredBy": "Powered by SimplePDF"
   },
+  "mobileFallback": {
+    "headline": "Form Copilot is best experienced on desktop",
+    "watchDemo": "Watch the demo",
+    "videoPlaceholder": "Video"
+  },
   "infoModal": {
     "title": "AI-assisted form filling, with a human in the loop",
     "close": "Close",
@@ -33,6 +38,7 @@
     "useCasesFooter": "Select a workflow above to load a different form.",
     "architectureTitle": "Architecture",
     "architectureSubtext": "From chat to submission, the architecture is designed to keep documents and sensitive data under your control, not ours.",
+    "architectureLabel": "How it works in production",
     "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives metadata such as pre-signed upload URLs and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server — the webhook carries metadata only, never the document content.",
     "tryThisForm": "Try this form →",
     "useCases": {
@@ -91,9 +97,10 @@
     "thinking": "Thinking…",
     "piiWarning": "Public demo. Use sample data only. Messages are processed by the selected AI provider.",
     "newFieldHint": "New field added by the user",
-    "errorTitle": "Something went wrong.",
-    "errorFriendlyGeneric": "I wasn't able to complete that. Could you rephrase what you'd like me to do?",
-    "errorFriendlyWithAction": "I wasn't able to {{action}}. Could you rephrase what you'd like me to do?",
+    "errorAuthTitle": "Authentication failed.",
+    "errorAuthBody": "The AI provider rejected your API key. <switchModel>Open the AI model selection</switchModel> to verify the key, and try again.",
+    "errorServerTitle": "Something went wrong",
+    "errorGenericTitle": "Full error",
     "inputPlaceholderReady": "Ask Form Copilot…",
     "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"

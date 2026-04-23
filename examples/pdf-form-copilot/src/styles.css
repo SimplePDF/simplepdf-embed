@@ -2,13 +2,13 @@
 @import "tailwindcss";
 
 @theme {
-  /* SimplePDF brand palette — mirrors client/styles/variables.scss */
-  --color-sky-600: #3665e1;  /* $color-blue-new-primary */
-  --color-sky-700: #2a52ba;  /* $color-blue-new-primary-hover */
-  --color-emerald-500: #26c469;  /* $color-green-secondary */
-  --color-emerald-700: #2f955a;  /* $color-green-ternary */
-  --color-rose-500: #ff535a;  /* $color-red-secondary */
-  --color-rose-700: #cc2222;  /* $color-red-ternary */
+  /* SimplePDF brand palette */
+  --color-sky-600: #3665e1;
+  --color-sky-700: #2a52ba;
+  --color-emerald-500: #26c469;
+  --color-emerald-700: #2f955a;
+  --color-rose-500: #ff535a;
+  --color-rose-700: #cc2222;
 }
 
 * {

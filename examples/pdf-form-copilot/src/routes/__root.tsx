@@ -1,9 +1,14 @@
+import { useTranslation } from 'react-i18next'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import '../lib/i18n'
 import appCss from '../styles.css?url'
+
+// Opt-in via `VITE_ENABLE_DEVTOOLS=true`. Default off so production + shared
+// demo environments never render the router / devtools panel.
+const DEVTOOLS_ENABLED = import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,24 +43,27 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const { i18n: i18nInstance } = useTranslation()
   return (
-    <html lang="en">
+    <html lang={i18nInstance.language}>
       <head>
         <HeadContent />
       </head>
       <body>
         {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {DEVTOOLS_ENABLED ? (
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        ) : null}
         <Scripts />
       </body>
     </html>

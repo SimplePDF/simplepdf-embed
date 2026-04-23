@@ -1,0 +1,175 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "AI जो उपयोगकर्ताओं को चरण-दर-चरण PDF फ़ॉर्म भरने में मदद करता है",
+    "whatIsThisDemo": "यह डेमो क्या है?",
+    "useCase": "लोड किया गया PDF",
+    "poweredBy": "SimplePDF द्वारा संचालित"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot का अनुभव डेस्कटॉप पर सबसे अच्छा है",
+    "watchDemo": "डेमो देखें",
+    "videoPlaceholder": "वीडियो"
+  },
+  "infoModal": {
+    "title": "AI-सहायता से फ़ॉर्म भरना, लूप में मानव के साथ",
+    "close": "बंद करें",
+    "availableOn": "Form Copilot <plan>SimplePDF Pro and above</plan> पर उपलब्ध है।",
+    "sourceCode": "GitHub पर सोर्स कोड",
+    "githubStarTitle": "GitHub पर SimplePDF/simplepdf-embed को स्टार करें",
+    "whyItMattersLead": "स्वचालित फ़ॉर्म भरने की अपनी सीमाएँ हैं।",
+    "whyItMattersBody": "फ़ॉर्म पूरा करने के लिए आवश्यक डेटा गायब, गलत या अमान्य हो सकता है। यह डेमो एक सुरक्षित मॉडल दिखाता है: AI फ़ॉर्म भरने में मदद करता है जबकि मानव समीक्षा करता है, सुधार करता है और जहाँ आवश्यक हो पूरा करता है।",
+    "humanInTheLoopTitle": "यह कैसे काम करता है",
+    "humanInTheLoopBullet1": "Form Copilot संपादक के भीतर वास्तविक समय में फ़ील्ड भरता है।",
+    "humanInTheLoopBullet1Hint": "Form Copilot और संपादक के बीच डेटा का आदान-प्रदान ब्राउज़र में होता है।",
+    "humanInTheLoopBullet2": "उपयोगकर्ता हर बदलाव देख सकता है, उसकी समीक्षा कर सकता है और उसे सुधार सकता है।",
+    "humanInTheLoopBullet2Hint": "Form Copilot ऐसी फ़ील्ड उपयोगकर्ता को सौंप सकता है जिन्हें स्वचालित रूप से नहीं भरा जाना चाहिए, जैसे कि हस्ताक्षर।",
+    "humanInTheLoopBullet3": "दस्तावेज़ आपके स्टोरेज में सबमिट किया जाता है।",
+    "humanInTheLoopBullet3Hint": "गोपनीयता कारणों से यह डेमो दस्तावेज़ सबमिट करने की अनुमति नहीं देता।",
+    "aboutTitle": "डिज़ाइन से ही गोपनीयता",
+    "aboutIntro": "SimplePDF को संवेदनशील वर्कफ़्लो के लिए शुरू से ही बनाया गया है। ये तीन आर्किटेक्चरल विकल्प बताते हैं कि क्यों।",
+    "aboutBullet1Title": "ब्राउज़र में दस्तावेज़ प्रसंस्करण।",
+    "aboutBullet1Body": "PDF आपके डिवाइस पर स्थानीय रूप से संपादित किए जाते हैं। दस्तावेज़ की सामग्री SimplePDF सर्वर पर अपलोड नहीं होती।",
+    "aboutBullet2Title": "अपना खुद का AI लाएँ।",
+    "aboutBullet2Body": "प्रोडक्शन में, अपना प्रदाता, कुंजियाँ, RAG पाइपलाइन और आंतरिक डेटा जोड़ें ताकि ट्रैफ़िक आपके सर्वर और आपके AI स्टैक के बीच ही रहे।",
+    "aboutBullet3Title": "अपना खुद का स्टोरेज लाएँ।",
+    "aboutBullet3Body": "पूर्ण दस्तावेज़ ब्राउज़र से सीधे आपके स्टोरेज में भेजे जाते हैं, जिससे संवेदनशील डेटा आपके बुनियादी ढाँचे में बना रहता है।",
+    "useCasesTitle": "उदाहरण वर्कफ़्लो",
+    "useCasesFooter": "कोई अलग फ़ॉर्म लोड करने के लिए ऊपर से वर्कफ़्लो चुनें।",
+    "architectureTitle": "आर्किटेक्चर",
+    "architectureSubtext": "चैट से सबमिशन तक, आर्किटेक्चर इस तरह डिज़ाइन किया गया है कि दस्तावेज़ और संवेदनशील डेटा आपके नियंत्रण में रहें, हमारे नहीं।",
+    "architectureLabel": "प्रोडक्शन में यह कैसे काम करता है",
+    "architectureDescription": "ब्राउज़र Form Copilot और SimplePDF संपादक को एक iframe के अंदर चलाता है। दोनों postMessage क्लाइंट-साइड टूल कॉल के ज़रिये संवाद करते हैं, इसलिए फ़ील्ड डेटा कभी ब्राउज़र से बाहर नहीं जाता। चैट संदेश आपके सर्वर के माध्यम से आपके AI स्टैक (प्रदाता, कुंजियाँ, RAG, आंतरिक डेटा) तक प्रॉक्सी किए जाते हैं। SimplePDF सर्वर केवल मेटाडेटा प्राप्त करता है, जैसे प्री-साइन किए गए अपलोड URL, और कभी भी दस्तावेज़ नहीं देखता। पूर्ण दस्तावेज़ सीधे संपादक से आपके स्टोरेज (S3, Azure Blob Storage या SharePoint) पर अपलोड होता है, SimplePDF सर्वर को बायपास करते हुए। जब सबमिशन पूरा होता है, एक वैकल्पिक webhook आपके सर्वर को सूचित कर सकता है। webhook केवल मेटाडेटा ले जाता है, कभी भी दस्तावेज़ की सामग्री नहीं।",
+    "tryThisForm": "इस फ़ॉर्म को आज़माएँ →",
+    "useCases": {
+      "healthcare": {
+        "title": "स्वास्थ्य सेवा",
+        "body": "रोगी पंजीकरण और दावा फ़ॉर्म में अक्सर संवेदनशील डेटा होता है और इन्हें समीक्षा की आवश्यकता होती है। Form Copilot आपके संगठन के अनुमोदित AI प्रदाता का उपयोग करके फ़ॉर्म को चरण-दर-चरण पूरा करने में मदद करता है। दस्तावेज़ ब्राउज़र में रहता है, और सबमिशन सीधे आपके संगठन द्वारा चुने गए स्टोरेज और सिस्टम पर जाते हैं।"
+      },
+      "insurance": {
+        "title": "बीमा",
+        "body": "आवेदन, दावे और पृष्ठांकन अक्सर संरचित डेटा को पॉलिसी-विशिष्ट विवरणों के साथ जोड़ते हैं। Form Copilot जो संभव हो उसे प्री-फ़िल करने में मदद करता है, फ़ील्ड समझाता है, और अंतिम समीक्षा उपयोगकर्ता पर छोड़ देता है।"
+      },
+      "state": {
+        "title": "सरकारी नौकरशाही",
+        "body": "सरकारी फ़ॉर्म अक्सर स्कैन किए गए, जटिल या ऐसी भाषा में लिखे होते हैं जो उपयोगकर्ता नहीं बोलता। Form Copilot फ़ॉर्म समझाने, उसका अनुवाद करने और चरण-दर-चरण भरने में मदद कर सकता है जबकि उपयोगकर्ता परिणाम की समीक्षा करता है।"
+      },
+      "hr": {
+        "title": "HR ऑनबोर्डिंग",
+        "body": "ऑफ़र लेटर, कर फ़ॉर्म और ऑनबोर्डिंग पैकेट में अक्सर प्री-फ़िलिंग और समीक्षा दोनों की आवश्यकता होती है। Form Copilot जो संभव हो उसे भरता है, फिर हस्ताक्षर और अंतिम जाँच के लिए उपयोगकर्ता को सौंप देता है।"
+      }
+    }
+  },
+  "chat": {
+    "heading": "चैट",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "संपादक के लोड होने की प्रतीक्षा है…",
+    "subtitleNoDocument": "एक दस्तावेज़ लोड करें",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "AI मॉडल बदलें",
+    "modelPicker": {
+      "title": "AI मॉडल बदलें",
+      "currentSectionTitle": "अभी चल रहा है",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · सीमित",
+      "byokSectionTitle": "अपनी खुद की API key लाएँ",
+      "byokIntro": "प्रदाता चुनें और अपनी कुंजी पेस्ट करें ताकि उसके माध्यम से चैट करें।",
+      "byokSecurityTitle": "आपकी कुंजी आपके डिवाइस पर ही रहती है।",
+      "byokSecurityBody": "कुंजियाँ केवल मेमोरी में रखी जाती हैं (कभी डिस्क पर नहीं लिखी जातीं, कभी SimplePDF के सर्वर पर नहीं भेजी जातीं) और हर LLM अनुरोध सीधे आपके ब्राउज़र से आपके चुने हुए प्रदाता के पास भेजा जाता है।",
+      "modelSectionTitle": "मॉडल",
+      "recommendedBadge": "अनुशंसित",
+      "keyInputPlaceholder": "अपनी {{provider}} API key पेस्ट करें",
+      "keyInputHint": "कुंजी आपके ब्राउज़र को कभी नहीं छोड़ती, केवल इस टैब के लिए मेमोरी में संग्रहीत।",
+      "applyButton": "इस प्रदाता का उपयोग करें",
+      "cancelButton": "रद्द करें",
+      "comingSoon": "जल्द आ रहा है",
+      "registerInterest": "अपनी रुचि दर्ज करें: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "डेमो पर वापस जाएँ (हमारी Anthropic कुंजी)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "रोकें",
+    "thinking": "सोच रहा है…",
+    "piiWarning": "सार्वजनिक डेमो। केवल नमूना डेटा का उपयोग करें। संदेशों को चयनित AI प्रदाता द्वारा संसाधित किया जाता है।",
+    "newFieldHint": "उपयोगकर्ता द्वारा जोड़ा गया नया फ़ील्ड",
+    "errorAuthTitle": "प्रमाणीकरण विफल रहा।",
+    "errorAuthBody": "AI प्रदाता ने आपकी API कुंजी अस्वीकार कर दी। कुंजी सत्यापित करने के लिए <switchModel>AI मॉडल बदलें</switchModel> और फिर से प्रयास करें।",
+    "errorGenericTitle": "पूरी त्रुटि",
+    "inputPlaceholderReady": "Form Copilot से पूछें…",
+    "inputPlaceholderWaiting": "कृपया प्रतीक्षा करें…",
+    "send": "भेजें"
+  },
+  "suggestedPrompts": {
+    "lead": "इनमें से कोई एक आज़माएँ:",
+    "helpFill": "इस फ़ॉर्म को भरने में मेरी मदद करें",
+    "explainFields": "यह फ़ॉर्म किस बारे में है?"
+  },
+  "languagePicker": {
+    "label": "भाषा",
+    "search": "भाषाएँ खोजें…",
+    "noMatches": "कोई मिलान नहीं"
+  },
+  "toolbar": {
+    "cursor": "कर्सर",
+    "text": "टेक्स्ट",
+    "checkbox": "चेकबॉक्स",
+    "signature": "हस्ताक्षर",
+    "picture": "चित्र",
+    "submit": "सबमिट करें"
+  },
+  "submitDemo": {
+    "headline": "यह उदाहरण दस्तावेज़ सबमिट नहीं करता।",
+    "body": "कंपनियाँ पहले से ही दस्तावेज़ वर्कफ़्लो को सरल बनाने के लिए SimplePDF का उपयोग कर रही हैं, और कई हमें बताती हैं कि उनके उपयोगकर्ता इस अनुभव को पसंद करते हैं। Form Copilot वर्तमान में यहाँ डेमो के रूप में दिखाया गया है।",
+    "bodySubtext": "SimplePDF टीमों को <fields>आवश्यक फ़ील्ड, डिफ़ॉल्ट मान</fields> और <flows>सबमिशन फ़्लो</flows> कॉन्फ़िगर करने की भी अनुमति देता है।",
+    "learnMore": "और जानें",
+    "requestDemo": "हमसे बात करें",
+    "close": "बंद करें"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "तैयारी हो रही है",
+      "input-available": "चल रहा है",
+      "output-available": "पूर्ण",
+      "output-error": "त्रुटि"
+    },
+    "fallbackName": "{{tool}} को कॉल कर रहा है",
+    "groupSummary_one": "{{count}} क्रिया",
+    "groupSummary_other": "{{count}} क्रियाएँ",
+    "names": {
+      "get_fields": "फ़ील्ड पुनः प्राप्त कर रहा है",
+      "get_document_content": "दस्तावेज़ पढ़ रहा है",
+      "detect_fields": "फ़ील्ड का पता लगा रहा है",
+      "focus_field": "फ़ील्ड को हाइलाइट कर रहा है",
+      "go_to_page": "पृष्ठ पर जा रहा है",
+      "set_field_value": "फ़ील्ड भर रहा है",
+      "select_tool": "टूल बदल रहा है",
+      "create_field": "फ़ील्ड बना रहा है",
+      "remove_fields": "फ़ील्ड हटा रहा है",
+      "submit_download": "डाउनलोड की तैयारी कर रहा है"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "कर",
+      "healthcare": "स्वास्थ्य सेवा",
+      "hr": "HR ऑनबोर्डिंग",
+      "state": "सरकारी नौकरशाही",
+      "stateScanned": "सरकारी नौकरशाही (स्कैन किया गया PDF)",
+      "custom": "आपका PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 दावा फ़ॉर्म",
+      "mnda": "आपसी NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen स्कैन किया हुआ",
+      "custom": "अपना PDF चुनें"
+    },
+    "customSubtitle": "कोई भी PDF काम करता है"
+  }
+}

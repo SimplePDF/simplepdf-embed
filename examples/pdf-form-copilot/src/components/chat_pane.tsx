@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { getRouteApi } from '@tanstack/react-router'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
 import { findProvider, type ByokConfig } from '../lib/byok'
-import { createByokTransport } from '../lib/byok_transport'
+import { runByokStream } from '../lib/byok_transport'
+import { classifyError, getErrorDisplayMessage } from '../lib/error_classifier'
 import { LanguagePicker } from './language_picker'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
@@ -248,6 +249,8 @@ export const ChatPane = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
   const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
+  const byokConfigRef = useRef<ByokConfig | null>(byokConfig)
+  byokConfigRef.current = byokConfig
   const [hasFilledField, setHasFilledField] = useState(false)
 
   const openModelPicker = useCallback((): void => {
@@ -273,11 +276,21 @@ export const ChatPane = ({
       const languageEntry = getLanguageByCode(languageRef.current)
       return { language_label: languageEntry !== null ? languageEntry.label : 'English' }
     }
-    if (byokConfig !== null) {
-      return createByokTransport({ config: byokConfig, body: bodyFn })
-    }
-    return new DefaultChatTransport({ api: '/api/chat', body: bodyFn })
-  }, [byokConfig])
+    // Single stable transport. Routes per-request based on the current BYOK
+    // config (read from a ref), so flipping BYOK on/off takes effect
+    // immediately without re-creating the Chat instance.
+    return new DefaultChatTransport({
+      api: '/api/chat',
+      body: bodyFn,
+      fetch: (async (input: unknown, init: RequestInit | undefined) => {
+        const activeConfig = byokConfigRef.current
+        if (activeConfig !== null) {
+          return runByokStream({ config: activeConfig, init })
+        }
+        return window.fetch(input as RequestInfo, init)
+      }) as typeof fetch,
+    })
+  }, [])
 
   const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(documentId))
   const hydratedDocumentIdRef = useRef<string | null>(documentId)
@@ -533,7 +546,7 @@ export const ChatPane = ({
             )}
             {isStreaming ? <ThinkingIndicator /> : null}
             {error !== undefined ? (
-              <ErrorBanner messages={messages} />
+              <ErrorBanner error={error} onSwitchModel={openModelPicker} />
             ) : null}
           </div>
         )}
@@ -613,41 +626,81 @@ const FieldAddedHint = () => {
 }
 
 type ErrorBannerProps = {
-  messages: UIMessage[]
+  error: Error
+  onSwitchModel: () => void
 }
 
-const findLastAttemptedToolName = (messages: UIMessage[]): string | null => {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const message = messages[i]
-    if (message.role !== 'assistant') {
-      continue
-    }
-    for (let j = message.parts.length - 1; j >= 0; j -= 1) {
-      const part = message.parts[j]
-      if (part.type.startsWith('tool-')) {
-        return part.type.slice('tool-'.length)
-      }
-    }
-  }
-  return null
-}
-
-const ErrorBanner = ({ messages }: ErrorBannerProps) => {
+const ErrorBanner = ({ error, onSwitchModel }: ErrorBannerProps) => {
   const { t } = useTranslation()
-  const body = (() => {
-    const toolName = findLastAttemptedToolName(messages)
-    if (toolName !== null) {
-      const actionLabel = t(`toolInvocation.names.${toolName}`, {
-        defaultValue: t('toolInvocation.fallbackName', { tool: toolName }),
-      }).toLowerCase()
-      return <div className="mt-1">{t('chat.errorFriendlyWithAction', { action: actionLabel })}</div>
-    }
-    return <div className="mt-1">{t('chat.errorFriendlyGeneric')}</div>
-  })()
+  const [isExpanded, setIsExpanded] = useState(false)
+  const kind = classifyError(error)
+
+  if (kind === 'authentication') {
+    return (
+      <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="font-medium">{t('chat.errorAuthTitle')}</div>
+        <div className="mt-1">
+          <Trans
+            i18nKey="chat.errorAuthBody"
+            components={{
+              switchModel: (
+                <button
+                  type="button"
+                  onClick={onSwitchModel}
+                  className="font-medium underline underline-offset-2 hover:text-rose-900"
+                />
+              ),
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  const displayMessage = getErrorDisplayMessage(error)
+
+  if (kind === 'server') {
+    return (
+      <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+        <div className="font-medium">{t('chat.errorServerTitle')}</div>
+        <pre className="mt-2 max-h-48 overflow-auto rounded border border-rose-200 bg-white p-2 text-[11px] leading-relaxed text-slate-700">
+          <code>{displayMessage}</code>
+        </pre>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-      <div className="font-medium">{t('chat.errorTitle')}</div>
-      {body}
+      <button
+        type="button"
+        onClick={() => setIsExpanded((value) => !value)}
+        aria-expanded={isExpanded}
+        className="flex w-full items-center justify-between gap-2 text-left font-medium"
+      >
+        <span>{t('chat.errorGenericTitle')}</span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+          className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+        >
+          <path
+            d="M6 9l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {isExpanded ? (
+        <pre className="mt-2 max-h-48 overflow-auto rounded border border-rose-200 bg-white p-2 text-[11px] leading-relaxed text-slate-700">
+          <code>{displayMessage}</code>
+        </pre>
+      ) : null}
     </div>
   )
 }

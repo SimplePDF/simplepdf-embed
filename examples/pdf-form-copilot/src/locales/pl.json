@@ -1,0 +1,177 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "Sztuczna inteligencja, która pomaga krok po kroku wypełniać formularze PDF",
+    "whatIsThisDemo": "Czym jest to demo?",
+    "useCase": "Załadowany PDF",
+    "poweredBy": "Napędzane przez SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot najlepiej sprawdza się na komputerze",
+    "watchDemo": "Obejrzyj demo",
+    "videoPlaceholder": "Wideo"
+  },
+  "infoModal": {
+    "title": "Wypełnianie formularzy wspomagane przez AI, z człowiekiem w pętli",
+    "close": "Zamknij",
+    "availableOn": "Form Copilot jest dostępny w <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Kod źródłowy na GitHubie",
+    "githubStarTitle": "Oznacz gwiazdką SimplePDF/simplepdf-embed na GitHubie",
+    "whyItMattersLead": "Automatyczne wypełnianie formularzy ma swoje ograniczenia.",
+    "whyItMattersBody": "Dane potrzebne do wypełnienia formularza mogą być niekompletne, nieprawidłowe lub nieważne. To demo pokazuje bezpieczniejszy model: AI pomaga wypełnić formularz, podczas gdy człowiek sprawdza, poprawia i uzupełnia tam, gdzie to konieczne.",
+    "humanInTheLoopTitle": "Jak to działa",
+    "humanInTheLoopBullet1": "Form Copilot wypełnia pola w czasie rzeczywistym, bezpośrednio w edytorze.",
+    "humanInTheLoopBullet1Hint": "Wymiana danych między Form Copilotem a edytorem odbywa się w przeglądarce.",
+    "humanInTheLoopBullet2": "Użytkownik może zobaczyć każdą zmianę, sprawdzić ją i poprawić.",
+    "humanInTheLoopBullet2Hint": "Form Copilot może przekazać użytkownikowi pola, które nie powinny być wypełniane automatycznie, takie jak podpisy.",
+    "humanInTheLoopBullet3": "Dokument jest wysyłany do Twojej pamięci masowej.",
+    "humanInTheLoopBullet3Hint": "Ze względów prywatności to demo nie pozwala na przesłanie dokumentu.",
+    "aboutTitle": "Prywatność zaprojektowana od podstaw",
+    "aboutIntro": "SimplePDF jest zbudowany od podstaw z myślą o wrażliwych procesach. Te trzy decyzje architektoniczne wyjaśniają dlaczego.",
+    "aboutBullet1Title": "Przetwarzanie dokumentów w przeglądarce.",
+    "aboutBullet1Body": "Pliki PDF są edytowane lokalnie na Twoim urządzeniu. Sama zawartość dokumentu nie jest przesyłana na serwery SimplePDF.",
+    "aboutBullet2Title": "Użyj własnej AI.",
+    "aboutBullet2Body": "W środowisku produkcyjnym podłącz własnego dostawcę, klucze, potoki RAG i dane wewnętrzne, dzięki czemu ruch pozostaje między Twoim serwerem a Twoim stosem AI.",
+    "aboutBullet3Title": "Użyj własnej pamięci masowej.",
+    "aboutBullet3Body": "Ukończone dokumenty są wysyłane bezpośrednio z przeglądarki do Twojej pamięci masowej, co zapewnia, że wrażliwe dane pozostają w Twojej infrastrukturze.",
+    "useCasesTitle": "Przykładowe przepływy pracy",
+    "useCasesFooter": "Wybierz powyżej przepływ pracy, aby załadować inny formularz.",
+    "architectureTitle": "Architektura",
+    "architectureSubtext": "Od czatu do przesłania, architektura została zaprojektowana tak, aby dokumenty i wrażliwe dane pozostawały pod Twoją, a nie naszą kontrolą.",
+    "architectureLabel": "Jak to działa w środowisku produkcyjnym",
+    "architectureDescription": "Przeglądarka uruchamia Form Copilot oraz edytor SimplePDF wewnątrz iframe. Oba komunikują się przez wywołania narzędzi postMessage po stronie klienta, więc dane pól nigdy nie opuszczają przeglądarki. Wiadomości czatu są przekazywane przez Twój serwer do Twojego stosu AI (dostawca, klucze, RAG, dane wewnętrzne). Serwer SimplePDF otrzymuje tylko metadane, takie jak wstępnie podpisane adresy URL do przesyłania, i nigdy nie widzi samego dokumentu. Ukończony dokument jest przesyłany bezpośrednio z edytora do Twojej pamięci masowej (S3, Azure Blob Storage lub SharePoint), z pominięciem serwera SimplePDF. Gdy przesyłanie się zakończy, opcjonalny webhook może powiadomić Twój serwer. Webhook przenosi jedynie metadane, nigdy zawartość dokumentu.",
+    "tryThisForm": "Wypróbuj ten formularz →",
+    "useCases": {
+      "healthcare": {
+        "title": "Opieka zdrowotna",
+        "body": "Formularze przyjęcia pacjenta i formularze roszczeniowe często zawierają dane wrażliwe i wymagają sprawdzenia. Form Copilot pomaga wypełnić formularz krok po kroku, korzystając z dostawcy AI zatwierdzonego przez Twoją organizację. Dokument pozostaje w przeglądarce, a przesłane dane trafiają bezpośrednio do pamięci masowej i systemów wybranych przez Twoją organizację."
+      },
+      "insurance": {
+        "title": "Ubezpieczenia",
+        "body": "Wnioski, roszczenia i aneksy często łączą dane strukturalne ze szczegółami specyficznymi dla polisy. Form Copilot pomaga wstępnie wypełnić to, co może, wyjaśnia pola i pozostawia końcową weryfikację użytkownikowi."
+      },
+      "state": {
+        "title": "Biurokracja państwowa",
+        "body": "Formularze urzędowe są często zeskanowane, skomplikowane lub napisane w języku, którego użytkownik nie zna. Form Copilot może pomóc wyjaśnić formularz, przetłumaczyć go i wypełnić krok po kroku, podczas gdy użytkownik sprawdza wynik."
+      },
+      "hr": {
+        "title": "Onboarding HR",
+        "body": "Listy z ofertą pracy, formularze podatkowe i pakiety onboardingowe często wymagają zarówno wstępnego wypełnienia, jak i przeglądu. Form Copilot wypełnia to, co może, a następnie przekazuje użytkownikowi kontrolę do podpisów i końcowych sprawdzeń."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Czat",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Oczekiwanie na załadowanie edytora…",
+    "subtitleNoDocument": "Załaduj dokument",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "Zmień model AI",
+    "modelPicker": {
+      "title": "Zmień model AI",
+      "currentSectionTitle": "Aktualnie działa",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · ograniczony limit",
+      "byokSectionTitle": "Użyj własnego API key",
+      "byokIntro": "Wybierz dostawcę i wklej swój klucz, aby rozmawiać przez niego.",
+      "byokSecurityTitle": "Twój klucz pozostaje na Twoim urządzeniu.",
+      "byokSecurityBody": "Klucze są przechowywane wyłącznie w pamięci (nigdy nie są zapisywane na dysku, nigdy nie są wysyłane na serwery SimplePDF), a każde zapytanie LLM wysyłane jest bezpośrednio z Twojej przeglądarki do wybranego dostawcy.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Zalecane",
+      "keyInputPlaceholder": "Wklej swój klucz API do {{provider}}",
+      "keyInputHint": "Klucz nigdy nie opuszcza Twojej przeglądarki, przechowywany w pamięci wyłącznie dla tej karty.",
+      "applyButton": "Użyj tego dostawcy",
+      "cancelButton": "Anuluj",
+      "comingSoon": "Wkrótce",
+      "registerInterest": "Zgłoś zainteresowanie: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Powrót do demo (nasz klucz Anthropic)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Zatrzymaj",
+    "thinking": "Myślę…",
+    "piiWarning": "Publiczne demo. Używaj wyłącznie przykładowych danych. Wiadomości są przetwarzane przez wybranego dostawcę AI.",
+    "newFieldHint": "Nowe pole dodane przez użytkownika",
+    "errorAuthTitle": "Uwierzytelnianie nie powiodło się.",
+    "errorAuthBody": "Dostawca AI odrzucił Twój klucz API. <switchModel>Zmień model AI</switchModel>, aby zweryfikować klucz, i spróbuj ponownie.",
+    "errorGenericTitle": "Pełny błąd",
+    "inputPlaceholderReady": "Zapytaj Form Copilot…",
+    "inputPlaceholderWaiting": "Proszę czekać…",
+    "send": "Wyślij"
+  },
+  "suggestedPrompts": {
+    "lead": "Wypróbuj jedno z poniższych:",
+    "helpFill": "Pomóż mi wypełnić ten formularz",
+    "explainFields": "O czym jest ten formularz?"
+  },
+  "languagePicker": {
+    "label": "Język",
+    "search": "Szukaj języków…",
+    "noMatches": "Brak wyników"
+  },
+  "toolbar": {
+    "cursor": "Kursor",
+    "text": "Tekst",
+    "checkbox": "Pole wyboru",
+    "signature": "Podpis",
+    "picture": "Obraz",
+    "submit": "Wyślij"
+  },
+  "submitDemo": {
+    "headline": "Ten przykład nie przesyła dokumentu.",
+    "body": "Firmy już korzystają z SimplePDF, aby uprościć przepływy dokumentów, a wiele mówi nam, że ich użytkownicy uwielbiają to doświadczenie. Form Copilot jest tu obecnie pokazywany jako demo.",
+    "bodySubtext": "SimplePDF pozwala także zespołom skonfigurować <fields>pola wymagane, wartości domyślne</fields> oraz <flows>przepływy przesyłania</flows>.",
+    "learnMore": "Dowiedz się więcej",
+    "requestDemo": "Skontaktuj się z nami",
+    "close": "Zamknij"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "przygotowanie",
+      "input-available": "trwa",
+      "output-available": "gotowe",
+      "output-error": "błąd"
+    },
+    "fallbackName": "Wywołanie {{tool}}",
+    "groupSummary_one": "{{count}} akcja",
+    "groupSummary_few": "{{count}} akcje",
+    "groupSummary_many": "{{count}} akcji",
+    "groupSummary_other": "{{count}} akcji",
+    "names": {
+      "get_fields": "Pobieranie pól",
+      "get_document_content": "Odczytywanie dokumentu",
+      "detect_fields": "Wykrywanie pól",
+      "focus_field": "Podświetlanie pola",
+      "go_to_page": "Przechodzenie do strony",
+      "set_field_value": "Wypełnianie pola",
+      "select_tool": "Zmiana narzędzia",
+      "create_field": "Tworzenie pola",
+      "remove_fields": "Usuwanie pól",
+      "submit_download": "Przygotowywanie pobrania"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Podatki",
+      "healthcare": "Opieka zdrowotna",
+      "hr": "Onboarding HR",
+      "state": "Biurokracja państwowa",
+      "stateScanned": "Biurokracja państwowa (zeskanowany PDF)",
+      "custom": "Twój PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "Formularz roszczenia CMS-1500",
+      "mnda": "Wzajemne NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen zeskanowany",
+      "custom": "Wybierz własny PDF"
+    },
+    "customSubtitle": "Dowolny PDF zadziała"
+  }
+}

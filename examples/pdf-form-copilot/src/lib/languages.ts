@@ -19,8 +19,6 @@ export const LANGUAGES: Language[] = [
   { code: 'he', label: 'Hebrew', native: 'עברית' },
   { code: 'hi', label: 'Hindi', native: 'हिन्दी' },
   { code: 'it', label: 'Italian', native: 'Italiano' },
-  { code: 'ja', label: 'Japanese', native: '日本語' },
-  { code: 'ko', label: 'Korean', native: '한국어' },
   { code: 'no', label: 'Norwegian', native: 'Norsk' },
   { code: 'pl', label: 'Polish', native: 'Polski' },
   { code: 'pt', label: 'Portuguese', native: 'Português' },

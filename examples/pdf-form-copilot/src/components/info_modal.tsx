@@ -274,7 +274,7 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
     { text: '└───────────────────────┘', blue: true },
     { text: '     │       │  S3 / Azure Blob Storage / SharePoint  │' },
   ],
-  [{ text: '  │                                 │       │  direct upload                          │' }],
+  [{ text: '  │                                 │       │  direct upload                         │' }],
   [{ text: '  └─────────────────────────────────┘       └────────────────────────────────────────┘' }],
 ]
 
@@ -459,6 +459,9 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps): Reac
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
                 {t('infoModal.architectureSubtext')}
+              </p>
+              <p className="mt-4 text-[13px] font-semibold text-slate-900">
+                {t('infoModal.architectureLabel')}
               </p>
               <p className="sr-only">{t('infoModal.architectureDescription')}</p>
               <pre

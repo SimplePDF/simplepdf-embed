@@ -26,30 +26,39 @@ export const Route = createFileRoute('/')({
     lang: isLanguageCode(raw.lang) ? raw.lang : DEFAULT_LANGUAGE_CODE,
     ...(isShowParam(raw.show) ? { show: raw.show } : {}),
   }),
-  beforeLoad: ({ search }) => {
+  beforeLoad: async ({ search }) => {
     if (i18n.language !== search.lang) {
-      void i18n.changeLanguage(search.lang)
+      // Awaited so the route never renders with the previous language flashing
+      // in before react-i18next has switched — the initial i18n config seeds
+      // DEFAULT_UI_LOCALE, so on reload with ?lang=fr we must wait for the
+      // resource swap + 'languageChanged' event before React hydrates.
+      await i18n.changeLanguage(search.lang)
     }
   },
 })
 
 const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
 const EDITOR_ORIGIN = `https://${COMPANY_IDENTIFIER}.simplepdf.com`
-const EDITOR_HOST = `${EDITOR_ORIGIN}/editor`
 
-const buildEditorSrc = ({ pdfUrl }: { pdfUrl: string }): string => {
+// Locales the SimplePDF editor can render via i18n path-prefix routing.
+// English is the default on the non-prefixed path, so it is not listed here.
+const EDITOR_SUPPORTED_LOCALES = new Set(['de', 'es', 'fr', 'it', 'nl', 'pt'])
+
+const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): string => {
+  const localePrefix = EDITOR_SUPPORTED_LOCALES.has(lang) ? `/${lang}` : ''
+  const editorHost = `${EDITOR_ORIGIN}${localePrefix}/editor`
   if (pdfUrl === '') {
     // Custom / user-picked PDF: the editor falls back to its native file picker
     // when no ?open= is provided. We also drop loadingPlaceholder so the picker
     // is not hidden behind a loading screen.
-    return `${EDITOR_HOST}?ignoreExistingFields=true`
+    return `${editorHost}?ignoreExistingFields=true`
   }
   const params = new URLSearchParams({
     open: pdfUrl,
     loadingPlaceholder: 'true',
     ignoreExistingFields: 'true',
   })
-  return `${EDITOR_HOST}?${params.toString()}`
+  return `${editorHost}?${params.toString()}`
 }
 
 function Home() {
@@ -58,10 +67,11 @@ function Home() {
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const editorResetKey = `${currentForm.id}:${lang}`
   const { bridge, isDocumentLoaded, documentId } = useIframeBridge({
     iframeRef,
     editorOrigin: EDITOR_ORIGIN,
-    resetKey: currentForm.id,
+    resetKey: editorResetKey,
   })
 
   const handleLanguageChange = useCallback(
@@ -84,8 +94,8 @@ function Home() {
       editor={
         <EditorPane
           ref={iframeRef}
-          iframeKey={currentForm.id}
-          editorSrc={buildEditorSrc({ pdfUrl: currentForm.pdfUrl })}
+          iframeKey={editorResetKey}
+          editorSrc={buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang })}
         />
       }
       chat={

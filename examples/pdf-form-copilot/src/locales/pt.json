@@ -1,0 +1,175 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "IA que ajuda os utilizadores a preencher formulários PDF passo a passo",
+    "whatIsThisDemo": "O que é esta demonstração?",
+    "useCase": "PDF carregado",
+    "poweredBy": "Com tecnologia SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "O Form Copilot desfruta-se melhor no computador",
+    "watchDemo": "Ver a demonstração",
+    "videoPlaceholder": "Vídeo"
+  },
+  "infoModal": {
+    "title": "Preenchimento de formulários assistido por IA, com um humano no processo",
+    "close": "Fechar",
+    "availableOn": "O Form Copilot está disponível no <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Código-fonte no GitHub",
+    "githubStarTitle": "Atribua uma estrela a SimplePDF/simplepdf-embed no GitHub",
+    "whyItMattersLead": "O preenchimento automático de formulários tem os seus limites.",
+    "whyItMattersBody": "Os dados necessários para preencher um formulário podem estar em falta, incorrectos ou inválidos. Esta demonstração apresenta um modelo mais seguro: a IA ajuda a preencher o formulário enquanto um humano revê, corrige e completa onde é necessário.",
+    "humanInTheLoopTitle": "Como funciona",
+    "humanInTheLoopBullet1": "O Form Copilot preenche campos em tempo real, dentro do editor.",
+    "humanInTheLoopBullet1Hint": "A troca de dados entre o Form Copilot e o editor acontece no navegador.",
+    "humanInTheLoopBullet2": "O utilizador pode ver cada alteração, revê-la e corrigi-la.",
+    "humanInTheLoopBullet2Hint": "O Form Copilot pode entregar campos que não devem ser preenchidos automaticamente, como assinaturas.",
+    "humanInTheLoopBullet3": "O documento é submetido para o seu armazenamento.",
+    "humanInTheLoopBullet3Hint": "Por razões de privacidade, esta demonstração não permite submeter o documento.",
+    "aboutTitle": "Privacidade desde o início",
+    "aboutIntro": "O SimplePDF foi construído desde o início para fluxos de trabalho sensíveis. Estas três escolhas arquitectónicas explicam porquê.",
+    "aboutBullet1Title": "Processamento de documentos no navegador.",
+    "aboutBullet1Body": "Os PDF são editados localmente no seu dispositivo. O conteúdo do documento em si não é carregado para os servidores do SimplePDF.",
+    "aboutBullet2Title": "Traga a sua própria IA.",
+    "aboutBullet2Body": "Em produção, ligue o seu próprio fornecedor, chaves, pipelines RAG e dados internos, para que o tráfego permaneça entre o seu servidor e a sua stack de IA.",
+    "aboutBullet3Title": "Traga o seu próprio armazenamento.",
+    "aboutBullet3Body": "Os documentos concluídos são enviados directamente do navegador para o seu armazenamento, garantindo que os dados sensíveis permanecem na sua infraestrutura.",
+    "useCasesTitle": "Exemplos de fluxos de trabalho",
+    "useCasesFooter": "Selecione um fluxo de trabalho acima para carregar um formulário diferente.",
+    "architectureTitle": "Arquitectura",
+    "architectureSubtext": "Da conversa à submissão, a arquitectura foi concebida para que os documentos e dados sensíveis permaneçam sob o seu controlo, não o nosso.",
+    "architectureLabel": "Como funciona em produção",
+    "architectureDescription": "O navegador executa o Form Copilot e o editor SimplePDF dentro de um iframe. Os dois comunicam através de chamadas de ferramentas do lado do cliente em postMessage, pelo que os dados dos campos nunca saem do navegador. As mensagens do chat são encaminhadas através do seu servidor até à sua stack de IA (fornecedor, chaves, RAG, dados internos). O servidor do SimplePDF só recebe metadados, como URL de carregamento pré-assinados, e nunca vê o próprio documento. O documento concluído é carregado directamente do editor para o seu armazenamento (S3, Azure Blob Storage ou SharePoint), ignorando o servidor do SimplePDF. Quando uma submissão é concluída, um webhook opcional pode notificar o seu servidor. O webhook transporta apenas metadados, nunca o conteúdo do documento.",
+    "tryThisForm": "Experimentar este formulário →",
+    "useCases": {
+      "healthcare": {
+        "title": "Saúde",
+        "body": "Os formulários de admissão de pacientes e de pedidos de reembolso contêm frequentemente dados sensíveis e requerem revisão. O Form Copilot ajuda a preencher o formulário passo a passo através do fornecedor de IA aprovado pela sua organização. O documento permanece no navegador e as submissões vão directamente para o armazenamento e sistemas escolhidos pela sua organização."
+      },
+      "insurance": {
+        "title": "Seguros",
+        "body": "Pedidos, sinistros e aditamentos combinam frequentemente dados estruturados com pormenores específicos da apólice. O Form Copilot ajuda a pré-preencher o que consegue, explica os campos e deixa a revisão final para o utilizador."
+      },
+      "state": {
+        "title": "Burocracia estatal",
+        "body": "Os formulários governamentais são frequentemente digitalizados, complexos ou escritos numa língua que o utilizador não fala. O Form Copilot pode ajudar a explicar o formulário, traduzi-lo e preenchê-lo passo a passo enquanto o utilizador revê o resultado."
+      },
+      "hr": {
+        "title": "Integração de RH",
+        "body": "Cartas de oferta, formulários fiscais e pacotes de integração exigem frequentemente tanto pré-preenchimento como revisão. O Form Copilot preenche o que consegue e depois entrega ao utilizador para assinaturas e verificações finais."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Chat",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "À espera que o editor carregue…",
+    "subtitleNoDocument": "Carregar um documento",
+    "modelNameReady": "Claude Haiku 4.5",
+    "switchModel": "Mudar modelo de IA",
+    "modelPicker": {
+      "title": "Mudar modelo de IA",
+      "currentSectionTitle": "Em execução",
+      "currentProvider": "Anthropic",
+      "currentModel": "Claude Haiku 4.5",
+      "currentBadge": "DEMO · limitado",
+      "byokSectionTitle": "Traga a sua API key",
+      "byokIntro": "Escolha um fornecedor e cole a sua chave para conversar através dele.",
+      "byokSecurityTitle": "A sua chave permanece no seu dispositivo.",
+      "byokSecurityBody": "As chaves são guardadas apenas em memória (nunca escritas em disco, nunca enviadas para os servidores do SimplePDF) e cada pedido LLM é enviado directamente do seu navegador para o fornecedor escolhido.",
+      "modelSectionTitle": "Modelo",
+      "recommendedBadge": "Recomendado",
+      "keyInputPlaceholder": "Cole a sua API key de {{provider}}",
+      "keyInputHint": "A chave nunca sai do seu navegador, guardada em memória apenas para este separador.",
+      "applyButton": "Usar este fornecedor",
+      "cancelButton": "Cancelar",
+      "comingSoon": "Brevemente",
+      "registerInterest": "Registe o seu interesse: <email>hello@simplepdf.com</email>",
+      "resetToDefault": "Voltar à demonstração (a nossa chave Anthropic)",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "providerVertex": "Google Vertex AI",
+      "providerDatabricks": "Databricks"
+    },
+    "stop": "Parar",
+    "thinking": "A pensar…",
+    "piiWarning": "Demonstração pública. Use apenas dados de exemplo. As mensagens são processadas pelo fornecedor de IA selecionado.",
+    "newFieldHint": "Novo campo adicionado pelo utilizador",
+    "errorAuthTitle": "Autenticação falhou.",
+    "errorAuthBody": "O fornecedor de IA rejeitou a sua chave API. <switchModel>Mude de modelo de IA</switchModel> para verificar a chave e tente novamente.",
+    "errorGenericTitle": "Erro completo",
+    "inputPlaceholderReady": "Pergunte ao Form Copilot…",
+    "inputPlaceholderWaiting": "Aguarde, por favor…",
+    "send": "Enviar"
+  },
+  "suggestedPrompts": {
+    "lead": "Experimente uma destas:",
+    "helpFill": "Ajude-me a preencher este formulário",
+    "explainFields": "Sobre o que é este formulário?"
+  },
+  "languagePicker": {
+    "label": "Idioma",
+    "search": "Procurar idiomas…",
+    "noMatches": "Sem correspondências"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Texto",
+    "checkbox": "Caixa de verificação",
+    "signature": "Assinatura",
+    "picture": "Imagem",
+    "submit": "Submeter"
+  },
+  "submitDemo": {
+    "headline": "Este exemplo não submete o documento.",
+    "body": "Há empresas que já utilizam o SimplePDF para simplificar fluxos de trabalho documentais, e muitas dizem-nos que os seus utilizadores adoram a experiência. O Form Copilot é apresentado aqui actualmente como demonstração.",
+    "bodySubtext": "O SimplePDF também permite que as equipas configurem <fields>campos obrigatórios, valores predefinidos</fields> e <flows>fluxos de submissão</flows>.",
+    "learnMore": "Saber mais",
+    "requestDemo": "Contacte-nos",
+    "close": "Fechar"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "a preparar",
+      "input-available": "em execução",
+      "output-available": "concluído",
+      "output-error": "erro"
+    },
+    "fallbackName": "A chamar {{tool}}",
+    "groupSummary_one": "{{count}} acção",
+    "groupSummary_other": "{{count}} acções",
+    "names": {
+      "get_fields": "A obter os campos",
+      "get_document_content": "A ler o documento",
+      "detect_fields": "A detectar os campos",
+      "focus_field": "A destacar o campo",
+      "go_to_page": "A ir para a página",
+      "set_field_value": "A preencher o campo",
+      "select_tool": "A mudar de ferramenta",
+      "create_field": "A criar um campo",
+      "remove_fields": "A remover campos",
+      "submit_download": "A preparar a transferência"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Impostos",
+      "healthcare": "Saúde",
+      "hr": "Integração de RH",
+      "state": "Burocracia estatal",
+      "stateScanned": "Burocracia estatal (PDF digitalizado)",
+      "custom": "O seu PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "Formulário de pedido CMS-1500",
+      "mnda": "NDA mútuo",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen digitalizado",
+      "custom": "Escolha o seu PDF"
+    },
+    "customSubtitle": "Qualquer PDF funciona"
+  }
+}
