@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
 import { SummarizeRequestSchema, type SummarizePage } from '../../server/tools'
-import { getClientIp, hashIp, rateLimiter } from '../../server/rate_limit'
+import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { getShareParam, resolveApiKey } from '../../server/shared_keys'
 import { parseJsonBody } from '../../server/http'
 
@@ -41,6 +41,9 @@ export const Route = createFileRoute('/api/summarize')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!isSameOrigin(request)) {
+          return Response.json({ error: 'forbidden_origin' }, { status: 403 })
+        }
         const shareId = getShareParam(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
@@ -62,19 +65,12 @@ export const Route = createFileRoute('/api/summarize')({
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        // Only shared-path requests hit the rate limiter. Default-key path is
-        // operator-paid and unlimited.
-        const decision = ((): ReturnType<typeof rateLimiter.check> | null => {
-          if (resolution.kind !== 'shared') {
-            return null
-          }
-          return rateLimiter.check({
-            bucket: resolution.bucket,
-            ipHash,
-            lifetime: resolution.lifetime,
-          })
-        })()
-        if (decision !== null && !decision.allowed) {
+        const decision = rateLimiter.check({
+          bucket: resolution.bucket,
+          ipHash,
+          lifetime: resolution.lifetime,
+        })
+        if (!decision.allowed) {
           return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
         }
 
@@ -97,7 +93,6 @@ export const Route = createFileRoute('/api/summarize')({
           input_chars: userPrompt.length,
           output_chars: result.text.length,
           language: languageLabel,
-          share_used: resolution.kind === 'shared',
         })
 
         return Response.json({ summary: result.text })

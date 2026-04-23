@@ -13,7 +13,7 @@ import {
   SubmitDownloadInput,
   SYSTEM_PROMPT,
 } from '../../server/tools'
-import { getClientIp, hashIp, rateLimiter } from '../../server/rate_limit'
+import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { getShareParam, resolveApiKey } from '../../server/shared_keys'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 
@@ -56,6 +56,9 @@ export const Route = createFileRoute('/api/chat')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!isSameOrigin(request)) {
+          return Response.json({ error: 'forbidden_origin' }, { status: 403 })
+        }
         const shareId = getShareParam(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
@@ -83,17 +86,12 @@ export const Route = createFileRoute('/api/chat')({
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        // Rate limit is a per-invite demo cap; the default-key path is
-        // operator-paid and uncapped. `charged` + the rate-limit decision
-        // only apply when the request was resolved against a shared key.
-        const charged = ((): boolean => {
-          if (resolution.kind !== 'shared') {
-            return false
-          }
-          return shouldChargeAgainstLimit({ ipHash, freshUserTurn: isFreshUserTurn(messages) })
-        })()
+        const charged = shouldChargeAgainstLimit({
+          ipHash,
+          freshUserTurn: isFreshUserTurn(messages),
+        })
         const decision = ((): ReturnType<typeof rateLimiter.check> | null => {
-          if (resolution.kind !== 'shared' || !charged) {
+          if (!charged) {
             return null
           }
           return rateLimiter.check({
@@ -195,7 +193,6 @@ export const Route = createFileRoute('/api/chat')({
           remaining_lifetime: remainingLifetime,
           message_count: messages.length,
           language: languageLabel,
-          share_used: resolution.kind === 'shared',
         })
 
         return result.toUIMessageStreamResponse()

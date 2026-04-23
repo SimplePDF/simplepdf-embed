@@ -110,12 +110,38 @@ export const getClientIp = (request: Request): string => {
   return 'unknown'
 }
 
-// No server-side origin gate. The demo serves the client and the API from
-// the same domain and sets no CORS response headers, so the browser's
-// same-origin policy already blocks cross-origin reads. Defending against
-// non-browser clients (curl / scripts) is not the job of an Origin header
-// check since it is trivially forgeable; the per-IP rate limit and the
-// SHARED_API_KEYS invite gate are the real cost controls.
+// Same-origin enforcement for every browser-facing server route. The Origin /
+// Referer headers are trivially spoofable from curl, so this is not the last
+// line of defense (that is the per-IP rate limit + invite gate); it is an
+// extra barrier that keeps the legitimate browser path constrained to the
+// hosting origin. Requests with a mismatched or missing Origin/Referer are
+// rejected with 403.
+const hostMatches = (candidate: string, host: string): boolean => {
+  if (!candidate.startsWith('http://') && !candidate.startsWith('https://')) {
+    return false
+  }
+  const withoutScheme = candidate.replace(/^https?:\/\//, '')
+  // Extract the authority (host + optional port) from either an origin (no
+  // path) or a referer URL (has a path).
+  const authority = withoutScheme.split('/')[0] ?? ''
+  return authority === host
+}
+
+export const isSameOrigin = (request: Request): boolean => {
+  const host = request.headers.get('host')
+  if (host === null || host === '') {
+    return false
+  }
+  const origin = request.headers.get('origin')
+  if (origin !== null && origin !== '') {
+    return hostMatches(origin, host)
+  }
+  const referer = request.headers.get('referer')
+  if (referer !== null && referer !== '') {
+    return hostMatches(referer, host)
+  }
+  return false
+}
 
 // Salts the SHA-256 IP hash with a server-side secret. Without a salt, a leak
 // of the persisted S3 object would let anyone brute-force the 2^32 IPv4 space

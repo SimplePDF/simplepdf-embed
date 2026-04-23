@@ -1,20 +1,14 @@
 import { z } from 'zod'
 
-// Invite-link BYOK path. SHARED_API_KEYS is a stringified JSON map of
-// share-id -> { api_key, rate_limit_turns_lifetime }. Each share carries its
-// own lifetime cap so different invites can have different budgets. Share-id
-// values are never logged.
+// Invite-link BYOK is the only server-paid path. SHARED_API_KEYS is a
+// stringified JSON map of share-id -> { api_key, rate_limit_turns_lifetime }.
+// Each share carries its own lifetime cap so different invites have
+// independent budgets. Share-id values are never logged.
 //
-// Deployment modes:
-//   1. Open demo       : ANTHROPIC_API_KEY set, SHARED_API_KEYS unset. The
-//                        default-key path is UNLIMITED; the operator pays
-//                        for their own API usage so there is no demo cap.
-//   2. Hybrid          : both set. ?share= picks a dedicated key + its own
-//                        lifetime cap. No ?share= falls back to the default
-//                        (unlimited) path.
-//   3. Invite-only     : SHARED_API_KEYS set, ANTHROPIC_API_KEY unset. A
-//                        missing / invalid ?share= returns 401 share_required.
-//                        Rate limit only applies to invite paths.
+// There is NO default / open / hybrid mode. Requests without a valid ?share=
+// return 401. Anyone who wants to run the demo without an invite link brings
+// their own key via the Model Picker; BYOK is browser-direct and never hits
+// this server.
 
 const ShareConfigSchema = z.object({
   api_key: z.string().min(1),
@@ -25,20 +19,17 @@ const SharedKeysSchema = z.record(z.string(), ShareConfigSchema)
 
 type ShareConfig = z.infer<typeof ShareConfigSchema>
 
-// Reserved sentinel for the default-key bucket in the rate-limit state. Share
-// ids may not equal this string (see parseSharedKeys).
+// Reserved sentinel for the default-key bucket in the rate-limit state.
+// Share ids equal to this string are rejected at parse time to prevent
+// accidental collisions with legacy persisted blobs.
 const DEFAULT_BUCKET = '__default__'
 
-// Discriminated union. `default` carries no lifetime / bucket because the
-// default-key path is never rate-limited; `shared` always does.
 export type SharedKeyResolution =
   | { kind: 'shared'; apiKey: string; lifetime: number; bucket: string }
-  | { kind: 'default'; apiKey: string }
   | { kind: 'share_required' }
 
 type Config = {
   sharedKeys: ReadonlyMap<string, ShareConfig>
-  defaultKey: string | null
 }
 
 const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
@@ -73,18 +64,8 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
   return new Map(entries)
 }
 
-const readDefaultKey = (): string | null => {
-  const raw = process.env.ANTHROPIC_API_KEY
-  if (raw === undefined || raw === '') {
-    return null
-  }
-  return raw
-}
-
 // Memoised config. Parsed + validated on first call; subsequent calls are
-// free. Throws once if neither access path is configured — the throw
-// propagates up to whatever request triggered it (or to the health check in
-// the case of explicit boot-time validation).
+// free. Throws once if SHARED_API_KEYS is empty (nothing to serve).
 let cachedConfig: Config | null = null
 
 const getConfig = (): Config => {
@@ -92,11 +73,10 @@ const getConfig = (): Config => {
     return cachedConfig
   }
   const sharedKeys = parseSharedKeys()
-  const defaultKey = readDefaultKey()
-  if (defaultKey === null && sharedKeys.size === 0) {
-    throw new Error('Neither ANTHROPIC_API_KEY nor SHARED_API_KEYS is set')
+  if (sharedKeys.size === 0) {
+    throw new Error('SHARED_API_KEYS is required and must contain at least one valid invite')
   }
-  cachedConfig = { sharedKeys, defaultKey }
+  cachedConfig = { sharedKeys }
   return cachedConfig
 }
 
@@ -104,11 +84,6 @@ const getConfig = (): Config => {
 // at boot rather than waiting for the first request. Safe to call repeatedly.
 export const assertConfig = (): void => {
   getConfig()
-}
-
-export const isShareRequired = (): boolean => {
-  const { sharedKeys, defaultKey } = getConfig()
-  return sharedKeys.size > 0 && defaultKey === null
 }
 
 export const getShareParam = (request: Request): string | null => {
@@ -121,23 +96,20 @@ export const getShareParam = (request: Request): string | null => {
 }
 
 export const resolveApiKey = (shareId: string | null): SharedKeyResolution => {
-  const { sharedKeys, defaultKey } = getConfig()
-  if (shareId !== null) {
-    const mapped = sharedKeys.get(shareId)
-    if (mapped !== undefined) {
-      return {
-        kind: 'shared',
-        apiKey: mapped.api_key,
-        lifetime: mapped.rate_limit_turns_lifetime,
-        bucket: shareId,
-      }
-    }
+  if (shareId === null) {
+    return { kind: 'share_required' }
   }
-  if (defaultKey !== null) {
-    return { kind: 'default', apiKey: defaultKey }
+  const { sharedKeys } = getConfig()
+  const mapped = sharedKeys.get(shareId)
+  if (mapped === undefined) {
+    return { kind: 'share_required' }
   }
-  // Reachable only in invite-only mode with a missing / unknown share id.
-  return { kind: 'share_required' }
+  return {
+    kind: 'shared',
+    apiKey: mapped.api_key,
+    lifetime: mapped.rate_limit_turns_lifetime,
+    bucket: shareId,
+  }
 }
 
 export const isShareValid = (shareId: string | null): boolean => {

@@ -8,7 +8,9 @@ import { DEFAULT_FORM_ID, getFormsForLocale, isFormId, type FormId } from '../li
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { useIframeBridge } from '../lib/iframe_bridge'
 import { i18n } from '../lib/i18n'
-import { isShareRequired, isShareValid } from '../server/shared_keys'
+import { isShareValid } from '../server/shared_keys'
+import { isSameOrigin } from '../server/rate_limit'
+import { getRequest } from '@tanstack/react-start/server'
 
 export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
 
@@ -24,12 +26,10 @@ type HomeSearch = {
 
 // Opaque gate: the client only needs to know whether access is blocked, not
 // whether the share id happens to be valid. Collapsing to a single boolean
-// still leaks share-id existence to a scripted enumerator (the flip from
-// true -> false reveals a hit), but share ids should be high-entropy random
-// strings (see SHARED_API_KEYS docs) which makes enumeration impractical.
-// We intentionally do NOT rate-limit this endpoint — the default-key path is
-// operator-paid and unlimited, so a burned share id just wastes its own
-// lifetime budget.
+// keeps the server function easy to reason about; enumeration by a scripted
+// attacker still reveals valid share ids but only ever costs the attacker
+// the associated per-share lifetime budget. The same-origin check on the
+// endpoint blocks casual cross-origin probing from the browser.
 export type DemoGate = {
   accessBlocked: boolean
 }
@@ -46,8 +46,13 @@ const readDemoGate = createServerFn({ method: 'GET' })
     return { shareId: null }
   })
   .handler(async ({ data }): Promise<DemoGate> => {
+    const request = getRequest()
+    if (!isSameOrigin(request)) {
+      // Treat cross-origin probes as blocked; the client cannot infer validity.
+      return { accessBlocked: true }
+    }
     return {
-      accessBlocked: isShareRequired() && !isShareValid(data.shareId),
+      accessBlocked: !isShareValid(data.shareId),
     }
   })
 
