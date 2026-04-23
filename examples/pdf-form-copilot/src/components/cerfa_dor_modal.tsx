@@ -1,6 +1,6 @@
 import { type ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Modal, ModalCloseButton } from './modal'
+import { Modal, ModalHeader } from './modal'
 import { Button } from './ui/button'
 import { ExternalLink } from './ui/link'
 
@@ -27,20 +27,20 @@ export const CerfaDorModal = ({ open, onClose }: CerfaDorModalProps): ReactEleme
   const { t } = useTranslation()
   return (
     <Modal open={open} onClose={onClose} labelledBy="cerfa-dor-title" size="md">
-      <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
-        <div className="flex items-center gap-3">
+      <ModalHeader
+        titleId="cerfa-dor-title"
+        title={t('cerfaDor.title')}
+        onClose={onClose}
+        closeAriaLabel={t('cerfaDor.close')}
+        leftAccessory={
           <img
             src={LOGO_URL}
             alt=""
             aria-hidden="true"
             className="h-12 w-12 flex-none rounded-lg object-cover shadow-sm ring-1 ring-amber-200"
           />
-          <h2 id="cerfa-dor-title" className="text-[17px] font-semibold leading-snug text-slate-900">
-            {t('cerfaDor.title')}
-          </h2>
-        </div>
-        <ModalCloseButton onClose={onClose} ariaLabel={t('cerfaDor.close')} />
-      </div>
+        }
+      />
       <div className="space-y-4 px-6 py-5 text-[14px] leading-relaxed text-slate-700">
         <p>
           <Trans

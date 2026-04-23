@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Modal, ModalCloseButton } from './modal'
+import { Modal, ModalHeader } from './modal'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 
 type SubmitDemoModalProps = {
@@ -17,12 +17,13 @@ export const SubmitDemoModal = ({ open, onClose, locale }: SubmitDemoModalProps)
   const contactHref = buildSimplepdfUrl({ locale, path: '/contact', query: { help: 'schedule_a_demo' } })
   return (
     <Modal open={open} onClose={onClose} labelledBy="submit-demo-modal-title" size="sm">
-      <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4">
-        <h2 id="submit-demo-modal-title" className="text-[17px] font-semibold leading-snug text-slate-900">
-          {t('submitDemo.headline')}
-        </h2>
-        <ModalCloseButton onClose={onClose} ariaLabel={t('submitDemo.close')} />
-      </div>
+      <ModalHeader
+        titleId="submit-demo-modal-title"
+        title={t('submitDemo.headline')}
+        onClose={onClose}
+        closeAriaLabel={t('submitDemo.close')}
+        className="flex items-start justify-between gap-4 px-6 pt-5 pb-4"
+      />
 
       <div className="space-y-3 px-6 pb-5">
         <p className="text-[13.5px] leading-relaxed text-slate-600">{t('submitDemo.body')}</p>

@@ -87,3 +87,38 @@ export const ModalCloseButton = ({ onClose, ariaLabel }: ModalCloseButtonProps):
     </button>
   )
 }
+
+// Shared title+close-button row used by the cerfa_dor, submit_demo, and
+// model_picker modals. info_modal has a bespoke header with additional GitHub
+// affordances and uses its own layout. Extra content (e.g. a brand image)
+// slots in via `leftAccessory`.
+type ModalHeaderProps = {
+  titleId: string
+  title: ReactNode
+  onClose: () => void
+  closeAriaLabel?: string
+  className?: string
+  leftAccessory?: ReactNode
+}
+
+export const ModalHeader = ({
+  titleId,
+  title,
+  onClose,
+  closeAriaLabel,
+  className,
+  leftAccessory,
+}: ModalHeaderProps): ReactElement => {
+  const wrapperClass = className ?? 'flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5'
+  return (
+    <div className={wrapperClass}>
+      <div className="flex items-center gap-3">
+        {leftAccessory}
+        <h2 id={titleId} className="text-[17px] font-semibold leading-snug text-slate-900">
+          {title}
+        </h2>
+      </div>
+      <ModalCloseButton onClose={onClose} ariaLabel={closeAriaLabel} />
+    </div>
+  )
+}

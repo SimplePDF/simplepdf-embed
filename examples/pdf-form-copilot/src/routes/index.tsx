@@ -22,9 +22,16 @@ type HomeSearch = {
   share?: string
 }
 
+// Opaque gate: the client only needs to know whether access is blocked, not
+// whether the share id happens to be valid. Collapsing to a single boolean
+// still leaks share-id existence to a scripted enumerator (the flip from
+// true -> false reveals a hit), but share ids should be high-entropy random
+// strings (see SHARED_API_KEYS docs) which makes enumeration impractical.
+// We intentionally do NOT rate-limit this endpoint — the default-key path is
+// operator-paid and unlimited, so a burned share id just wastes its own
+// lifetime budget.
 export type DemoGate = {
-  shareRequired: boolean
-  shareValid: boolean
+  accessBlocked: boolean
 }
 
 const readDemoGate = createServerFn({ method: 'GET' })
@@ -40,8 +47,7 @@ const readDemoGate = createServerFn({ method: 'GET' })
   })
   .handler(async ({ data }): Promise<DemoGate> => {
     return {
-      shareRequired: isShareRequired(),
-      shareValid: isShareValid(data.shareId),
+      accessBlocked: isShareRequired() && !isShareValid(data.shareId),
     }
   })
 
@@ -93,8 +99,7 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
 
 function Home() {
   const { form, lang } = Route.useSearch()
-  const { shareRequired, shareValid } = Route.useLoaderData()
-  const accessBlocked = shareRequired && !shareValid
+  const { accessBlocked } = Route.useLoaderData()
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
