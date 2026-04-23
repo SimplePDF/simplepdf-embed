@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
@@ -23,6 +23,7 @@ import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { ToolIcon } from './tool_icons'
 import { Toolbar, type ToolbarTool } from './toolbar'
+import { Button } from './ui/button'
 
 const homeRoute = getRouteApi('/')
 
@@ -38,7 +39,9 @@ type ChatPaneProps = {
 
 // In-memory chat store keyed by document_id. Survives component remounts
 // (e.g. form switches that tear down the ChatPane) but intentionally resets
-// on page reload — we don't want chat transcripts persisted to disk.
+// on page reload. Capped at MAX_TRACKED_DOCUMENTS entries with LRU eviction
+// to prevent unbounded growth on power-users who explore many documents.
+const MAX_TRACKED_DOCUMENTS = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
 const readPersistedMessages = (documentId: string | null): UIMessage[] => {
@@ -52,7 +55,17 @@ const writePersistedMessages = (documentId: string | null, messages: UIMessage[]
   if (documentId === null) {
     return
   }
+  // Map iteration order is insertion order, so delete-then-set moves the key
+  // to the end — a poor-man's LRU. Evict the oldest when capacity exceeds the
+  // cap.
+  chatHistoryStore.delete(documentId)
   chatHistoryStore.set(documentId, messages)
+  if (chatHistoryStore.size > MAX_TRACKED_DOCUMENTS) {
+    const oldest = chatHistoryStore.keys().next().value
+    if (oldest !== undefined) {
+      chatHistoryStore.delete(oldest)
+    }
+  }
 }
 
 type ToolInput = Record<string, unknown>
@@ -569,25 +582,28 @@ export const ChatPane = ({
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {serverLocked ? (
-          <WelcomeBanner onSwitchModel={openModelPicker} />
-        ) : messages.length === 0 ? (
-          <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
-        ) : (
-          <div className="space-y-4 p-4">
-            {messages.map((message) =>
-              isFieldAddedHint(message) ? (
-                <FieldAddedHint key={message.id} />
-              ) : (
-                <MessageView key={message.id} message={message} />
-              ),
-            )}
-            {isStreaming ? <ThinkingIndicator /> : null}
-            {error !== undefined ? (
-              <ErrorBanner error={error} onSwitchModel={openModelPicker} />
-            ) : null}
-          </div>
-        )}
+        {((): ReactElement => {
+          if (serverLocked) {
+            return <WelcomeBanner onSwitchModel={openModelPicker} />
+          }
+          if (messages.length === 0) {
+            return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+          }
+          return (
+            <div className="space-y-4 p-4">
+              {messages.map((message) => {
+                if (isFieldAddedHint(message)) {
+                  return <FieldAddedHint key={message.id} />
+                }
+                return <MessageView key={message.id} message={message} />
+              })}
+              {isStreaming ? <ThinkingIndicator /> : null}
+              {error !== undefined ? (
+                <ErrorBanner error={error} onSwitchModel={openModelPicker} />
+              ) : null}
+            </div>
+          )
+        })()}
       </div>
       <div className="border-t border-slate-200 p-3">
         <form
@@ -606,13 +622,9 @@ export const ChatPane = ({
             className="flex-1 rounded-md border border-solid border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
             style={{ borderWidth: '1px' }}
           />
-          <button
-            type="submit"
-            disabled={!canSend || draft.trim() === ''}
-            className="rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
+          <Button type="submit" disabled={!canSend || draft.trim() === ''}>
             {t('chat.send')}
-          </button>
+          </Button>
         </form>
       </div>
       <ModelPickerModal

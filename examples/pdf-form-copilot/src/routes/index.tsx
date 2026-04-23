@@ -100,11 +100,13 @@ function Home() {
   const navigate = useNavigate()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const editorResetKey = `${currentForm.id}:${lang}`
-  const { bridge, isDocumentLoaded, documentId } = useIframeBridge({
+  const { bridge, bridgeState } = useIframeBridge({
     iframeRef,
     editorOrigin: EDITOR_ORIGIN,
     resetKey: editorResetKey,
   })
+  const isDocumentLoaded = bridgeState.kind === 'document_loaded'
+  const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
 
   const handleLanguageChange = useCallback(
     (nextLang: string): void => {
