@@ -341,12 +341,9 @@ export const ChatPane = ({
   const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(documentId))
   const hydratedDocumentIdRef = useRef<string | null>(documentId)
 
-  const enqueueToolExecution = useCallback(<TResult,>(task: () => Promise<TResult>): Promise<TResult> => {
+  const enqueueToolExecution = useCallback((task: () => Promise<void>): Promise<void> => {
     const nextTask = toolExecutionQueueRef.current.catch(() => undefined).then(task)
-    toolExecutionQueueRef.current = nextTask.then(
-      () => undefined,
-      () => undefined,
-    )
+    toolExecutionQueueRef.current = nextTask.catch(() => undefined)
     return nextTask
   }, [])
 
@@ -357,28 +354,34 @@ export const ChatPane = ({
     onError: (err) => {
       console.error('[copilot] chat error', err)
     },
-    onToolCall: async ({ toolCall }) => {
+    onToolCall: ({ toolCall }) => {
       if (toolCall.dynamic) {
         return
       }
-      const toolOutput = await enqueueToolExecution(async () => {
+      void enqueueToolExecution(async () => {
         const toolName = toolCall.toolName
         if (!isClientToolName(toolName)) {
-          return {
-            tool: toolName,
-            toolCallId: toolCall.toolCallId,
-            state: 'output-error',
-            errorText: `Unknown tool: ${toolName}`,
-          } as const
+          await Promise.resolve(
+            addToolOutput({
+              tool: toolName,
+              toolCallId: toolCall.toolCallId,
+              state: 'output-error',
+              errorText: `Unknown tool: ${toolName}`,
+            }),
+          )
+          return
         }
         const activeBridge = bridgeRef.current
         if (activeBridge === null) {
-          return {
-            tool: toolName,
-            toolCallId: toolCall.toolCallId,
-            state: 'output-error',
-            errorText: 'Iframe bridge is not ready yet',
-          } as const
+          await Promise.resolve(
+            addToolOutput({
+              tool: toolName,
+              toolCallId: toolCall.toolCallId,
+              state: 'output-error',
+              errorText: 'Iframe bridge is not ready yet',
+            }),
+          )
+          return
         }
         const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
         const startedAt = performance.now()
@@ -410,14 +413,15 @@ export const ChatPane = ({
             error: result.error,
           })
         }
-        return {
-          tool: toolName,
-          toolCallId: toolCall.toolCallId,
-          output: wrapToolResult(result),
-        } as const
-      })
-      void Promise.resolve(addToolOutput(toolOutput)).catch((toolOutputError: unknown) => {
-        console.error('[copilot] addToolOutput failed', toolOutputError)
+        await Promise.resolve(
+          addToolOutput({
+            tool: toolName,
+            toolCallId: toolCall.toolCallId,
+            output: wrapToolResult(result),
+          }),
+        )
+      }).catch((toolExecutionError: unknown) => {
+        console.error('[copilot] queued tool execution failed', toolExecutionError)
       })
     },
   })
@@ -464,10 +468,19 @@ export const ChatPane = ({
   //     gating the Submit button.
   // Coalescing the two loops halves the iframe round-trips and keeps the
   // polling cadence at a single knob.
+  //
+  // Terminates the moment `hasFilledField` flips true: the Submit button is
+  // now enabled, we have demonstrated the core demo flow, and there's no
+  // reason to keep hitting the iframe. The poll restarts on the next bridge
+  // remount (form / locale switch) or when hasFilledField is reset.
   useEffect(() => {
     if (bridge === null || !isReady) {
       fieldBaselineRef.current = null
       setHasFilledField(false)
+      return
+    }
+    if (hasFilledField) {
+      fieldBaselineRef.current = null
       return
     }
     let cancelled = false
@@ -483,7 +496,13 @@ export const ChatPane = ({
       }
       const fields = result.data.fields
       const hasAnyValue = fields.some((field) => field.value !== null && field.value !== '')
-      setHasFilledField((prev) => (prev === hasAnyValue ? prev : hasAnyValue))
+      if (hasAnyValue) {
+        // Terminal state: flip the flag; the useEffect rerun (new hasFilledField
+        // dep) will tear down the timer before the next tick fires.
+        cancelled = true
+        setHasFilledField(true)
+        return
+      }
       if (toolbarTool === null) {
         fieldBaselineRef.current = null
         return
@@ -515,7 +534,7 @@ export const ChatPane = ({
         clearTimeout(timeoutId)
       }
     }
-  }, [bridge, isReady, toolbarTool, sendMessage])
+  }, [bridge, isReady, toolbarTool, sendMessage, hasFilledField])
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   // Access is blocked only until the visitor brings their own key — BYOK runs
