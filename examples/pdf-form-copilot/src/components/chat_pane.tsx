@@ -4,6 +4,7 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
+import { useStickToBottom } from 'use-stick-to-bottom'
 import { type ByokConfig, findProvider } from '../lib/byok'
 import { runByokStream } from '../lib/byok_transport'
 import type {
@@ -285,7 +286,11 @@ export const ChatPane = ({
   bridgeRef.current = bridge
   const languageRef = useRef(language)
   languageRef.current = language
-  const scrollRef = useRef<HTMLDivElement>(null)
+  // Scroll stickiness matches vercel/ai-chatbot: the hook keeps the view
+  // pinned to the bottom of the message list while content streams in, and
+  // automatically pauses when the user scrolls up. It resumes once the user
+  // scrolls back to the bottom. No manual scrollTo juggling in this file.
+  const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
@@ -430,10 +435,6 @@ export const ChatPane = ({
       })
     },
   })
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [])
 
   const turnStartAtRef = useRef<number | null>(null)
   const firstTokenLoggedRef = useRef(false)
@@ -630,26 +631,28 @@ export const ChatPane = ({
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {((): ReactElement => {
-          if (serverLocked) {
-            return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
-          }
-          if (messages.length === 0) {
-            return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
-          }
-          return (
-            <div className="space-y-4 p-4">
-              {messages.map((message) => {
-                if (isFieldAddedHint(message)) {
-                  return <FieldAddedHint key={message.id} />
-                }
-                return <MessageView key={message.id} message={message} />
-              })}
-              {isStreaming ? <ThinkingIndicator /> : null}
-              {error !== undefined ? <ErrorBanner error={error} onSwitchModel={openModelPicker} /> : null}
-            </div>
-          )
-        })()}
+        <div ref={contentRef}>
+          {((): ReactElement => {
+            if (serverLocked) {
+              return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
+            }
+            if (messages.length === 0) {
+              return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+            }
+            return (
+              <div className="space-y-4 p-4">
+                {messages.map((message) => {
+                  if (isFieldAddedHint(message)) {
+                    return <FieldAddedHint key={message.id} />
+                  }
+                  return <MessageView key={message.id} message={message} />
+                })}
+                {isStreaming ? <ThinkingIndicator /> : null}
+                {error !== undefined ? <ErrorBanner error={error} onSwitchModel={openModelPicker} /> : null}
+              </div>
+            )
+          })()}
+        </div>
       </div>
       <div className="border-t border-slate-200 p-3">
         <form
