@@ -292,6 +292,12 @@ export const ChatPane = ({
     })
   }, [navigate])
 
+  const openInfoModal = useCallback((): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, show: 'info' }),
+    })
+  }, [navigate])
+
   const transport = useMemo(() => {
     const bodyFn = () => {
       const languageEntry = getLanguageByCode(languageRef.current)
@@ -555,7 +561,7 @@ export const ChatPane = ({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {((): ReactElement => {
           if (serverLocked) {
-            return <WelcomeBanner onSwitchModel={openModelPicker} />
+            return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
           }
           if (messages.length === 0) {
             return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
@@ -646,21 +652,31 @@ const FieldAddedHint = () => {
 
 type WelcomeBannerProps = {
   onSwitchModel: () => void
+  onOpenInfo: () => void
 }
 
-const WelcomeBanner = ({ onSwitchModel }: WelcomeBannerProps) => {
+const WelcomeBanner = ({ onSwitchModel, onOpenInfo }: WelcomeBannerProps) => {
   const { t } = useTranslation()
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
       <div className="max-w-sm text-base font-semibold text-slate-900">{t('chat.welcomeTitle')}</div>
       <p className="max-w-sm text-sm leading-relaxed text-slate-600">{t('chat.welcomeBody')}</p>
-      <button
-        type="button"
-        onClick={onSwitchModel}
-        className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
-      >
-        {t('chat.welcomeCta')}
-      </button>
+      <div className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={onSwitchModel}
+          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+        >
+          {t('chat.welcomeCta')}
+        </button>
+        <button
+          type="button"
+          onClick={onOpenInfo}
+          className="text-xs font-medium text-sky-600 hover:text-sky-700 hover:underline"
+        >
+          {t('chat.welcomeInfoLink')}
+        </button>
+      </div>
     </div>
   )
 }
