@@ -7,11 +7,14 @@ import { z } from 'zod'
 //
 // Deployment modes:
 //   1. Open demo       : ANTHROPIC_API_KEY set, SHARED_API_KEYS unset. The
-//                        RATE_LIMIT_LIFETIME env caps the default bucket.
+//                        default-key path is UNLIMITED; the operator pays
+//                        for their own API usage so there is no demo cap.
 //   2. Hybrid          : both set. ?share= picks a dedicated key + its own
-//                        lifetime cap. No ?share= falls back to the default.
+//                        lifetime cap. No ?share= falls back to the default
+//                        (unlimited) path.
 //   3. Invite-only     : SHARED_API_KEYS set, ANTHROPIC_API_KEY unset. A
 //                        missing / invalid ?share= returns 401 share_required.
+//                        Rate limit only applies to invite paths.
 
 const ShareConfigSchema = z.object({
   api_key: z.string().min(1),
@@ -22,13 +25,19 @@ const SharedKeysSchema = z.record(z.string(), ShareConfigSchema)
 
 type ShareConfig = z.infer<typeof ShareConfigSchema>
 
+// Reserved sentinel for the default-key bucket in the rate-limit state. Share
+// ids may not equal this string (see parseSharedKeys). The default path is
+// unlimited so this sentinel never reaches the rate limiter today, but the
+// constant is kept for any persisted blobs written before the unlimited-
+// default switch.
 const DEFAULT_BUCKET = '__default__'
 
+// Discriminated union. `default` carries no lifetime / bucket because the
+// default-key path is never rate-limited; `shared` always does.
 export type SharedKeyResolution =
   | { kind: 'shared'; apiKey: string; lifetime: number; bucket: string }
-  | { kind: 'default'; apiKey: string; lifetime: number; bucket: string }
+  | { kind: 'default'; apiKey: string }
   | { kind: 'share_required' }
-  | { kind: 'server_misconfigured' }
 
 const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
   const raw = process.env.SHARED_API_KEYS
@@ -51,18 +60,15 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
     console.warn('[copilot] shared_keys.parse_failed', { reason: 'schema_mismatch' })
     return new Map()
   }
-  return new Map(Object.entries(schemaParsed.data))
-}
-
-const parseRequiredPositiveInt = (raw: string | undefined, name: string): number => {
-  if (raw === undefined || raw.trim() === '') {
-    throw new Error(`${name} is required but not set`)
+  const entries: Array<[string, ShareConfig]> = []
+  for (const [shareId, config] of Object.entries(schemaParsed.data)) {
+    if (shareId === DEFAULT_BUCKET) {
+      console.warn('[copilot] shared_keys.reserved_id_rejected', { share_id: DEFAULT_BUCKET })
+      continue
+    }
+    entries.push([shareId, config])
   }
-  const parsed = Number.parseInt(raw, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`${name} must be a positive integer, got "${raw}"`)
-  }
-  return parsed
+  return new Map(entries)
 }
 
 const SHARED_KEYS = parseSharedKeys()
@@ -73,13 +79,6 @@ const DEFAULT_KEY = ((): string | null => {
   }
   return raw
 })()
-
-// RATE_LIMIT_LIFETIME is only required when the default access path is
-// enabled; invite-only deployments carry per-share lifetimes inside
-// SHARED_API_KEYS and have no use for it.
-const DEFAULT_LIFETIME = DEFAULT_KEY === null
-  ? null
-  : parseRequiredPositiveInt(process.env.RATE_LIMIT_LIFETIME, 'RATE_LIMIT_LIFETIME')
 
 // Fail fast if neither access path is available.
 if (DEFAULT_KEY === null && SHARED_KEYS.size === 0) {
@@ -109,13 +108,11 @@ export const resolveApiKey = (shareId: string | null): SharedKeyResolution => {
       }
     }
   }
-  if (DEFAULT_KEY !== null && DEFAULT_LIFETIME !== null) {
-    return { kind: 'default', apiKey: DEFAULT_KEY, lifetime: DEFAULT_LIFETIME, bucket: DEFAULT_BUCKET }
+  if (DEFAULT_KEY !== null) {
+    return { kind: 'default', apiKey: DEFAULT_KEY }
   }
-  if (SHARED_KEYS.size > 0) {
-    return { kind: 'share_required' }
-  }
-  return { kind: 'server_misconfigured' }
+  // Reachable only in invite-only mode with a missing / unknown share id.
+  return { kind: 'share_required' }
 }
 
 export const isShareValid = (shareId: string | null): boolean => {

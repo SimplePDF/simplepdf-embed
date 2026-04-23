@@ -15,61 +15,11 @@ import {
 } from '../../server/tools'
 import { getClientIp, hashIp, rateLimiter } from '../../server/rate_limit'
 import { getShareParam, resolveApiKey } from '../../server/shared_keys'
+import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
 const MAX_BODY_BYTES = 256 * 1024
-// Cap on consecutive non-user POSTs (auto-continuations) per IP hash before a
-// follow-up request is treated as fresh and counted against the rate limit.
-// Defeats the 'always send a tool-result as the last message' free-ride trick.
-const MAX_CONSECUTIVE_NON_USER_TURNS = 10
-const consecutiveNonUserTurns = new Map<string, number>()
-
-type ParsedBody =
-  | { success: true; messages: UIMessage[]; languageLabel: string }
-  | { success: false; status: number; error: string; message: string }
-
-const readBodyText = async (request: Request): Promise<{ success: true; text: string } | { success: false; status: number; error: string; message: string }> => {
-  const declaredLength = Number.parseInt(request.headers.get('content-length') ?? '', 10)
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
-  }
-  const text = await request.text()
-  if (text.length > MAX_BODY_BYTES) {
-    return { success: false, status: 413, error: 'payload_too_large', message: `Request body exceeds ${MAX_BODY_BYTES} bytes` }
-  }
-  return { success: true, text }
-}
-
-const parseBody = async (request: Request): Promise<ParsedBody> => {
-  const contentType = request.headers.get('content-type') ?? ''
-  if (!contentType.startsWith('application/json')) {
-    return { success: false, status: 415, error: 'unsupported_media_type', message: 'Expected application/json' }
-  }
-  const bodyRead = await readBodyText(request)
-  if (!bodyRead.success) {
-    return bodyRead
-  }
-  if (bodyRead.text === '') {
-    return { success: false, status: 400, error: 'bad_request', message: 'Empty request body' }
-  }
-  const jsonParsed = ((): unknown => {
-    try {
-      return JSON.parse(bodyRead.text)
-    } catch {
-      return null
-    }
-  })()
-  if (jsonParsed === null) {
-    return { success: false, status: 400, error: 'bad_request', message: 'Invalid JSON body' }
-  }
-  const schemaParsed = ChatRequestSchema.safeParse(jsonParsed)
-  if (!schemaParsed.success) {
-    return { success: false, status: 400, error: 'bad_request', message: 'Body does not match { messages: UIMessage[], language_label?: string }' }
-  }
-  const languageLabel = schemaParsed.data.language_label ?? 'English'
-  return { success: true, messages: schemaParsed.data.messages, languageLabel }
-}
 
 const isFreshUserTurn = (messages: UIMessage[]): boolean => {
   const last = messages[messages.length - 1]
@@ -83,24 +33,24 @@ const isFreshUserTurn = (messages: UIMessage[]): boolean => {
   return parts.some((part) => part.type === 'text')
 }
 
-// Abuse guard: an attacker can craft a messages array ending in a fake
-// tool-result (role !== 'user') and get unlimited uncounted POSTs. Track how
-// many non-user tail turns a given IP has chained; once past the cap, treat
-// the next request as fresh.
-const shouldChargeAgainstLimit = ({ ipHash, freshUserTurn }: { ipHash: string; freshUserTurn: boolean }): boolean => {
-  if (freshUserTurn) {
-    consecutiveNonUserTurns.set(ipHash, 0)
-    return true
-  }
-  const current = consecutiveNonUserTurns.get(ipHash) ?? 0
-  const next = current + 1
-  if (next >= MAX_CONSECUTIVE_NON_USER_TURNS) {
-    consecutiveNonUserTurns.set(ipHash, 0)
-    return true
-  }
-  consecutiveNonUserTurns.set(ipHash, next)
-  return false
-}
+const tagLastMessageForCache = (messages: Awaited<ReturnType<typeof convertToModelMessages>>) =>
+  messages.map((message, index) => {
+    if (index !== messages.length - 1) {
+      return message
+    }
+    const existingProviderOptions = message.providerOptions ?? {}
+    const existingAnthropic = existingProviderOptions.anthropic ?? {}
+    return {
+      ...message,
+      providerOptions: {
+        ...existingProviderOptions,
+        anthropic: {
+          ...existingAnthropic,
+          cacheControl: { type: 'ephemeral' },
+        },
+      },
+    }
+  })
 
 export const Route = createFileRoute('/api/chat')({
   server: {
@@ -108,44 +58,50 @@ export const Route = createFileRoute('/api/chat')({
       POST: async ({ request }) => {
         const shareId = getShareParam(request)
         const resolution = resolveApiKey(shareId)
-        switch (resolution.kind) {
-          case 'shared':
-          case 'default':
-            break
-          case 'share_required':
-            return Response.json(
-              {
-                error: 'share_required',
-                message:
-                  'This demo requires a valid invite link. Bring your own API key to keep going.',
-              },
-              { status: 401 },
-            )
-          case 'server_misconfigured':
-            return Response.json(
-              {
-                error: 'server_misconfigured',
-                message: 'Neither ANTHROPIC_API_KEY nor SHARED_API_KEYS is set',
-              },
-              { status: 500 },
-            )
-          default:
-            resolution satisfies never
-            return Response.json({ error: 'server_misconfigured' }, { status: 500 })
+        if (resolution.kind === 'share_required') {
+          return Response.json(
+            {
+              error: 'share_required',
+              message:
+                'This demo requires a valid invite link. Bring your own API key to keep going.',
+            },
+            { status: 401 },
+          )
         }
-        const apiKey = resolution.apiKey
 
-        const body = await parseBody(request)
+        const body = await parseJsonBody({
+          request,
+          maxBytes: MAX_BODY_BYTES,
+          schema: ChatRequestSchema,
+          schemaErrorMessage: 'Body does not match { messages: UIMessage[], language_label?: string }',
+        })
         if (!body.success) {
           return Response.json({ error: body.error, message: body.message }, { status: body.status })
         }
+        const messages = body.data.messages
+        const languageLabel = body.data.language_label ?? 'English'
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        const charged = shouldChargeAgainstLimit({ ipHash, freshUserTurn: isFreshUserTurn(body.messages) })
-        const decision = charged
-          ? rateLimiter.check({ bucket: resolution.bucket, ipHash, lifetime: resolution.lifetime })
-          : null
+        // Rate limit is a per-invite demo cap; the default-key path is
+        // operator-paid and uncapped. `charged` + the rate-limit decision
+        // only apply when the request was resolved against a shared key.
+        const charged = ((): boolean => {
+          if (resolution.kind !== 'shared') {
+            return false
+          }
+          return shouldChargeAgainstLimit({ ipHash, freshUserTurn: isFreshUserTurn(messages) })
+        })()
+        const decision = ((): ReturnType<typeof rateLimiter.check> | null => {
+          if (resolution.kind !== 'shared' || !charged) {
+            return null
+          }
+          return rateLimiter.check({
+            bucket: resolution.bucket,
+            ipHash,
+            lifetime: resolution.lifetime,
+          })
+        })()
         if (decision !== null && !decision.allowed) {
           console.info('[copilot] chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
@@ -159,27 +115,9 @@ export const Route = createFileRoute('/api/chat')({
           )
         }
 
-        const anthropic = createAnthropic({ apiKey })
-
-        const rawModelMessages = await convertToModelMessages(body.messages)
-        const modelMessages = rawModelMessages.map((message, index) => {
-          if (index !== rawModelMessages.length - 1) {
-            return message
-          }
-          const existingProviderOptions = message.providerOptions ?? {}
-          const existingAnthropic = existingProviderOptions.anthropic ?? {}
-          return {
-            ...message,
-            providerOptions: {
-              ...existingProviderOptions,
-              anthropic: {
-                ...existingAnthropic,
-                cacheControl: { type: 'ephemeral' },
-              },
-            },
-          }
-        })
-        const languageInstruction = `Language: reply in ${body.languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${body.languageLabel}.`
+        const anthropic = createAnthropic({ apiKey: resolution.apiKey })
+        const modelMessages = tagLastMessageForCache(await convertToModelMessages(messages))
+        const languageInstruction = `Language: reply in ${languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${languageLabel}.`
 
         const streamStartedAt = Date.now()
 
@@ -244,12 +182,19 @@ export const Route = createFileRoute('/api/chat')({
           },
         })
 
+        const remainingLifetime = ((): number | null => {
+          if (decision === null || !decision.allowed) {
+            return null
+          }
+          return decision.remaining
+        })()
+
         console.info('[copilot] chat.streaming', {
           ip_hash: ipHash,
           counted_against_limit: charged,
-          remaining_lifetime: decision !== null && decision.allowed ? decision.remaining : null,
-          message_count: body.messages.length,
-          language: body.languageLabel,
+          remaining_lifetime: remainingLifetime,
+          message_count: messages.length,
+          language: languageLabel,
           share_used: resolution.kind === 'shared',
         })
 
