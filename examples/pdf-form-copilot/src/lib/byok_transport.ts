@@ -14,6 +14,7 @@ import {
 } from '../server/tools'
 import type { ByokConfig } from './byok'
 import { formatStreamError } from './error_classifier'
+import { monitoring, normalizeError } from './monitoring'
 
 const MAX_OUTPUT_TOKENS = 500
 
@@ -121,7 +122,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
       },
     },
     onError: ({ error }) => {
-      console.error('[copilot] BYOK streamText error', error)
+      monitoring.error('byok.stream_error', { detail: normalizeError(error) })
     },
   })
   return result.toUIMessageStreamResponse({

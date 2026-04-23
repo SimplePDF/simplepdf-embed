@@ -1,4 +1,5 @@
 import { type RefObject, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
+import { monitoring } from './monitoring'
 
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
@@ -162,14 +163,14 @@ const createBridge = ({
       const requestId = generateRequestId()
       const timeoutMs = getRequestTimeoutMs(type)
       const startedAtMs = Date.now()
-      console.info('[copilot] iframe.request_sent', {
+      monitoring.info('iframe.request_sent', {
         request_id: requestId,
         timeout_ms: timeoutMs,
         type,
       })
       const timeoutId = setTimeout(() => {
         pending.delete(requestId)
-        console.warn('[copilot] iframe.request_timed_out', {
+        monitoring.warn('iframe.request_timed_out', {
           elapsed_ms: Date.now() - startedAtMs,
           request_id: requestId,
           type,
@@ -211,13 +212,13 @@ const createBridge = ({
   const logEditorReady = (source: EditorReadySource): void => {
     switch (source) {
       case 'editor_ready_event':
-        console.info('[copilot] EDITOR_READY received')
+        monitoring.info('editor.ready_via_event', {})
         return
       case 'probe_response':
-        console.info('[copilot] editor ready via GET_FIELDS probe response')
+        monitoring.info('editor.ready_via_probe', {})
         return
       case 'fallback_timeout':
-        console.warn(`[copilot] editor readiness hard-fallback after ${EDITOR_READY_HARD_FALLBACK_MS}ms`)
+        monitoring.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
         return
       default:
         source satisfies never
@@ -246,10 +247,10 @@ const createBridge = ({
     }
     switch (source) {
       case 'probe_success':
-        console.info('[copilot] document loaded inferred from GET_FIELDS probe success')
+        monitoring.info('document.loaded_via_probe', {})
         break
       case 'document_loaded_event':
-        console.info('[copilot] DOCUMENT_LOADED received')
+        monitoring.info('document.loaded_via_event', {})
         break
       default:
         source satisfies never
@@ -291,7 +292,10 @@ const createBridge = ({
   const onMessage = (event: MessageEvent<string>) => {
     if (event.origin !== editorOrigin) {
       if (event.origin !== '' && typeof event.data === 'string' && event.data.length < 200) {
-        console.debug('[copilot] ignored message from', event.origin, '(expected', editorOrigin + ')')
+        monitoring.debug('iframe.ignored_cross_origin_message', {
+          origin: event.origin,
+          expected: editorOrigin,
+        })
       }
       return
     }
@@ -358,13 +362,13 @@ const createBridge = ({
     }
     const entry = pending.get(requestId)
     if (!entry) {
-      console.warn('[copilot] iframe.request_missing_pending', { request_id: requestId })
+      monitoring.warn('iframe.request_missing_pending', { request_id: requestId })
       return
     }
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
     const result = payload.data?.result as BridgeResult<unknown> | undefined
-    console.info('[copilot] iframe.request_received', {
+    monitoring.info('iframe.request_received', {
       elapsed_ms: Date.now() - entry.startedAtMs,
       request_id: requestId,
       success: result?.success ?? false,

@@ -1,5 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { z } from 'zod'
+import { monitoring, normalizeError } from '../lib/monitoring'
 
 const PersistedEntrySchema = z.object({
   // Rate-limit namespace: the share id from SHARED_API_KEYS. Required; the
@@ -100,9 +101,9 @@ export const createPersistence = (): Persistence => {
           ACL: 'private',
         }),
       )
-      console.info('[copilot] rate_limit.flushed', { entries: compact.entries.length })
+      monitoring.info('rate_limit.flushed', { entries: compact.entries.length })
     } catch (error) {
-      console.error('[copilot] rate_limit.flush_failed', error)
+      monitoring.error('rate_limit.flush_failed', { detail: normalizeError(error) })
     }
   }
 
@@ -152,7 +153,7 @@ export const createPersistence = (): Persistence => {
       }
       const parsed = PersistedStateSchema.safeParse(raw)
       if (!parsed.success) {
-        console.warn('[copilot] rate_limit.load_invalid_shape')
+        monitoring.warn('rate_limit.load_invalid_shape', {})
         return null
       }
       return parsed.data
@@ -161,7 +162,7 @@ export const createPersistence = (): Persistence => {
       if (error instanceof Error && error.name === 'NoSuchKey') {
         return null
       }
-      console.warn('[copilot] rate_limit.load_failed', error)
+      monitoring.warn('rate_limit.load_failed', { detail: normalizeError(error) })
       return null
     }
   }

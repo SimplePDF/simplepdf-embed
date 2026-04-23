@@ -14,6 +14,7 @@ import type {
   IframeBridge,
 } from '../lib/iframe_bridge'
 import { getLanguageByCode } from '../lib/languages'
+import { monitoring, normalizeError } from '../lib/monitoring'
 import { type ClientToolName, isClientToolName } from '../server/tools'
 import { ErrorBanner } from './error_banner'
 import { LanguagePicker } from './language_picker'
@@ -352,7 +353,7 @@ export const ChatPane = ({
     messages: initialMessages,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onError: (err) => {
-      console.error('[copilot] chat error', err)
+      monitoring.error('chat.error', { detail: normalizeError(err) })
     },
     onToolCall: ({ toolCall }) => {
       if (toolCall.dynamic) {
@@ -386,7 +387,7 @@ export const ChatPane = ({
         const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
         const startedAt = performance.now()
         const callInput = toToolInput(toolCall.input)
-        console.info('[copilot] tool call', toolName, callInput)
+        monitoring.info('chat.tool_call', { tool_name: toolName, input: callInput })
         const result = await (async (): Promise<BridgeResult<unknown>> => {
           try {
             return await dispatchTool(
@@ -406,9 +407,11 @@ export const ChatPane = ({
         })()
         const elapsedMs = Math.round(performance.now() - startedAt)
         if (result.success) {
-          console.info(`[copilot] tool done ${toolName} ${elapsedMs}ms`, result.data)
+          monitoring.info('chat.tool_done', { tool_name: toolName, elapsed_ms: elapsedMs, data: result.data })
         } else {
-          console.warn(`[copilot] tool failed ${toolName} ${elapsedMs}ms`, {
+          monitoring.warn('chat.tool_failed', {
+            tool_name: toolName,
+            elapsed_ms: elapsedMs,
             input: callInput,
             error: result.error,
           })
@@ -421,7 +424,9 @@ export const ChatPane = ({
           }),
         )
       }).catch((toolExecutionError: unknown) => {
-        console.error('[copilot] queued tool execution failed', toolExecutionError)
+        monitoring.error('chat.queued_tool_execution_failed', {
+          detail: normalizeError(toolExecutionError),
+        })
       })
     },
   })
@@ -436,18 +441,18 @@ export const ChatPane = ({
     if (status === 'submitted') {
       turnStartAtRef.current = performance.now()
       firstTokenLoggedRef.current = false
-      console.info('[copilot] turn start')
+      monitoring.info('chat.turn_start', {})
       return
     }
     if (status === 'streaming' && !firstTokenLoggedRef.current && turnStartAtRef.current !== null) {
       const elapsed = Math.round(performance.now() - turnStartAtRef.current)
-      console.info(`[copilot] first-token ${elapsed}ms`)
+      monitoring.info('chat.first_token', { elapsed_ms: elapsed })
       firstTokenLoggedRef.current = true
       return
     }
     if (status === 'ready' && turnStartAtRef.current !== null) {
       const elapsed = Math.round(performance.now() - turnStartAtRef.current)
-      console.info(`[copilot] turn done ${elapsed}ms`)
+      monitoring.info('chat.turn_done', { elapsed_ms: elapsed })
       turnStartAtRef.current = null
     }
   }, [status])

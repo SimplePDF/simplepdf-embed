@@ -9,6 +9,7 @@ import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../li
 import { i18n } from '../lib/i18n'
 import { useIframeBridge } from '../lib/iframe_bridge'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
+import { monitoring } from '../lib/monitoring'
 import { isSameOrigin } from '../server/rate_limit'
 import { readShareCookie, writeShareCookie } from '../server/share_cookie'
 import { isShareValid } from '../server/shared_keys'
@@ -113,7 +114,7 @@ const BASE_DOMAIN_URL = ((): URL => {
   try {
     return new URL(raw)
   } catch {
-    console.warn('[copilot] invalid VITE_SIMPLEPDF_BASE_DOMAIN, falling back to simplepdf.com', raw)
+    monitoring.warn('base_domain.invalid', { raw })
     return new URL('https://simplepdf.com')
   }
 })()

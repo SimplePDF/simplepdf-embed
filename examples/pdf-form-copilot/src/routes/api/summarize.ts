@@ -1,6 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createFileRoute } from '@tanstack/react-router'
 import { generateText } from 'ai'
+import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { readShareCookie } from '../../server/share_cookie'
@@ -60,7 +61,8 @@ export const Route = createFileRoute('/api/summarize')({
         }
 
         if (!rateLimiter.isReady()) {
-          console.error('[copilot] summarize.blocked_system_failure', {
+          monitoring.error('summarize.blocked_system_failure', {
+            ip_hash: null,
             detail: rateLimiter.statusDetail(),
           })
           return Response.json(
@@ -78,14 +80,14 @@ export const Route = createFileRoute('/api/summarize')({
               lifetime: resolution.lifetime,
             })
           } catch (error) {
-            const detail = error instanceof Error ? error.message : String(error)
-            console.error('[copilot] summarize.rate_limit_threw', { ip_hash: ipHash, detail })
+            const detail = normalizeError(error)
+            monitoring.error('summarize.rate_limit_threw', { ip_hash: ipHash, detail })
             return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
           }
         })()
         if (!decision.allowed) {
           if (decision.reason === 'system_failure') {
-            console.error('[copilot] summarize.blocked_system_failure', {
+            monitoring.error('summarize.blocked_system_failure', {
               ip_hash: ipHash,
               detail: decision.detail,
             })
@@ -111,7 +113,7 @@ export const Route = createFileRoute('/api/summarize')({
           maxRetries: 1,
         })
 
-        console.info('[copilot] summarize.done', {
+        monitoring.info('summarize.done', {
           ip_hash: ipHash,
           input_chars: userPrompt.length,
           output_chars: result.text.length,

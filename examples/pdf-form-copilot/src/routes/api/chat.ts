@@ -1,6 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { readShareCookie } from '../../server/share_cookie'
@@ -89,7 +90,8 @@ export const Route = createFileRoute('/api/chat')({
         // be charged. Covers synthetic continuations + auto tool-result POSTs
         // which normally bypass the check().
         if (!rateLimiter.isReady()) {
-          console.error('[copilot] chat.blocked_system_failure', {
+          monitoring.error('chat.blocked_system_failure', {
+            ip_hash: null,
             detail: rateLimiter.statusDetail(),
           })
           return Response.json(
@@ -116,14 +118,14 @@ export const Route = createFileRoute('/api/chat')({
               lifetime: resolution.lifetime,
             })
           } catch (error) {
-            const detail = error instanceof Error ? error.message : String(error)
-            console.error('[copilot] rate_limit.check_threw', { ip_hash: ipHash, detail })
+            const detail = normalizeError(error)
+            monitoring.error('rate_limit.check_threw', { ip_hash: ipHash, detail })
             return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
           }
         })()
         if (decision !== null && !decision.allowed) {
           if (decision.reason === 'system_failure') {
-            console.error('[copilot] chat.blocked_system_failure', {
+            monitoring.error('chat.blocked_system_failure', {
               ip_hash: ipHash,
               detail: decision.detail,
             })
@@ -132,7 +134,7 @@ export const Route = createFileRoute('/api/chat')({
               { status: 503 },
             )
           }
-          console.info('[copilot] chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
+          monitoring.info('chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
             {
               error: 'rate_limited',
@@ -202,7 +204,7 @@ export const Route = createFileRoute('/api/chat')({
           },
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {
-            console.info('[copilot] chat.finished', {
+            monitoring.info('chat.finished', {
               ip_hash: ipHash,
               input_tokens: usage.inputTokens,
               output_tokens: usage.outputTokens,
@@ -219,7 +221,7 @@ export const Route = createFileRoute('/api/chat')({
           return decision.remaining
         })()
 
-        console.info('[copilot] chat.streaming', {
+        monitoring.info('chat.streaming', {
           ip_hash: ipHash,
           counted_against_limit: charged,
           remaining_lifetime: remainingLifetime,

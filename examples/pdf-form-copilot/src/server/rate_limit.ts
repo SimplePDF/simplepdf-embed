@@ -1,3 +1,4 @@
+import { monitoring, normalizeError } from '../lib/monitoring'
 import { type PersistedState, persistence } from './rate_limit_persistence'
 
 type BucketState = {
@@ -66,12 +67,12 @@ export const createRateLimiter = () => {
           }
         }
         hydration = { kind: 'ready' }
-        console.info('[copilot] rate_limit.hydrated', { entries: state?.entries.length ?? 0 })
+        monitoring.info('rate_limit.hydrated', { entries: state?.entries.length ?? 0 })
       })
       .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : String(error)
+        const detail = normalizeError(error)
         hydration = { kind: 'failed', detail }
-        console.error('[copilot] rate_limit.hydration_failed', { detail })
+        monitoring.error('rate_limit.hydration_failed', { detail })
       })
   }
 

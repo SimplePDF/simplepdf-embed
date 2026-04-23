@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { monitoring } from '../lib/monitoring'
 
 // Invite-link BYOK is the only server-paid path. SHARED_API_KEYS is a
 // stringified JSON map of share-id -> { api_key, rate_limit_turns_lifetime }.
@@ -41,7 +42,7 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
     try {
       return JSON.parse(raw)
     } catch {
-      console.warn('[copilot] shared_keys.parse_failed', { reason: 'invalid_json' })
+      monitoring.warn('shared_keys.parse_failed', { reason: 'invalid_json' })
       return null
     }
   })()
@@ -50,13 +51,13 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
   }
   const schemaParsed = SharedKeysSchema.safeParse(jsonParsed)
   if (!schemaParsed.success) {
-    console.warn('[copilot] shared_keys.parse_failed', { reason: 'schema_mismatch' })
+    monitoring.warn('shared_keys.parse_failed', { reason: 'schema_mismatch' })
     return new Map()
   }
   const entries: Array<[string, ShareConfig]> = []
   for (const [shareId, config] of Object.entries(schemaParsed.data)) {
     if (shareId === DEFAULT_BUCKET) {
-      console.warn('[copilot] shared_keys.reserved_id_rejected', { share_id: DEFAULT_BUCKET })
+      monitoring.warn('shared_keys.reserved_id_rejected', { share_id: DEFAULT_BUCKET })
       continue
     }
     entries.push([shareId, config])
