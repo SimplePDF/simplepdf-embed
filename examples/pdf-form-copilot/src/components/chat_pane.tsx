@@ -72,7 +72,6 @@ type ToolInput = Record<string, unknown>
 
 const MAX_CONTENT_CHARS_PER_PAGE = 1200
 const MAX_CONTENT_PAGES = 1
-const SUMMARIZE_THRESHOLD_CHARS = 1500
 
 type CompactedField = {
   id: string
@@ -122,77 +121,20 @@ const truncatePages = (pages: DocumentContentPage[]): DocumentContentPage[] => {
   return kept
 }
 
-const summaryCache = new Map<string, string>()
+type CompactedDocumentContent = { name: string | null; pages: DocumentContentPage[] }
 
-type CompactedDocumentContent =
-  | { name: string | null; pages: DocumentContentPage[] }
-  | { name: string | null; summary: string }
-
-const fetchSummary = async ({
-  result,
-  languageLabel,
-}: {
-  result: DocumentContentResult
-  languageLabel: string
-}): Promise<string | null> => {
-  const response = await fetch('/api/summarize', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      name: result.name,
-      pages: result.pages,
-      language_label: languageLabel,
-    }),
-  })
-  if (!response.ok) {
-    return null
-  }
-  const payload: unknown = await response.json()
-  if (typeof payload !== 'object' || payload === null || !('summary' in payload)) {
-    return null
-  }
-  const summary = (payload as { summary: unknown }).summary
-  if (typeof summary !== 'string' || summary === '') {
-    return null
-  }
-  return summary
-}
-
-const compactGetDocumentContent = async ({
-  result,
-  languageLabel,
-  useSummarizer,
-}: {
-  result: BridgeResult<DocumentContentResult>
-  languageLabel: string
-  useSummarizer: boolean
-}): Promise<BridgeResult<CompactedDocumentContent>> => {
+const compactGetDocumentContent = (
+  result: BridgeResult<DocumentContentResult>,
+): BridgeResult<CompactedDocumentContent> => {
   if (!result.success) {
     return result
   }
   const name = result.data.name === '' ? null : result.data.name
-  const totalChars = result.data.pages.reduce((sum, page) => sum + page.content.length, 0)
-  if (!useSummarizer || totalChars < SUMMARIZE_THRESHOLD_CHARS) {
-    return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
-  }
-
-  const cacheKey = `${languageLabel}::${name ?? 'unknown'}::${totalChars}`
-  const cached = summaryCache.get(cacheKey)
-  if (cached !== undefined) {
-    return { success: true, data: { name, summary: cached } }
-  }
-
-  const summary = await fetchSummary({ result: result.data, languageLabel })
-  if (summary === null) {
-    return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
-  }
-  summaryCache.set(cacheKey, summary)
-  return { success: true, data: { name, summary } }
+  return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
 }
 
 type DispatchContext = {
   languageLabel: string
-  useSummarizer: boolean
   onToolbarChange: (tool: ToolbarTool) => void
   onOpenSubmitModal: () => void
 }
@@ -222,11 +164,7 @@ const dispatchTool = async (
       return compactGetFields(await bridge.getFields())
     case 'get_document_content': {
       const extractionMode: 'auto' | 'ocr' = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
-      return compactGetDocumentContent({
-        result: await bridge.getDocumentContent({ extractionMode }),
-        languageLabel: context.languageLabel,
-        useSummarizer: context.useSummarizer,
-      })
+      return compactGetDocumentContent(await bridge.getDocumentContent({ extractionMode }))
     }
     case 'detect_fields':
       return bridge.detectFields()
@@ -387,7 +325,7 @@ export const ChatPane = ({
       console.info('[copilot] tool call', toolName, callInput)
       void dispatchTool(
         activeBridge,
-        { languageLabel, useSummarizer: false, onToolbarChange: setToolbarTool, onOpenSubmitModal: openSubmitModal },
+        { languageLabel, onToolbarChange: setToolbarTool, onOpenSubmitModal: openSubmitModal },
         toolName,
         callInput,
       ).then((result) => {

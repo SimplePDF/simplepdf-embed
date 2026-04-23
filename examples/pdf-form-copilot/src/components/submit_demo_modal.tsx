@@ -1,14 +1,20 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Modal, ModalCloseButton } from './modal'
+import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 
 type SubmitDemoModalProps = {
   open: boolean
   onClose: () => void
+  locale: string
 }
 
-export const SubmitDemoModal = ({ open, onClose }: SubmitDemoModalProps): ReactElement | null => {
+export const SubmitDemoModal = ({ open, onClose, locale }: SubmitDemoModalProps): ReactElement | null => {
   const { t } = useTranslation()
+  const requiredFieldsHref = buildSimplepdfUrl({ locale, path: '/help/how-to/add-required-fields-on-pdf-forms' })
+  const webhooksHref = buildSimplepdfUrl({ locale, path: '/help/how-to/configure-webhooks-pdf-form-submissions' })
+  const learnMoreHref = buildSimplepdfUrl({ locale, query: { s: 'form-copilot' } })
+  const contactHref = buildSimplepdfUrl({ locale, path: '/contact', query: { help: 'schedule_a_demo' } })
   return (
     <Modal open={open} onClose={onClose} labelledBy="submit-demo-modal-title" size="sm">
       <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-4">
@@ -26,7 +32,7 @@ export const SubmitDemoModal = ({ open, onClose }: SubmitDemoModalProps): ReactE
             components={{
               fields: (
                 <a
-                  href="https://simplepdf.com/help/how-to/add-required-fields-on-pdf-forms"
+                  href={requiredFieldsHref}
                   target="_blank"
                   rel="noreferrer"
                   className="text-slate-900 hover:underline"
@@ -34,7 +40,7 @@ export const SubmitDemoModal = ({ open, onClose }: SubmitDemoModalProps): ReactE
               ),
               flows: (
                 <a
-                  href="https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions"
+                  href={webhooksHref}
                   target="_blank"
                   rel="noreferrer"
                   className="text-slate-900 hover:underline"
@@ -47,7 +53,7 @@ export const SubmitDemoModal = ({ open, onClose }: SubmitDemoModalProps): ReactE
 
       <footer className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-3.5 text-[12px]">
         <a
-          href="https://simplepdf.com?s=form-copilot"
+          href={learnMoreHref}
           target="_blank"
           rel="noreferrer"
           className="font-medium text-sky-600 hover:text-sky-700"
@@ -55,7 +61,7 @@ export const SubmitDemoModal = ({ open, onClose }: SubmitDemoModalProps): ReactE
           {t('submitDemo.learnMore')}
         </a>
         <a
-          href="https://simplepdf.com/contact?help=schedule_a_demo"
+          href={contactHref}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center rounded-md bg-sky-600 px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-sky-700"

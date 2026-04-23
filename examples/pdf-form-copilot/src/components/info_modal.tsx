@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
+import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import { Modal, ModalCloseButton } from './modal'
 
 type InfoModalProps = {
@@ -10,6 +11,7 @@ type InfoModalProps = {
   // the form AND flip the UI locale to English, since the cards always
   // showcase US forms regardless of the current locale.
   onSelectUseCaseForm: (formId: FormId) => void
+  locale: string
 }
 
 type UseCaseKey = 'tax' | 'hr' | 'healthcare' | 'insurance'
@@ -290,7 +292,8 @@ const STEP_HINT_KEYS: Record<number, string | null> = {
 }
 const ARCHITECTURE_INDICES = [0, 1, 2] as const
 
-export const InfoModal = ({ open, onClose, onSelectUseCaseForm }: InfoModalProps): ReactElement | null => {
+export const InfoModal = ({ open, onClose, onSelectUseCaseForm, locale }: InfoModalProps): ReactElement | null => {
+  const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'form-copilot' } })
   const { t } = useTranslation()
 
   return (
@@ -505,7 +508,7 @@ export const InfoModal = ({ open, onClose, onSelectUseCaseForm }: InfoModalProps
               components={{
                 plan: (
                   <a
-                    href="https://simplepdf.com/pricing?s=form-copilot"
+                    href={pricingHref}
                     target="_blank"
                     rel="noreferrer"
                     className="font-medium text-sky-600 hover:text-sky-700"

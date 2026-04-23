@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { getFormsForLocale, type FormId } from '../lib/forms'
+import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
 import { SubmitDemoModal } from './submit_demo_modal'
@@ -104,11 +105,12 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
     })
   }
 
+  const brandHref = buildSimplepdfUrl({ locale, query: { s: 'form-copilot' } })
   return (
     <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
         <a
-          href="https://simplepdf.com?s=form-copilot"
+          href={brandHref}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 rounded text-slate-900 hover:opacity-80"
@@ -147,7 +149,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           ) : null}
         </div>
         <a
-          href="https://simplepdf.com?s=form-copilot"
+          href={brandHref}
           target="_blank"
           rel="noreferrer"
           className="hidden text-slate-400 hover:text-slate-600 md:inline"
@@ -155,8 +157,8 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           {t('header.poweredBy')}
         </a>
       </div>
-      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectUseCaseForm={switchToUseCaseForm} />
-      <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} />
+      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectUseCaseForm={switchToUseCaseForm} locale={locale} />
+      <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} locale={locale} />
       {isFrench ? <CerfaDorModal open={isCerfaDorOpen} onClose={closeModal} /> : null}
     </header>
   )

@@ -16,10 +16,14 @@ export const DetectFieldsInput = z
     'Asks the editor to auto-detect and create fields on the document. Use when get_fields returned 0 fields before asking the user to add fields manually.',
   )
 
+// Must stay in lockstep with ToolbarTool in components/toolbar.tsx. BOXED_TEXT
+// is a FIELD TYPE, not a toolbar option; including it here would let the LLM
+// pick a tool the client can't surface, which the dispatcher rejects as
+// bad_input.
 export const SelectToolInput = z
   .object({
     tool: z
-      .enum(['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
+      .enum(['TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
       .nullable()
       .describe('Editor tool to activate. Pass null to return to the cursor.'),
   })
