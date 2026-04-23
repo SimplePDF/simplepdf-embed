@@ -10,10 +10,10 @@ import { useIframeBridge } from '../lib/iframe_bridge'
 import { i18n } from '../lib/i18n'
 import { isShareRequired, isShareValid } from '../server/shared_keys'
 
-export type ShowParam = 'info' | 'model' | 'submit'
+export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
 
 const isShowParam = (value: unknown): value is ShowParam =>
-  value === 'info' || value === 'model' || value === 'submit'
+  value === 'info' || value === 'model' || value === 'submit' || value === 'cerfa_dor'
 
 type HomeSearch = {
   form: FormId

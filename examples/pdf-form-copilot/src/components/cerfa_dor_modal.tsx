@@ -1,0 +1,101 @@
+import { type ReactElement } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
+import { Modal, ModalCloseButton } from './modal'
+
+type CerfaDorModalProps = {
+  open: boolean
+  onClose: () => void
+}
+
+const LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
+
+const CERFA_DOR_ARTICLE =
+  'https://www.planet.fr/politique-les-cerfa-dor-organises-par-david-lisnard-le-palmares-des-normes-les-plus-ridicules.2996147.29334.html'
+const LISNARD_PLAN_ARTICLE = 'https://www.unenouvelleenergie.fr/david-lisnard-devoile-son-plan-pour-en-finir-avec-la-bureaucratie/'
+
+const buildShareUrl = (): string => {
+  const text =
+    '@davidlisnard Form Copilot aide les Français à remplir les CERFA depuis le navigateur, sans que le document ne quitte l’appareil. Un outil dans l’esprit de votre combat contre la paperasse. https://simplepdf.com?s=cerfa-dor'
+  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+}
+
+export const CerfaDorModal = ({ open, onClose }: CerfaDorModalProps): ReactElement | null => {
+  const { t } = useTranslation()
+  return (
+    <Modal open={open} onClose={onClose} labelledBy="cerfa-dor-title" size="md">
+      <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+        <div className="flex items-center gap-3">
+          <img
+            src={LOGO_URL}
+            alt=""
+            aria-hidden="true"
+            className="h-12 w-12 flex-none rounded-lg object-cover shadow-sm ring-1 ring-amber-200"
+          />
+          <h2 id="cerfa-dor-title" className="text-[17px] font-semibold leading-snug text-slate-900">
+            {t('cerfaDor.title')}
+          </h2>
+        </div>
+        <ModalCloseButton onClose={onClose} ariaLabel={t('cerfaDor.close')} />
+      </div>
+      <div className="space-y-4 px-6 py-5 text-[14px] leading-relaxed text-slate-700">
+        <p>
+          <Trans
+            i18nKey="cerfaDor.bodyLead"
+            components={{ b: <strong className="font-semibold text-slate-900" /> }}
+          />
+        </p>
+        <p>
+          <Trans
+            i18nKey="cerfaDor.bodyFounder"
+            components={{ b: <strong className="font-semibold text-slate-900" /> }}
+          />
+        </p>
+        <p>
+          <Trans
+            i18nKey="cerfaDor.bodyAsk"
+            components={{ b: <strong className="font-semibold text-slate-900" /> }}
+          />
+        </p>
+        <ul className="space-y-1.5 text-[13px] text-slate-600">
+          <li>
+            <a
+              href={CERFA_DOR_ARTICLE}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sky-600 hover:text-sky-700 hover:underline"
+            >
+              {t('cerfaDor.linkCerfaDor')}
+            </a>
+          </li>
+          <li>
+            <a
+              href={LISNARD_PLAN_ARTICLE}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sky-600 hover:text-sky-700 hover:underline"
+            >
+              {t('cerfaDor.linkLisnardPlan')}
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-sm font-medium text-slate-500 hover:text-sky-700"
+        >
+          {t('cerfaDor.dismiss')}
+        </button>
+        <a
+          href={buildShareUrl()}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+        >
+          {t('cerfaDor.share')}
+        </a>
+      </div>
+    </Modal>
+  )
+}

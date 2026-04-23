@@ -171,5 +171,18 @@
       "custom": "Choisir votre propre PDF"
     },
     "customSubtitle": "N’importe quel PDF fonctionne"
+  },
+  "cerfaDor": {
+    "buttonAria": "Ouvrir le message pour David Lisnard",
+    "buttonTitle": "Cerfa d’Or — un clin d’œil à David Lisnard",
+    "title": "Un Cerfa d’Or pour Form Copilot ?",
+    "bodyLead": "Les <b>Cerfa d’Or</b> de David Lisnard récompensent chaque année les formulaires administratifs français les plus absurdes. Nous, on prend le problème par l’autre bout : <b>Form Copilot remplit les CERFA étape par étape, directement dans le navigateur</b>, sans que le document ne quitte l’appareil.",
+    "bodyFounder": "SimplePDF est fondée par un Français. On aimerait que David Lisnard — et les équipes de Nouvelle Énergie — voient ce qu’un logiciel peut faire pour alléger la paperasse, en attendant que l’administration s’en charge elle-même.",
+    "bodyAsk": "<b>Si vous le connaissez — ou si vous connaissez quelqu’un qui pourrait faire passer le mot</b> — merci de partager. Un simple message, c’est déjà beaucoup.",
+    "linkCerfaDor": "En savoir plus sur les Cerfa d’Or (Planet.fr)",
+    "linkLisnardPlan": "Le plan anti-bureaucratie de David Lisnard (Nouvelle Énergie)",
+    "dismiss": "Plus tard",
+    "share": "Partager sur X",
+    "close": "Fermer"
   }
 }

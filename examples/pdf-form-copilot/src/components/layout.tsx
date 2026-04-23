@@ -5,6 +5,9 @@ import { getFormsForLocale, type FormId } from '../lib/forms'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
 import { SubmitDemoModal } from './submit_demo_modal'
+import { CerfaDorModal } from './cerfa_dor_modal'
+
+const CERFA_DOR_LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
 
 const homeRoute = getRouteApi('/')
 
@@ -61,11 +64,21 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
   const search = homeRoute.useSearch()
   const isInfoOpen = search.show === 'info'
   const isSubmitOpen = search.show === 'submit'
+  const isFrench = locale === 'fr'
+  // The Cerfa d'Or easter egg is French-only. Honour ?show=cerfa_dor only
+  // when the user is on the FR locale so the URL param is a no-op elsewhere.
+  const isCerfaDorOpen = isFrench && search.show === 'cerfa_dor'
   const localeForms = getFormsForLocale(locale)
 
   const openInfoModal = (): void => {
     void navigate({
       search: (prev) => ({ ...prev, show: 'info' }),
+    })
+  }
+
+  const openCerfaDorModal = (): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, show: 'cerfa_dor' }),
     })
   }
 
@@ -119,8 +132,19 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
         </button>
       </div>
       <div className="flex items-center gap-3 text-xs md:gap-4">
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-2 lg:flex">
           <FormPicker value={currentFormId} options={localeForms} onChange={switchForm} />
+          {isFrench ? (
+            <button
+              type="button"
+              onClick={openCerfaDorModal}
+              aria-label={t('cerfaDor.buttonAria')}
+              title={t('cerfaDor.buttonTitle')}
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-amber-200 bg-amber-50/60 p-0.5 transition-all hover:border-amber-400 hover:shadow-sm"
+            >
+              <img src={CERFA_DOR_LOGO_URL} alt="" aria-hidden="true" className="h-full w-full rounded-md object-cover" />
+            </button>
+          ) : null}
         </div>
         <a
           href="https://simplepdf.com?s=form-copilot"
@@ -133,6 +157,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
       </div>
       <InfoModal open={isInfoOpen} onClose={closeModal} onSelectUseCaseForm={switchToUseCaseForm} />
       <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} />
+      {isFrench ? <CerfaDorModal open={isCerfaDorOpen} onClose={closeModal} /> : null}
     </header>
   )
 }
