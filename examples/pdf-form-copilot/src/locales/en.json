@@ -177,10 +177,12 @@
       "loonheffingen": "Loonheffingen (NL)",
       "loonheffingenScanned": "Loonheffingen scanned",
       "cerfa12485": "CERFA 12485 (médecin traitant)",
+      "cerfa14598": "CERFA 14598 (rupture conventionnelle)",
       "custom": "Pick your own PDF"
     },
     "subtitles": {
-      "mndaScanned": "HR onboarding (scanned document)"
+      "mndaScanned": "HR onboarding (scanned document)",
+      "ruptureConventionnelle": "HR (mutual agreement termination)"
     },
     "customSubtitle": "Any PDF works"
   }

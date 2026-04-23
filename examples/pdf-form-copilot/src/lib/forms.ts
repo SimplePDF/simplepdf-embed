@@ -7,6 +7,7 @@ export type FormId =
   | 'state'
   | 'state_scanned'
   | 'cerfa_12485'
+  | 'cerfa_14598'
   | 'custom'
 
 export type FormConfig = {
@@ -77,6 +78,13 @@ const ALL_FORMS: Record<FormId, FormConfig> = {
     labelKey: 'forms.labels.cerfa12485',
     pdfUrl: `${CDN_BASE}/form-copilot/cerfa-12485.pdf`,
   },
+  cerfa_14598: {
+    id: 'cerfa_14598',
+    useCaseKey: 'forms.useCases.hr',
+    subtitleKey: 'forms.subtitles.ruptureConventionnelle',
+    labelKey: 'forms.labels.cerfa14598',
+    pdfUrl: `${CDN_BASE}/form-copilot/cerfa-14598.pdf`,
+  },
   custom: {
     id: 'custom',
     useCaseKey: 'forms.useCases.custom',
@@ -87,7 +95,7 @@ const ALL_FORMS: Record<FormId, FormConfig> = {
 
 const EN_ORDER: FormId[] = ['custom', 'w9', 'w4', 'i9', 'healthcare', 'hr']
 const NL_ORDER: FormId[] = ['custom', 'state', 'state_scanned']
-const FR_ORDER: FormId[] = ['custom', 'cerfa_12485']
+const FR_ORDER: FormId[] = ['custom', 'cerfa_12485', 'cerfa_14598']
 const FALLBACK_ORDER: FormId[] = ['custom', 'w9']
 
 export const DEFAULT_FORM_ID: FormId = 'w9'
@@ -122,4 +130,5 @@ export const isFormId = (value: unknown): value is FormId =>
   value === 'state' ||
   value === 'state_scanned' ||
   value === 'cerfa_12485' ||
+  value === 'cerfa_14598' ||
   value === 'custom'
