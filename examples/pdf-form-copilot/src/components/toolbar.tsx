@@ -1,4 +1,4 @@
-import { Check, ImageIcon, MousePointer, PenTool, Type } from 'lucide-react'
+import { Check, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -8,6 +8,8 @@ type ToolbarProps = {
   selected: ToolbarTool
   onSelect: (tool: ToolbarTool) => void
   disabled: boolean
+  submitEnabled: boolean
+  onSubmit: () => void
 }
 
 type ToolOption = {
@@ -24,8 +26,9 @@ const OPTIONS: ToolOption[] = [
   { value: 'PICTURE', labelKey: 'toolbar.picture', icon: ImageIcon },
 ]
 
-export const Toolbar = ({ selected, onSelect, disabled }: ToolbarProps) => {
+export const Toolbar = ({ selected, onSelect, disabled, submitEnabled, onSubmit }: ToolbarProps) => {
   const { t } = useTranslation()
+  const submitLabel = t('toolbar.submit')
   return (
     <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2">
       {OPTIONS.map((option) => {
@@ -51,6 +54,17 @@ export const Toolbar = ({ selected, onSelect, disabled }: ToolbarProps) => {
           </button>
         )
       })}
+      <button
+        type="button"
+        disabled={disabled || !submitEnabled}
+        onClick={onSubmit}
+        aria-label={submitLabel}
+        title={submitLabel}
+        className="ml-auto inline-flex h-7 items-center gap-1.5 rounded border border-sky-600 bg-sky-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-sky-700 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+      >
+        <Send size={12} strokeWidth={2.2} />
+        {submitLabel}
+      </button>
     </div>
   )
 }

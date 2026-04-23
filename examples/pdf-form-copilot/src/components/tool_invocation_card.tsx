@@ -1,28 +1,12 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getToolKind, ToolIcon } from './tool_icons'
+import { getToolKind, HourglassIcon, ToolIcon } from './tool_icons'
 
 type ToolInvocationState = 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
 
 type ToolInvocationCardProps = {
   toolName: string
   state: ToolInvocationState
-  showDetails: boolean
-  input?: unknown
-  output?: unknown
-  errorText?: string
-}
-
-const short = (value: unknown): string => {
-  if (value === undefined) return ''
-  const text = JSON.stringify(value)
-  if (text === undefined) return ''
-  return text.length > 140 ? `${text.slice(0, 137)}...` : text
-}
-
-const BADGE_TONES: Record<'input-streaming' | 'input-available', string> = {
-  'input-streaming': 'bg-slate-100 text-slate-500',
-  'input-available': 'bg-sky-100 text-sky-700',
 }
 
 const StateBadge = ({ state }: { state: ToolInvocationState }) => {
@@ -42,8 +26,8 @@ const StateBadge = ({ state }: { state: ToolInvocationState }) => {
     )
   }
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${BADGE_TONES[state]}`}>
-      {t(`toolInvocation.states.${state}`)}
+    <span aria-label={t(`toolInvocation.states.${state}`)} className="text-slate-500">
+      <HourglassIcon size={14} />
     </span>
   )
 }
@@ -60,14 +44,7 @@ const ErrorIcon = () => (
   </svg>
 )
 
-export const ToolInvocationCard = ({
-  toolName,
-  state,
-  showDetails,
-  input,
-  output,
-  errorText,
-}: ToolInvocationCardProps): ReactNode => {
+export const ToolInvocationCard = ({ toolName, state }: ToolInvocationCardProps): ReactNode => {
   const { t } = useTranslation()
   return (
     <div className="my-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
@@ -80,17 +57,6 @@ export const ToolInvocationCard = ({
         </span>
         <StateBadge state={state} />
       </div>
-      {showDetails && input !== undefined ? (
-        <pre className="mt-1 whitespace-pre-wrap break-all text-[11px] text-slate-500">
-          {t('toolInvocation.argsLabel')} {short(input)}
-        </pre>
-      ) : null}
-      {showDetails && state === 'output-available' && output !== undefined ? (
-        <pre className="mt-1 whitespace-pre-wrap break-all text-[11px] text-slate-500">{short(output)}</pre>
-      ) : null}
-      {showDetails && state === 'output-error' && errorText !== undefined ? (
-        <pre className="mt-1 whitespace-pre-wrap break-all text-[11px] text-rose-600">{errorText}</pre>
-      ) : null}
     </div>
   )
 }

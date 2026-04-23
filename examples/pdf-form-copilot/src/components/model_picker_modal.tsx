@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   defaultModelFor,
   findProvider,
@@ -9,6 +8,7 @@ import {
   type ByokProviderId,
   type ProviderEntry,
 } from '../lib/byok'
+import { Modal, ModalCloseButton } from './modal'
 
 type ModelPickerModalProps = {
   open: boolean
@@ -39,20 +39,7 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
       setApiKeyDraft('')
     }
     setComingSoonProviderKey(null)
-    const handleKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => {
-      window.removeEventListener('keydown', handleKey)
-    }
-  }, [open, onClose, activeConfig])
-
-  if (!open || typeof document === 'undefined') {
-    return null
-  }
+  }, [open, activeConfig])
 
   const handlePickProvider = (providerId: ByokProviderId): void => {
     setSelectedProvider(providerId)
@@ -75,32 +62,18 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
     onClose()
   }
 
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="model-picker-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-      onClick={onClose}
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      labelledBy="model-picker-title"
+      containerClassName="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
     >
-      <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
-        onClick={(event) => event.stopPropagation()}
-      >
         <div className="flex items-start justify-between gap-4">
           <h2 id="model-picker-title" className="text-lg font-semibold text-slate-900">
             {t('chat.modelPicker.title')}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t('infoModal.close')}
-            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </button>
+          <ModalCloseButton onClose={onClose} />
         </div>
 
         <div className="mt-4 space-y-5 text-sm text-slate-700">
@@ -182,16 +155,20 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
                     </span>
                     {isExpanded ? (
                       <span className="mt-1 block text-[11px] leading-snug text-slate-500">
-                        {t('chat.modelPicker.comingSoonEmailLead')}{' '}
-                        <a
-                          href={`mailto:${t('chat.modelPicker.comingSoonEmail')}?subject=${encodeURIComponent(
-                            `Form Copilot: ${t(entry.labelKey)} interest`,
-                          )}`}
-                          onClick={(event) => event.stopPropagation()}
-                          className="font-medium text-sky-600 hover:text-sky-700"
-                        >
-                          {t('chat.modelPicker.comingSoonEmail')}
-                        </a>
+                        <Trans
+                          i18nKey="chat.modelPicker.registerInterest"
+                          components={{
+                            email: (
+                              <a
+                                href={`mailto:hello@simplepdf.com?subject=${encodeURIComponent(
+                                  `Form Copilot: ${t(entry.labelKey)} interest`,
+                                )}`}
+                                onClick={(event) => event.stopPropagation()}
+                                className="font-medium text-sky-600 hover:text-sky-700"
+                              />
+                            ),
+                          }}
+                        />
                       </span>
                     ) : null}
                   </button>
@@ -276,8 +253,6 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
             </button>
           </section>
         </div>
-      </div>
-    </div>,
-    document.body,
+    </Modal>
   )
 }

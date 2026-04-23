@@ -1,40 +1,30 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ToolInvocationCard } from './tool_invocation_card'
-import { getToolKind, ToolIcon } from './tool_icons'
+import { getToolKind, HourglassIcon, ToolIcon } from './tool_icons'
 
 export type ToolInvocationPart = {
   key: string
   toolName: string
   state: 'input-streaming' | 'input-available' | 'output-available' | 'output-error'
-  input?: unknown
-  output?: unknown
-  errorText?: string
 }
 
 type ToolInvocationGroupProps = {
   parts: ToolInvocationPart[]
-  showDetails: boolean
 }
 
-export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupProps) => {
+export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
   const { t } = useTranslation()
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false)
   const hasError = parts.some((part) => part.state === 'output-error')
+  const isAnyRunning = parts.some(
+    (part) => part.state === 'input-streaming' || part.state === 'input-available',
+  )
   const isExpanded = isManuallyExpanded || hasError
 
   if (parts.length === 1) {
     const part = parts[0]
-    return (
-      <ToolInvocationCard
-        toolName={part.toolName}
-        state={part.state}
-        showDetails={showDetails}
-        input={part.input}
-        output={part.output}
-        errorText={part.errorText}
-      />
-    )
+    return <ToolInvocationCard toolName={part.toolName} state={part.state} />
   }
 
   return (
@@ -47,7 +37,7 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
       >
         <span className="flex items-center gap-2.5">
           <span className="text-slate-500">
-            <ToolIcon kind={dominantKind(parts)} />
+            {isAnyRunning ? <HourglassIcon size={14} /> : <ToolIcon kind={dominantKind(parts)} />}
           </span>
           <span>{t('toolInvocation.groupSummary', { count: parts.length })}</span>
         </span>
@@ -56,15 +46,7 @@ export const ToolInvocationGroup = ({ parts, showDetails }: ToolInvocationGroupP
       {isExpanded ? (
         <div className="border-t border-slate-200 px-2 pb-1">
           {parts.map((part) => (
-            <ToolInvocationCard
-              key={part.key}
-              toolName={part.toolName}
-              state={part.state}
-              showDetails={showDetails}
-              input={part.input}
-              output={part.output}
-              errorText={part.errorText}
-            />
+            <ToolInvocationCard key={part.key} toolName={part.toolName} state={part.state} />
           ))}
         </div>
       ) : null}

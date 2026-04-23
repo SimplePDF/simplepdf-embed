@@ -64,6 +64,7 @@ const generateRequestId = (): string => {
 export type IframeBridge = {
   isEditorReady: () => boolean
   isDocumentLoaded: () => boolean
+  getDocumentId: () => string | null
   loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
   goTo: (args: { page: number }) => Promise<BridgeResult>
   selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
@@ -93,6 +94,7 @@ const createBridge = ({
   const pending = new Map<string, PendingRequest>()
   let isEditorReady = false
   let isDocumentLoaded = false
+  let documentId: string | null = null
 
   const sendRequest = <TData>(type: string, data: Record<string, unknown>): Promise<BridgeResult<TData>> => {
     return new Promise((resolve) => {
@@ -123,23 +125,23 @@ const createBridge = ({
   const probeRequestIds = new Set<string>()
   let probeInterval: ReturnType<typeof setInterval> | null = null
 
-  const markReady = (source: 'editor_ready_event' | 'probe_response' | 'fallback_timeout'): void => {
-    if (source === 'editor_ready_event') {
-      // A fresh EDITOR_READY event means the iframe has (re)mounted and a new
-      // document load cycle is starting. Reset isDocumentLoaded so consumers
-      // wait for the new DOCUMENT_LOADED event before treating the editor as
-      // usable. Neither the probe nor the hard-fallback path touches
-      // isDocumentLoaded — the user may already have a document loaded, and
-      // resetting here would disable the chat.
-      isDocumentLoaded = false
-    }
+  const stopProbing = (): void => {
     if (probeInterval !== null) {
       clearInterval(probeInterval)
       probeInterval = null
     }
     probeRequestIds.clear()
+  }
+
+  const markEditorReady = (source: 'editor_ready_event' | 'probe_response' | 'fallback_timeout'): void => {
+    if (source === 'editor_ready_event') {
+      // A fresh EDITOR_READY event means the iframe has (re)mounted and a new
+      // document load cycle is starting. Reset isDocumentLoaded so consumers
+      // wait for the new DOCUMENT_LOADED signal before treating the editor as
+      // fully usable.
+      isDocumentLoaded = false
+    }
     if (isEditorReady) {
-      onReady()
       return
     }
     isEditorReady = true
@@ -151,6 +153,22 @@ const createBridge = ({
       console.info('[copilot] EDITOR_READY received')
     }
     onReady()
+  }
+
+  const markDocumentLoaded = (source: 'document_loaded_event' | 'probe_success' | 'fallback_timeout'): void => {
+    if (isDocumentLoaded) {
+      return
+    }
+    isDocumentLoaded = true
+    if (source === 'probe_success') {
+      console.info('[copilot] document loaded inferred from GET_FIELDS probe success')
+    } else if (source === 'fallback_timeout') {
+      console.warn(`[copilot] document-loaded hard-fallback after ${EDITOR_READY_HARD_FALLBACK_MS}ms`)
+    } else {
+      console.info('[copilot] DOCUMENT_LOADED received')
+    }
+    stopProbing()
+    onDocumentLoaded()
   }
 
   const sendProbe = (): void => {
@@ -166,23 +184,18 @@ const createBridge = ({
     )
   }
 
-  const markDocumentLoaded = (): void => {
-    if (isDocumentLoaded) {
-      return
-    }
-    isDocumentLoaded = true
-    console.info('[copilot] DOCUMENT_LOADED received')
-    onDocumentLoaded()
-  }
-
   const readyTimeout = setTimeout(() => {
-    markReady('fallback_timeout')
+    markEditorReady('fallback_timeout')
+    markDocumentLoaded('fallback_timeout')
   }, EDITOR_READY_HARD_FALLBACK_MS)
 
   // Active probing: fire a GET_FIELDS request every 500ms until the editor
-  // answers. First response = iframe is alive + postMessage bridge is up,
-  // regardless of whether the document has loaded. Much faster than the
-  // earlier 4s fixed fallback.
+  // confirms a document is loaded (success: true) or the hard fallback fires.
+  // A success: false with code 'bad_request:no_document_loaded' still counts
+  // as an editor-ready signal (the postMessage bridge is alive), so we flip
+  // isEditorReady on the first response but keep probing for doc-loaded.
+  // This handles PDFs that don't emit DOCUMENT_LOADED (e.g. documents with
+  // no AcroFields) without waiting the full 30s fallback.
   sendProbe()
   probeInterval = setInterval(sendProbe, EDITOR_READY_PROBE_INTERVAL_MS)
 
@@ -210,12 +223,20 @@ const createBridge = ({
     }
 
     if (payload.type === 'EDITOR_READY') {
-      markReady('editor_ready_event')
+      markEditorReady('editor_ready_event')
       return
     }
 
     if (payload.type === 'DOCUMENT_LOADED') {
-      markDocumentLoaded()
+      const rawDocId = payload.data?.document_id
+      if (typeof rawDocId === 'string' && rawDocId !== '' && documentId !== rawDocId) {
+        documentId = rawDocId
+        // Notify subscribers so a late-arriving DOCUMENT_LOADED (after the
+        // probe already flipped isDocumentLoaded true) still propagates the
+        // fresh documentId to consumers via useSyncExternalStore.
+        onDocumentLoaded()
+      }
+      markDocumentLoaded('document_loaded_event')
       return
     }
 
@@ -228,11 +249,18 @@ const createBridge = ({
       return
     }
     if (probeRequestIds.has(requestId)) {
-      // First response to our readiness probe — the iframe is alive and the
-      // postMessage bridge is listening. Regardless of success/failure payload,
-      // we treat this as "editor ready".
+      // The iframe answered a readiness probe. Any response means the
+      // postMessage bridge is alive → editor ready. A success: true payload
+      // additionally means a document is loaded (the editor rejects GET_FIELDS
+      // with bad_request:no_document_loaded otherwise), so we can flip
+      // isDocumentLoaded without waiting for a DOCUMENT_LOADED event — some
+      // PDFs never emit it (e.g. docs with no AcroFields).
       probeRequestIds.delete(requestId)
-      markReady('probe_response')
+      markEditorReady('probe_response')
+      const probeResult = payload.data?.result as BridgeResult<unknown> | undefined
+      if (probeResult !== undefined && probeResult.success === true) {
+        markDocumentLoaded('probe_success')
+      }
       return
     }
     const entry = pending.get(requestId)
@@ -250,6 +278,7 @@ const createBridge = ({
   const bridge: IframeBridge = {
     isEditorReady: () => isEditorReady,
     isDocumentLoaded: () => isDocumentLoaded,
+    getDocumentId: () => documentId,
     loadDocument: ({ dataUrl, name, initialPage }) =>
       sendRequest('LOAD_DOCUMENT', { data_url: dataUrl, name, page: initialPage }),
     goTo: ({ page }) => sendRequest('GO_TO', { page }),
@@ -301,6 +330,7 @@ export const useIframeBridge = ({
   bridge: IframeBridge | null
   isEditorReady: boolean
   isDocumentLoaded: boolean
+  documentId: string | null
 } => {
   const bridgeRef = useRef<IframeBridge | null>(null)
   const listenersRef = useRef<Set<() => void>>(new Set())
@@ -340,10 +370,13 @@ export const useIframeBridge = ({
 
   const getEditorReadySnapshot = useCallback((): boolean => bridgeRef.current?.isEditorReady() ?? false, [])
   const getDocumentLoadedSnapshot = useCallback((): boolean => bridgeRef.current?.isDocumentLoaded() ?? false, [])
-  const getServerSnapshot = useCallback((): boolean => false, [])
+  const getDocumentIdSnapshot = useCallback((): string | null => bridgeRef.current?.getDocumentId() ?? null, [])
+  const getBooleanServerSnapshot = useCallback((): boolean => false, [])
+  const getDocumentIdServerSnapshot = useCallback((): string | null => null, [])
 
-  const isEditorReady = useSyncExternalStore(subscribe, getEditorReadySnapshot, getServerSnapshot)
-  const isDocumentLoaded = useSyncExternalStore(subscribe, getDocumentLoadedSnapshot, getServerSnapshot)
+  const isEditorReady = useSyncExternalStore(subscribe, getEditorReadySnapshot, getBooleanServerSnapshot)
+  const isDocumentLoaded = useSyncExternalStore(subscribe, getDocumentLoadedSnapshot, getBooleanServerSnapshot)
+  const documentId = useSyncExternalStore(subscribe, getDocumentIdSnapshot, getDocumentIdServerSnapshot)
 
-  return { bridge: bridgeRef.current, isEditorReady, isDocumentLoaded }
+  return { bridge: bridgeRef.current, isEditorReady, isDocumentLoaded, documentId }
 }

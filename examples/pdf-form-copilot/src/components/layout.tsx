@@ -1,9 +1,12 @@
-import { useState, type ReactNode } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { type ReactNode } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { getFormsForLocale, type FormId } from '../lib/forms'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
+import { SubmitDemoModal } from './submit_demo_modal'
+
+const homeRoute = getRouteApi('/')
 
 type LayoutProps = {
   locale: string
@@ -35,18 +38,27 @@ type HeaderProps = {
 
 const Header = ({ locale, currentFormId }: HeaderProps) => {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const navigate = homeRoute.useNavigate()
+  const search = homeRoute.useSearch()
+  const isInfoOpen = search.show === 'info'
+  const isSubmitOpen = search.show === 'submit'
   const localeForms = getFormsForLocale(locale)
+
+  const openInfoModal = (): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, show: 'info' }),
+    })
+  }
+
+  const closeModal = (): void => {
+    void navigate({
+      search: ({ show: _omit, ...rest }) => rest,
+    })
+  }
 
   const switchForm = (next: FormId): void => {
     void navigate({
-      to: '/',
-      search: (prev) => ({
-        form: next,
-        debug: prev.debug ?? false,
-        lang: prev.lang ?? 'en',
-      }),
+      search: (prev) => ({ ...prev, form: next }),
     })
   }
 
@@ -70,9 +82,9 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
         <span className="text-sm text-slate-500">{t('header.tagline')}</span>
         <button
           type="button"
-          onClick={() => setIsInfoOpen(true)}
+          onClick={openInfoModal}
           aria-label={t('header.whatIsThisDemo')}
-          className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[11px] font-semibold text-slate-500 transition hover:border-sky-400 hover:text-sky-600"
+          className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[11px] font-semibold text-slate-500 transition hover:border-sky-600 hover:text-sky-600"
         >
           ?
         </button>
@@ -80,7 +92,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
       <div className="flex items-center gap-4 text-xs">
         <FormPicker value={currentFormId} options={localeForms} onChange={switchForm} />
         <a
-          href="https://simplepdf.com"
+          href="https://simplepdf.com?s=form-copilot"
           target="_blank"
           rel="noreferrer"
           className="text-slate-400 hover:text-slate-600"
@@ -88,7 +100,8 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           {t('header.poweredBy')}
         </a>
       </div>
-      <InfoModal open={isInfoOpen} onClose={() => setIsInfoOpen(false)} onSelectForm={switchForm} />
+      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectForm={switchForm} />
+      <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} />
     </header>
   )
 }

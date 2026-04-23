@@ -58,3 +58,26 @@ const WriteIcon = ({ size }: { size: number }) => (
     <path d="M16 2V5.4C16 5.73137 16.2686 6 16.6 6H20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
+
+export const HourglassIcon = ({ size = 14 }: { size?: number }) => (
+  <span className="hourglass-flip" aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      strokeWidth={1.6}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="text-current"
+    >
+      <path
+        d="M12 12C15.866 12 19 8.86599 19 5H5C5 8.86599 8.13401 12 12 12ZM12 12C15.866 12 19 15.134 19 19H5C5 15.134 8.13401 12 12 12Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M5 2L12 2L19 2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 22H12L19 22" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </span>
+)

@@ -7,47 +7,50 @@
     "poweredBy": "Powered by SimplePDF"
   },
   "infoModal": {
-    "title": "AI-assisted form filling, humans in the loop",
+    "title": "AI-assisted form filling, with a human in the loop",
     "close": "Close",
-    "poweredByPrefix": "Powered by the",
-    "simplepdfProPlan": "SimplePDF Pro plan",
+    "availableOn": "Form Copilot is available on <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Source code on GitHub",
     "githubStarTitle": "Star SimplePDF/simplepdf-embed on GitHub",
-    "disclaimer": "This demo is anonymous and rate-limited; tool execution stays client-side, the server is a streaming proxy only.",
-    "piiWarningLeadIn": "Heads up:",
-    "piiWarning": "data you type or dictate to the assistant is sent to the LLM provider (Anthropic for this demo). Do not share real personal information (SSN, BSN, DOB, medical data, etc.).",
-    "whyItMattersTitle": "Why it matters",
-    "whyItMattersBody": "AI is undeniably great at automating tasks, including filling forms. But the trust is not there yet.",
-    "humanInTheLoopTitle": "SimplePDF fills forms with AI while the user stays in control",
-    "humanInTheLoopBullet1": "The human sees fields getting filled in real time, in the editor.",
-    "humanInTheLoopBullet2": "The AI can hand off to the user for fields it should not auto-fill (for example signatures).",
-    "aboutTitle": "About SimplePDF",
-    "aboutIntro": "Three architectural guarantees that make Form Copilot safe to run on real forms:",
-    "aboutBullet1Title": "Document processing stays in the browser.",
-    "aboutBullet1Body": "PDFs are edited locally on your device. The document content itself is never uploaded to SimplePDF's servers.",
-    "aboutBullet2Title": "You control the LLM provider.",
-    "aboutBullet2Body": "In this demo the chat is powered by Claude (Anthropic) using our key. Self-host Form Copilot with your own API key and chat traffic goes straight from your server to your chosen provider — SimplePDF stays out of the loop.",
-    "aboutBullet3Title": "Bring your own storage for submissions.",
-    "aboutBullet3Body": "On Pro and Premium plans, completed forms flow directly into your own S3-compatible storage, Azure Blob Storage, or SharePoint. PII lives in your infrastructure, not ours.",
-    "useCasesTitle": "Saving time for everyone",
-    "useCasesFooter": "Click on any of the use cases above to switch forms.",
+    "whyItMattersLead": "Automatic form filling has limits.",
+    "whyItMattersBody": "The data needed to complete a form can be missing, incorrect, or invalid. This demo showcases a safer model: AI helps fill the form while a human reviews, corrects, and completes it where needed.",
+    "humanInTheLoopTitle": "How it works",
+    "humanInTheLoopBullet1": "Form Copilot fills fields in real time, inside the editor.",
+    "humanInTheLoopBullet1Hint": "The data exchanged between Form Copilot and the editor happens in the browser.",
+    "humanInTheLoopBullet2": "The user can see each change, review it, and correct it.",
+    "humanInTheLoopBullet2Hint": "Form Copilot can hand off fields that should not be auto-filled, such as signatures.",
+    "humanInTheLoopBullet3": "The document is submitted to your storage.",
+    "humanInTheLoopBullet3Hint": "This demo does not allow submitting the document for privacy reasons.",
+    "aboutTitle": "Privacy by design",
+    "aboutIntro": "SimplePDF is built from the ground up for sensitive workflows. These three architectural choices are why.",
+    "aboutBullet1Title": "In-browser document processing.",
+    "aboutBullet1Body": "PDFs are edited locally on your device. The document content itself is not uploaded to SimplePDF servers.",
+    "aboutBullet2Title": "Bring your own AI.",
+    "aboutBullet2Body": "In production, plug in your own provider, keys, RAG pipelines, and internal data so traffic stays between your server and your AI stack.",
+    "aboutBullet3Title": "Bring your own storage.",
+    "aboutBullet3Body": "Completed documents are sent directly to your storage from the browser, ensuring that sensitive data stays in your infrastructure.",
+    "useCasesTitle": "Example workflows",
+    "useCasesFooter": "Select a workflow above to load a different form.",
+    "architectureTitle": "Architecture",
+    "architectureSubtext": "From chat to submission, the architecture is designed to keep documents and sensitive data under your control, not ours.",
+    "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives metadata such as pre-signed upload URLs and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server — the webhook carries metadata only, never the document content.",
     "tryThisForm": "Try this form →",
     "useCases": {
       "healthcare": {
         "title": "Healthcare",
-        "body": "Patient intake and claims (e.g. CMS-1500) are PHI-heavy. The copilot walks users through the form while the document stays in the browser, and submissions route straight to the provider's own storage and LLM provider."
+        "body": "Patient intake and claims forms often contain sensitive data and require review. Form Copilot helps complete the form step by step using your organization's approved AI provider. The document stays in the browser, and submissions go directly to the storage and systems your organization chooses."
       },
       "insurance": {
         "title": "Insurance",
-        "body": "ACORD applications, claim forms and policy endorsements. Carriers and brokers cut customer friction by letting the copilot pre-fill known data, explain coverages and route the finished PDF to the underwriter's system."
+        "body": "Applications, claims, and endorsements often combine structured data with policy-specific details. Form Copilot helps prefill what it can, explain fields, and leaves the final review to the user."
       },
       "state": {
         "title": "State bureaucracy",
-        "body": "Scanned government forms become instantly fillable thanks to SimplePDF's field detection. Particularly useful when the form is in a language the user does not speak — the copilot translates, explains, and fills step by step."
+        "body": "Government forms are often scanned, complex, or written in a language the user does not speak. Form Copilot can help explain the form, translate it, and fill it step by step while the user reviews the result."
       },
       "hr": {
         "title": "HR onboarding",
-        "body": "NDAs, offer letters, W-9, I-9. The copilot prefills what it can from context, hands off to the human for signatures, and submits into the HR workflow."
+        "body": "Offer letters, tax forms, and onboarding packets often require both prefilling and review. Form Copilot fills what it can, then hands off to the user for signatures and final checks."
       }
     }
   },
@@ -75,8 +78,7 @@
       "applyButton": "Use this provider",
       "cancelButton": "Cancel",
       "comingSoon": "Coming soon",
-      "comingSoonEmailLead": "Register your interest:",
-      "comingSoonEmail": "hello@simplepdf.com",
+      "registerInterest": "Register your interest: <email>hello@simplepdf.com</email>",
       "resetToDefault": "Back to demo (our Anthropic key)",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
@@ -87,10 +89,12 @@
     },
     "stop": "Stop",
     "thinking": "Thinking…",
+    "piiWarning": "Public demo. Use sample data only. Messages are processed by the selected AI provider.",
+    "newFieldHint": "New field added by the user",
     "errorTitle": "Something went wrong.",
     "errorFriendlyGeneric": "I wasn't able to complete that. Could you rephrase what you'd like me to do?",
     "errorFriendlyWithAction": "I wasn't able to {{action}}. Could you rephrase what you'd like me to do?",
-    "inputPlaceholderReady": "Ask the copilot…",
+    "inputPlaceholderReady": "Ask Form Copilot…",
     "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"
   },
@@ -109,7 +113,16 @@
     "text": "Text",
     "checkbox": "Checkbox",
     "signature": "Signature",
-    "picture": "Picture"
+    "picture": "Picture",
+    "submit": "Submit"
+  },
+  "submitDemo": {
+    "headline": "This example does not submit the document.",
+    "body": "Companies already use SimplePDF to simplify document workflows, and many tell us their users love the experience. Form Copilot is currently shown here as a demo.",
+    "bodySubtext": "SimplePDF also lets teams configure <fields>required fields, default values</fields>, and <flows>submission flows</flows>.",
+    "learnMore": "Learn more",
+    "requestDemo": "Talk to us",
+    "close": "Close"
   },
   "toolInvocation": {
     "states": {
@@ -118,7 +131,6 @@
       "output-available": "done",
       "output-error": "error"
     },
-    "argsLabel": "args:",
     "fallbackName": "Calling {{tool}}",
     "groupSummary_one": "{{count}} action",
     "groupSummary_other": "{{count}} actions",
@@ -134,30 +146,6 @@
       "remove_fields": "Removing fields",
       "submit_download": "Preparing the download"
     }
-  },
-  "debugPanel": {
-    "title": "Debug panel",
-    "statusReady": "editor ready",
-    "statusWaiting": "waiting for EDITOR_READY",
-    "pinnedFieldPrefix": "pinned",
-    "emptyLog": "No calls yet. Click a button above.",
-    "clearLog": "clear log",
-    "errors": {
-      "noBridge": "Bridge not ready",
-      "noField": "Run getFields first to pin a field"
-    },
-    "buttons": {
-      "getFields": "getFields",
-      "focusField": "focusField (pinned)",
-      "setFieldValue": "setFieldValue (pinned)",
-      "goToPage1": "goTo page 1",
-      "detectFields": "detectFields",
-      "getDocumentContent": "getDocumentContent",
-      "selectToolText": "selectTool TEXT",
-      "removeFieldsAll": "removeFields (all)",
-      "submitDownload": "submit (download)"
-    },
-    "resultOk": "ok"
   },
   "forms": {
     "useCases": {

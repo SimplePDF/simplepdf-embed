@@ -88,7 +88,7 @@ export const LanguagePicker = ({ value, onChange, disabled = false }: LanguagePi
           }
           setIsOpen((open) => !open)
         }}
-        className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-slate-700 transition hover:border-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex items-center gap-1 rounded border border-slate-200 bg-white px-2 py-1 text-slate-700 transition hover:border-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">{t('languagePicker.label')}</span>
         <span className="font-medium">{selected.label}</span>

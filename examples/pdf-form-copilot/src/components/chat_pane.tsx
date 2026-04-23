@@ -3,6 +3,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
+import { getRouteApi } from '@tanstack/react-router'
 import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
@@ -13,7 +14,10 @@ import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
+import { ToolIcon } from './tool_icons'
 import { Toolbar, type ToolbarTool } from './toolbar'
+
+const homeRoute = getRouteApi('/')
 
 type ChatPaneProps = {
   bridge: IframeBridge | null
@@ -21,7 +25,26 @@ type ChatPaneProps = {
   requiresUserUpload: boolean
   language: string
   onLanguageChange: (code: string) => void
-  showToolDetails: boolean
+  documentId: string | null
+}
+
+// In-memory chat store keyed by document_id. Survives component remounts
+// (e.g. form switches that tear down the ChatPane) but intentionally resets
+// on page reload — we don't want chat transcripts persisted to disk.
+const chatHistoryStore = new Map<string, UIMessage[]>()
+
+const readPersistedMessages = (documentId: string | null): UIMessage[] => {
+  if (documentId === null) {
+    return []
+  }
+  return chatHistoryStore.get(documentId) ?? []
+}
+
+const writePersistedMessages = (documentId: string | null, messages: UIMessage[]): void => {
+  if (documentId === null) {
+    return
+  }
+  chatHistoryStore.set(documentId, messages)
 }
 
 type ToolInput = Record<string, unknown>
@@ -131,6 +154,7 @@ type DispatchContext = {
   languageLabel: string
   useSummarizer: boolean
   onToolbarChange: (tool: ToolbarTool) => void
+  onOpenSubmitModal: () => void
 }
 
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
@@ -194,7 +218,8 @@ const dispatchTool = async (
       return bridge.goTo({ page })
     }
     case 'submit_download':
-      return bridge.submit({ downloadCopy: true })
+      context.onOpenSubmitModal()
+      return { success: true, data: { status: 'demo_submission_acknowledged' } }
     default:
       toolName satisfies never
       return { success: false, error: { code: 'unknown_tool', message: `Unknown tool: ${String(toolName)}` } }
@@ -207,9 +232,12 @@ export const ChatPane = ({
   requiresUserUpload,
   language,
   onLanguageChange,
-  showToolDetails,
+  documentId,
 }: ChatPaneProps) => {
   const { t } = useTranslation()
+  const navigate = homeRoute.useNavigate()
+  const search = homeRoute.useSearch()
+  const isModelPickerOpen = search.show === 'model'
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
@@ -219,8 +247,26 @@ export const ChatPane = ({
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
-  const [isModelPickerOpen, setIsModelPickerOpen] = useState(false)
   const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
+  const [hasFilledField, setHasFilledField] = useState(false)
+
+  const openModelPicker = useCallback((): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, show: 'model' }),
+    })
+  }, [navigate])
+
+  const closeModelPicker = useCallback((): void => {
+    void navigate({
+      search: ({ show: _omit, ...rest }) => rest,
+    })
+  }, [navigate])
+
+  const openSubmitModal = useCallback((): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, show: 'submit' }),
+    })
+  }, [navigate])
 
   const transport = useMemo(() => {
     const bodyFn = () => {
@@ -233,8 +279,12 @@ export const ChatPane = ({
     return new DefaultChatTransport({ api: '/api/chat', body: bodyFn })
   }, [byokConfig])
 
-  const { messages, status, error, sendMessage, stop, addToolOutput } = useChat({
+  const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(documentId))
+  const hydratedDocumentIdRef = useRef<string | null>(documentId)
+
+  const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
+    messages: initialMessages,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onError: (err) => {
       console.error('[copilot] chat error', err)
@@ -269,7 +319,7 @@ export const ChatPane = ({
       console.info('[copilot] tool call', toolName, callInput)
       void dispatchTool(
         activeBridge,
-        { languageLabel, useSummarizer: false, onToolbarChange: setToolbarTool },
+        { languageLabel, useSummarizer: false, onToolbarChange: setToolbarTool, onOpenSubmitModal: openSubmitModal },
         toolName,
         callInput,
       ).then((result) => {
@@ -365,12 +415,47 @@ export const ChatPane = ({
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   const canSend = isReady && !isStreaming
+  const hasUserMessage = messages.some((message) => message.role === 'user')
 
   useEffect(() => {
     if (canSend) {
       inputRef.current?.focus()
     }
   }, [canSend])
+
+  useEffect(() => {
+    if (hydratedDocumentIdRef.current === documentId) {
+      return
+    }
+    hydratedDocumentIdRef.current = documentId
+    setMessages(readPersistedMessages(documentId))
+  }, [documentId, setMessages])
+
+  useEffect(() => {
+    writePersistedMessages(documentId, messages)
+  }, [documentId, messages])
+
+  useEffect(() => {
+    if (bridge === null || !isReady) {
+      setHasFilledField(false)
+      return
+    }
+    let cancelled = false
+    const check = async (): Promise<void> => {
+      const result = await bridge.getFields()
+      if (cancelled || !result.success) {
+        return
+      }
+      const next = result.data.fields.some((field) => field.value !== null && field.value !== '')
+      setHasFilledField((prev) => (prev === next ? prev : next))
+    }
+    void check()
+    const interval = setInterval(check, 1500)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [bridge, isReady])
 
   const handleSend = useCallback(
     (prompt: string): void => {
@@ -398,7 +483,7 @@ export const ChatPane = ({
               </h2>
               <button
                 type="button"
-                onClick={() => setIsModelPickerOpen(true)}
+                onClick={openModelPicker}
                 className="text-xs font-medium text-sky-600 hover:text-sky-700"
               >
                 {t('chat.switchModel')}
@@ -426,18 +511,29 @@ export const ChatPane = ({
           ) : null}
         </div>
       </div>
-      <Toolbar selected={toolbarTool} onSelect={handleToolbarSelect} disabled={!isReady} />
+      <Toolbar
+        selected={toolbarTool}
+        onSelect={handleToolbarSelect}
+        disabled={!isReady}
+        submitEnabled={hasFilledField}
+        onSubmit={openSubmitModal}
+      />
+      <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
         ) : (
           <div className="space-y-4 p-4">
-            {messages.map((message) => (
-              <MessageView key={message.id} message={message} showToolDetails={showToolDetails} />
-            ))}
+            {messages.map((message) =>
+              isFieldAddedHint(message) ? (
+                <FieldAddedHint key={message.id} />
+              ) : (
+                <MessageView key={message.id} message={message} />
+              ),
+            )}
             {isStreaming ? <ThinkingIndicator /> : null}
             {error !== undefined ? (
-              <ErrorBanner error={error} messages={messages} showDetails={showToolDetails} />
+              <ErrorBanner messages={messages} />
             ) : null}
           </div>
         )}
@@ -470,7 +566,7 @@ export const ChatPane = ({
       </div>
       <ModelPickerModal
         open={isModelPickerOpen}
-        onClose={() => setIsModelPickerOpen(false)}
+        onClose={closeModelPicker}
         activeConfig={byokConfig}
         onApply={setByokConfig}
         onReset={() => setByokConfig(null)}
@@ -481,13 +577,43 @@ export const ChatPane = ({
 
 type MessageViewProps = {
   message: UIMessage
-  showToolDetails: boolean
+}
+
+const FIELD_ADDED_HINT_PREFIXES = [
+  'A new field was just added to the document',
+  'new fields were just added to the document',
+] as const
+
+const isFieldAddedHint = (message: UIMessage): boolean => {
+  if (message.role !== 'user') {
+    return false
+  }
+  for (const part of message.parts) {
+    if (part.type === 'text') {
+      for (const prefix of FIELD_ADDED_HINT_PREFIXES) {
+        if (part.text.includes(prefix)) {
+          return true
+        }
+      }
+    }
+  }
+  return false
+}
+
+const FieldAddedHint = () => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex items-center justify-center gap-1.5 py-1 text-[11px] text-slate-400">
+      <span className="text-slate-400">
+        <ToolIcon kind="write" size={12} />
+      </span>
+      <span>{t('chat.newFieldHint')}</span>
+    </div>
+  )
 }
 
 type ErrorBannerProps = {
-  error: Error
   messages: UIMessage[]
-  showDetails: boolean
 }
 
 const findLastAttemptedToolName = (messages: UIMessage[]): string | null => {
@@ -506,12 +632,9 @@ const findLastAttemptedToolName = (messages: UIMessage[]): string | null => {
   return null
 }
 
-const ErrorBanner = ({ error, messages, showDetails }: ErrorBannerProps) => {
+const ErrorBanner = ({ messages }: ErrorBannerProps) => {
   const { t } = useTranslation()
   const body = (() => {
-    if (showDetails) {
-      return <div className="mt-1 break-all">{error.message}</div>
-    }
     const toolName = findLastAttemptedToolName(messages)
     if (toolName !== null) {
       const actionLabel = t(`toolInvocation.names.${toolName}`, {
@@ -546,18 +669,12 @@ const toBlocks = (message: UIMessage): RenderBlock[] => {
         type: `tool-${string}`
         toolCallId: string
         state: ToolInvocationPart['state']
-        input?: unknown
-        output?: unknown
-        errorText?: string
       }
       const toolName = toolPart.type.slice('tool-'.length)
       const entry: ToolInvocationPart = {
         key,
         toolName,
         state: toolPart.state,
-        input: toolPart.input,
-        output: toolPart.output,
-        errorText: toolPart.errorText,
       }
       const last = blocks[blocks.length - 1]
       if (last !== undefined && last.kind === 'tool-group') {
@@ -570,7 +687,7 @@ const toBlocks = (message: UIMessage): RenderBlock[] => {
   return blocks
 }
 
-const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
+const MessageView = ({ message }: MessageViewProps) => {
   const isUser = message.role === 'user'
   const blocks = toBlocks(message)
   return (
@@ -600,8 +717,36 @@ const MessageView = ({ message, showToolDetails }: MessageViewProps) => {
               </div>
             )
           }
-          return <ToolInvocationGroup key={block.key} parts={block.parts} showDetails={showToolDetails} />
+          return <ToolInvocationGroup key={block.key} parts={block.parts} />
         })}
+      </div>
+    </div>
+  )
+}
+
+const PiiWarningBanner = ({ visible }: { visible: boolean }) => {
+  const { t } = useTranslation()
+  return (
+    <div
+      aria-hidden={!visible}
+      className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+        visible ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+      }`}
+    >
+      <div className="overflow-hidden">
+        <div
+          role="note"
+          className={`flex items-start gap-2.5 border-b border-[#CFE0FF] bg-[#F5F9FF] px-4 py-2.5 text-[11.5px] leading-relaxed text-[#23406E] transition-opacity duration-200 ease-out ${
+            visible ? 'opacity-100 delay-100' : 'opacity-0'
+          }`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="mt-[1px] h-3.5 w-3.5 flex-none text-[#23406E]">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M12 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="12" cy="8" r="0.9" fill="currentColor" />
+          </svg>
+          <p>{t('chat.piiWarning')}</p>
+        </div>
       </div>
     </div>
   )
