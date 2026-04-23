@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
@@ -126,14 +126,25 @@ const IconInsurance = ({ className }: IconProps): ReactElement => (
       strokeWidth="1.5"
       strokeLinejoin="round"
     />
-    <path d="M9 12.1l2.2 2.2L15 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M9 12.1l2.2 2.2L15 10.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )
 
 const IconTax = ({ className }: IconProps): ReactElement => (
   <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
     <path d="M3 20h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M5 20V10.5M9 20V10.5M15 20V10.5M19 20V10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M5 20V10.5M9 20V10.5M15 20V10.5M19 20V10.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     <path d="M2.5 10.5h19L12 3.5 2.5 10.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
   </svg>
 )
@@ -141,14 +152,25 @@ const IconTax = ({ className }: IconProps): ReactElement => (
 const IconHR = ({ className }: IconProps): ReactElement => (
   <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
     <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M3 20c0-3 2.7-5.2 6-5.2s6 2.2 6 5.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <path
+      d="M3 20c0-3 2.7-5.2 6-5.2s6 2.2 6 5.2"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
     <path d="M17 11v4M15 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 )
 
 const IconArrow = ({ className }: IconProps): ReactElement => (
   <svg viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
-    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M3 8h10M9 4l4 4-4 4"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )
 
@@ -198,11 +220,7 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
     { text: '│', blue: true },
     { text: '                     │       └─┬───────────────┘       └───────────────────┘' },
   ],
-  [
-    { text: '  │           ' },
-    { text: '│', blue: true },
-    { text: '                     │         ▲' },
-  ],
+  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '                     │         ▲' }],
   [
     { text: '  │           ' },
     { text: '│', blue: true },
@@ -210,16 +228,8 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
     { text: '⇅', large: true },
     { text: ' postMessage       │         │ webhook (optional)' },
   ],
-  [
-    { text: '  │           ' },
-    { text: '│', blue: true },
-    { text: '   (client-side      │         │' },
-  ],
-  [
-    { text: '  │           ' },
-    { text: '│', blue: true },
-    { text: '    tool calls)      │         │' },
-  ],
+  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '   (client-side      │         │' }],
+  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '    tool calls)      │         │' }],
   [
     { text: '  │           ' },
     { text: '▼', blue: true },
@@ -256,16 +266,8 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
     { text: '     │       ' },
     { text: '└────────────────────────┘', blue: true },
   ],
-  [
-    { text: '  │   ' },
-    { text: '│       (iframe)        │', blue: true },
-    { text: '     │' },
-  ],
-  [
-    { text: '  │   ' },
-    { text: '│                       │', blue: true },
-    { text: '     │' },
-  ],
+  [{ text: '  │   ' }, { text: '│       (iframe)        │', blue: true }, { text: '     │' }],
+  [{ text: '  │   ' }, { text: '│                       │', blue: true }, { text: '     │' }],
   [
     { text: '  │   ' },
     { text: '│                       │', blue: true },
@@ -292,232 +294,232 @@ const STEP_HINT_KEYS: Record<number, string | null> = {
 }
 const ARCHITECTURE_INDICES = [0, 1, 2] as const
 
-export const InfoModal = ({ open, onClose, onSelectUseCaseForm, locale }: InfoModalProps): ReactElement | null => {
+export const InfoModal = ({
+  open,
+  onClose,
+  onSelectUseCaseForm,
+  locale,
+}: InfoModalProps): ReactElement | null => {
   const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'form-copilot' } })
   const { t } = useTranslation()
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="info-modal-title" size="lg">
-        <header className="flex items-start justify-between gap-6 border-b border-slate-100 px-7 pt-6 pb-5">
-          <div className="flex-1 space-y-3">
-            <h2
-              id="info-modal-title"
-              className="max-w-[34ch] text-[22px] font-semibold leading-tight tracking-tight text-slate-900"
+      <header className="flex items-start justify-between gap-6 border-b border-slate-100 px-7 pt-6 pb-5">
+        <div className="flex-1 space-y-3">
+          <h2
+            id="info-modal-title"
+            className="max-w-[34ch] text-[22px] font-semibold leading-tight tracking-tight text-slate-900"
+          >
+            {t('infoModal.title')}
+          </h2>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <a
+              href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-slate-700 transition hover:border-sky-600 hover:text-sky-700"
             >
-              {t('infoModal.title')}
-            </h2>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <a
-                href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-slate-700 transition hover:border-sky-600 hover:text-sky-700"
-              >
-                <IconGithub className="h-3.5 w-3.5" />
-                {t('infoModal.sourceCode')}
-              </a>
-              <iframe
-                title={t('infoModal.githubStarTitle')}
-                src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
-                frameBorder={0}
-                scrolling="0"
-                width={110}
-                height={20}
-              />
-            </div>
-          </div>
-          <ModalCloseButton onClose={onClose} />
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-7 py-6">
-          <div className="space-y-8">
-            <section>
-              <p className="text-[17px] font-semibold leading-snug text-slate-900">
-                {t('infoModal.whyItMattersLead')}
-              </p>
-              <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
-                {t('infoModal.whyItMattersBody')}
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
-                {t('infoModal.humanInTheLoopTitle')}
-              </h3>
-              <ol className="mt-5">
-                {STEP_NUMBERS.map((n, idx) => {
-                  const isLast = idx === STEP_NUMBERS.length - 1
-                  const hintKey = STEP_HINT_KEYS[n]
-                  return (
-                    <li key={n} className="flex gap-5">
-                      <div className="flex flex-shrink-0 flex-col items-center">
-                        <div className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-sky-600 text-[14px] font-bold text-white">
-                          {n}
-                        </div>
-                        {!isLast ? <div className="w-[2px] flex-1 bg-slate-200" /> : null}
-                      </div>
-                      <div className={isLast ? 'pb-0' : 'pb-7'}>
-                        <p className="text-[15px] leading-[1.7] text-slate-700">
-                          {t(`infoModal.humanInTheLoopBullet${n}`)}
-                        </p>
-                        {hintKey !== null ? (
-                          <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
-                            {t(hintKey)}
-                          </p>
-                        ) : null}
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            </section>
-
-            <section>
-              <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
-                {t('infoModal.aboutTitle')}
-              </h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{t('infoModal.aboutIntro')}</p>
-              <ul className="mt-4 grid gap-3 md:grid-cols-3">
-                {ARCHITECTURE_INDICES.map((idx) => {
-                  const Icon = ARCHITECTURE_ICONS[idx]
-                  const bulletNumber = idx + 1
-                  return (
-                    <li
-                      key={idx}
-                      className="rounded-2xl border border-slate-200 bg-[#f1f7ff] p-6"
-                    >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#002b5f]">
-                        <Icon className="h-7 w-7" />
-                      </div>
-                      <div className="mt-4 text-[14px] font-semibold leading-snug text-[#002b5f]">
-                        {t(`infoModal.aboutBullet${bulletNumber}Title`)}
-                      </div>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
-                        {t(`infoModal.aboutBullet${bulletNumber}Body`)}
-                      </p>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-
-            <section>
-              <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
-                {t('infoModal.useCasesTitle')}
-              </h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {USE_CASES.map((useCase) => {
-                  const { formId } = useCase
-                  const Icon = USE_CASE_ICONS[useCase.key]
-                  const title = t(`infoModal.useCases.${useCase.key}.title`)
-                  const body = t(`infoModal.useCases.${useCase.key}.body`)
-                  const sharedClass =
-                    'group flex h-full flex-col rounded-xl border p-3.5 text-left transition-all duration-200'
-
-                  if (formId === null) {
-                    return (
-                      <div
-                        key={useCase.key}
-                        className={`${sharedClass} border-dashed border-slate-200 bg-slate-50/60`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="flex h-10 w-10 items-center justify-center text-slate-400">
-                            <Icon className="h-5 w-5" />
-                          </span>
-                          <div className="text-[13px] font-semibold text-slate-700">{title}</div>
-                        </div>
-                        <p className="mt-2.5 flex-1 text-[11.5px] leading-relaxed text-slate-500">{body}</p>
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <button
-                      key={useCase.key}
-                      type="button"
-                      onClick={() => {
-                        onSelectUseCaseForm(formId)
-                        onClose()
-                      }}
-                      className={`${sharedClass} cursor-pointer border-slate-200 bg-white hover:bg-[#f1f7ff]`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-transparent text-[#002b5f] transition-colors duration-200 group-hover:bg-white">
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <div className="text-[13px] font-semibold text-slate-900 transition-colors duration-200 group-hover:text-[#002b5f]">
-                          {title}
-                        </div>
-                      </div>
-                      <p className="mt-2.5 flex-1 text-[11.5px] leading-relaxed text-slate-600">{body}</p>
-                      <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-sky-600 transition-all duration-200 group-hover:gap-1.5 group-hover:text-[#002b5f]">
-                        {t('infoModal.tryThisForm')}
-                        <IconArrow className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="mt-3 text-[11.5px] text-slate-500">{t('infoModal.useCasesFooter')}</p>
-            </section>
-
-            <section>
-              <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
-                {t('infoModal.architectureTitle')}
-              </h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
-                {t('infoModal.architectureSubtext')}
-              </p>
-              <p className="mt-4 text-[13px] font-semibold text-slate-900">
-                {t('infoModal.architectureLabel')}
-              </p>
-              <p className="sr-only">{t('infoModal.architectureDescription')}</p>
-              <pre
-                aria-hidden="true"
-                className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-[#f1f7ff] p-5 font-mono text-[11px] leading-[1.55] text-[#002b5f]"
-              >
-                {ARCHITECTURE_LINES.map((segments, lineIndex) => (
-                  <span key={`line-${lineIndex}`}>
-                    {segments.map((segment, segmentIndex) => {
-                      const classes = [
-                        segment.blue === true ? 'text-[#3665e1]' : null,
-                        segment.large === true ? 'inline-block scale-[2] align-middle leading-none' : null,
-                      ].filter((value): value is string => value !== null)
-                      const className = classes.length > 0 ? classes.join(' ') : undefined
-                      return (
-                        <span
-                          key={`line-${lineIndex}-seg-${segmentIndex}`}
-                          className={className}
-                        >
-                          {segment.text}
-                        </span>
-                      )
-                    })}
-                    {'\n'}
-                  </span>
-                ))}
-              </pre>
-            </section>
+              <IconGithub className="h-3.5 w-3.5" />
+              {t('infoModal.sourceCode')}
+            </a>
+            <iframe
+              title={t('infoModal.githubStarTitle')}
+              src="https://ghbtns.com/github-btn.html?user=SimplePDF&repo=simplepdf-embed&type=star&count=true"
+              frameBorder={0}
+              scrolling="0"
+              width={110}
+              height={20}
+            />
           </div>
         </div>
+        <ModalCloseButton onClose={onClose} />
+      </header>
 
-        <footer className="flex items-center justify-center border-t border-slate-100 bg-slate-50/60 px-7 py-3.5 text-[11.5px] text-slate-500">
-          <span>
-            <Trans
-              i18nKey="infoModal.availableOn"
-              components={{
-                plan: (
-                  <a
-                    href={pricingHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-sky-600 hover:text-sky-700"
-                  />
-                ),
-              }}
-            />
-          </span>
-        </footer>
+      <div className="flex-1 overflow-y-auto px-7 py-6">
+        <div className="space-y-8">
+          <section>
+            <p className="text-[17px] font-semibold leading-snug text-slate-900">
+              {t('infoModal.whyItMattersLead')}
+            </p>
+            <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
+              {t('infoModal.whyItMattersBody')}
+            </p>
+          </section>
+
+          <section>
+            <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
+              {t('infoModal.humanInTheLoopTitle')}
+            </h3>
+            <ol className="mt-5">
+              {STEP_NUMBERS.map((n, idx) => {
+                const isLast = idx === STEP_NUMBERS.length - 1
+                const hintKey = STEP_HINT_KEYS[n]
+                return (
+                  <li key={n} className="flex gap-5">
+                    <div className="flex flex-shrink-0 flex-col items-center">
+                      <div className="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-sky-600 text-[14px] font-bold text-white">
+                        {n}
+                      </div>
+                      {!isLast ? <div className="w-[2px] flex-1 bg-slate-200" /> : null}
+                    </div>
+                    <div className={isLast ? 'pb-0' : 'pb-7'}>
+                      <p className="text-[15px] leading-[1.7] text-slate-700">
+                        {t(`infoModal.humanInTheLoopBullet${n}`)}
+                      </p>
+                      {hintKey !== null ? (
+                        <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{t(hintKey)}</p>
+                      ) : null}
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
+          </section>
+
+          <section>
+            <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
+              {t('infoModal.aboutTitle')}
+            </h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-slate-600">{t('infoModal.aboutIntro')}</p>
+            <ul className="mt-4 grid gap-3 md:grid-cols-3">
+              {ARCHITECTURE_INDICES.map((idx) => {
+                const Icon = ARCHITECTURE_ICONS[idx]
+                const bulletNumber = idx + 1
+                return (
+                  <li key={idx} className="rounded-2xl border border-slate-200 bg-[#f1f7ff] p-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#002b5f]">
+                      <Icon className="h-7 w-7" />
+                    </div>
+                    <div className="mt-4 text-[14px] font-semibold leading-snug text-[#002b5f]">
+                      {t(`infoModal.aboutBullet${bulletNumber}Title`)}
+                    </div>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
+                      {t(`infoModal.aboutBullet${bulletNumber}Body`)}
+                    </p>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+
+          <section>
+            <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
+              {t('infoModal.useCasesTitle')}
+            </h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {USE_CASES.map((useCase) => {
+                const { formId } = useCase
+                const Icon = USE_CASE_ICONS[useCase.key]
+                const title = t(`infoModal.useCases.${useCase.key}.title`)
+                const body = t(`infoModal.useCases.${useCase.key}.body`)
+                const sharedClass =
+                  'group flex h-full flex-col rounded-xl border p-3.5 text-left transition-all duration-200'
+
+                if (formId === null) {
+                  return (
+                    <div
+                      key={useCase.key}
+                      className={`${sharedClass} border-dashed border-slate-200 bg-slate-50/60`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-10 w-10 items-center justify-center text-slate-400">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <div className="text-[13px] font-semibold text-slate-700">{title}</div>
+                      </div>
+                      <p className="mt-2.5 flex-1 text-[11.5px] leading-relaxed text-slate-500">{body}</p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <button
+                    key={useCase.key}
+                    type="button"
+                    onClick={() => {
+                      onSelectUseCaseForm(formId)
+                      onClose()
+                    }}
+                    className={`${sharedClass} cursor-pointer border-slate-200 bg-white hover:bg-[#f1f7ff]`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-transparent text-[#002b5f] transition-colors duration-200 group-hover:bg-white">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <div className="text-[13px] font-semibold text-slate-900 transition-colors duration-200 group-hover:text-[#002b5f]">
+                        {title}
+                      </div>
+                    </div>
+                    <p className="mt-2.5 flex-1 text-[11.5px] leading-relaxed text-slate-600">{body}</p>
+                    <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-sky-600 transition-all duration-200 group-hover:gap-1.5 group-hover:text-[#002b5f]">
+                      {t('infoModal.tryThisForm')}
+                      <IconArrow className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-3 text-[11.5px] text-slate-500">{t('infoModal.useCasesFooter')}</p>
+          </section>
+
+          <section>
+            <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
+              {t('infoModal.architectureTitle')}
+            </h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
+              {t('infoModal.architectureSubtext')}
+            </p>
+            <p className="mt-4 text-[13px] font-semibold text-slate-900">
+              {t('infoModal.architectureLabel')}
+            </p>
+            <p className="sr-only">{t('infoModal.architectureDescription')}</p>
+            <pre
+              aria-hidden="true"
+              className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-[#f1f7ff] p-5 font-mono text-[11px] leading-[1.55] text-[#002b5f]"
+            >
+              {ARCHITECTURE_LINES.map((segments, lineIndex) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: ARCHITECTURE_LINES is a static constant ASCII diagram; ordering is stable and content doesn't reorder.
+                <span key={`line-${lineIndex}`}>
+                  {segments.map((segment, segmentIndex) => {
+                    const classes = [
+                      segment.blue === true ? 'text-[#3665e1]' : null,
+                      segment.large === true ? 'inline-block scale-[2] align-middle leading-none' : null,
+                    ].filter((value): value is string => value !== null)
+                    const className = classes.length > 0 ? classes.join(' ') : undefined
+                    return (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: same static-diagram reasoning as the outer map.
+                      <span key={`line-${lineIndex}-seg-${segmentIndex}`} className={className}>
+                        {segment.text}
+                      </span>
+                    )
+                  })}
+                  {'\n'}
+                </span>
+              ))}
+            </pre>
+          </section>
+        </div>
+      </div>
+
+      <footer className="flex items-center justify-center border-t border-slate-100 bg-slate-50/60 px-7 py-3.5 text-[11.5px] text-slate-500">
+        <span>
+          <Trans
+            i18nKey="infoModal.availableOn"
+            components={{
+              plan: (
+                // biome-ignore lint/a11y/useAnchorContent: children are injected at runtime by i18next <Trans>.
+                <a
+                  href={pricingHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-sky-600 hover:text-sky-700"
+                />
+              ),
+            }}
+          />
+        </span>
+      </footer>
     </Modal>
   )
 }

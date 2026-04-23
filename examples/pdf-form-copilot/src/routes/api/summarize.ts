@@ -1,10 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createFileRoute } from '@tanstack/react-router'
 import { generateText } from 'ai'
-import { SummarizeRequestSchema, type SummarizePage } from '../../server/tools'
+import { parseJsonBody } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { getShareParam, resolveApiKey } from '../../server/shared_keys'
-import { parseJsonBody } from '../../server/http'
+import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_INPUT_CHARS = 20_000
@@ -28,9 +28,7 @@ const generateDelimiter = (): string => {
 }
 
 const renderPages = ({ pages, delimiter }: { pages: SummarizePage[]; delimiter: string }): string => {
-  const joined = pages
-    .map((page) => `--- ${delimiter} ${page.page} ---\n${page.content.trim()}`)
-    .join('\n\n')
+  const joined = pages.map((page) => `--- ${delimiter} ${page.page} ---\n${page.content.trim()}`).join('\n\n')
   if (joined.length <= MAX_INPUT_CHARS) {
     return joined
   }
@@ -47,10 +45,7 @@ export const Route = createFileRoute('/api/summarize')({
         const shareId = getShareParam(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
-          return Response.json(
-            { error: 'share_required', message: 'Invite link required' },
-            { status: 401 },
-          )
+          return Response.json({ error: 'share_required', message: 'Invite link required' }, { status: 401 })
         }
 
         const body = await parseJsonBody({

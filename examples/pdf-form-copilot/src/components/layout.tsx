@@ -1,12 +1,12 @@
-import { type ReactNode } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getFormsForLocale, type FormId } from '../lib/forms'
+import { type FormId, getFormsForLocale } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
+import { CerfaDorModal } from './cerfa_dor_modal'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
 import { SubmitDemoModal } from './submit_demo_modal'
-import { CerfaDorModal } from './cerfa_dor_modal'
 
 const CERFA_DOR_LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
 
@@ -34,14 +34,11 @@ export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => 
       </main>
       <div className="flex flex-1 items-center justify-center p-6 lg:hidden">
         <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
-          <h1 className="text-lg font-semibold text-slate-900">
-            {t('mobileFallback.headline')}
-          </h1>
+          <h1 className="text-lg font-semibold text-slate-900">{t('mobileFallback.headline')}</h1>
           <div className="w-full">
-            <h2 className="mb-2 text-sm font-medium text-slate-700">
-              {t('mobileFallback.watchDemo')}
-            </h2>
+            <h2 className="mb-2 text-sm font-medium text-slate-700">{t('mobileFallback.watchDemo')}</h2>
             <div
+              role="img"
               aria-label={t('mobileFallback.videoPlaceholder')}
               className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-xs font-medium uppercase tracking-[0.2em] text-slate-400"
             >
@@ -144,7 +141,12 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
               title={t('cerfaDor.buttonTitle')}
               className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-amber-200 bg-amber-50/60 p-0.5 transition-all hover:border-amber-400 hover:shadow-sm"
             >
-              <img src={CERFA_DOR_LOGO_URL} alt="" aria-hidden="true" className="h-full w-full rounded-md object-cover" />
+              <img
+                src={CERFA_DOR_LOGO_URL}
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full rounded-md object-cover"
+              />
             </button>
           ) : null}
         </div>
@@ -157,7 +159,12 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           {t('header.poweredBy')}
         </a>
       </div>
-      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectUseCaseForm={switchToUseCaseForm} locale={locale} />
+      <InfoModal
+        open={isInfoOpen}
+        onClose={closeModal}
+        onSelectUseCaseForm={switchToUseCaseForm}
+        locale={locale}
+      />
       <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} locale={locale} />
       {isFrench ? <CerfaDorModal open={isCerfaDorOpen} onClose={closeModal} /> : null}
     </header>

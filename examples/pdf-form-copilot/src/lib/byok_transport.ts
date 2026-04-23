@@ -1,8 +1,6 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
-import type { ByokConfig } from './byok'
-import { formatStreamError } from './error_classifier'
 import {
   DetectFieldsInput,
   FocusFieldInput,
@@ -14,6 +12,8 @@ import {
   SubmitDownloadInput,
   SYSTEM_PROMPT,
 } from '../server/tools'
+import type { ByokConfig } from './byok'
+import { formatStreamError } from './error_classifier'
 
 const MAX_OUTPUT_TOKENS = 500
 
@@ -100,8 +100,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
         inputSchema: DetectFieldsInput,
       },
       select_tool: {
-        description:
-          'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
+        description: 'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
         inputSchema: SelectToolInput,
       },
       set_field_value: {
@@ -129,4 +128,3 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
     onError: formatStreamError,
   })
 }
-

@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
-import ReactMarkdown from 'react-markdown'
-import { useTranslation } from 'react-i18next'
 import { getRouteApi } from '@tanstack/react-router'
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
+import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import ReactMarkdown from 'react-markdown'
+import { type ByokConfig, findProvider } from '../lib/byok'
+import { runByokStream } from '../lib/byok_transport'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -11,17 +13,15 @@ import type {
   FieldRecord,
   IframeBridge,
 } from '../lib/iframe_bridge'
-import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
-import { findProvider, type ByokConfig } from '../lib/byok'
-import { runByokStream } from '../lib/byok_transport'
+import { type ClientToolName, isClientToolName } from '../server/tools'
 import { ErrorBanner } from './error_banner'
 import { LanguagePicker } from './language_picker'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
-import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { ToolIcon } from './tool_icons'
+import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { Toolbar, type ToolbarTool } from './toolbar'
 import { Button } from './ui/button'
 
@@ -123,28 +123,34 @@ const truncatePages = (pages: DocumentContentPage[]): DocumentContentPage[] => {
 
 type CompactedDocumentContent = { name: string | null; pages: DocumentContentPage[] }
 
-const compactGetDocumentContent = (
-  result: BridgeResult<DocumentContentResult>,
-): BridgeResult<CompactedDocumentContent> => {
+const compactGetDocumentContent = ({
+  result,
+  unbounded,
+}: {
+  result: BridgeResult<DocumentContentResult>
+  unbounded: boolean
+}): BridgeResult<CompactedDocumentContent> => {
   if (!result.success) {
     return result
   }
   const name = result.data.name === '' ? null : result.data.name
+  if (unbounded) {
+    // BYOK: the visitor pays for their own tokens, so hand the full document
+    // through without chars/page truncation. Shared-key path stays bounded.
+    return { success: true, data: { name, pages: result.data.pages } }
+  }
   return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
 }
 
 type DispatchContext = {
   languageLabel: string
+  byokActive: boolean
   onToolbarChange: (tool: ToolbarTool) => void
   onOpenSubmitModal: () => void
 }
 
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
-  value === null ||
-  value === 'TEXT' ||
-  value === 'CHECKBOX' ||
-  value === 'SIGNATURE' ||
-  value === 'PICTURE'
+  value === null || value === 'TEXT' || value === 'CHECKBOX' || value === 'SIGNATURE' || value === 'PICTURE'
 
 const buildNewFieldMessage = (delta: number): string => {
   if (delta === 1) {
@@ -183,7 +189,10 @@ const dispatchTool = async (
       return compactGetFields(await bridge.getFields())
     case 'get_document_content': {
       const extractionMode: 'auto' | 'ocr' = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
-      return compactGetDocumentContent(await bridge.getDocumentContent({ extractionMode }))
+      return compactGetDocumentContent({
+        result: await bridge.getDocumentContent({ extractionMode }),
+        unbounded: context.byokActive,
+      })
     }
     case 'detect_fields':
       return bridge.detectFields()
@@ -344,7 +353,12 @@ export const ChatPane = ({
       console.info('[copilot] tool call', toolName, callInput)
       void dispatchTool(
         activeBridge,
-        { languageLabel, onToolbarChange: setToolbarTool, onOpenSubmitModal: openSubmitModal },
+        {
+          languageLabel,
+          byokActive: byokConfigRef.current !== null,
+          onToolbarChange: setToolbarTool,
+          onOpenSubmitModal: openSubmitModal,
+        },
         toolName,
         callInput,
       ).then((result) => {
@@ -352,7 +366,10 @@ export const ChatPane = ({
         if (result.success) {
           console.info(`[copilot] tool done ${toolName} ${elapsedMs}ms`, result.data)
         } else {
-          console.warn(`[copilot] tool failed ${toolName} ${elapsedMs}ms`, { input: callInput, error: result.error })
+          console.warn(`[copilot] tool failed ${toolName} ${elapsedMs}ms`, {
+            input: callInput,
+            error: result.error,
+          })
         }
         addToolOutput({
           tool: toolName,
@@ -365,7 +382,7 @@ export const ChatPane = ({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages])
+  }, [])
 
   const turnStartAtRef = useRef<number | null>(null)
   const firstTokenLoggedRef = useRef(false)
@@ -389,17 +406,14 @@ export const ChatPane = ({
     }
   }, [status])
 
-  const handleToolbarSelect = useCallback(
-    (tool: ToolbarTool): void => {
-      setToolbarTool(tool)
-      const activeBridge = bridgeRef.current
-      if (activeBridge === null) {
-        return
-      }
-      void activeBridge.selectTool({ tool })
-    },
-    [],
-  )
+  const handleToolbarSelect = useCallback((tool: ToolbarTool): void => {
+    setToolbarTool(tool)
+    const activeBridge = bridgeRef.current
+    if (activeBridge === null) {
+      return
+    }
+    void activeBridge.selectTool({ tool })
+  }, [])
 
   // Unified field-state poll. One timer covers BOTH:
   //   - Toolbar delta: when a toolbar tool is active, notify the LLM when the
@@ -497,8 +511,8 @@ export const ChatPane = ({
               <h2 className="text-sm font-semibold text-slate-900">
                 {byokConfig === null
                   ? t('chat.modelNameReady')
-                  : findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
-                    byokConfig.model}
+                  : (findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
+                    byokConfig.model)}
               </h2>
               <button
                 type="button"
@@ -555,9 +569,7 @@ export const ChatPane = ({
                 return <MessageView key={message.id} message={message} />
               })}
               {isStreaming ? <ThinkingIndicator /> : null}
-              {error !== undefined ? (
-                <ErrorBanner error={error} onSwitchModel={openModelPicker} />
-              ) : null}
+              {error !== undefined ? <ErrorBanner error={error} onSwitchModel={openModelPicker} /> : null}
             </div>
           )
         })()}
@@ -703,7 +715,10 @@ const MessageView = ({ message }: MessageViewProps) => {
         {blocks.map((block) => {
           if (block.kind === 'text') {
             return (
-              <div key={block.key} className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+              <div
+                key={block.key}
+                className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
+              >
                 <ReactMarkdown
                   components={{
                     strong: ({ children }) => (
@@ -741,7 +756,12 @@ const PiiWarningBanner = ({ visible }: { visible: boolean }) => {
             visible ? 'opacity-100 delay-100' : 'opacity-0'
           }`}
         >
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="mt-[1px] h-3.5 w-3.5 flex-none text-[#23406E]">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+            className="mt-[1px] h-3.5 w-3.5 flex-none text-[#23406E]"
+          >
             <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
             <path d="M12 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             <circle cx="12" cy="8" r="0.9" fill="currentColor" />

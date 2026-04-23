@@ -1,12 +1,10 @@
-import { persistence, type PersistedState } from './rate_limit_persistence'
+import { type PersistedState, persistence } from './rate_limit_persistence'
 
 type BucketState = {
   hits: number
 }
 
-export type RateLimitDecision =
-  | { allowed: true; remaining: number }
-  | { allowed: false; reason: 'lifetime' }
+export type RateLimitDecision = { allowed: true; remaining: number } | { allowed: false; reason: 'lifetime' }
 
 export type RateLimitInput = {
   bucket: string

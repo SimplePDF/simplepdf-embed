@@ -38,11 +38,7 @@ export const getLanguageByCode = (code: string): Language | null =>
 export const isLanguageCode = (value: unknown): value is string =>
   typeof value === 'string' && LANGUAGES.some((language) => language.code === value)
 
-const normalize = (value: string): string =>
-  value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+const normalize = (value: string): string => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 export const filterLanguages = (query: string): Language[] => {
   const trimmed = query.trim()

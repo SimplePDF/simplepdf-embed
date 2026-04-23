@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ToolInvocationCard } from './tool_invocation_card'
 import { getToolKind, HourglassIcon, ToolIcon } from './tool_icons'
+import { ToolInvocationCard } from './tool_invocation_card'
 
 export type ToolInvocationPart = {
   key: string
@@ -68,6 +68,12 @@ const Caret = ({ isOpen }: { isOpen: boolean }) => (
     className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
     aria-hidden="true"
   >
-    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M6 9l6 6 6-6"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore, type RefObject } from 'react'
+import { type RefObject, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
 
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
@@ -77,10 +77,14 @@ export type IframeBridge = {
   selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
   detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
   removeFields: (args?: RemoveFieldsArgs) => Promise<BridgeResult<{ removed_count: number }>>
-  getDocumentContent: (args: { extractionMode: 'auto' | 'ocr' }) => Promise<BridgeResult<DocumentContentResult>>
+  getDocumentContent: (args: {
+    extractionMode: 'auto' | 'ocr'
+  }) => Promise<BridgeResult<DocumentContentResult>>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
   setFieldValue: (args: { fieldId: string; value: string | null }) => Promise<BridgeResult>
-  focusField: (args: { fieldId: string }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
+  focusField: (args: {
+    fieldId: string
+  }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
   createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
 }
@@ -118,7 +122,10 @@ const createBridge = ({
         pending.delete(requestId)
         resolve({
           success: false,
-          error: { code: 'timeout', message: `Iframe request '${type}' timed out after ${REQUEST_TIMEOUT_MS}ms` },
+          error: {
+            code: 'timeout',
+            message: `Iframe request '${type}' timed out after ${REQUEST_TIMEOUT_MS}ms`,
+          },
         })
       }, REQUEST_TIMEOUT_MS)
 
@@ -300,7 +307,12 @@ const createBridge = ({
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
     const result = payload.data?.result as BridgeResult<unknown> | undefined
-    entry.resolve(result ?? { success: false, error: { code: 'missing_result', message: 'REQUEST_RESULT payload had no result' } })
+    entry.resolve(
+      result ?? {
+        success: false,
+        error: { code: 'missing_result', message: 'REQUEST_RESULT payload had no result' },
+      },
+    )
   }
 
   window.addEventListener('message', onMessage)
@@ -312,8 +324,10 @@ const createBridge = ({
     goTo: ({ page }) => sendRequest('GO_TO', { page }),
     selectTool: ({ tool }) => sendRequest('SELECT_TOOL', { tool }),
     detectFields: (args) => sendRequest('DETECT_FIELDS', { debug_mode: args?.debugMode === true }),
-    removeFields: (args) => sendRequest('REMOVE_FIELDS', { field_ids: args?.fieldIds ?? null, page: args?.page ?? null }),
-    getDocumentContent: ({ extractionMode }) => sendRequest('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
+    removeFields: (args) =>
+      sendRequest('REMOVE_FIELDS', { field_ids: args?.fieldIds ?? null, page: args?.page ?? null }),
+    getDocumentContent: ({ extractionMode }) =>
+      sendRequest('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
     getFields: () => sendRequest('GET_FIELDS', {}),
     setFieldValue: ({ fieldId, value }) => sendRequest('SET_FIELD_VALUE', { field_id: fieldId, value }),
     focusField: ({ fieldId }) => sendRequest('FOCUS_FIELD', { field_id: fieldId }),
@@ -363,7 +377,13 @@ export const useIframeBridge = ({
   const bridgeRef = useRef<IframeBridge | null>(null)
   const listenersRef = useRef<Set<() => void>>(new Set())
 
+  // resetKey is a manual reset sentinel: changing it tears down the bridge +
+  // creates a fresh one (full state-machine + probe + pending-request reset).
+  // Used on form / locale switches. We read it off the closure indirectly by
+  // including it in the deps, so Biome's static analysis sees it as
+  // "unused"; the comment below silences that false-positive.
   useEffect(() => {
+    void resetKey
     const notify = () => {
       for (const listener of listenersRef.current) {
         listener()

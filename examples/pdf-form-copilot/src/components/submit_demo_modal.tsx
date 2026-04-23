@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Modal, ModalHeader } from './modal'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
+import { Modal, ModalHeader } from './modal'
 
 type SubmitDemoModalProps = {
   open: boolean
@@ -11,8 +11,14 @@ type SubmitDemoModalProps = {
 
 export const SubmitDemoModal = ({ open, onClose, locale }: SubmitDemoModalProps): ReactElement | null => {
   const { t } = useTranslation()
-  const requiredFieldsHref = buildSimplepdfUrl({ locale, path: '/help/how-to/add-required-fields-on-pdf-forms' })
-  const webhooksHref = buildSimplepdfUrl({ locale, path: '/help/how-to/configure-webhooks-pdf-form-submissions' })
+  const requiredFieldsHref = buildSimplepdfUrl({
+    locale,
+    path: '/help/how-to/add-required-fields-on-pdf-forms',
+  })
+  const webhooksHref = buildSimplepdfUrl({
+    locale,
+    path: '/help/how-to/configure-webhooks-pdf-form-submissions',
+  })
   const learnMoreHref = buildSimplepdfUrl({ locale, query: { s: 'form-copilot' } })
   const contactHref = buildSimplepdfUrl({ locale, path: '/contact', query: { help: 'schedule_a_demo' } })
   return (
@@ -32,6 +38,7 @@ export const SubmitDemoModal = ({ open, onClose, locale }: SubmitDemoModalProps)
             i18nKey="submitDemo.bodySubtext"
             components={{
               fields: (
+                // biome-ignore lint/a11y/useAnchorContent: children injected by i18next <Trans>.
                 <a
                   href={requiredFieldsHref}
                   target="_blank"
@@ -40,6 +47,7 @@ export const SubmitDemoModal = ({ open, onClose, locale }: SubmitDemoModalProps)
                 />
               ),
               flows: (
+                // biome-ignore lint/a11y/useAnchorContent: children injected by i18next <Trans>.
                 <a
                   href={webhooksHref}
                   target="_blank"

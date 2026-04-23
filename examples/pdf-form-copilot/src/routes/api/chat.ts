@@ -1,6 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
+import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
+import { getShareParam, resolveApiKey } from '../../server/shared_keys'
 import {
   ChatRequestSchema,
   DetectFieldsInput,
@@ -13,9 +16,6 @@ import {
   SubmitDownloadInput,
   SYSTEM_PROMPT,
 } from '../../server/tools'
-import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { getShareParam, resolveApiKey } from '../../server/shared_keys'
-import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
@@ -65,8 +65,7 @@ export const Route = createFileRoute('/api/chat')({
           return Response.json(
             {
               error: 'share_required',
-              message:
-                'This demo requires a valid invite link. Bring your own API key to keep going.',
+              message: 'This demo requires a valid invite link. Bring your own API key to keep going.',
             },
             { status: 401 },
           )
@@ -107,7 +106,7 @@ export const Route = createFileRoute('/api/chat')({
               error: 'rate_limited',
               reason: decision.reason,
               message:
-                "Thanks for trying the demo! Running it costs us real money, so access is capped. To keep going, use your own API key.",
+                'Thanks for trying the demo! Running it costs us real money, so access is capped. To keep going, use your own API key.',
             },
             { status: 429 },
           )
@@ -164,7 +163,8 @@ export const Route = createFileRoute('/api/chat')({
               inputSchema: GoToPageInput,
             },
             submit_download: {
-              description: 'Finalizes the filled PDF and triggers a download. Use only when the user asks to submit.',
+              description:
+                'Finalizes the filled PDF and triggers a download. Use only when the user asks to submit.',
               inputSchema: SubmitDownloadInput,
             },
           },

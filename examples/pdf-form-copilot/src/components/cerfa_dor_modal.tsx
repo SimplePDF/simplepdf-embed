@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Modal, ModalHeader } from './modal'
 import { Button } from './ui/button'
@@ -13,7 +13,8 @@ const LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa
 
 const CERFA_DOR_ARTICLE =
   'https://www.planet.fr/politique-les-cerfa-dor-organises-par-david-lisnard-le-palmares-des-normes-les-plus-ridicules.2996147.29334.html'
-const LISNARD_PLAN_ARTICLE = 'https://www.unenouvelleenergie.fr/david-lisnard-devoile-son-plan-pour-en-finir-avec-la-bureaucratie/'
+const LISNARD_PLAN_ARTICLE =
+  'https://www.unenouvelleenergie.fr/david-lisnard-devoile-son-plan-pour-en-finir-avec-la-bureaucratie/'
 
 const buildShareUrl = (): string => {
   // Cerfa d'Or is French-only; surface the FR-locale marketing URL in the

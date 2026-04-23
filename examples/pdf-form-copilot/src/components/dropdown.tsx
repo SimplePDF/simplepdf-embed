@@ -1,11 +1,11 @@
 import {
+  type KeyboardEvent,
+  type ReactElement,
+  type ReactNode,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type KeyboardEvent,
-  type ReactElement,
-  type ReactNode,
 } from 'react'
 
 type DropdownSearchConfig<T> = {
@@ -45,8 +45,7 @@ export const Dropdown = <T,>({
   const containerRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const visibleItems: readonly T[] =
-    search !== undefined && query !== '' ? search.filter(query) : items
+  const visibleItems: readonly T[] = search !== undefined && query !== '' ? search.filter(query) : items
 
   useEffect(() => {
     if (!isOpen) {
@@ -73,9 +72,7 @@ export const Dropdown = <T,>({
       searchInputRef.current?.focus()
       return
     }
-    const selectedIndex = items.findIndex(
-      (item) => getItemKey(item) === getItemKey(selectedItem),
-    )
+    const selectedIndex = items.findIndex((item) => getItemKey(item) === getItemKey(selectedItem))
     setHighlightIndex(selectedIndex === -1 ? 0 : selectedIndex)
   }, [isOpen, search, items, selectedItem, getItemKey])
 

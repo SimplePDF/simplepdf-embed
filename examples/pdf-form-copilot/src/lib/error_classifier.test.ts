@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   classifyError,
   formatStreamError,
@@ -171,7 +171,9 @@ describe(classifyError.name, () => {
   })
 
   it('classifies a { error: "rate_limited" } body (no statusCode) as "demo_rate_limited"', () => {
-    const error = new Error(JSON.stringify({ error: 'rate_limited', reason: 'lifetime', message: 'Thanks for trying the demo!' }))
+    const error = new Error(
+      JSON.stringify({ error: 'rate_limited', reason: 'lifetime', message: 'Thanks for trying the demo!' }),
+    )
     expect(classifyError(error)).toBe('demo_rate_limited')
   })
 

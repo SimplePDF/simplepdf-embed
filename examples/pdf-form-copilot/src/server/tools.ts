@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import type { UIMessage } from 'ai'
+import { z } from 'zod'
 import { isLanguageCode, LANGUAGES } from '../lib/languages'
 
 export const GetFieldsInput = z.object({}).describe('Lists every fillable field currently on the document')

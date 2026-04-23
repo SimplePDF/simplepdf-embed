@@ -1,4 +1,4 @@
-import { useEffect, type ReactElement, type ReactNode } from 'react'
+import { type ReactElement, type ReactNode, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -59,6 +59,7 @@ export const Modal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: inner panel stops backdrop-close propagation, not interactive on its own. */}
       <div className={panelClass} onClick={(event) => event.stopPropagation()}>
         {children}
       </div>
@@ -109,7 +110,8 @@ export const ModalHeader = ({
   className,
   leftAccessory,
 }: ModalHeaderProps): ReactElement => {
-  const wrapperClass = className ?? 'flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5'
+  const wrapperClass =
+    className ?? 'flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5'
   return (
     <div className={wrapperClass}>
       <div className="flex items-center gap-3">

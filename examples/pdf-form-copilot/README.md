@@ -2,41 +2,94 @@
 
 > Form Copilot: AI that helps users fill PDF forms step by step.
 
-Standalone TanStack Start app that combines the SimplePDF editor (left pane) with an AI chat sidebar (right pane). The assistant can read, fill, navigate, and submit the PDF through the SimplePDF iframe `postMessage` bridge.
+Standalone TanStack Start app that combines the SimplePDF editor (left pane) with an AI chat sidebar (right pane). The assistant reads, fills, navigates, and submits the PDF through the SimplePDF iframe `postMessage` bridge. Doubles as the canonical integration example for consumers and as a hosted marketing demo.
 
 - **Framework**: TanStack Start (Vite + Nitro)
-- **PDF editor**: embedded iframe at `pdf-form-copilot.simplepdf.com`
-- **LLM**: Claude Haiku 4.5 via the Vercel AI SDK (`ai` + `@ai-sdk/anthropic`), streamed through a TanStack Start server function
+- **PDF editor**: embedded iframe at `<company>.simplepdf.com`
+- **LLM on the server path**: Claude Haiku 4.5 via the Vercel AI SDK, streamed through a TanStack Start server function
+- **LLM on the BYOK path**: `streamText` runs directly in the browser (OpenAI or Anthropic); the API key stays in tab memory and never touches this server
 - **Tools**: executed client-side via iframe `postMessage` (no tool execution on the server)
-- **Rate limit**: per-IP, in-memory (single-instance deploy)
-
-This example doubles as a hosted demo and a reference implementation for consumers. See [`plans/P059-pdf-form-copilot.md`](../../../../plans/P059-pdf-form-copilot.md) in the parent repo for design notes.
+- **Access model**: invite-only via `SHARED_API_KEYS` + `?share=<id>` OR bring-your-own-key via the Model Picker. No open / default-key mode.
 
 ## Running locally
 
 ```bash
 npm install
-cp .env.example .env     # add your ANTHROPIC_API_KEY before Phase 3
-npm run dev              # http://localhost:3001
+cp .env.example .env
+# Set SHARED_API_KEYS in .env (JSON shape documented below) before the server
+# will answer. Alternatively, skip the server path entirely and use the Model
+# Picker -> BYOK from the UI.
+npm run dev              # defaults to http://localhost:3001
 ```
 
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `npm run dev` | Start the dev server on port 3001 |
-| `npm run build` | Production build |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build (Nitro output) |
 | `npm run preview` | Preview the production build |
 | `npm run test` | Run unit tests (Vitest) |
 | `npm run check` | Biome format + lint check |
+| `npm run test:types` | `tsc --noEmit` |
 
 ## Environment
 
+### Access keys
+
+`SHARED_API_KEYS` is the only server-paid path. The env is a stringified JSON map of share-id to per-share config:
+
+```
+SHARED_API_KEYS='{"<share_id>":{"api_key":"sk-ant-...","rate_limit_turns_lifetime":20}}'
+```
+
+- `api_key` (required): Anthropic key used for requests that arrive with `?share=<share_id>`.
+- `rate_limit_turns_lifetime` (required): lifetime cap on fresh user turns per IP for that share. Resets on server restart (or persists to S3, see below).
+- The reserved id `__default__` is rejected at parse time.
+- Requests without a valid `?share=` return 401.
+
+Visitors who want the demo without an invite link open the Model Picker inside the app and bring their own key. BYOK runs the stream entirely in the browser; it never hits `/api/chat` or `/api/summarize`.
+
+### Client configuration
+
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `ANTHROPIC_API_KEY` | Phase 3+ | Server-only; passed to the Vercel AI SDK's Anthropic provider. Never exposed to the client bundle. |
 | `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | No (defaults to `pdf-form-copilot`) | The `<company>.simplepdf.com` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. Get your own company identifier: https://simplepdf.com/auth/signup |
+| `VITE_ENABLE_DEVTOOLS` | No | Set to `true` to surface the TanStack Router devtools panel in local dev. |
 
-## Status
+### Rate-limit persistence (optional; all seven must be set together)
 
-Scaffold only (Phase 1 of the plan). The chat sidebar is a placeholder until Phase 3 lands.
+| Variable | Purpose |
+|----------|---------|
+| `IP_HASH_SALT` | **Required when the S3 vars below are set.** Salts the SHA-256 IP hash; prevents brute-force of a leaked persisted blob. Server refuses to start if S3 persistence is configured without it. |
+| `S3_ENDPOINT` | e.g. `https://fra1.digitaloceanspaces.com` |
+| `S3_REGION` | e.g. `us-east-1` |
+| `S3_BUCKET` | e.g. `beautiful-space` |
+| `S3_RATE_LIMIT_KEY` | e.g. `simple-pdf/rate-limits/pdf-form-copilot.json` |
+| `S3_ACCESS_KEY_ID` | Spaces / S3 access key |
+| `S3_SECRET_ACCESS_KEY` | Spaces / S3 secret |
+
+With all seven set, per-(share, IP) counters are loaded at boot and written every 30s (debounced). Without them, counters live only in memory and reset with the server process.
+
+## Architecture at a glance
+
+```
+Browser
+  Copilot chat -- postMessage --> SimplePDF editor iframe
+     |
+     |-- /api/chat (same-origin only) --> server function
+     |                                      -> Anthropic via Vercel AI SDK
+     |                                      -> per-share rate limiter
+     |
+     |-- BYOK path: streamText in browser --> OpenAI / Anthropic directly
+                                              (never hits our server)
+```
+
+- Every server route (`/api/chat`, `/api/summarize`, the `readDemoGate` server function) enforces a same-origin check. Spoofable from curl but the intent is to constrain the browser path to the hosting origin.
+- Tool-call round trips happen client-side; the server only proxies the stream.
+- Tool results are wrapped in a `{ __untrusted_data, data }` envelope before reaching the LLM. The system prompt includes a matching rule.
+- On the BYOK path, `get_document_content` returns the full document; on the shared-key path, it caps at one page / 1200 chars to stay under the per-share token budget.
+
+## Design notes
+
+See [`plans/P059-pdf-form-copilot.md`](../../../../plans/P059-pdf-form-copilot.md) in the parent repo for the full design history, decision log, and code-review remediation trail.

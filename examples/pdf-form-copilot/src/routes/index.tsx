@@ -1,16 +1,16 @@
-import { useCallback, useRef } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { Layout } from '../components/layout'
-import { EditorPane } from '../components/editor_pane'
-import { ChatPane } from '../components/chat_pane'
-import { DEFAULT_FORM_ID, getFormsForLocale, isFormId, type FormId } from '../lib/forms'
-import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
-import { useIframeBridge } from '../lib/iframe_bridge'
-import { i18n } from '../lib/i18n'
-import { isShareValid } from '../server/shared_keys'
-import { isSameOrigin } from '../server/rate_limit'
 import { getRequest } from '@tanstack/react-start/server'
+import { useCallback, useRef } from 'react'
+import { ChatPane } from '../components/chat_pane'
+import { EditorPane } from '../components/editor_pane'
+import { Layout } from '../components/layout'
+import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
+import { i18n } from '../lib/i18n'
+import { useIframeBridge } from '../lib/iframe_bridge'
+import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
+import { isSameOrigin } from '../server/rate_limit'
+import { isShareValid } from '../server/shared_keys'
 
 export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
 
@@ -74,8 +74,7 @@ export const Route = createFileRoute('/')({
     }
   },
   loaderDeps: ({ search }) => ({ share: search.share ?? null }),
-  loader: async ({ deps }): Promise<DemoGate> =>
-    readDemoGate({ data: { shareId: deps.share } }),
+  loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.share } }),
 })
 
 const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'

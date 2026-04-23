@@ -6,7 +6,10 @@ const PersistedEntrySchema = z.object({
   // reserved sentinel '__default__' for the ANTHROPIC_API_KEY path. Optional
   // on load for backward compat with pre-3.15 persisted blobs that had no
   // bucket field; falls back to '__default__'.
-  bucket: z.string().optional().transform((value) => value ?? '__default__'),
+  bucket: z
+    .string()
+    .optional()
+    .transform((value) => value ?? '__default__'),
   ipHash: z.string(),
   hits: z.number().int().nonnegative(),
 })
@@ -40,9 +43,7 @@ const readConfig = (): PersistenceConfig | null => {
   // brute-force the 2^32 IPv4 space in minutes and unmask every tracked IP.
   const salt = process.env.IP_HASH_SALT
   if (salt === undefined || salt.trim() === '') {
-    throw new Error(
-      'IP_HASH_SALT is required when S3 rate-limit persistence is enabled',
-    )
+    throw new Error('IP_HASH_SALT is required when S3 rate-limit persistence is enabled')
   }
   const client = new S3Client({
     endpoint,
