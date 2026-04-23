@@ -4,7 +4,13 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type
 import ReactMarkdown from 'react-markdown'
 import { Trans, useTranslation } from 'react-i18next'
 import { getRouteApi } from '@tanstack/react-router'
-import type { BridgeResult, IframeBridge } from '../lib/iframe_bridge'
+import type {
+  BridgeResult,
+  DocumentContentPage,
+  DocumentContentResult,
+  FieldRecord,
+  IframeBridge,
+} from '../lib/iframe_bridge'
 import { isClientToolName, type ClientToolName } from '../server/tools'
 import { getLanguageByCode } from '../lib/languages'
 import { findProvider, type ByokConfig } from '../lib/byok'
@@ -55,35 +61,39 @@ const MAX_CONTENT_CHARS_PER_PAGE = 1200
 const MAX_CONTENT_PAGES = 1
 const SUMMARIZE_THRESHOLD_CHARS = 1500
 
-const compactGetFields = (result: BridgeResult<unknown>): BridgeResult<unknown> => {
+type CompactedField = {
+  id: string
+  type: string
+  page: number
+  value?: string
+  name?: string
+}
+
+const compactGetFields = (
+  result: BridgeResult<{ fields: FieldRecord[] }>,
+): BridgeResult<{ fields: CompactedField[] }> => {
   if (!result.success) {
     return result
   }
-  const data = result.data as { fields?: Array<{ field_id: string; name: string | null; type: string; page: number; value: string | null }> }
-  if (!Array.isArray(data.fields)) {
-    return result
-  }
-  const compacted = data.fields.map((field) => {
-    const entry: Record<string, unknown> = {
+  const compacted = result.data.fields.map((field): CompactedField => {
+    const base: CompactedField = {
       id: field.field_id,
       type: field.type,
       page: field.page,
     }
     if (field.value !== null && field.value !== '') {
-      entry.value = field.value
+      base.value = field.value
     }
     if (field.name !== null && field.name !== '' && field.name !== field.field_id) {
-      entry.name = field.name
+      base.name = field.name
     }
-    return entry
+    return base
   })
   return { success: true, data: { fields: compacted } }
 }
 
-const truncatePages = (
-  pages: Array<{ page: number; content: string }>,
-): Array<{ page: number; content: string }> => {
-  const kept = pages.slice(0, MAX_CONTENT_PAGES).map((page) => ({
+const truncatePages = (pages: DocumentContentPage[]): DocumentContentPage[] => {
+  const kept: DocumentContentPage[] = pages.slice(0, MAX_CONTENT_PAGES).map((page) => ({
     page: page.page,
     content:
       page.content.length > MAX_CONTENT_CHARS_PER_PAGE
@@ -101,55 +111,70 @@ const truncatePages = (
 
 const summaryCache = new Map<string, string>()
 
-const compactGetDocumentContent = async (
-  result: BridgeResult<unknown>,
-  languageLabel: string,
-  useSummarizer: boolean,
-): Promise<BridgeResult<unknown>> => {
+type CompactedDocumentContent =
+  | { name: string | null; pages: DocumentContentPage[] }
+  | { name: string | null; summary: string }
+
+const fetchSummary = async ({
+  result,
+  languageLabel,
+}: {
+  result: DocumentContentResult
+  languageLabel: string
+}): Promise<string | null> => {
+  const response = await fetch('/api/summarize', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: result.name,
+      pages: result.pages,
+      language_label: languageLabel,
+    }),
+  })
+  if (!response.ok) {
+    return null
+  }
+  const payload: unknown = await response.json()
+  if (typeof payload !== 'object' || payload === null || !('summary' in payload)) {
+    return null
+  }
+  const summary = (payload as { summary: unknown }).summary
+  if (typeof summary !== 'string' || summary === '') {
+    return null
+  }
+  return summary
+}
+
+const compactGetDocumentContent = async ({
+  result,
+  languageLabel,
+  useSummarizer,
+}: {
+  result: BridgeResult<DocumentContentResult>
+  languageLabel: string
+  useSummarizer: boolean
+}): Promise<BridgeResult<CompactedDocumentContent>> => {
   if (!result.success) {
     return result
   }
-  const data = result.data as { name?: string; pages?: Array<{ page: number; content: string }> }
-  if (!Array.isArray(data.pages)) {
-    return result
-  }
-
-  const totalChars = data.pages.reduce((sum, page) => sum + page.content.length, 0)
+  const name = result.data.name === '' ? null : result.data.name
+  const totalChars = result.data.pages.reduce((sum, page) => sum + page.content.length, 0)
   if (!useSummarizer || totalChars < SUMMARIZE_THRESHOLD_CHARS) {
-    return { success: true, data: { name: data.name ?? null, pages: truncatePages(data.pages) } }
+    return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
   }
 
-  const cacheKey = `${languageLabel}::${data.name ?? 'unknown'}::${totalChars}`
+  const cacheKey = `${languageLabel}::${name ?? 'unknown'}::${totalChars}`
   const cached = summaryCache.get(cacheKey)
   if (cached !== undefined) {
-    return { success: true, data: { name: data.name ?? null, summary: cached } }
+    return { success: true, data: { name, summary: cached } }
   }
 
-  try {
-    const response = await fetch('/api/summarize', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        name: data.name ?? null,
-        pages: data.pages,
-        language_label: languageLabel,
-      }),
-    })
-    if (!response.ok) {
-      throw new Error(`summarize_failed:${response.status}`)
-    }
-    const payload = (await response.json()) as { summary?: unknown }
-    if (typeof payload.summary !== 'string' || payload.summary === '') {
-      throw new Error('summarize_missing_summary')
-    }
-    summaryCache.set(cacheKey, payload.summary)
-    return {
-      success: true,
-      data: { name: data.name ?? null, summary: payload.summary },
-    }
-  } catch {
-    return { success: true, data: { name: data.name ?? null, pages: truncatePages(data.pages) } }
+  const summary = await fetchSummary({ result: result.data, languageLabel })
+  if (summary === null) {
+    return { success: true, data: { name, pages: truncatePages(result.data.pages) } }
   }
+  summaryCache.set(cacheKey, summary)
+  return { success: true, data: { name, summary } }
 }
 
 type DispatchContext = {
@@ -166,6 +191,13 @@ const isToolbarTool = (value: unknown): value is ToolbarTool =>
   value === 'SIGNATURE' ||
   value === 'PICTURE'
 
+const buildNewFieldMessage = (delta: number): string => {
+  if (delta === 1) {
+    return 'A new field was just added to the document. Please continue helping me with it.'
+  }
+  return `${delta} new fields were just added to the document. Please continue helping me with them.`
+}
+
 const dispatchTool = async (
   bridge: IframeBridge,
   context: DispatchContext,
@@ -176,24 +208,32 @@ const dispatchTool = async (
     case 'get_fields':
       return compactGetFields(await bridge.getFields())
     case 'get_document_content': {
-      const extraction = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
-      return compactGetDocumentContent(
-        await bridge.getDocumentContent({ extractionMode: extraction }),
-        context.languageLabel,
-        context.useSummarizer,
-      )
+      const extractionMode: 'auto' | 'ocr' = input.extraction_mode === 'ocr' ? 'ocr' : 'auto'
+      return compactGetDocumentContent({
+        result: await bridge.getDocumentContent({ extractionMode }),
+        languageLabel: context.languageLabel,
+        useSummarizer: context.useSummarizer,
+      })
     }
     case 'detect_fields':
       return bridge.detectFields()
     case 'select_tool': {
       const rawTool = input.tool
-      if (rawTool !== undefined && rawTool !== null && !isToolbarTool(rawTool)) {
-        return { success: false, error: { code: 'bad_input', message: `Unsupported tool: ${String(rawTool)}` } }
+      const normalizedTool = ((): ToolbarTool | { error: string } => {
+        if (rawTool === undefined || rawTool === null) {
+          return null
+        }
+        if (isToolbarTool(rawTool)) {
+          return rawTool
+        }
+        return { error: `Unsupported tool: ${String(rawTool)}` }
+      })()
+      if (typeof normalizedTool === 'object' && normalizedTool !== null && 'error' in normalizedTool) {
+        return { success: false, error: { code: 'bad_input', message: normalizedTool.error } }
       }
-      const toolbarTool: ToolbarTool = rawTool === undefined ? null : (rawTool as ToolbarTool)
-      const result = await bridge.selectTool({ tool: toolbarTool })
+      const result = await bridge.selectTool({ tool: normalizedTool })
       if (result.success) {
-        context.onToolbarChange(toolbarTool)
+        context.onToolbarChange(normalizedTool)
       }
       return result
     }
@@ -391,13 +431,21 @@ export const ChatPane = ({
     [],
   )
 
+  // Unified field-state poll. One timer covers BOTH:
+  //   - Toolbar delta: when a toolbar tool is active, notify the LLM when the
+  //     user has dropped a new field on the document.
+  //   - hasFilledField: tracks whether any field carries a non-empty value,
+  //     gating the Submit button.
+  // Coalescing the two loops halves the iframe round-trips and keeps the
+  // polling cadence at a single knob.
   useEffect(() => {
-    if (toolbarTool === null || bridge === null || !isReady) {
+    if (bridge === null || !isReady) {
       fieldBaselineRef.current = null
+      setHasFilledField(false)
       return
     }
     let cancelled = false
-    const interval = setInterval(async () => {
+    const poll = async (): Promise<void> => {
       const activeBridge = bridgeRef.current
       if (activeBridge === null) {
         return
@@ -406,7 +454,14 @@ export const ChatPane = ({
       if (cancelled || !result.success) {
         return
       }
-      const count = result.data.fields.length
+      const fields = result.data.fields
+      const hasAnyValue = fields.some((field) => field.value !== null && field.value !== '')
+      setHasFilledField((prev) => (prev === hasAnyValue ? prev : hasAnyValue))
+      if (toolbarTool === null) {
+        fieldBaselineRef.current = null
+        return
+      }
+      const count = fields.length
       if (fieldBaselineRef.current === null) {
         fieldBaselineRef.current = count
         return
@@ -414,19 +469,16 @@ export const ChatPane = ({
       if (count > fieldBaselineRef.current) {
         const delta = count - fieldBaselineRef.current
         fieldBaselineRef.current = count
-        void sendMessage({
-          text:
-            delta === 1
-              ? 'A new field was just added to the document. Please continue helping me with it.'
-              : `${delta} new fields were just added to the document. Please continue helping me with them.`,
-        })
+        void sendMessage({ text: buildNewFieldMessage(delta) })
       }
-    }, 500)
+    }
+    void poll()
+    const interval = setInterval(poll, 1000)
     return () => {
       cancelled = true
       clearInterval(interval)
     }
-  }, [toolbarTool, bridge, isReady, sendMessage])
+  }, [bridge, isReady, toolbarTool, sendMessage])
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   // Access is blocked only until the visitor brings their own key — BYOK runs
@@ -453,28 +505,6 @@ export const ChatPane = ({
   useEffect(() => {
     writePersistedMessages(documentId, messages)
   }, [documentId, messages])
-
-  useEffect(() => {
-    if (bridge === null || !isReady) {
-      setHasFilledField(false)
-      return
-    }
-    let cancelled = false
-    const check = async (): Promise<void> => {
-      const result = await bridge.getFields()
-      if (cancelled || !result.success) {
-        return
-      }
-      const next = result.data.fields.some((field) => field.value !== null && field.value !== '')
-      setHasFilledField((prev) => (prev === next ? prev : next))
-    }
-    void check()
-    const interval = setInterval(check, 1500)
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [bridge, isReady])
 
   const handleSend = useCallback(
     (prompt: string): void => {

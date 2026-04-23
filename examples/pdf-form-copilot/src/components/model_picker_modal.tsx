@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import {
   defaultModelFor,
@@ -19,27 +19,32 @@ type ModelPickerModalProps = {
 }
 
 export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset }: ModelPickerModalProps) => {
-  const { t } = useTranslation()
-  const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(null)
-  const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
-  const [apiKeyDraft, setApiKeyDraft] = useState('')
-  const [comingSoonProviderKey, setComingSoonProviderKey] = useState<string | null>(null)
+  // Conditionally mount the body so state always initializes cleanly from
+  // activeConfig on each open. Avoids the "useEffect to sync prop → state"
+  // anti-pattern; the inner component owns its fresh state.
+  if (!open) {
+    return null
+  }
+  return (
+    <ModelPickerModalBody
+      onClose={onClose}
+      activeConfig={activeConfig}
+      onApply={onApply}
+      onReset={onReset}
+    />
+  )
+}
 
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    if (activeConfig !== null) {
-      setSelectedProvider(activeConfig.provider)
-      setSelectedModelId(activeConfig.model)
-      setApiKeyDraft(activeConfig.apiKey)
-    } else {
-      setSelectedProvider(null)
-      setSelectedModelId(null)
-      setApiKeyDraft('')
-    }
-    setComingSoonProviderKey(null)
-  }, [open, activeConfig])
+type ModelPickerBodyProps = Omit<ModelPickerModalProps, 'open'>
+
+const ModelPickerModalBody = ({ onClose, activeConfig, onApply, onReset }: ModelPickerBodyProps) => {
+  const { t } = useTranslation()
+  const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(
+    activeConfig?.provider ?? null,
+  )
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(activeConfig?.model ?? null)
+  const [apiKeyDraft, setApiKeyDraft] = useState(activeConfig?.apiKey ?? '')
+  const [comingSoonProviderKey, setComingSoonProviderKey] = useState<string | null>(null)
 
   const handlePickProvider = (providerId: ByokProviderId): void => {
     setSelectedProvider(providerId)
@@ -64,7 +69,7 @@ export const ModelPickerModal = ({ open, onClose, activeConfig, onApply, onReset
 
   return (
     <Modal
-      open={open}
+      open
       onClose={onClose}
       labelledBy="model-picker-title"
       containerClassName="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-xl"

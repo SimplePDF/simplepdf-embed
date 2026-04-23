@@ -1,6 +1,8 @@
 import { type ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Modal, ModalCloseButton } from './modal'
+import { Button } from './ui/button'
+import { ExternalLink } from './ui/link'
 
 type CerfaDorModalProps = {
   open: boolean
@@ -58,40 +60,22 @@ export const CerfaDorModal = ({ open, onClose }: CerfaDorModalProps): ReactEleme
         </p>
         <ul className="space-y-1.5 text-[13px] text-slate-600">
           <li>
-            <a
-              href={CERFA_DOR_ARTICLE}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sky-600 hover:text-sky-700 hover:underline"
-            >
-              {t('cerfaDor.linkCerfaDor')}
-            </a>
+            <ExternalLink href={CERFA_DOR_ARTICLE}>{t('cerfaDor.linkCerfaDor')}</ExternalLink>
           </li>
           <li>
-            <a
-              href={LISNARD_PLAN_ARTICLE}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sky-600 hover:text-sky-700 hover:underline"
-            >
-              {t('cerfaDor.linkLisnardPlan')}
-            </a>
+            <ExternalLink href={LISNARD_PLAN_ARTICLE}>{t('cerfaDor.linkLisnardPlan')}</ExternalLink>
           </li>
         </ul>
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-sm font-medium text-slate-500 hover:text-sky-700"
-        >
+        <Button variant="ghost" size="md" onClick={onClose}>
           {t('cerfaDor.dismiss')}
-        </button>
+        </Button>
         <a
           href={buildShareUrl()}
           target="_blank"
           rel="noreferrer"
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
         >
           {t('cerfaDor.share')}
         </a>
