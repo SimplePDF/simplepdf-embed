@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
 import { Layout } from '../components/layout'
 import { EditorPane } from '../components/editor_pane'
 import { ChatPane } from '../components/chat_pane'
@@ -7,6 +8,7 @@ import { DEFAULT_FORM_ID, getFormsForLocale, isFormId, type FormId } from '../li
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { useIframeBridge } from '../lib/iframe_bridge'
 import { i18n } from '../lib/i18n'
+import { isShareRequired, isShareValid } from '../server/shared_keys'
 
 export type ShowParam = 'info' | 'model' | 'submit'
 
@@ -17,7 +19,31 @@ type HomeSearch = {
   form: FormId
   lang: string
   show?: ShowParam
+  share?: string
 }
+
+export type DemoGate = {
+  shareRequired: boolean
+  shareValid: boolean
+}
+
+const readDemoGate = createServerFn({ method: 'GET' })
+  .inputValidator((raw: unknown): { shareId: string | null } => {
+    if (typeof raw !== 'object' || raw === null) {
+      return { shareId: null }
+    }
+    const rawShare = 'shareId' in raw ? raw.shareId : null
+    if (typeof rawShare === 'string' && rawShare !== '') {
+      return { shareId: rawShare }
+    }
+    return { shareId: null }
+  })
+  .handler(async ({ data }): Promise<DemoGate> => {
+    return {
+      shareRequired: isShareRequired(),
+      shareValid: isShareValid(data.shareId),
+    }
+  })
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -25,6 +51,7 @@ export const Route = createFileRoute('/')({
     form: isFormId(raw.form) ? raw.form : DEFAULT_FORM_ID,
     lang: isLanguageCode(raw.lang) ? raw.lang : DEFAULT_LANGUAGE_CODE,
     ...(isShowParam(raw.show) ? { show: raw.show } : {}),
+    ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
   }),
   beforeLoad: async ({ search }) => {
     if (i18n.language !== search.lang) {
@@ -35,6 +62,9 @@ export const Route = createFileRoute('/')({
       await i18n.changeLanguage(search.lang)
     }
   },
+  loaderDeps: ({ search }) => ({ share: search.share ?? null }),
+  loader: async ({ deps }): Promise<DemoGate> =>
+    readDemoGate({ data: { shareId: deps.share } }),
 })
 
 const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
@@ -63,6 +93,8 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
 
 function Home() {
   const { form, lang } = Route.useSearch()
+  const { shareRequired, shareValid } = Route.useLoaderData()
+  const accessBlocked = shareRequired && !shareValid
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
@@ -106,6 +138,7 @@ function Home() {
           language={lang}
           onLanguageChange={handleLanguageChange}
           documentId={documentId}
+          accessBlocked={accessBlocked}
         />
       }
     />

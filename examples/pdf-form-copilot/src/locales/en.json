@@ -99,8 +99,13 @@
     "newFieldHint": "New field added by the user",
     "errorAuthTitle": "Authentication failed.",
     "errorAuthBody": "The AI provider rejected your API key. <switchModel>Open the AI model selection</switchModel> to verify the key, and try again.",
+    "errorRateLimitedTitle": "Thanks for trying the demo!",
+    "errorRateLimitedBody": "Running it costs us real money, so access is capped. To keep going, <switchModel>use your own API key</switchModel>.",
     "errorServerTitle": "Something went wrong",
     "errorGenericTitle": "Full error",
+    "welcomeTitle": "Welcome to the demo!",
+    "welcomeBody": "To try Form Copilot, bring your own API key. Your key stays in this tab only and every request is sent straight from your browser.",
+    "welcomeCta": "Bring your own API key",
     "inputPlaceholderReady": "Ask Form Copilot…",
     "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"

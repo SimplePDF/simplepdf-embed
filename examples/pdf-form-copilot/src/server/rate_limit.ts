@@ -16,7 +16,7 @@ const parsePositiveInt = (raw: string | undefined, fallback: number): number => 
 }
 
 const LIMITS = {
-  lifetime: parsePositiveInt(process.env.RATE_LIMIT_LIFETIME, 75),
+  lifetime: parsePositiveInt(process.env.RATE_LIMIT_LIFETIME, 10),
 } as const
 
 export type RateLimitDecision =

@@ -14,6 +14,7 @@ import {
   SYSTEM_PROMPT,
 } from '../../server/tools'
 import { getClientIp, hashIp, isOriginAllowed, rateLimiter } from '../../server/rate_limit'
+import { getShareParam, resolveApiKey } from '../../server/shared_keys'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
@@ -108,13 +109,34 @@ export const Route = createFileRoute('/api/chat')({
         if (!isOriginAllowed(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const apiKey = process.env.ANTHROPIC_API_KEY
-        if (apiKey === undefined || apiKey === '') {
-          return Response.json(
-            { error: 'server_misconfigured', message: 'ANTHROPIC_API_KEY is not set' },
-            { status: 500 },
-          )
+        const shareId = getShareParam(request)
+        const resolution = resolveApiKey(shareId)
+        switch (resolution.kind) {
+          case 'shared':
+          case 'default':
+            break
+          case 'share_required':
+            return Response.json(
+              {
+                error: 'share_required',
+                message:
+                  'This demo requires a valid invite link. Bring your own API key to keep going.',
+              },
+              { status: 401 },
+            )
+          case 'server_misconfigured':
+            return Response.json(
+              {
+                error: 'server_misconfigured',
+                message: 'Neither ANTHROPIC_API_KEY nor SHARED_API_KEYS is set',
+              },
+              { status: 500 },
+            )
+          default:
+            resolution satisfies never
+            return Response.json({ error: 'server_misconfigured' }, { status: 500 })
         }
+        const apiKey = resolution.apiKey
 
         const body = await parseBody(request)
         if (!body.success) {
@@ -132,7 +154,7 @@ export const Route = createFileRoute('/api/chat')({
               error: 'rate_limited',
               reason: decision.reason,
               message:
-                "You've reached the demo's free limit for this IP. Switch to your own API key (OpenAI or Anthropic) to keep going — the 'Switch AI model' link above does it in a couple of clicks.",
+                "Thanks for trying the demo! Running it costs us real money, so access is capped. To keep going, use your own API key.",
             },
             { status: 429 },
           )
@@ -229,6 +251,7 @@ export const Route = createFileRoute('/api/chat')({
           remaining_lifetime: decision !== null && decision.allowed ? decision.remaining : null,
           message_count: body.messages.length,
           language: body.languageLabel,
+          share_used: resolution.kind === 'shared',
         })
 
         return result.toUIMessageStreamResponse()

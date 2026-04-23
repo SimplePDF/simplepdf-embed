@@ -27,6 +27,7 @@ type ChatPaneProps = {
   language: string
   onLanguageChange: (code: string) => void
   documentId: string | null
+  accessBlocked: boolean
 }
 
 // In-memory chat store keyed by document_id. Survives component remounts
@@ -234,6 +235,7 @@ export const ChatPane = ({
   language,
   onLanguageChange,
   documentId,
+  accessBlocked,
 }: ChatPaneProps) => {
   const { t } = useTranslation()
   const navigate = homeRoute.useNavigate()
@@ -427,7 +429,11 @@ export const ChatPane = ({
   }, [toolbarTool, bridge, isReady, sendMessage])
 
   const isStreaming = status === 'streaming' || status === 'submitted'
-  const canSend = isReady && !isStreaming
+  // Access is blocked only until the visitor brings their own key — BYOK runs
+  // the stream entirely in the browser via runByokStream and never hits /api/chat.
+  const unblockedByByok = byokConfig !== null
+  const serverLocked = accessBlocked && !unblockedByByok
+  const canSend = isReady && !isStreaming && !serverLocked
   const hasUserMessage = messages.some((message) => message.role === 'user')
 
   useEffect(() => {
@@ -533,7 +539,9 @@ export const ChatPane = ({
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {messages.length === 0 ? (
+        {serverLocked ? (
+          <WelcomeBanner onSwitchModel={openModelPicker} />
+        ) : messages.length === 0 ? (
           <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
         ) : (
           <div className="space-y-4 p-4">
@@ -625,6 +633,27 @@ const FieldAddedHint = () => {
   )
 }
 
+type WelcomeBannerProps = {
+  onSwitchModel: () => void
+}
+
+const WelcomeBanner = ({ onSwitchModel }: WelcomeBannerProps) => {
+  const { t } = useTranslation()
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="max-w-sm text-base font-semibold text-slate-900">{t('chat.welcomeTitle')}</div>
+      <p className="max-w-sm text-sm leading-relaxed text-slate-600">{t('chat.welcomeBody')}</p>
+      <button
+        type="button"
+        onClick={onSwitchModel}
+        className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+      >
+        {t('chat.welcomeCta')}
+      </button>
+    </div>
+  )
+}
+
 type ErrorBannerProps = {
   error: Error
   onSwitchModel: () => void
@@ -648,6 +677,28 @@ const ErrorBanner = ({ error, onSwitchModel }: ErrorBannerProps) => {
                   type="button"
                   onClick={onSwitchModel}
                   className="font-medium underline underline-offset-2 hover:text-rose-900"
+                />
+              ),
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  if (kind === 'demo_rate_limited') {
+    return (
+      <div className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+        <div className="font-medium">{t('chat.errorRateLimitedTitle')}</div>
+        <div className="mt-1">
+          <Trans
+            i18nKey="chat.errorRateLimitedBody"
+            components={{
+              switchModel: (
+                <button
+                  type="button"
+                  onClick={onSwitchModel}
+                  className="font-medium underline underline-offset-2 hover:text-amber-950"
                 />
               ),
             }}
