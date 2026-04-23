@@ -631,7 +631,7 @@ export const ChatPane = ({
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div ref={contentRef}>
+        <div ref={contentRef} className="flex min-h-full flex-col">
           {((): ReactElement => {
             if (serverLocked) {
               return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
