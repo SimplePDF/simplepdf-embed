@@ -4,30 +4,41 @@ type BucketState = {
   hits: number
 }
 
-const parseRequiredPositiveInt = (raw: string | undefined, name: string): number => {
-  if (raw === undefined || raw.trim() === '') {
-    throw new Error(`${name} is required but not set`)
-  }
-  const parsed = Number.parseInt(raw, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`${name} must be a positive integer, got "${raw}"`)
-  }
-  return parsed
-}
-
-// Required env. The demo runs on a single instance; the lifetime cap is the
-// load-bearing cost control, so we refuse to start without an explicit value
-// rather than silently falling back to a permissive default.
-const LIMITS = {
-  lifetime: parseRequiredPositiveInt(process.env.RATE_LIMIT_LIFETIME, 'RATE_LIMIT_LIFETIME'),
-} as const
-
 export type RateLimitDecision =
   | { allowed: true; remaining: number }
   | { allowed: false; reason: 'lifetime' }
 
+export type RateLimitInput = {
+  bucket: string
+  ipHash: string
+  lifetime: number
+}
+
+// Nested map: bucketName -> ipHash -> BucketState. Each share id owns its own
+// per-IP counters so different invites track independently.
+const createEmptyBuckets = (): Map<string, Map<string, BucketState>> => new Map()
+
 export const createRateLimiter = () => {
-  const buckets = new Map<string, BucketState>()
+  const buckets = createEmptyBuckets()
+
+  const getOrCreate = (bucket: string, ipHash: string): BucketState => {
+    const innerMap = ((): Map<string, BucketState> => {
+      const existing = buckets.get(bucket)
+      if (existing !== undefined) {
+        return existing
+      }
+      const fresh = new Map<string, BucketState>()
+      buckets.set(bucket, fresh)
+      return fresh
+    })()
+    const existingState = innerMap.get(ipHash)
+    if (existingState !== undefined) {
+      return existingState
+    }
+    const freshState: BucketState = { hits: 0 }
+    innerMap.set(ipHash, freshState)
+    return freshState
+  }
 
   // Hydrate from persisted state (DO Spaces) in the background. Requests that
   // land before hydration completes start from an empty counter; this is a
@@ -39,9 +50,8 @@ export const createRateLimiter = () => {
       .then((state) => {
         if (state !== null) {
           for (const entry of state.entries) {
-            const existing = buckets.get(entry.ipHash)
-            const hits = existing === undefined ? entry.hits : Math.max(existing.hits, entry.hits)
-            buckets.set(entry.ipHash, { hits })
+            const current = getOrCreate(entry.bucket, entry.ipHash)
+            current.hits = Math.max(current.hits, entry.hits)
           }
         }
         hydrated = true
@@ -53,23 +63,24 @@ export const createRateLimiter = () => {
     hydrated = true
   }
 
-  const snapshotState = (): PersistedState => ({
-    version: 1,
-    updatedAt: Date.now(),
-    entries: Array.from(buckets.entries()).map(([ipHash, { hits }]) => ({ ipHash, hits })),
-  })
+  const snapshotState = (): PersistedState => {
+    const entries: PersistedState['entries'] = []
+    for (const [bucket, inner] of buckets) {
+      for (const [ipHash, { hits }] of inner) {
+        entries.push({ bucket, ipHash, hits })
+      }
+    }
+    return { version: 1, updatedAt: Date.now(), entries }
+  }
 
-  const check = (ipHash: string): RateLimitDecision => {
-    const existing = buckets.get(ipHash)
-    const state: BucketState = existing ?? { hits: 0 }
+  const check = ({ bucket, ipHash, lifetime }: RateLimitInput): RateLimitDecision => {
+    const state = getOrCreate(bucket, ipHash)
 
-    if (state.hits >= LIMITS.lifetime) {
-      buckets.set(ipHash, state)
+    if (state.hits >= lifetime) {
       return { allowed: false, reason: 'lifetime' }
     }
 
     state.hits += 1
-    buckets.set(ipHash, state)
 
     if (persistence.enabled && hydrated) {
       persistence.scheduleWrite(snapshotState())
@@ -77,7 +88,7 @@ export const createRateLimiter = () => {
 
     return {
       allowed: true,
-      remaining: LIMITS.lifetime - state.hits,
+      remaining: lifetime - state.hits,
     }
   }
 

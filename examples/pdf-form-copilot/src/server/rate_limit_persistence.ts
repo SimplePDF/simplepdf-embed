@@ -2,6 +2,11 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { z } from 'zod'
 
 const PersistedEntrySchema = z.object({
+  // Rate-limit namespace: either a share id from SHARED_API_KEYS, or the
+  // reserved sentinel '__default__' for the ANTHROPIC_API_KEY path. Optional
+  // on load for backward compat with pre-3.15 persisted blobs that had no
+  // bucket field; falls back to '__default__'.
+  bucket: z.string().optional().transform((value) => value ?? '__default__'),
   ipHash: z.string(),
   hits: z.number().int().nonnegative(),
 })

@@ -117,7 +117,7 @@ export const Route = createFileRoute('/api/summarize')({
 
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        const decision = rateLimiter.check(ipHash)
+        const decision = rateLimiter.check({ bucket: resolution.bucket, ipHash, lifetime: resolution.lifetime })
         if (!decision.allowed) {
           return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
         }

@@ -143,7 +143,9 @@ export const Route = createFileRoute('/api/chat')({
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
         const charged = shouldChargeAgainstLimit({ ipHash, freshUserTurn: isFreshUserTurn(body.messages) })
-        const decision = charged ? rateLimiter.check(ipHash) : null
+        const decision = charged
+          ? rateLimiter.check({ bucket: resolution.bucket, ipHash, lifetime: resolution.lifetime })
+          : null
         if (decision !== null && !decision.allowed) {
           console.info('[copilot] chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
