@@ -102,7 +102,22 @@ export const Route = createFileRoute('/')({
 })
 
 const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
-const EDITOR_ORIGIN = `https://${COMPANY_IDENTIFIER}.simplepdf.com`
+
+// VITE_SIMPLEPDF_BASE_DOMAIN accepts a full base URL (protocol + host + optional
+// port). The company identifier is spliced in as a subdomain when building the
+// iframe origin. Useful for pointing the example at a local dev checkout of
+// the SimplePDF editor (e.g. `http://simplepdf.nil:3105`) without touching the
+// source. Unset defaults to the production marketing origin.
+const BASE_DOMAIN_URL = ((): URL => {
+  const raw = import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN ?? 'https://simplepdf.com'
+  try {
+    return new URL(raw)
+  } catch {
+    console.warn('[copilot] invalid VITE_SIMPLEPDF_BASE_DOMAIN, falling back to simplepdf.com', raw)
+    return new URL('https://simplepdf.com')
+  }
+})()
+const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
 
 // Locales the SimplePDF editor can render via i18n path-prefix routing.
 // English is the default on the non-prefixed path, so it is not listed here.

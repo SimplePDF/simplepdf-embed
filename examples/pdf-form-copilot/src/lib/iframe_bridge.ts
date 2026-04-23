@@ -47,12 +47,51 @@ export type RemoveFieldsArgs = {
 
 type PendingRequest = {
   resolve: (result: BridgeResult<unknown>) => void
+  requestType: BridgeRequestType
+  startedAtMs: number
   timeoutId: ReturnType<typeof setTimeout>
 }
 
-const REQUEST_TIMEOUT_MS = 30_000
+type BridgeRequestType =
+  | 'LOAD_DOCUMENT'
+  | 'GO_TO'
+  | 'SELECT_TOOL'
+  | 'DETECT_FIELDS'
+  | 'REMOVE_FIELDS'
+  | 'GET_DOCUMENT_CONTENT'
+  | 'GET_FIELDS'
+  | 'SET_FIELD_VALUE'
+  | 'FOCUS_FIELD'
+  | 'CREATE_FIELD'
+  | 'SUBMIT'
+
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000
+const FAST_REQUEST_TIMEOUT_MS = 5_000
+const SLOW_REQUEST_TIMEOUT_MS = 20_000
 const EDITOR_READY_PROBE_INTERVAL_MS = 500
 const EDITOR_READY_HARD_FALLBACK_MS = 30_000
+
+const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
+  switch (requestType) {
+    case 'CREATE_FIELD':
+    case 'FOCUS_FIELD':
+    case 'GET_FIELDS':
+    case 'GO_TO':
+    case 'REMOVE_FIELDS':
+    case 'SELECT_TOOL':
+    case 'SET_FIELD_VALUE':
+      return FAST_REQUEST_TIMEOUT_MS
+    case 'DETECT_FIELDS':
+    case 'GET_DOCUMENT_CONTENT':
+      return SLOW_REQUEST_TIMEOUT_MS
+    case 'LOAD_DOCUMENT':
+    case 'SUBMIT':
+      return DEFAULT_REQUEST_TIMEOUT_MS
+    default:
+      requestType satisfies never
+      return DEFAULT_REQUEST_TIMEOUT_MS
+  }
+}
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -109,7 +148,10 @@ const createBridge = ({
     onStateChange()
   }
 
-  const sendRequest = <TData>(type: string, data: Record<string, unknown>): Promise<BridgeResult<TData>> => {
+  const sendRequest = <TData>(
+    type: BridgeRequestType,
+    data: Record<string, unknown>,
+  ): Promise<BridgeResult<TData>> => {
     return new Promise((resolve) => {
       const iframe = iframeRef.current
       if (!iframe || !iframe.contentWindow) {
@@ -118,19 +160,33 @@ const createBridge = ({
       }
 
       const requestId = generateRequestId()
+      const timeoutMs = getRequestTimeoutMs(type)
+      const startedAtMs = Date.now()
+      console.info('[copilot] iframe.request_sent', {
+        request_id: requestId,
+        timeout_ms: timeoutMs,
+        type,
+      })
       const timeoutId = setTimeout(() => {
         pending.delete(requestId)
+        console.warn('[copilot] iframe.request_timed_out', {
+          elapsed_ms: Date.now() - startedAtMs,
+          request_id: requestId,
+          type,
+        })
         resolve({
           success: false,
           error: {
             code: 'timeout',
-            message: `Iframe request '${type}' timed out after ${REQUEST_TIMEOUT_MS}ms`,
+            message: `Iframe request '${type}' timed out after ${timeoutMs}ms`,
           },
         })
-      }, REQUEST_TIMEOUT_MS)
+      }, timeoutMs)
 
       pending.set(requestId, {
         resolve: (result) => resolve(result as BridgeResult<TData>),
+        requestType: type,
+        startedAtMs,
         timeoutId,
       })
 
@@ -302,11 +358,18 @@ const createBridge = ({
     }
     const entry = pending.get(requestId)
     if (!entry) {
+      console.warn('[copilot] iframe.request_missing_pending', { request_id: requestId })
       return
     }
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
     const result = payload.data?.result as BridgeResult<unknown> | undefined
+    console.info('[copilot] iframe.request_received', {
+      elapsed_ms: Date.now() - entry.startedAtMs,
+      request_id: requestId,
+      success: result?.success ?? false,
+      type: entry.requestType,
+    })
     entry.resolve(
       result ?? {
         success: false,

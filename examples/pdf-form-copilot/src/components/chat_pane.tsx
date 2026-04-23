@@ -70,6 +70,13 @@ const writePersistedMessages = (documentId: string | null, messages: UIMessage[]
 
 type ToolInput = Record<string, unknown>
 
+const toToolInput = (value: unknown): ToolInput => {
+  if (typeof value !== 'object' || value === null) {
+    return {}
+  }
+  return Object.fromEntries(Object.entries(value))
+}
+
 const MAX_CONTENT_CHARS_PER_PAGE = 1200
 const MAX_CONTENT_PAGES = 1
 
@@ -178,6 +185,17 @@ const wrapToolResult = (result: BridgeResult<unknown>): unknown => {
   }
 }
 
+const toUnexpectedToolResult = (error: unknown): BridgeResult<null> => {
+  const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+  return {
+    success: false,
+    error: {
+      code: 'unexpected:tool_execution_failed',
+      message: `Unexpected tool execution failure: ${errorMessage}`,
+    },
+  }
+}
+
 const dispatchTool = async (
   bridge: IframeBridge,
   context: DispatchContext,
@@ -269,6 +287,7 @@ export const ChatPane = ({
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fieldBaselineRef = useRef<number | null>(null)
+  const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
   const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
   const byokConfigRef = useRef<ByokConfig | null>(byokConfig)
   byokConfigRef.current = byokConfig
@@ -322,6 +341,15 @@ export const ChatPane = ({
   const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(documentId))
   const hydratedDocumentIdRef = useRef<string | null>(documentId)
 
+  const enqueueToolExecution = useCallback(<TResult,>(task: () => Promise<TResult>): Promise<TResult> => {
+    const nextTask = toolExecutionQueueRef.current.catch(() => undefined).then(task)
+    toolExecutionQueueRef.current = nextTask.then(
+      () => undefined,
+      () => undefined,
+    )
+    return nextTask
+  }, [])
+
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
     messages: initialMessages,
@@ -329,45 +357,50 @@ export const ChatPane = ({
     onError: (err) => {
       console.error('[copilot] chat error', err)
     },
-    onToolCall: ({ toolCall }) => {
+    onToolCall: async ({ toolCall }) => {
       if (toolCall.dynamic) {
         return
       }
-      const toolName = toolCall.toolName
-      if (!isClientToolName(toolName)) {
-        addToolOutput({
-          tool: toolName,
-          toolCallId: toolCall.toolCallId,
-          state: 'output-error',
-          errorText: `Unknown tool: ${toolName}`,
-        })
-        return
-      }
-      const activeBridge = bridgeRef.current
-      if (activeBridge === null) {
-        addToolOutput({
-          tool: toolName,
-          toolCallId: toolCall.toolCallId,
-          state: 'output-error',
-          errorText: 'Iframe bridge is not ready yet',
-        })
-        return
-      }
-      const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
-      const startedAt = performance.now()
-      const callInput = (toolCall.input as ToolInput) ?? {}
-      console.info('[copilot] tool call', toolName, callInput)
-      void dispatchTool(
-        activeBridge,
-        {
-          languageLabel,
-          byokActive: byokConfigRef.current !== null,
-          onToolbarChange: setToolbarTool,
-          onOpenSubmitModal: openSubmitModal,
-        },
-        toolName,
-        callInput,
-      ).then((result) => {
+      const toolOutput = await enqueueToolExecution(async () => {
+        const toolName = toolCall.toolName
+        if (!isClientToolName(toolName)) {
+          return {
+            tool: toolName,
+            toolCallId: toolCall.toolCallId,
+            state: 'output-error',
+            errorText: `Unknown tool: ${toolName}`,
+          } as const
+        }
+        const activeBridge = bridgeRef.current
+        if (activeBridge === null) {
+          return {
+            tool: toolName,
+            toolCallId: toolCall.toolCallId,
+            state: 'output-error',
+            errorText: 'Iframe bridge is not ready yet',
+          } as const
+        }
+        const languageLabel = getLanguageByCode(languageRef.current)?.label ?? 'English'
+        const startedAt = performance.now()
+        const callInput = toToolInput(toolCall.input)
+        console.info('[copilot] tool call', toolName, callInput)
+        const result = await (async (): Promise<BridgeResult<unknown>> => {
+          try {
+            return await dispatchTool(
+              activeBridge,
+              {
+                languageLabel,
+                byokActive: byokConfigRef.current !== null,
+                onToolbarChange: setToolbarTool,
+                onOpenSubmitModal: openSubmitModal,
+              },
+              toolName,
+              callInput,
+            )
+          } catch (error) {
+            return toUnexpectedToolResult(error)
+          }
+        })()
         const elapsedMs = Math.round(performance.now() - startedAt)
         if (result.success) {
           console.info(`[copilot] tool done ${toolName} ${elapsedMs}ms`, result.data)
@@ -377,11 +410,14 @@ export const ChatPane = ({
             error: result.error,
           })
         }
-        addToolOutput({
+        return {
           tool: toolName,
           toolCallId: toolCall.toolCallId,
           output: wrapToolResult(result),
-        })
+        } as const
+      })
+      void Promise.resolve(addToolOutput(toolOutput)).catch((toolOutputError: unknown) => {
+        console.error('[copilot] addToolOutput failed', toolOutputError)
       })
     },
   })
@@ -435,6 +471,7 @@ export const ChatPane = ({
       return
     }
     let cancelled = false
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     const poll = async (): Promise<void> => {
       const activeBridge = bridgeRef.current
       if (activeBridge === null) {
@@ -462,11 +499,21 @@ export const ChatPane = ({
         void sendMessage({ text: buildNewFieldMessage(delta) })
       }
     }
-    void poll()
-    const interval = setInterval(poll, 1000)
+    const pollLoop = async (): Promise<void> => {
+      await poll()
+      if (cancelled) {
+        return
+      }
+      timeoutId = setTimeout(() => {
+        void pollLoop()
+      }, 1000)
+    }
+    void pollLoop()
     return () => {
       cancelled = true
-      clearInterval(interval)
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId)
+      }
     }
   }, [bridge, isReady, toolbarTool, sendMessage])
 
