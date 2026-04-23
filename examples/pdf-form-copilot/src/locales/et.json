@@ -100,6 +100,10 @@
     "errorAuthTitle": "Autentimine ebaõnnestus.",
     "errorAuthBody": "AI-teenusepakkuja lükkas sinu API-võtme tagasi. <switchModel>Vaheta AI-mudelit</switchModel>, et võtit kontrollida, ja proovi uuesti.",
     "errorGenericTitle": "Täielik viga",
+    "welcomeTitle": "Proovi Form Copilotit oma API-võtmega",
+    "welcomeBody": "Sinu võti jääb ainult sellesse vahekaarti. Päringud saadetakse sinu brauserist valitud AI-teenusepakkujale.",
+    "welcomeCta": "Kasuta oma API-võtit",
+    "welcomeInfoLink": "Kuidas Form Copilot töötab",
     "inputPlaceholderReady": "Küsi Form Copiloti käest…",
     "inputPlaceholderWaiting": "Palun oota…",
     "send": "Saada"

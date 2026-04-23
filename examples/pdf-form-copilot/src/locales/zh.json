@@ -100,6 +100,10 @@
     "errorAuthTitle": "身份验证失败。",
     "errorAuthBody": "AI 提供商拒绝了您的 API 密钥。<switchModel>切换 AI 模型</switchModel>以验证密钥，然后重试。",
     "errorGenericTitle": "完整错误",
+    "welcomeTitle": "使用您自己的 API 密钥试用 Form Copilot",
+    "welcomeBody": "您的密钥仅保留在本标签页中。请求会从您的浏览器直接发送到您选择的 AI 提供商。",
+    "welcomeCta": "自带 API 密钥",
+    "welcomeInfoLink": "Form Copilot 如何运作",
     "inputPlaceholderReady": "询问 Form Copilot…",
     "inputPlaceholderWaiting": "请稍等…",
     "send": "发送"

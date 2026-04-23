@@ -100,6 +100,10 @@
     "errorAuthTitle": "L’authentification a échoué.",
     "errorAuthBody": "Le fournisseur d’IA a refusé votre clé API. <switchModel>Changer de modèle IA</switchModel> pour la vérifier, puis réessayez.",
     "errorGenericTitle": "Erreur complète",
+    "welcomeTitle": "Essayez Form Copilot avec votre propre clé API",
+    "welcomeBody": "Votre clé reste dans cet onglet uniquement. Les requêtes partent de votre navigateur vers le fournisseur d’IA que vous avez choisi.",
+    "welcomeCta": "Apporter votre propre clé API",
+    "welcomeInfoLink": "Comment fonctionne Form Copilot",
     "inputPlaceholderReady": "Posez une question à Form Copilot…",
     "inputPlaceholderWaiting": "Veuillez patienter…",
     "send": "Envoyer"

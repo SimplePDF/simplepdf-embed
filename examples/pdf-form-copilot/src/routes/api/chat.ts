@@ -60,7 +60,7 @@ export const Route = createFileRoute('/api/chat')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = readShareCookie(request)
+        const shareId = readShareCookie()
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json(
@@ -84,23 +84,54 @@ export const Route = createFileRoute('/api/chat')({
         const messages = body.data.messages
         const languageLabel = body.data.language_label ?? 'English'
 
+        // Fail-closed guard: any time the limiter itself is not operational,
+        // block the stream — regardless of whether this particular turn would
+        // be charged. Covers synthetic continuations + auto tool-result POSTs
+        // which normally bypass the check().
+        if (!rateLimiter.isReady()) {
+          console.error('[copilot] chat.blocked_system_failure', {
+            detail: rateLimiter.statusDetail(),
+          })
+          return Response.json(
+            { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+            { status: 503 },
+          )
+        }
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
         const charged = shouldChargeAgainstLimit({
           ipHash,
           freshUserTurn: isFreshUserTurn(messages),
         })
+        // Fail-closed: any throw from rateLimiter.check surfaces as 503 so we
+        // never serve the LLM when the cost control is unreliable.
         const decision = ((): ReturnType<typeof rateLimiter.check> | null => {
           if (!charged) {
             return null
           }
-          return rateLimiter.check({
-            bucket: resolution.bucket,
-            ipHash,
-            lifetime: resolution.lifetime,
-          })
+          try {
+            return rateLimiter.check({
+              bucket: resolution.bucket,
+              ipHash,
+              lifetime: resolution.lifetime,
+            })
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error)
+            console.error('[copilot] rate_limit.check_threw', { ip_hash: ipHash, detail })
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
+          }
         })()
         if (decision !== null && !decision.allowed) {
+          if (decision.reason === 'system_failure') {
+            console.error('[copilot] chat.blocked_system_failure', {
+              ip_hash: ipHash,
+              detail: decision.detail,
+            })
+            return Response.json(
+              { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+              { status: 503 },
+            )
+          }
           console.info('[copilot] chat.rate_limited', { ip_hash: ipHash, reason: decision.reason })
           return Response.json(
             {

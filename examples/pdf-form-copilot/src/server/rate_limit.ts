@@ -4,13 +4,23 @@ type BucketState = {
   hits: number
 }
 
-export type RateLimitDecision = { allowed: true; remaining: number } | { allowed: false; reason: 'lifetime' }
+export type RateLimitDecision =
+  | { allowed: true; remaining: number }
+  | { allowed: false; reason: 'lifetime' }
+  | { allowed: false; reason: 'system_failure'; detail: string }
 
 export type RateLimitInput = {
   bucket: string
   ipHash: string
   lifetime: number
 }
+
+// Fail-closed hydration state. Persistence-enabled deployments must complete
+// the S3 load before the limiter accepts traffic; otherwise a returning
+// visitor with an exhausted budget would see their counter reset on every
+// cold start. Tracked as a tagged union so the check() call site can fail
+// loudly with context.
+type HydrationState = { kind: 'pending' } | { kind: 'ready' } | { kind: 'failed'; detail: string }
 
 // Nested map: bucketName -> ipHash -> BucketState. Each share id owns its own
 // per-IP counters so different invites track independently.
@@ -38,10 +48,13 @@ export const createRateLimiter = () => {
     return freshState
   }
 
-  // Hydrate from persisted state (DO Spaces) in the background. Requests that
-  // land before hydration completes start from an empty counter; this is a
-  // small fairness loss at cold boot but avoids blocking every request on S3.
-  let hydrated = false
+  // Hydrate from persisted state (DO Spaces) in the background. Until
+  // hydration completes, the limiter rejects requests with `system_failure`
+  // so a returning visitor with an exhausted budget doesn't get a free cold
+  // counter. If the S3 load itself fails, the limiter stays in the failed
+  // state until the process restarts; the operator must fix the config (or
+  // disable persistence) rather than silently accept degraded correctness.
+  let hydration: HydrationState = persistence.enabled ? { kind: 'pending' } : { kind: 'ready' }
   if (persistence.enabled) {
     void persistence
       .load()
@@ -52,13 +65,14 @@ export const createRateLimiter = () => {
             current.hits = Math.max(current.hits, entry.hits)
           }
         }
-        hydrated = true
+        hydration = { kind: 'ready' }
+        console.info('[copilot] rate_limit.hydrated', { entries: state?.entries.length ?? 0 })
       })
-      .catch(() => {
-        hydrated = true
+      .catch((error: unknown) => {
+        const detail = error instanceof Error ? error.message : String(error)
+        hydration = { kind: 'failed', detail }
+        console.error('[copilot] rate_limit.hydration_failed', { detail })
       })
-  } else {
-    hydrated = true
   }
 
   const snapshotState = (): PersistedState => {
@@ -72,6 +86,25 @@ export const createRateLimiter = () => {
   }
 
   const check = ({ bucket, ipHash, lifetime }: RateLimitInput): RateLimitDecision => {
+    switch (hydration.kind) {
+      case 'pending':
+        return { allowed: false, reason: 'system_failure', detail: 'hydration_pending' }
+      case 'failed':
+        return { allowed: false, reason: 'system_failure', detail: `hydration_failed:${hydration.detail}` }
+      case 'ready':
+        break
+      default:
+        hydration satisfies never
+        return { allowed: false, reason: 'system_failure', detail: 'unreachable' }
+    }
+    if (!Number.isFinite(lifetime) || lifetime <= 0) {
+      return {
+        allowed: false,
+        reason: 'system_failure',
+        detail: `invalid_lifetime:${String(lifetime)}`,
+      }
+    }
+
     const state = getOrCreate(bucket, ipHash)
 
     if (state.hits >= lifetime) {
@@ -80,7 +113,7 @@ export const createRateLimiter = () => {
 
     state.hits += 1
 
-    if (persistence.enabled && hydrated) {
+    if (persistence.enabled) {
       persistence.scheduleWrite(snapshotState())
     }
 
@@ -90,7 +123,23 @@ export const createRateLimiter = () => {
     }
   }
 
-  return { check }
+  const isReady = (): boolean => hydration.kind === 'ready'
+
+  const statusDetail = (): string => {
+    switch (hydration.kind) {
+      case 'pending':
+        return 'hydration_pending'
+      case 'failed':
+        return `hydration_failed:${hydration.detail}`
+      case 'ready':
+        return 'ready'
+      default:
+        hydration satisfies never
+        return 'unreachable'
+    }
+  }
+
+  return { check, isReady, statusDetail }
 }
 
 export const getClientIp = (request: Request): string => {

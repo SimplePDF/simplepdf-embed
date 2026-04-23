@@ -100,6 +100,10 @@
     "errorAuthTitle": "Автентифікація не вдалася.",
     "errorAuthBody": "Постачальник ШІ відхилив ваш ключ API. <switchModel>Змініть модель ШІ</switchModel>, щоб перевірити ключ, і спробуйте знову.",
     "errorGenericTitle": "Повна помилка",
+    "welcomeTitle": "Спробуйте Form Copilot з власним ключем API",
+    "welcomeBody": "Ваш ключ залишається лише в цій вкладці. Запити надсилаються з вашого браузера до обраного постачальника ШІ.",
+    "welcomeCta": "Використайте власний ключ API",
+    "welcomeInfoLink": "Як працює Form Copilot",
     "inputPlaceholderReady": "Запитайте Form Copilot…",
     "inputPlaceholderWaiting": "Зачекайте, будь ласка…",
     "send": "Надіслати"

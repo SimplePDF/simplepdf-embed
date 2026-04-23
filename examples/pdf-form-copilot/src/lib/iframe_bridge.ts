@@ -377,13 +377,8 @@ export const useIframeBridge = ({
   const bridgeRef = useRef<IframeBridge | null>(null)
   const listenersRef = useRef<Set<() => void>>(new Set())
 
-  // resetKey is a manual reset sentinel: changing it tears down the bridge +
-  // creates a fresh one (full state-machine + probe + pending-request reset).
-  // Used on form / locale switches. We read it off the closure indirectly by
-  // including it in the deps, so Biome's static analysis sees it as
-  // "unused"; the comment below silences that false-positive.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetKey is a remount sentinel; the effect body doesn't read it, but changing it must tear down the bridge + start fresh (state-machine + probe + pending-request reset) on form or locale switches, so it has to be a dep.
   useEffect(() => {
-    void resetKey
     const notify = () => {
       for (const listener of listenersRef.current) {
         listener()

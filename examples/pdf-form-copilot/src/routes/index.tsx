@@ -41,7 +41,7 @@ const readDemoGate = createServerFn({ method: 'GET' }).handler(async (): Promise
     // Treat cross-origin probes as blocked; the client cannot infer validity.
     return { accessBlocked: true }
   }
-  const shareId = readShareCookie(request)
+  const shareId = readShareCookie()
   return {
     accessBlocked: !isShareValid(shareId),
   }

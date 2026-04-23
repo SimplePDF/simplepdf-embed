@@ -100,6 +100,10 @@
     "errorAuthTitle": "Ověření selhalo.",
     "errorAuthBody": "AI poskytovatel odmítl váš API klíč. <switchModel>Přepněte AI model</switchModel>, ověřte klíč a zkuste to znovu.",
     "errorGenericTitle": "Úplná chyba",
+    "welcomeTitle": "Vyzkoušejte Form Copilot s vlastním API klíčem",
+    "welcomeBody": "Váš klíč zůstává jen v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",
+    "welcomeCta": "Použijte vlastní API klíč",
+    "welcomeInfoLink": "Jak Form Copilot funguje",
     "inputPlaceholderReady": "Zeptejte se Form Copilot…",
     "inputPlaceholderWaiting": "Čekejte prosím…",
     "send": "Odeslat"

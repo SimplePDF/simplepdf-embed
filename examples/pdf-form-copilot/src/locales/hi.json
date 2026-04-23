@@ -100,6 +100,10 @@
     "errorAuthTitle": "प्रमाणीकरण विफल रहा।",
     "errorAuthBody": "AI प्रदाता ने आपकी API कुंजी अस्वीकार कर दी। कुंजी सत्यापित करने के लिए <switchModel>AI मॉडल बदलें</switchModel> और फिर से प्रयास करें।",
     "errorGenericTitle": "पूरी त्रुटि",
+    "welcomeTitle": "अपनी खुद की API कुंजी के साथ Form Copilot आज़माएँ",
+    "welcomeBody": "आपकी कुंजी केवल इसी टैब में रहती है। अनुरोध आपके ब्राउज़र से आपके चुने हुए AI प्रदाता को भेजे जाते हैं।",
+    "welcomeCta": "अपनी खुद की API कुंजी लाएँ",
+    "welcomeInfoLink": "Form Copilot कैसे काम करता है",
     "inputPlaceholderReady": "Form Copilot से पूछें…",
     "inputPlaceholderWaiting": "कृपया प्रतीक्षा करें…",
     "send": "भेजें"

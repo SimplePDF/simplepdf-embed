@@ -100,6 +100,10 @@
     "errorAuthTitle": "Uwierzytelnianie nie powiodło się.",
     "errorAuthBody": "Dostawca AI odrzucił Twój klucz API. <switchModel>Zmień model AI</switchModel>, aby zweryfikować klucz, i spróbuj ponownie.",
     "errorGenericTitle": "Pełny błąd",
+    "welcomeTitle": "Wypróbuj Form Copilot z własnym kluczem API",
+    "welcomeBody": "Twój klucz pozostaje tylko w tej karcie. Żądania są wysyłane z Twojej przeglądarki do wybranego dostawcy AI.",
+    "welcomeCta": "Użyj własnego klucza API",
+    "welcomeInfoLink": "Jak działa Form Copilot",
     "inputPlaceholderReady": "Zapytaj Form Copilot…",
     "inputPlaceholderWaiting": "Proszę czekać…",
     "send": "Wyślij"

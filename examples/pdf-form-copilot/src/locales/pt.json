@@ -100,6 +100,10 @@
     "errorAuthTitle": "Autenticação falhou.",
     "errorAuthBody": "O fornecedor de IA rejeitou a sua chave API. <switchModel>Mude de modelo de IA</switchModel> para verificar a chave e tente novamente.",
     "errorGenericTitle": "Erro completo",
+    "welcomeTitle": "Experimente o Form Copilot com a sua própria chave API",
+    "welcomeBody": "A sua chave permanece apenas neste separador. Os pedidos são enviados do seu navegador para o fornecedor de IA que escolheu.",
+    "welcomeCta": "Traga a sua chave API",
+    "welcomeInfoLink": "Como funciona o Form Copilot",
     "inputPlaceholderReady": "Pergunte ao Form Copilot…",
     "inputPlaceholderWaiting": "Aguarde, por favor…",
     "send": "Enviar"

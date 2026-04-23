@@ -100,6 +100,10 @@
     "errorAuthTitle": "Xác thực không thành công.",
     "errorAuthBody": "Nhà cung cấp AI đã từ chối khóa API của bạn. <switchModel>Đổi mô hình AI</switchModel> để xác minh khóa, rồi thử lại.",
     "errorGenericTitle": "Lỗi đầy đủ",
+    "welcomeTitle": "Thử Form Copilot bằng khóa API của riêng bạn",
+    "welcomeBody": "Khóa của bạn chỉ ở lại trong thẻ này. Yêu cầu được gửi từ trình duyệt của bạn đến nhà cung cấp AI mà bạn chọn.",
+    "welcomeCta": "Mang khóa API của riêng bạn",
+    "welcomeInfoLink": "Cách Form Copilot hoạt động",
     "inputPlaceholderReady": "Hỏi Form Copilot…",
     "inputPlaceholderWaiting": "Vui lòng đợi…",
     "send": "Gửi"

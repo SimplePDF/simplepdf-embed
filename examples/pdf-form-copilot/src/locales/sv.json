@@ -100,6 +100,10 @@
     "errorAuthTitle": "Autentiseringen misslyckades.",
     "errorAuthBody": "AI-leverantören avvisade din API-nyckel. <switchModel>Byt AI-modell</switchModel> för att verifiera nyckeln och försök igen.",
     "errorGenericTitle": "Fullständigt fel",
+    "welcomeTitle": "Prova Form Copilot med din egen API-nyckel",
+    "welcomeBody": "Din nyckel stannar endast i den här fliken. Förfrågningar skickas från din webbläsare till den AI-leverantör du väljer.",
+    "welcomeCta": "Ta med din egen API-nyckel",
+    "welcomeInfoLink": "Så fungerar Form Copilot",
     "inputPlaceholderReady": "Fråga Form Copilot…",
     "inputPlaceholderWaiting": "Vänligen vänta…",
     "send": "Skicka"

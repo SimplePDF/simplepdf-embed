@@ -100,6 +100,10 @@
     "errorAuthTitle": "Autentificarea a eșuat.",
     "errorAuthBody": "Furnizorul AI ți-a respins cheia API. <switchModel>Schimbă modelul AI</switchModel> pentru a verifica cheia și încearcă din nou.",
     "errorGenericTitle": "Eroare completă",
+    "welcomeTitle": "Încearcă Form Copilot cu propria ta cheie API",
+    "welcomeBody": "Cheia ta rămâne doar în această filă. Solicitările sunt trimise din browserul tău către furnizorul AI ales.",
+    "welcomeCta": "Folosește propria cheie API",
+    "welcomeInfoLink": "Cum funcționează Form Copilot",
     "inputPlaceholderReady": "Întreabă Form Copilot…",
     "inputPlaceholderWaiting": "Te rog așteaptă…",
     "send": "Trimite"

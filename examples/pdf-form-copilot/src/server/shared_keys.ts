@@ -80,24 +80,6 @@ const getConfig = (): Config => {
   return cachedConfig
 }
 
-// Explicit bootstrap hook for a health check or server entry to pre-validate
-// at boot rather than waiting for the first request. Safe to call repeatedly.
-export const assertConfig = (): void => {
-  getConfig()
-}
-
-// Pull the share id from the URL. Only ever called during the initial
-// landing-page redirect hop where we consume `?share=<id>` once and move it
-// into a cookie; API routes never read the URL.
-export const readShareFromUrl = (request: Request): string | null => {
-  const url = new URL(request.url)
-  const raw = url.searchParams.get('share')
-  if (raw === null || raw === '') {
-    return null
-  }
-  return raw
-}
-
 export const resolveApiKey = (shareId: string | null): SharedKeyResolution => {
   if (shareId === null) {
     return { kind: 'share_required' }

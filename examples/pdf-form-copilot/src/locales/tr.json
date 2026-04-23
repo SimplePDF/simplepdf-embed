@@ -100,6 +100,10 @@
     "errorAuthTitle": "Kimlik doğrulama başarısız oldu.",
     "errorAuthBody": "Yapay zeka sağlayıcısı API anahtarınızı reddetti. Anahtarı doğrulamak için <switchModel>yapay zeka modelini değiştirin</switchModel> ve tekrar deneyin.",
     "errorGenericTitle": "Tam hata",
+    "welcomeTitle": "Form Copilot’u kendi API anahtarınızla deneyin",
+    "welcomeBody": "Anahtarınız yalnızca bu sekmede kalır. İstekler tarayıcınızdan seçtiğiniz yapay zeka sağlayıcısına gönderilir.",
+    "welcomeCta": "Kendi API anahtarınızı getirin",
+    "welcomeInfoLink": "Form Copilot nasıl çalışır",
     "inputPlaceholderReady": "Form Copilot’a sorun…",
     "inputPlaceholderWaiting": "Lütfen bekleyin…",
     "send": "Gönder"

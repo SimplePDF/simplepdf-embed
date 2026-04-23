@@ -100,6 +100,10 @@
     "errorAuthTitle": "Tunnistautuminen epäonnistui.",
     "errorAuthBody": "Tekoälytarjoaja hylkäsi API-avaimesi. <switchModel>Vaihda tekoälymalli</switchModel> avaimen vahvistamiseksi ja yritä uudelleen.",
     "errorGenericTitle": "Koko virhe",
+    "welcomeTitle": "Kokeile Form Copilotia omalla API-avaimellasi",
+    "welcomeBody": "Avaimesi pysyy vain tällä välilehdellä. Pyynnöt lähetetään selaimestasi valitsemallesi tekoälytarjoajalle.",
+    "welcomeCta": "Tuo oma API-avain",
+    "welcomeInfoLink": "Näin Form Copilot toimii",
     "inputPlaceholderReady": "Kysy Form Copilotilta…",
     "inputPlaceholderWaiting": "Odota hetki…",
     "send": "Lähetä"

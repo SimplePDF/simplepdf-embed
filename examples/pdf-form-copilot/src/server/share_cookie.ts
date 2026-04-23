@@ -1,4 +1,4 @@
-import { setCookie } from '@tanstack/react-start/server'
+import { getCookie, setCookie } from '@tanstack/react-start/server'
 
 // Cookie-based share carrier. The share id never lives in the URL past the
 // first page load: on arrival we validate the `?share=` query parameter,
@@ -19,30 +19,16 @@ import { setCookie } from '@tanstack/react-start/server'
 const SHARE_COOKIE_NAME = 'simplepdf-share'
 const SHARE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24
 
-export const readShareCookie = (request: Request): string | null => {
-  const header = request.headers.get('cookie')
-  if (header === null || header === '') {
+// Read the cookie via TanStack Start's request-context helper (h3's
+// `parseCookies` under the hood). Relies on the AsyncLocalStorage context
+// set up by the server runtime for the current request; safe inside route
+// handlers and createServerFn handlers.
+export const readShareCookie = (): string | null => {
+  const value = getCookie(SHARE_COOKIE_NAME)
+  if (value === undefined || value === '') {
     return null
   }
-  for (const entry of header.split(';')) {
-    const [rawName, ...rawValueParts] = entry.split('=')
-    if (rawName === undefined) {
-      continue
-    }
-    if (rawName.trim() !== SHARE_COOKIE_NAME) {
-      continue
-    }
-    const rawValue = rawValueParts.join('=').trim()
-    if (rawValue === '') {
-      return null
-    }
-    try {
-      return decodeURIComponent(rawValue)
-    } catch {
-      return null
-    }
-  }
-  return null
+  return value
 }
 
 export const writeShareCookie = (shareId: string): void => {

@@ -100,6 +100,10 @@
     "errorAuthTitle": "Error de autenticación.",
     "errorAuthBody": "El proveedor de IA rechazó tu clave API. <switchModel>Cambia de modelo de IA</switchModel> para verificar la clave e inténtalo de nuevo.",
     "errorGenericTitle": "Detalles del error",
+    "welcomeTitle": "Prueba Form Copilot con tu propia clave API",
+    "welcomeBody": "Tu clave se queda solo en esta pestaña. Las peticiones se envían desde tu navegador al proveedor de IA que elijas.",
+    "welcomeCta": "Usa tu propia clave API",
+    "welcomeInfoLink": "Cómo funciona Form Copilot",
     "inputPlaceholderReady": "Pregunta a Form Copilot…",
     "inputPlaceholderWaiting": "Espera, por favor…",
     "send": "Enviar"

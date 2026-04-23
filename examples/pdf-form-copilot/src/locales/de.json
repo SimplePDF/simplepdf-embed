@@ -100,6 +100,10 @@
     "errorAuthTitle": "Authentifizierung fehlgeschlagen.",
     "errorAuthBody": "Der KI-Anbieter hat Ihren API-Schlüssel abgelehnt. <switchModel>KI-Modell wechseln</switchModel>, um den Schlüssel zu überprüfen, und erneut versuchen.",
     "errorGenericTitle": "Fehlerdetails",
+    "welcomeTitle": "Testen Sie Form Copilot mit Ihrem eigenen API-Schlüssel",
+    "welcomeBody": "Ihr Schlüssel bleibt nur in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",
+    "welcomeCta": "Eigenen API-Schlüssel verwenden",
+    "welcomeInfoLink": "So funktioniert Form Copilot",
     "inputPlaceholderReady": "Form Copilot fragen…",
     "inputPlaceholderWaiting": "Bitte warten…",
     "send": "Senden"

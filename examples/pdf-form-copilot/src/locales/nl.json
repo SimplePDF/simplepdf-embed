@@ -100,6 +100,10 @@
     "errorAuthTitle": "Verificatie mislukt.",
     "errorAuthBody": "De AI-provider heeft uw API-sleutel geweigerd. <switchModel>Wissel van AI-model</switchModel> om de sleutel te verifiëren en probeer het opnieuw.",
     "errorGenericTitle": "Volledige fout",
+    "welcomeTitle": "Probeer Form Copilot met uw eigen API-sleutel",
+    "welcomeBody": "Uw sleutel blijft alleen in dit tabblad. Verzoeken worden vanuit uw browser naar de door u gekozen AI-provider verzonden.",
+    "welcomeCta": "Breng uw eigen API-sleutel mee",
+    "welcomeInfoLink": "Hoe Form Copilot werkt",
     "inputPlaceholderReady": "Vraag Form Copilot…",
     "inputPlaceholderWaiting": "Een ogenblik geduld…",
     "send": "Verzenden"

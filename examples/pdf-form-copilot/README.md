@@ -48,7 +48,11 @@ SHARED_API_KEYS='{"<share_id>":{"api_key":"sk-ant-...","rate_limit_turns_lifetim
 - The reserved id `__default__` is rejected at parse time.
 - Requests without a valid `?share=` return 401.
 
+On arrival, the server consumes `?share=<id>`, validates it, writes an HttpOnly + Secure + SameSite=Strict cookie (`simplepdf-share`, 24h max-age, scoped to `/`), and redirects to the bare `/`. The cookie is the only carrier used by subsequent API calls; the address bar never shows the secret. A fresh `?share=` arrival refreshes the 24h TTL; closing the browser ends the session unless the cookie is still within TTL.
+
 Visitors who want the demo without an invite link open the Model Picker inside the app and bring their own key. BYOK runs the stream entirely in the browser; it never hits `/api/chat` or `/api/summarize`.
+
+**Fail-closed rate limit.** If the limiter is mis-configured or its persistence hydration fails, every `/api/chat` and `/api/summarize` request returns 503 `service_unavailable` instead of silently accepting traffic on an empty in-memory counter. The operator is expected to fix the config (or disable persistence) before the server serves anything.
 
 ### Client configuration
 

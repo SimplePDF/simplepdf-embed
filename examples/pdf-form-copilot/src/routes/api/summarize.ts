@@ -43,7 +43,7 @@ export const Route = createFileRoute('/api/summarize')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = readShareCookie(request)
+        const shareId = readShareCookie()
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json({ error: 'share_required', message: 'Invite link required' }, { status: 401 })
@@ -59,14 +59,41 @@ export const Route = createFileRoute('/api/summarize')({
           return Response.json({ error: body.error, message: body.message }, { status: body.status })
         }
 
+        if (!rateLimiter.isReady()) {
+          console.error('[copilot] summarize.blocked_system_failure', {
+            detail: rateLimiter.statusDetail(),
+          })
+          return Response.json(
+            { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+            { status: 503 },
+          )
+        }
         const ip = getClientIp(request)
         const ipHash = await hashIp(ip)
-        const decision = rateLimiter.check({
-          bucket: resolution.bucket,
-          ipHash,
-          lifetime: resolution.lifetime,
-        })
+        const decision = ((): ReturnType<typeof rateLimiter.check> => {
+          try {
+            return rateLimiter.check({
+              bucket: resolution.bucket,
+              ipHash,
+              lifetime: resolution.lifetime,
+            })
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error)
+            console.error('[copilot] summarize.rate_limit_threw', { ip_hash: ipHash, detail })
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
+          }
+        })()
         if (!decision.allowed) {
+          if (decision.reason === 'system_failure') {
+            console.error('[copilot] summarize.blocked_system_failure', {
+              ip_hash: ipHash,
+              detail: decision.detail,
+            })
+            return Response.json(
+              { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+              { status: 503 },
+            )
+          }
           return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
         }
 

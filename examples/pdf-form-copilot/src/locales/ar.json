@@ -100,6 +100,10 @@
     "errorAuthTitle": "فشل التحقق من الهوية.",
     "errorAuthBody": "رفض مزود الذكاء الاصطناعي مفتاح API الخاص بك. <switchModel>بدّل نموذج الذكاء الاصطناعي</switchModel> للتحقق من المفتاح، ثم حاول مرة أخرى.",
     "errorGenericTitle": "الخطأ الكامل",
+    "welcomeTitle": "جرّب Form Copilot باستخدام مفتاح API الخاص بك",
+    "welcomeBody": "يبقى مفتاحك في هذه العلامة التبويبية فقط. تُرسل الطلبات من متصفحك إلى مزود الذكاء الاصطناعي الذي اخترته.",
+    "welcomeCta": "استخدم مفتاح API الخاص بك",
+    "welcomeInfoLink": "كيف يعمل Form Copilot",
     "inputPlaceholderReady": "اسأل Form Copilot…",
     "inputPlaceholderWaiting": "يرجى الانتظار…",
     "send": "إرسال"
