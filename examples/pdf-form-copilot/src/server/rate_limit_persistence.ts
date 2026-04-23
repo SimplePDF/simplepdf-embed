@@ -35,6 +35,15 @@ const readConfig = (): PersistenceConfig | null => {
   if (!endpoint || !bucket || !key || !accessKeyId || !secretAccessKey) {
     return null
   }
+  // IP_HASH_SALT becomes mandatory the moment the rate-limit state leaves
+  // the process. Without a salt, a leak of the persisted blob lets anyone
+  // brute-force the 2^32 IPv4 space in minutes and unmask every tracked IP.
+  const salt = process.env.IP_HASH_SALT
+  if (salt === undefined || salt.trim() === '') {
+    throw new Error(
+      'IP_HASH_SALT is required when S3 rate-limit persistence is enabled',
+    )
+  }
   const client = new S3Client({
     endpoint,
     region,
