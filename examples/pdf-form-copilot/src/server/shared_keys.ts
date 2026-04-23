@@ -86,7 +86,10 @@ export const assertConfig = (): void => {
   getConfig()
 }
 
-export const getShareParam = (request: Request): string | null => {
+// Pull the share id from the URL. Only ever called during the initial
+// landing-page redirect hop where we consume `?share=<id>` once and move it
+// into a cookie; API routes never read the URL.
+export const readShareFromUrl = (request: Request): string | null => {
   const url = new URL(request.url)
   const raw = url.searchParams.get('share')
   if (raw === null || raw === '') {

@@ -3,7 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { generateText } from 'ai'
 import { parseJsonBody } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { getShareParam, resolveApiKey } from '../../server/shared_keys'
+import { readShareCookie } from '../../server/share_cookie'
+import { resolveApiKey } from '../../server/shared_keys'
 import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
@@ -42,7 +43,7 @@ export const Route = createFileRoute('/api/summarize')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = getShareParam(request)
+        const shareId = readShareCookie(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json({ error: 'share_required', message: 'Invite link required' }, { status: 401 })

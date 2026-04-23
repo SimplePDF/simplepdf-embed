@@ -607,7 +607,6 @@ export const ChatPane = ({
         onClose={closeModelPicker}
         activeConfig={byokConfig}
         onApply={setByokConfig}
-        onReset={() => setByokConfig(null)}
       />
     </div>
   )

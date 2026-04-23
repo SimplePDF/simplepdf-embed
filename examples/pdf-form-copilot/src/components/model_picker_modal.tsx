@@ -15,30 +15,21 @@ type ModelPickerModalProps = {
   onClose: () => void
   activeConfig: ByokConfig | null
   onApply: (config: ByokConfig) => void
-  onReset: () => void
 }
 
-export const ModelPickerModal = ({
-  open,
-  onClose,
-  activeConfig,
-  onApply,
-  onReset,
-}: ModelPickerModalProps) => {
+export const ModelPickerModal = ({ open, onClose, activeConfig, onApply }: ModelPickerModalProps) => {
   // Conditionally mount the body so state always initializes cleanly from
   // activeConfig on each open. Avoids the "useEffect to sync prop → state"
   // anti-pattern; the inner component owns its fresh state.
   if (!open) {
     return null
   }
-  return (
-    <ModelPickerModalBody onClose={onClose} activeConfig={activeConfig} onApply={onApply} onReset={onReset} />
-  )
+  return <ModelPickerModalBody onClose={onClose} activeConfig={activeConfig} onApply={onApply} />
 }
 
 type ModelPickerBodyProps = Omit<ModelPickerModalProps, 'open'>
 
-const ModelPickerModalBody = ({ onClose, activeConfig, onApply, onReset }: ModelPickerBodyProps) => {
+const ModelPickerModalBody = ({ onClose, activeConfig, onApply }: ModelPickerBodyProps) => {
   const { t } = useTranslation()
   const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(
     activeConfig?.provider ?? null,
@@ -87,36 +78,9 @@ const ModelPickerModalBody = ({ onClose, activeConfig, onApply, onReset }: Model
           <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
             {t('chat.modelPicker.currentSectionTitle')}
           </div>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <div>
-              <div className="text-sm font-semibold text-slate-900">
-                {activeConfig === null
-                  ? t('chat.modelPicker.currentModel')
-                  : (findProvider(activeConfig.provider).models.find((m) => m.id === activeConfig.model)
-                      ?.label ?? activeConfig.model)}
-              </div>
-              <div className="text-[11px] text-slate-500">
-                {activeConfig === null
-                  ? t('chat.modelPicker.currentProvider')
-                  : t(findProvider(activeConfig.provider).labelKey)}
-              </div>
-            </div>
-            {activeConfig === null ? (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-700">
-                {t('chat.modelPicker.currentBadge')}
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  onReset()
-                  onClose()
-                }}
-                className="text-[11px] font-medium text-sky-600 hover:text-sky-700"
-              >
-                {t('chat.modelPicker.resetToDefault')}
-              </button>
-            )}
+          <div className="mt-1">
+            <div className="text-sm font-semibold text-slate-900">{t('chat.modelPicker.currentModel')}</div>
+            <div className="text-[11px] text-slate-500">{t('chat.modelPicker.currentProvider')}</div>
           </div>
         </section>
 

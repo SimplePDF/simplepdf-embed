@@ -3,7 +3,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { getShareParam, resolveApiKey } from '../../server/shared_keys'
+import { readShareCookie } from '../../server/share_cookie'
+import { resolveApiKey } from '../../server/shared_keys'
 import {
   ChatRequestSchema,
   DetectFieldsInput,
@@ -59,7 +60,7 @@ export const Route = createFileRoute('/api/chat')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = getShareParam(request)
+        const shareId = readShareCookie(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json(
