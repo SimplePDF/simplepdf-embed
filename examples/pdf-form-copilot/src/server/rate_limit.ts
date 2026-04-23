@@ -4,19 +4,22 @@ type BucketState = {
   hits: number
 }
 
-const parsePositiveInt = (raw: string | undefined, fallback: number): number => {
+const parseRequiredPositiveInt = (raw: string | undefined, name: string): number => {
   if (raw === undefined || raw.trim() === '') {
-    return fallback
+    throw new Error(`${name} is required but not set`)
   }
   const parsed = Number.parseInt(raw, 10)
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback
+    throw new Error(`${name} must be a positive integer, got "${raw}"`)
   }
   return parsed
 }
 
+// Required env. The demo runs on a single instance; the lifetime cap is the
+// load-bearing cost control, so we refuse to start without an explicit value
+// rather than silently falling back to a permissive default.
 const LIMITS = {
-  lifetime: parsePositiveInt(process.env.RATE_LIMIT_LIFETIME, 10),
+  lifetime: parseRequiredPositiveInt(process.env.RATE_LIMIT_LIFETIME, 'RATE_LIMIT_LIFETIME'),
 } as const
 
 export type RateLimitDecision =
@@ -96,36 +99,12 @@ export const getClientIp = (request: Request): string => {
   return 'unknown'
 }
 
-// Origin allow-list: when ALLOWED_ORIGINS is set (comma-separated), only
-// requests whose Origin or Referer header starts with one of those origins
-// are accepted. Defeats drive-by curl / scraper traffic that doesn't bother
-// to set a browser-style Origin.
-const parseAllowedOrigins = (): string[] | null => {
-  const raw = process.env.ALLOWED_ORIGINS
-  if (raw === undefined || raw.trim() === '') {
-    return null
-  }
-  return raw
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry !== '')
-}
-
-export const isOriginAllowed = (request: Request): boolean => {
-  const allowed = parseAllowedOrigins()
-  if (allowed === null) {
-    return true
-  }
-  const origin = request.headers.get('origin')
-  if (origin !== null && allowed.some((entry) => origin === entry)) {
-    return true
-  }
-  const referer = request.headers.get('referer')
-  if (referer !== null && allowed.some((entry) => referer.startsWith(entry))) {
-    return true
-  }
-  return false
-}
+// No server-side origin gate. The demo serves the client and the API from
+// the same domain and sets no CORS response headers, so the browser's
+// same-origin policy already blocks cross-origin reads. Defending against
+// non-browser clients (curl / scripts) is not the job of an Origin header
+// check since it is trivially forgeable; the per-IP rate limit and the
+// SHARED_API_KEYS invite gate are the real cost controls.
 
 // Salts the SHA-256 IP hash with a server-side secret. Without a salt, a leak
 // of the persisted S3 object would let anyone brute-force the 2^32 IPv4 space
