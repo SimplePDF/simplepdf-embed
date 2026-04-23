@@ -6,21 +6,26 @@ import { Modal, ModalCloseButton } from './modal'
 type InfoModalProps = {
   open: boolean
   onClose: () => void
-  onSelectForm: (formId: FormId) => void
+  // Click target for the use-case cards. The caller is expected to both set
+  // the form AND flip the UI locale to English, since the cards always
+  // showcase US forms regardless of the current locale.
+  onSelectUseCaseForm: (formId: FormId) => void
 }
 
-type UseCaseKey = 'healthcare' | 'insurance' | 'state' | 'hr'
+type UseCaseKey = 'tax' | 'hr' | 'healthcare' | 'insurance'
 
 type UseCase = {
   key: UseCaseKey
   formId: FormId | null
 }
 
+// Use-case cards always point to US English forms regardless of UI locale —
+// the click handler flips ?lang=en so the chosen form appears in the picker.
 const USE_CASES: UseCase[] = [
+  { key: 'tax', formId: 'w9' },
+  { key: 'hr', formId: 'i9' },
   { key: 'healthcare', formId: 'healthcare' },
   { key: 'insurance', formId: null },
-  { key: 'state', formId: 'state' },
-  { key: 'hr', formId: 'hr' },
 ]
 
 type IconProps = { className?: string }
@@ -123,7 +128,7 @@ const IconInsurance = ({ className }: IconProps): ReactElement => (
   </svg>
 )
 
-const IconState = ({ className }: IconProps): ReactElement => (
+const IconTax = ({ className }: IconProps): ReactElement => (
   <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
     <path d="M3 20h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     <path d="M5 20V10.5M9 20V10.5M15 20V10.5M19 20V10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -156,10 +161,10 @@ const IconGithub = ({ className }: IconProps): ReactElement => (
 )
 
 const USE_CASE_ICONS: Record<UseCaseKey, (props: IconProps) => ReactElement> = {
+  tax: IconTax,
+  hr: IconHR,
   healthcare: IconHealthcare,
   insurance: IconInsurance,
-  state: IconState,
-  hr: IconHR,
 }
 
 const ARCHITECTURE_ICONS = [IconDocumentShield, IconAi, IconStorage] as const
@@ -285,7 +290,7 @@ const STEP_HINT_KEYS: Record<number, string | null> = {
 }
 const ARCHITECTURE_INDICES = [0, 1, 2] as const
 
-export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps): ReactElement | null => {
+export const InfoModal = ({ open, onClose, onSelectUseCaseForm }: InfoModalProps): ReactElement | null => {
   const { t } = useTranslation()
 
   return (
@@ -428,7 +433,7 @@ export const InfoModal = ({ open, onClose, onSelectForm }: InfoModalProps): Reac
                       key={useCase.key}
                       type="button"
                       onClick={() => {
-                        onSelectForm(formId)
+                        onSelectUseCaseForm(formId)
                         onClose()
                       }}
                       className={`${sharedClass} cursor-pointer border-slate-200 bg-white hover:bg-[#f1f7ff]`}

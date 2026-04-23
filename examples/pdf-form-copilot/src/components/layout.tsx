@@ -81,6 +81,16 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
     })
   }
 
+  // Use-case modal cards always showcase US English forms, so clicking one
+  // both sets the form AND flips the UI locale to EN. Keeping the locale
+  // unchanged would land the user on a W-9 (or I-9) with, say, a Dutch UI,
+  // which is inconsistent with the card copy and the form content.
+  const switchToUseCaseForm = (next: FormId): void => {
+    void navigate({
+      search: (prev) => ({ ...prev, form: next, lang: 'en' }),
+    })
+  }
+
   return (
     <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
@@ -121,7 +131,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           {t('header.poweredBy')}
         </a>
       </div>
-      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectForm={switchForm} />
+      <InfoModal open={isInfoOpen} onClose={closeModal} onSelectUseCaseForm={switchToUseCaseForm} />
       <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} />
     </header>
   )

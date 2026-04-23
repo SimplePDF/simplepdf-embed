@@ -42,6 +42,14 @@
     "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives metadata such as pre-signed upload URLs and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server — the webhook carries metadata only, never the document content.",
     "tryThisForm": "Try this form →",
     "useCases": {
+      "tax": {
+        "title": "Tax",
+        "body": "Tax forms like the IRS W-9 combine identity fields, classification choices, and a signature. Form Copilot helps fill the identity section, explains each classification option, and leaves the signature to the user."
+      },
+      "hr": {
+        "title": "HR onboarding",
+        "body": "Employment eligibility forms like the USCIS I-9 mix free-text identity fields with attestations and tight formatting rules. Form Copilot fills what it can, flags the sections that need a human review, and hands off for signatures."
+      },
       "healthcare": {
         "title": "Healthcare",
         "body": "Patient intake and claims forms often contain sensitive data and require review. Form Copilot helps complete the form step by step using your organization's approved AI provider. The document stays in the browser, and submissions go directly to the storage and systems your organization chooses."
@@ -49,14 +57,6 @@
       "insurance": {
         "title": "Insurance",
         "body": "Applications, claims, and endorsements often combine structured data with policy-specific details. Form Copilot helps prefill what it can, explain fields, and leaves the final review to the user."
-      },
-      "state": {
-        "title": "State bureaucracy",
-        "body": "Government forms are often scanned, complex, or written in a language the user does not speak. Form Copilot can help explain the form, translate it, and fill it step by step while the user reviews the result."
-      },
-      "hr": {
-        "title": "HR onboarding",
-        "body": "Offer letters, tax forms, and onboarding packets often require both prefilling and review. Form Copilot fills what it can, then hands off to the user for signatures and final checks."
       }
     }
   },
@@ -170,10 +170,13 @@
     },
     "labels": {
       "w9": "IRS W-9",
+      "w4": "IRS W-4",
+      "i9": "USCIS I-9",
       "cms1500": "CMS-1500 claim form",
       "mnda": "Mutual NDA",
       "loonheffingen": "Loonheffingen (NL)",
       "loonheffingenScanned": "Loonheffingen scanned",
+      "cerfa12485": "CERFA 12485 (médecin traitant)",
       "custom": "Pick your own PDF"
     },
     "customSubtitle": "Any PDF works"
