@@ -12,6 +12,10 @@ export type FormId =
 export type FormConfig = {
   id: FormId
   useCaseKey: string
+  // Optional override for the picker subtext. Falls back to `useCaseKey` when
+  // unset. Use when two forms share the same vertical but one needs extra
+  // qualification (e.g. scanned-PDF flag on the MNDA sharing `hr` with I-9).
+  subtitleKey?: string
   labelKey: string
   pdfUrl: string
 }
@@ -51,6 +55,7 @@ const ALL_FORMS: Record<FormId, FormConfig> = {
   hr: {
     id: 'hr',
     useCaseKey: 'forms.useCases.hr',
+    subtitleKey: 'forms.subtitles.mndaScanned',
     labelKey: 'forms.labels.mnda',
     pdfUrl: `${CDN_BASE}/onboarding/mnda.pdf`,
   },

@@ -179,6 +179,9 @@
       "cerfa12485": "CERFA 12485 (médecin traitant)",
       "custom": "Pick your own PDF"
     },
+    "subtitles": {
+      "mndaScanned": "HR onboarding (scanned document)"
+    },
     "customSubtitle": "Any PDF works"
   }
 }
