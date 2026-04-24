@@ -20,7 +20,7 @@ export const DEMO_MODELS: Record<DemoModel, DemoModelConfig> = {
   anthropic_haiku_4_5: {
     provider: 'anthropic',
     modelId: 'claude-haiku-4-5-20251001',
-    label: 'Haiku 4.5',
+    label: 'Claude Haiku 4.5',
   },
   deepseek_v4_flash: {
     provider: 'deepseek',
