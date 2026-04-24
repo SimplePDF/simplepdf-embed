@@ -54,11 +54,16 @@ type ChatPaneProps = {
 const MAX_TRACKED_ENTRIES = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
+// U+001F (unit separator) cannot appear in a documentId emitted by the editor
+// or in a two/three-letter locale code, so the composite key is collision-free
+// even if documentId ever grows richer characters.
+const CACHE_KEY_DELIMITER = '\x1f'
+
 const buildCacheKey = (documentId: string | null, language: string): string | null => {
   if (documentId === null) {
     return null
   }
-  return `${documentId}::${language}`
+  return `${documentId}${CACHE_KEY_DELIMITER}${language}`
 }
 
 const readPersistedMessages = (cacheKey: string | null): UIMessage[] => {
@@ -552,6 +557,19 @@ export const ChatPane = ({
     }
   }, [canSend])
 
+  // Order matters: write runs BEFORE hydrate. When cacheKey flips (form or
+  // locale switch), the write effect fires with stale `messages` from the
+  // previous cacheKey. The gate below sees `ref !== cacheKey` and skips,
+  // preventing cross-key contamination. Hydrate then updates the ref and
+  // schedules setMessages; the next render re-fires the write with fresh
+  // messages under the new ref-equal cacheKey.
+  useEffect(() => {
+    if (hydratedCacheKeyRef.current !== cacheKey) {
+      return
+    }
+    writePersistedMessages(cacheKey, messages)
+  }, [cacheKey, messages])
+
   useEffect(() => {
     if (hydratedCacheKeyRef.current === cacheKey) {
       return
@@ -559,10 +577,6 @@ export const ChatPane = ({
     hydratedCacheKeyRef.current = cacheKey
     setMessages(readPersistedMessages(cacheKey))
   }, [cacheKey, setMessages])
-
-  useEffect(() => {
-    writePersistedMessages(cacheKey, messages)
-  }, [cacheKey, messages])
 
   const handleSend = useCallback(
     (prompt: string): void => {
