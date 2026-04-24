@@ -67,6 +67,8 @@
     "switchModel": "Switch AI model",
     "modelPicker": {
       "title": "Bring your own model",
+      "currentlyUsedSectionTitle": "Currently used",
+      "demoRateLimitedBadge": "demo · rate limited",
       "byokIntro": "Pick a provider and paste your key to chat through it instead.",
       "byokSecurityTitle": "Your key stays on your device.",
       "byokSecurityBody": "Keys are held in memory only (never written to disk, never sent to SimplePDF's servers) and every LLM request is fired straight from your browser to the provider you chose.",

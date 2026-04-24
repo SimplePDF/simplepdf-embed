@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import {
@@ -8,28 +9,75 @@ import {
   PROVIDER_ENTRIES,
   type ProviderEntry,
 } from '../lib/byok'
+import { DEMO_MODELS } from '../lib/demo_model'
+import type { DemoGate } from '../routes/index'
 import { Modal, ModalCloseButton } from './ui/modal'
 
 type ModelPickerModalProps = {
   open: boolean
   onClose: () => void
   activeConfig: ByokConfig | null
+  demoGate: DemoGate
   onApply: (config: ByokConfig) => void
 }
 
-export const ModelPickerModal = ({ open, onClose, activeConfig, onApply }: ModelPickerModalProps) => {
+export const ModelPickerModal = ({
+  open,
+  onClose,
+  activeConfig,
+  demoGate,
+  onApply,
+}: ModelPickerModalProps) => {
   // Conditionally mount the body so state always initializes cleanly from
   // activeConfig on each open. Avoids the "useEffect to sync prop → state"
   // anti-pattern; the inner component owns its fresh state.
   if (!open) {
     return null
   }
-  return <ModelPickerModalBody onClose={onClose} activeConfig={activeConfig} onApply={onApply} />
+  return (
+    <ModelPickerModalBody
+      onClose={onClose}
+      activeConfig={activeConfig}
+      demoGate={demoGate}
+      onApply={onApply}
+    />
+  )
 }
 
 type ModelPickerBodyProps = Omit<ModelPickerModalProps, 'open'>
 
-const ModelPickerModalBody = ({ onClose, activeConfig, onApply }: ModelPickerBodyProps) => {
+// Describes what's running right now so the "Currently used" section can
+// render a label + optional badge. Demo mode carries the rate-limit badge
+// because the server-paid path is capped per share; BYOK skips the badge
+// (the user owns the cost). Null means neither path is active — the modal
+// is being opened before any selection exists — so the section is hidden.
+type CurrentlyUsed = { kind: 'demo'; label: string } | { kind: 'byok'; label: string } | null
+
+const pickCurrentlyUsed = ({
+  activeConfig,
+  demoGate,
+}: {
+  activeConfig: ByokConfig | null
+  demoGate: DemoGate
+}): CurrentlyUsed => {
+  if (activeConfig !== null) {
+    const label =
+      findProvider(activeConfig.provider).models.find((m) => m.id === activeConfig.model)?.label ??
+      activeConfig.model
+    return { kind: 'byok', label }
+  }
+  switch (demoGate.kind) {
+    case 'demo':
+      return { kind: 'demo', label: DEMO_MODELS[demoGate.model].label }
+    case 'byok':
+      return null
+    default:
+      demoGate satisfies never
+      return null
+  }
+}
+
+const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: ModelPickerBodyProps) => {
   const { t } = useTranslation()
   const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(
     activeConfig?.provider ?? null,
@@ -73,7 +121,29 @@ const ModelPickerModalBody = ({ onClose, activeConfig, onApply }: ModelPickerBod
         <ModalCloseButton onClose={onClose} />
       </div>
 
-      <div className="mt-4 space-y-5 text-sm text-slate-700">
+      <div className="mt-4 space-y-4 text-sm text-slate-700">
+        {((): ReactNode => {
+          const currentlyUsed = pickCurrentlyUsed({ activeConfig, demoGate })
+          if (currentlyUsed === null) {
+            return null
+          }
+          return (
+            <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                {t('chat.modelPicker.currentlyUsedSectionTitle')}
+              </div>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="text-sm font-semibold text-slate-900">{currentlyUsed.label}</div>
+                {currentlyUsed.kind === 'demo' ? (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-amber-700">
+                    {t('chat.modelPicker.demoRateLimitedBadge')}
+                  </span>
+                ) : null}
+              </div>
+            </section>
+          )
+        })()}
+
         <section>
           <p className="text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
 
