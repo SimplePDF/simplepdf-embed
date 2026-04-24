@@ -1,5 +1,5 @@
 {
-  "name": "pdf-form-copilot",
+  "name": "form-copilot",
   "private": true,
   "type": "module",
   "imports": {

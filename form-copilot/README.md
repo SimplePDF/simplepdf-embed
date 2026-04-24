@@ -71,7 +71,7 @@ Visitors who want the demo without an invite link open the Model Picker inside t
 | `S3_ENDPOINT` | e.g. `https://fra1.digitaloceanspaces.com` |
 | `S3_REGION` | e.g. `us-east-1` |
 | `S3_BUCKET` | e.g. `beautiful-space` |
-| `S3_RATE_LIMIT_KEY` | e.g. `simple-pdf/rate-limits/pdf-form-copilot.json` |
+| `S3_RATE_LIMIT_KEY` | e.g. `simple-pdf/rate-limits/form-copilot.json` |
 | `S3_ACCESS_KEY_ID` | Spaces / S3 access key |
 | `S3_SECRET_ACCESS_KEY` | Spaces / S3 secret |
 
@@ -98,4 +98,4 @@ Browser
 
 ## Design notes
 
-See [`plans/P059-pdf-form-copilot.md`](../../../../plans/P059-pdf-form-copilot.md) in the parent repo for the full design history, decision log, and code-review remediation trail.
+See [`plans/P059-pdf-form-copilot.md`](../../../plans/P059-pdf-form-copilot.md) in the parent repo for the full design history, decision log, and code-review remediation trail.

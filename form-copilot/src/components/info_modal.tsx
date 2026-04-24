@@ -315,7 +315,7 @@ export const InfoModal = ({
           </h2>
           <div className="flex flex-wrap items-center gap-2.5">
             <a
-              href="https://github.com/SimplePDF/simplepdf-embed/tree/main/examples/pdf-form-copilot"
+              href="https://github.com/SimplePDF/simplepdf-embed/tree/main/form-copilot"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-slate-700 transition hover:border-sky-600 hover:text-sky-700"

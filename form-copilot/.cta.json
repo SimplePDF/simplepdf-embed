@@ -1,5 +1,5 @@
 {
-  "projectName": "pdf-form-copilot",
+  "projectName": "form-copilot",
   "mode": "file-router",
   "typescript": true,
   "packageManager": "npm",
