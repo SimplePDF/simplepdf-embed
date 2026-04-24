@@ -1,6 +1,8 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createFileRoute } from '@tanstack/react-router'
-import { generateText } from 'ai'
+import { generateText, type LanguageModel } from 'ai'
+import { DEMO_MODELS, type DemoModel } from '../../lib/demo_model'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
@@ -8,10 +10,22 @@ import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 
-const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_INPUT_CHARS = 20_000
 const MAX_OUTPUT_TOKENS = 350
 const MAX_BODY_BYTES = 128 * 1024
+
+const buildLanguageModel = ({ model, apiKey }: { model: DemoModel; apiKey: string }): LanguageModel => {
+  const config = DEMO_MODELS[model]
+  switch (config.provider) {
+    case 'anthropic':
+      return createAnthropic({ apiKey })(config.modelId)
+    case 'deepseek':
+      return createDeepSeek({ apiKey })(config.modelId)
+    default:
+      config.provider satisfies never
+      throw new Error(`Unhandled provider: ${String(config.provider)}`)
+  }
+}
 
 const SYSTEM_PROMPT = `You compress a PDF form's extracted text into a dense summary for another LLM that will help a user fill the form.
 
@@ -99,14 +113,13 @@ export const Route = createFileRoute('/api/summarize')({
           return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
         }
 
-        const anthropic = createAnthropic({ apiKey: resolution.apiKey })
         const delimiter = generateDelimiter()
         const docName = body.data.name ?? 'unknown'
         const languageLabel = body.data.language_label ?? 'English'
         const userPrompt = `Document name: ${docName}\nResponse language: ${languageLabel}\nPage delimiter: ${delimiter}\n\n${renderPages({ pages: body.data.pages, delimiter })}`
 
         const result = await generateText({
-          model: anthropic(MODEL_ID),
+          model: buildLanguageModel({ model: resolution.model, apiKey: resolution.apiKey }),
           system: SYSTEM_PROMPT,
           prompt: userPrompt,
           maxOutputTokens: MAX_OUTPUT_TOKENS,

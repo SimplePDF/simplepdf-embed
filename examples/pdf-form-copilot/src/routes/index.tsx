@@ -5,13 +5,14 @@ import { useCallback, useRef } from 'react'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
+import type { DemoModel } from '../lib/demo_model'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
 import { i18n } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger, monitoring } from '../lib/monitoring'
 import { isSameOrigin } from '../server/rate_limit'
-import { isShareValid } from '../server/shared_keys'
+import { resolveShareModel } from '../server/shared_keys'
 
 export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
 
@@ -25,15 +26,12 @@ type HomeSearch = {
   share?: string
 }
 
-// Opaque gate: the client only needs to know whether access is blocked, not
-// whether the share id happens to be valid. Collapsing to a single boolean
-// keeps the server function easy to reason about; enumeration by a scripted
-// attacker still reveals valid share ids but only ever costs the attacker
-// the associated per-share lifetime budget. The same-origin check on the
-// endpoint blocks casual cross-origin probing from the browser.
-export type DemoGate = {
-  accessBlocked: boolean
-}
+// Two-state gate: either the invite is valid and the chat runs against the
+// per-share demo model, or the visitor has to bring their own key via the
+// Model Picker. The UI reads this to label the active model and to decide
+// whether to show the Welcome banner. Cross-origin probes collapse to
+// 'byok' — the client cannot infer which share ids exist.
+export type DemoGate = { kind: 'byok' } | { kind: 'demo'; model: DemoModel }
 
 // The share id lives directly in `?share=<id>` on the page URL — no cookie
 // round-trip, no URL stripping — so an invite link can be copy-pasted and
@@ -53,9 +51,13 @@ const readDemoGate = createServerFn({ method: 'GET' })
   .handler(async ({ data }): Promise<DemoGate> => {
     const request = getRequest()
     if (!isSameOrigin(request)) {
-      return { accessBlocked: true }
+      return { kind: 'byok' }
     }
-    return { accessBlocked: !isShareValid(data.shareId) }
+    const model = resolveShareModel(data.shareId)
+    if (model === null) {
+      return { kind: 'byok' }
+    }
+    return { kind: 'demo', model }
   })
 
 export const Route = createFileRoute('/')({
@@ -125,7 +127,7 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
 
 function Home() {
   const { form, lang } = Route.useSearch()
-  const { accessBlocked } = Route.useLoaderData()
+  const demoGate = Route.useLoaderData()
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
@@ -173,7 +175,7 @@ function Home() {
           language={lang}
           onLanguageChange={handleLanguageChange}
           documentId={documentId}
-          accessBlocked={accessBlocked}
+          demoGate={demoGate}
         />
       }
     />

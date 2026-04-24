@@ -62,10 +62,8 @@
   },
   "chat": {
     "heading": "Chat",
-    "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Waiting for the editor to load…",
     "subtitleNoDocument": "Load a document",
-    "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Switch AI model",
     "modelPicker": {
       "title": "Switch AI model",

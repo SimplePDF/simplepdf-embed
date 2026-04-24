@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import { type ByokConfig, findProvider, runByokStream } from '../lib/byok'
+import { DEMO_MODELS } from '../lib/demo_model'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -22,6 +23,7 @@ import {
 } from '../lib/embed-bridge-adapters/client-tools'
 import { getLanguageByCode } from '../lib/languages'
 import { monitoring, normalizeError } from '../lib/monitoring'
+import type { DemoGate } from '../routes/index'
 import { SYSTEM_PROMPT } from '../server/tools'
 import { ErrorBanner } from './error_banner'
 import { LanguagePicker } from './language_picker'
@@ -42,7 +44,7 @@ type ChatPaneProps = {
   language: string
   onLanguageChange: (code: string) => void
   documentId: string | null
-  accessBlocked: boolean
+  demoGate: DemoGate
 }
 
 // In-memory chat store keyed by (document_id, language). Survives component
@@ -264,7 +266,7 @@ export const ChatPane = ({
   language,
   onLanguageChange,
   documentId,
-  accessBlocked,
+  demoGate,
 }: ChatPaneProps) => {
   const { t } = useTranslation()
   const navigate = homeRoute.useNavigate()
@@ -579,7 +581,8 @@ export const ChatPane = ({
   // Access is blocked only until the visitor brings their own key — BYOK runs
   // the stream entirely in the browser via runByokStream and never hits /api/chat.
   const unblockedByByok = byokConfig !== null
-  const serverLocked = accessBlocked && !unblockedByByok
+  const serverLocked = demoGate.kind === 'byok' && !unblockedByByok
+  const demoModelLabel = demoGate.kind === 'demo' ? DEMO_MODELS[demoGate.model].label : null
   const canSend = isReady && !isStreaming && !serverLocked
   const hasUserMessage = messages.some((message) => message.role === 'user')
 
@@ -629,10 +632,10 @@ export const ChatPane = ({
           {isReady ? (
             <>
               <h2 className="text-sm font-semibold text-slate-900">
-                {byokConfig === null
-                  ? t('chat.modelNameReady')
-                  : (findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
-                    byokConfig.model)}
+                {byokConfig !== null
+                  ? (findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
+                    byokConfig.model)
+                  : (demoModelLabel ?? t('chat.heading'))}
               </h2>
               <button
                 type="button"

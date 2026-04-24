@@ -1,6 +1,8 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createFileRoute } from '@tanstack/react-router'
-import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { convertToModelMessages, type LanguageModel, streamText, type UIMessage } from 'ai'
+import { DEMO_MODELS, type DemoModel } from '../../lib/demo_model'
 import {
   DetectFieldsInput,
   FocusFieldInput,
@@ -18,9 +20,21 @@ import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { ChatRequestSchema, SYSTEM_PROMPT } from '../../server/tools'
 
-const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000
 const MAX_BODY_BYTES = 256 * 1024
+
+const buildLanguageModel = ({ model, apiKey }: { model: DemoModel; apiKey: string }): LanguageModel => {
+  const config = DEMO_MODELS[model]
+  switch (config.provider) {
+    case 'anthropic':
+      return createAnthropic({ apiKey })(config.modelId)
+    case 'deepseek':
+      return createDeepSeek({ apiKey })(config.modelId)
+    default:
+      config.provider satisfies never
+      throw new Error(`Unhandled provider: ${String(config.provider)}`)
+  }
+}
 
 const isFreshUserTurn = (messages: UIMessage[]): boolean => {
   const last = messages[messages.length - 1]
@@ -145,20 +159,29 @@ export const Route = createFileRoute('/api/chat')({
           )
         }
 
-        const anthropic = createAnthropic({ apiKey: resolution.apiKey })
-        const modelMessages = tagLastMessageForCache(await convertToModelMessages(messages))
+        // Anthropic supports prompt caching via providerOptions; DeepSeek
+        // does not. Skip the cache tags on non-Anthropic models so the
+        // provider doesn't reject the request.
+        const modelProvider = DEMO_MODELS[resolution.model].provider
+        const useAnthropicCache = modelProvider === 'anthropic'
+        const convertedMessages = await convertToModelMessages(messages)
+        const modelMessages = useAnthropicCache
+          ? tagLastMessageForCache(convertedMessages)
+          : convertedMessages
         const languageInstruction = `Language: reply in ${languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${languageLabel}.`
 
         const streamStartedAt = Date.now()
 
         const result = streamText({
-          model: anthropic(MODEL_ID),
+          model: buildLanguageModel({ model: resolution.model, apiKey: resolution.apiKey }),
           messages: [
-            {
-              role: 'system',
-              content: SYSTEM_PROMPT,
-              providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
-            },
+            useAnthropicCache
+              ? {
+                  role: 'system',
+                  content: SYSTEM_PROMPT,
+                  providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+                }
+              : { role: 'system', content: SYSTEM_PROMPT },
             { role: 'system', content: languageInstruction },
             ...modelMessages,
           ],

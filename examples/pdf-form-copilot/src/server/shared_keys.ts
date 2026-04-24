@@ -1,10 +1,13 @@
 import { z } from 'zod'
+import { type DemoModel, DemoModelSchema } from '../lib/demo_model'
 import { monitoring } from '../lib/monitoring'
 
 // Invite-link BYOK is the only server-paid path. SHARED_API_KEYS is a
-// stringified JSON map of share-id -> { api_key, rate_limit_turns_lifetime }.
-// Each share carries its own lifetime cap so different invites have
-// independent budgets. Share-id values are never logged.
+// stringified JSON map of share-id -> { api_key, rate_limit_turns_lifetime,
+// model }. Each share carries its own lifetime cap so different invites
+// have independent budgets, and its own model handle so one invite can run
+// Haiku while another runs DeepSeek (or future additions). Share-id values
+// are never logged.
 //
 // There is NO default / open / hybrid mode. Requests without a valid ?share=
 // return 401. Anyone who wants to run the demo without an invite link brings
@@ -14,6 +17,7 @@ import { monitoring } from '../lib/monitoring'
 const ShareConfigSchema = z.object({
   api_key: z.string().min(1),
   rate_limit_turns_lifetime: z.number().int().positive(),
+  model: DemoModelSchema,
 })
 
 const SharedKeysSchema = z.record(z.string(), ShareConfigSchema)
@@ -26,7 +30,7 @@ type ShareConfig = z.infer<typeof ShareConfigSchema>
 const DEFAULT_BUCKET = '__default__'
 
 export type SharedKeyResolution =
-  | { kind: 'shared'; apiKey: string; lifetime: number; bucket: string }
+  | { kind: 'shared'; apiKey: string; lifetime: number; bucket: string; model: DemoModel }
   | { kind: 'share_required' }
 
 type Config = {
@@ -95,7 +99,16 @@ export const resolveApiKey = (shareId: string | null): SharedKeyResolution => {
     apiKey: mapped.api_key,
     lifetime: mapped.rate_limit_turns_lifetime,
     bucket: shareId,
+    model: mapped.model,
   }
+}
+
+export const resolveShareModel = (shareId: string | null): DemoModel | null => {
+  if (shareId === null) {
+    return null
+  }
+  const mapped = getConfig().sharedKeys.get(shareId)
+  return mapped?.model ?? null
 }
 
 export const isShareValid = (shareId: string | null): boolean => {
