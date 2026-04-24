@@ -641,17 +641,22 @@ export const ChatPane = ({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">{activeModelLabel}</h2>
+          <h2 className="text-sm font-semibold leading-5 text-slate-900">{activeModelLabel}</h2>
+          {/* Same leading/height on both branches so the transition from
+              "Waiting for the editor to load…" to the Switch-AI-model button
+              doesn't jump the header vertically. `block + leading-4 + h-4`
+              forces both the paragraph and the button into identical
+              line-boxes regardless of user-agent button defaults. */}
           {isReady ? (
             <button
               type="button"
               onClick={openModelPicker}
-              className="text-xs font-medium text-sky-600 hover:text-sky-700"
+              className="block h-4 text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
             >
               {t('chat.switchModel')}
             </button>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="block h-4 text-xs leading-4 text-slate-500">
               {requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')}
             </p>
           )}
