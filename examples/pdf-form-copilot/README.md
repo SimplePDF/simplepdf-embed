@@ -45,7 +45,7 @@ SHARED_API_KEYS='{"<share_id>":{"api_key":"sk-ant-...","rate_limit_turns_lifetim
 
 - `api_key` (required): provider API key used for requests that arrive with `?share=<share_id>`. Anthropic key for `model: "anthropic_haiku_4_5"`, DeepSeek key for `model: "deepseek_v4_flash"`.
 - `rate_limit_turns_lifetime` (required): lifetime cap on fresh user turns per IP for that share. Resets on server restart (or persists to S3, see below).
-- `model` (required): the demo model this invite runs on. One of `"anthropic_haiku_4_5"` (Anthropic Claude Haiku 4.5) or `"deepseek_v4_flash"` (DeepSeek V3.2 via the DeepSeek API). The label shown above "Switch AI model" in the chat header is driven by this value.
+- `model` (required): the demo model this invite runs on. One of `"anthropic_haiku_4_5"` (displayed as "Haiku 4.5") or `"deepseek_v4_flash"` (displayed as "DeepSeek V4 Flash"). The label shown above "Switch AI model" in the chat header is driven entirely by `DEMO_MODELS` in `src/lib/demo_model.ts`, so editing a label there immediately changes the UI.
 - The reserved id `__default__` is rejected at parse time.
 - Requests without a valid `?share=` return 401.
 
