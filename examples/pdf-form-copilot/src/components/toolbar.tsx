@@ -1,4 +1,4 @@
-import { Check, Grid3x3, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
+import { Check, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SupportedFieldType } from '../lib/embed-bridge'
@@ -15,6 +15,20 @@ type ToolbarProps = {
   onSubmit: () => void
 }
 
+const BoxedTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) => (
+  <svg
+    viewBox="0 0 5515 4463"
+    width={size}
+    height={size}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M865.87 2736.79V1398.03H157.21v2047.42h5196.85V1398.03H4645.4v1338.76H3109.97v-866.32h-708.66v866.32H865.87Z" />
+  </svg>
+)
+
 type ToolOption = {
   value: ToolbarTool
   labelKey: string
@@ -24,10 +38,10 @@ type ToolOption = {
 const OPTIONS: ToolOption[] = [
   { value: null, labelKey: 'toolbar.cursor', icon: MousePointer },
   { value: 'TEXT', labelKey: 'toolbar.text', icon: Type },
-  { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: Grid3x3 },
   { value: 'CHECKBOX', labelKey: 'toolbar.checkbox', icon: Check },
   { value: 'SIGNATURE', labelKey: 'toolbar.signature', icon: PenTool },
   { value: 'PICTURE', labelKey: 'toolbar.picture', icon: ImageIcon },
+  { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: BoxedTextIcon },
 ]
 
 export const Toolbar = ({ selected, onSelect, disabled, submitEnabled, onSubmit }: ToolbarProps) => {
