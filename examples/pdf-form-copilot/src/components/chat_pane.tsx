@@ -54,16 +54,14 @@ type ChatPaneProps = {
 const MAX_TRACKED_ENTRIES = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
-// U+001F (unit separator) cannot appear in a documentId emitted by the editor
-// or in a two/three-letter locale code, so the composite key is collision-free
-// even if documentId ever grows richer characters.
-const CACHE_KEY_DELIMITER = '\x1f'
-
 const buildCacheKey = (documentId: string | null, language: string): string | null => {
   if (documentId === null) {
     return null
   }
-  return `${documentId}${CACHE_KEY_DELIMITER}${language}`
+  // documentId is a UUID (hex + dashes), language is a fixed ISO code
+  // (two/three-letter ASCII). Neither can contain ':', so a plain colon is
+  // a safe delimiter.
+  return `${documentId}:${language}`
 }
 
 const readPersistedMessages = (cacheKey: string | null): UIMessage[] => {
