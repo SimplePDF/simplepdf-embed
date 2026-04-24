@@ -37,20 +37,36 @@ type Config = {
   sharedKeys: ReadonlyMap<string, ShareConfig>
 }
 
+// Accept either plain JSON or base64-encoded JSON. Plain is the default;
+// base64 exists because DigitalOcean App Platform (and other hosts with
+// quote-sensitive env-var UIs / YAML app specs) sometimes mangle the
+// embedded `"` or surrounding quotes, breaking JSON.parse. Base64 is
+// ASCII-only with no quote characters, so it survives any input path.
+//
+// Operator encodes with e.g. `base64 -w0 <<< '{"dev":{...}}'` and pastes.
+// The parser tries plain JSON first, falls back to base64-then-JSON.
+const parseShareEnv = (raw: string): unknown => {
+  try {
+    return JSON.parse(raw)
+  } catch {
+    // fall through to base64
+  }
+  try {
+    const decoded = Buffer.from(raw.trim(), 'base64').toString('utf-8')
+    return JSON.parse(decoded)
+  } catch {
+    return null
+  }
+}
+
 const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
   const raw = process.env.SHARED_API_KEYS
   if (raw === undefined || raw.trim() === '') {
     return new Map()
   }
-  const jsonParsed = ((): unknown => {
-    try {
-      return JSON.parse(raw)
-    } catch {
-      monitoring.warn('shared_keys.parse_failed', { reason: 'invalid_json' })
-      return null
-    }
-  })()
+  const jsonParsed = parseShareEnv(raw)
   if (jsonParsed === null) {
+    monitoring.warn('shared_keys.parse_failed', { reason: 'invalid_json' })
     return new Map()
   }
   const schemaParsed = SharedKeysSchema.safeParse(jsonParsed)

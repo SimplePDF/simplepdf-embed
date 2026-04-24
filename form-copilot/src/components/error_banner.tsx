@@ -1,6 +1,7 @@
 import { type ReactElement, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../lib/error-classifier'
+import { SocialShare } from './social_share'
 
 type ErrorBannerProps = {
   error: Error
@@ -101,21 +102,24 @@ const ResumePanel = ({ modelLabel, onResume }: ResumePanelProps): ReactElement =
 const RateLimitPanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
   const { t } = useTranslation()
   return (
-    <div className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-      <div className="font-medium">{t('chat.errorRateLimitedTitle')}</div>
-      <div className="mt-1">
-        <Trans
-          i18nKey="chat.errorRateLimitedBody"
-          components={{
-            switchModel: (
-              <button
-                type="button"
-                onClick={onSwitchModel}
-                className="font-medium underline underline-offset-2 hover:text-amber-950"
-              />
-            ),
-          }}
-        />
+    <div className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <div className="text-sm font-semibold">{t('chat.errorRateLimitedTitle')}</div>
+      <p className="mt-2 leading-relaxed">{t('chat.errorRateLimitedBodyThanks')}</p>
+      <p className="mt-1 leading-relaxed">{t('chat.errorRateLimitedBodyCta')}</p>
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={onSwitchModel}
+          className="inline-flex h-8 items-center rounded-md bg-amber-900 px-3 text-sm font-medium text-amber-50 transition hover:bg-amber-950"
+        >
+          {t('chat.errorRateLimitedCtaButton')}
+        </button>
+      </div>
+      <div className="mt-4 border-t border-amber-200 pt-3">
+        <p className="leading-relaxed">{t('chat.shareHero')}</p>
+        <div className="mt-2">
+          <SocialShare />
+        </div>
       </div>
     </div>
   )

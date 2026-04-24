@@ -67,4 +67,17 @@ describe('shared_keys', () => {
     expect(resolveApiKey('__default__')).toEqual({ kind: 'share_required' })
     expect(resolveApiKey('invite_a').kind).toBe('shared')
   })
+
+  it('accepts a base64-encoded JSON payload (fallback for hosts that mangle quotes)', async () => {
+    const json = JSON.stringify({ invite_a: validShare })
+    const base64 = Buffer.from(json, 'utf-8').toString('base64')
+    setEnv(base64)
+    const { resolveApiKey } = await importFresh()
+    const resolution = resolveApiKey('invite_a')
+    expect(resolution.kind).toBe('shared')
+    if (resolution.kind === 'shared') {
+      expect(resolution.apiKey).toBe('sk-ant-test')
+      expect(resolution.bucket).toBe('invite_a')
+    }
+  })
 })
