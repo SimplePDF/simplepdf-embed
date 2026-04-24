@@ -110,10 +110,3 @@ export const resolveShareModel = (shareId: string | null): DemoModel | null => {
   const mapped = getConfig().sharedKeys.get(shareId)
   return mapped?.model ?? null
 }
-
-export const isShareValid = (shareId: string | null): boolean => {
-  if (shareId === null) {
-    return false
-  }
-  return getConfig().sharedKeys.has(shareId)
-}

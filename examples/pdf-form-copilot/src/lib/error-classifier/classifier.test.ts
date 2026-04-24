@@ -165,9 +165,13 @@ describe(classifyError.name, () => {
     expect(classifyError(error)).toBe('server')
   })
 
-  it('classifies a 429 status as "demo_rate_limited"', () => {
+  // Raw 429 on the APICallError object = BYOK path, the user's own provider
+  // is throttling their own key. Must NOT render the demo rate-limited
+  // banner (which would falsely tell them to "bring their own API key" when
+  // they already did).
+  it('classifies a raw 429 status as null (BYOK provider rate-limited the user) — not demo_rate_limited', () => {
     const error = Object.assign(new Error('rate limited'), { statusCode: 429 })
-    expect(classifyError(error)).toBe('demo_rate_limited')
+    expect(classifyError(error)).toBeNull()
   })
 
   it('classifies a { error: "rate_limited" } body (no statusCode) as "demo_rate_limited"', () => {
@@ -203,16 +207,6 @@ describe(classifyError.name, () => {
       const error = Object.assign(new Error('x'), { statusCode: status })
       expect(classifyError(error)).toBeNull()
     }
-  })
-
-  // /api/chat's serializeStreamError only rewrites 401 / 402 / 403 / 429
-  // upstream into the rate_limited envelope. A 400 Bad Request would
-  // otherwise have been miscategorised as "demo is capped" — this test
-  // guards that a raw 400 (not wrapped into the rate_limited shape) still
-  // falls through so the generic panel can show the real diagnostic.
-  it('classifies a raw upstream 400 as null (generic panel), not demo_rate_limited', () => {
-    const error = Object.assign(new Error('bad request'), { statusCode: 400 })
-    expect(classifyError(error)).toBeNull()
   })
 
   it('returns null when no status can be recovered', () => {

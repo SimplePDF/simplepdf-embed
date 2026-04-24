@@ -86,7 +86,7 @@ export const Route = createFileRoute('/')({
   loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.shareId } }),
 })
 
-const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
+const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'copilot'
 
 // VITE_SIMPLEPDF_BASE_DOMAIN accepts a full base URL (protocol + host + optional
 // port). The company identifier is spliced in as a subdomain when building the

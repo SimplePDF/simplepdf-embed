@@ -70,14 +70,37 @@ export const getErrorDisplayMessage = (error: Error): string => {
 }
 
 export const classifyError = (error: Error): KnownErrorKind | null => {
+  // An envelope-shaped message means the error went through /api/chat — the
+  // server-paid demo path. BYOK never reaches that endpoint, so envelope-
+  // sourced 429 / auth failures are unambiguously demo-side and earn the
+  // amber "Thanks for trying the demo!" panel.
+  const envelope = parseStreamErrorMessage(error.message)
+  if (envelope !== null) {
+    if (envelope.statusCode === 429) {
+      return 'demo_rate_limited'
+    }
+    if (envelope.statusCode === 401) {
+      return 'authentication'
+    }
+    if (envelope.statusCode >= 500 && envelope.statusCode < 600) {
+      return 'server'
+    }
+    return null
+  }
+  // Fall-through: the status came directly off an AI SDK APICallError.
+  // That's the BYOK path (stream runs browser-to-provider). 401 = user's own
+  // key was rejected -> auth panel. 5xx = infra. A raw 429 here means the
+  // user's own provider is throttling their key, not that the demo is
+  // capped -- let it drop to the generic panel so the raw provider message
+  // is shown. We never blame the demo for a BYOK user's rate limit.
   const status = getErrorStatusCode(error)
+  if (status === null) {
+    return null
+  }
   if (status === 401) {
     return 'authentication'
   }
-  if (status === 429) {
-    return 'demo_rate_limited'
-  }
-  if (status !== null && status >= 500 && status < 600) {
+  if (status >= 500 && status < 600) {
     return 'server'
   }
   return null
