@@ -127,10 +127,11 @@ export const createBridge = ({
       logger.info('iframe.request_sent', { request_id: requestId, type, timeout_ms: timeoutMs })
       const timeoutId = setTimeout(() => {
         pending.delete(requestId)
-        logger.warn('iframe.request_timed_out', {
+        logger.error('iframe.request_timed_out', {
           request_id: requestId,
           type,
           elapsed_ms: Date.now() - startedAtMs,
+          timeout_ms: timeoutMs,
         })
         resolve({
           success: false,
@@ -335,7 +336,7 @@ export const createBridge = ({
     }
     const entry = pending.get(requestId)
     if (entry === undefined) {
-      logger.warn('iframe.request_missing_pending', { request_id: requestId })
+      logger.error('iframe.request_missing_pending', { request_id: requestId })
       return
     }
     pending.delete(requestId)

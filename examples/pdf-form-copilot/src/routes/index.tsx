@@ -27,19 +27,32 @@ type HomeSearch = {
   share?: string
 }
 
-// Console-backed bridge logger. Gated on `VITE_ENABLE_DEVTOOLS` (same env flag
-// that toggles TanStack devtools) so production builds constant-fold the
-// logger reference to `undefined` and strip the dump of raw tool traffic.
+// Console-backed bridge logger. Errors always reach the console (helpful for
+// production debug reports — the browser's devtools shows them with a red
+// icon and no expansion by default). The chatty levels (info / warn / debug,
+// including the raw postMessage dumps) only surface when
+// `VITE_ENABLE_DEVTOOLS=true` — the same flag that turns on TanStack's
+// devtools panel — so regular visitors never see a wall of [copilot:bridge]
+// logs in their console.
 const DEVTOOLS_ENABLED = import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
 
-const DEBUG_BRIDGE_LOGGER: BridgeLogger | undefined = DEVTOOLS_ENABLED
+const bridgeErrorSink = (event: string, payload: Record<string, unknown>): void => {
+  console.error(`[copilot:bridge] ${event}`, payload)
+}
+
+const BRIDGE_LOGGER: BridgeLogger = DEVTOOLS_ENABLED
   ? {
       debug: (event, payload) => console.debug(`[copilot:bridge] ${event}`, payload),
       info: (event, payload) => console.info(`[copilot:bridge] ${event}`, payload),
       warn: (event, payload) => console.warn(`[copilot:bridge] ${event}`, payload),
-      error: (event, payload) => console.error(`[copilot:bridge] ${event}`, payload),
+      error: bridgeErrorSink,
     }
-  : undefined
+  : {
+      debug: () => {},
+      info: () => {},
+      warn: () => {},
+      error: bridgeErrorSink,
+    }
 
 // Opaque gate: the client only needs to know whether access is blocked, not
 // whether the share id happens to be valid. Collapsing to a single boolean
@@ -168,7 +181,7 @@ function Home() {
     iframeRef,
     editorOrigin: EDITOR_ORIGIN,
     resetKey: editorResetKey,
-    logger: DEBUG_BRIDGE_LOGGER,
+    logger: BRIDGE_LOGGER,
   })
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
   const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
