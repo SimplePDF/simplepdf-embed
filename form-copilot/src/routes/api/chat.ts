@@ -80,6 +80,12 @@ export const Route = createFileRoute('/api/chat')({
         }
         const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
+        if (resolution.kind === 'misconfigured') {
+          return Response.json(
+            { error: 'misconfigured_environment' },
+            { status: 500 },
+          )
+        }
         if (resolution.kind === 'share_required') {
           // Message omitted on purpose — the client's ErrorBanner renders
           // localised chat.errorAuth* strings for the authentication kind.

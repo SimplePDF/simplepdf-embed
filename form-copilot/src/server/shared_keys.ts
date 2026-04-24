@@ -32,10 +32,15 @@ const DEFAULT_BUCKET = '__default__'
 export type SharedKeyResolution =
   | { kind: 'shared'; apiKey: string; lifetime: number; bucket: string; model: DemoModel }
   | { kind: 'share_required' }
+  | { kind: 'misconfigured' }
 
 type Config = {
   sharedKeys: ReadonlyMap<string, ShareConfig>
 }
+
+type ParseEnvResult =
+  | { ok: true; data: unknown; source: 'json' | 'base64' }
+  | { ok: false; detail: string }
 
 // Accept either plain JSON or base64-encoded JSON. Plain is the default;
 // base64 exists because DigitalOcean App Platform (and other hosts with
@@ -44,35 +49,62 @@ type Config = {
 // ASCII-only with no quote characters, so it survives any input path.
 //
 // Operator encodes with e.g. `base64 -w0 <<< '{"dev":{...}}'` and pastes.
-// The parser tries plain JSON first, falls back to base64-then-JSON.
-const parseShareEnv = (raw: string): unknown => {
-  try {
-    return JSON.parse(raw)
-  } catch {
-    // fall through to base64
+// The parser tries plain JSON first, falls back to base64-then-JSON, and
+// surfaces both error messages so an operator can tell at a glance which
+// path was expected and why it failed.
+const parseShareEnv = (raw: string): ParseEnvResult => {
+  const trimmed = raw.trim()
+  const plainResult = ((): { ok: true; data: unknown } | { ok: false; error: Error } => {
+    try {
+      return { ok: true, data: JSON.parse(trimmed) }
+    } catch (e) {
+      return { ok: false, error: e as Error }
+    }
+  })()
+  if (plainResult.ok) {
+    return { ok: true, data: plainResult.data, source: 'json' }
   }
-  try {
-    const decoded = Buffer.from(raw.trim(), 'base64').toString('utf-8')
-    return JSON.parse(decoded)
-  } catch {
-    return null
+  const base64Result = ((): { ok: true; data: unknown } | { ok: false; error: Error } => {
+    try {
+      const decoded = Buffer.from(trimmed, 'base64').toString('utf-8')
+      return { ok: true, data: JSON.parse(decoded) }
+    } catch (e) {
+      return { ok: false, error: e as Error }
+    }
+  })()
+  if (base64Result.ok) {
+    return { ok: true, data: base64Result.data, source: 'base64' }
+  }
+  return {
+    ok: false,
+    detail: `plain_json: ${plainResult.error.message}; base64_json: ${base64Result.error.message}`,
   }
 }
 
-const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
+const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> | null => {
   const raw = process.env.SHARED_API_KEYS
   if (raw === undefined || raw.trim() === '') {
-    return new Map()
+    monitoring.error('shared_keys.parse_failed', {
+      reason: 'empty_env',
+      detail: 'SHARED_API_KEYS is not set',
+    })
+    return null
   }
-  const jsonParsed = parseShareEnv(raw)
-  if (jsonParsed === null) {
-    monitoring.warn('shared_keys.parse_failed', { reason: 'invalid_json' })
-    return new Map()
+  const envResult = parseShareEnv(raw)
+  if (!envResult.ok) {
+    monitoring.error('shared_keys.parse_failed', {
+      reason: 'invalid_json',
+      detail: envResult.detail,
+    })
+    return null
   }
-  const schemaParsed = SharedKeysSchema.safeParse(jsonParsed)
+  const schemaParsed = SharedKeysSchema.safeParse(envResult.data)
   if (!schemaParsed.success) {
-    monitoring.warn('shared_keys.parse_failed', { reason: 'schema_mismatch' })
-    return new Map()
+    monitoring.error('shared_keys.parse_failed', {
+      reason: 'schema_mismatch',
+      detail: `parsed_via=${envResult.source}\n${z.prettifyError(schemaParsed.error)}`,
+    })
+    return null
   }
   const entries: Array<[string, ShareConfig]> = []
   for (const [shareId, config] of Object.entries(schemaParsed.data)) {
@@ -86,27 +118,50 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> => {
 }
 
 // Memoised config. Parsed + validated on first call; subsequent calls are
-// free. Throws once if SHARED_API_KEYS is empty (nothing to serve).
-let cachedConfig: Config | null = null
+// free. Misconfiguration is cached too so repeat hits don't re-spam the log.
+type CacheState =
+  | { status: 'uninitialized' }
+  | { status: 'ok'; config: Config }
+  | { status: 'misconfigured' }
 
-const getConfig = (): Config => {
-  if (cachedConfig !== null) {
-    return cachedConfig
+let cache: CacheState = { status: 'uninitialized' }
+
+const getConfig = (): Config | null => {
+  if (cache.status === 'ok') {
+    return cache.config
+  }
+  if (cache.status === 'misconfigured') {
+    return null
   }
   const sharedKeys = parseSharedKeys()
-  if (sharedKeys.size === 0) {
-    throw new Error('SHARED_API_KEYS is required and must contain at least one valid invite')
+  if (sharedKeys === null) {
+    cache = { status: 'misconfigured' }
+    return null
   }
-  cachedConfig = { sharedKeys }
-  return cachedConfig
+  if (sharedKeys.size === 0) {
+    monitoring.error('shared_keys.parse_failed', {
+      reason: 'empty_map',
+      detail: 'no valid invites after parse + validation + reserved-id filtering',
+    })
+    cache = { status: 'misconfigured' }
+    return null
+  }
+  cache = { status: 'ok', config: { sharedKeys } }
+  return cache.config
 }
 
 export const resolveApiKey = (shareId: string | null): SharedKeyResolution => {
+  // Null shareId: user arrived without an invite link. Return share_required
+  // regardless of server config so the BYOK-first UX still works when the
+  // hosted demo is misconfigured.
   if (shareId === null) {
     return { kind: 'share_required' }
   }
-  const { sharedKeys } = getConfig()
-  const mapped = sharedKeys.get(shareId)
+  const config = getConfig()
+  if (config === null) {
+    return { kind: 'misconfigured' }
+  }
+  const mapped = config.sharedKeys.get(shareId)
   if (mapped === undefined) {
     return { kind: 'share_required' }
   }
@@ -123,6 +178,9 @@ export const resolveShareModel = (shareId: string | null): DemoModel | null => {
   if (shareId === null) {
     return null
   }
-  const mapped = getConfig().sharedKeys.get(shareId)
-  return mapped?.model ?? null
+  const config = getConfig()
+  if (config === null) {
+    return null
+  }
+  return config.sharedKeys.get(shareId)?.model ?? null
 }

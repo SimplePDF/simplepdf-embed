@@ -60,6 +60,12 @@ export const Route = createFileRoute('/api/summarize')({
         }
         const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
+        if (resolution.kind === 'misconfigured') {
+          return Response.json(
+            { error: 'misconfigured_environment' },
+            { status: 500 },
+          )
+        }
         if (resolution.kind === 'share_required') {
           return Response.json({ error: 'share_required' }, { status: 401 })
         }

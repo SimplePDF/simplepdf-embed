@@ -17,6 +17,10 @@ const importFresh = async () => {
 }
 
 const setEnv = (raw: string | undefined): void => {
+  if (raw === undefined) {
+    delete process.env.SHARED_API_KEYS
+    return
+  }
   process.env.SHARED_API_KEYS = raw
 }
 
@@ -30,10 +34,14 @@ describe('shared_keys', () => {
   const originalEnv = process.env.SHARED_API_KEYS
 
   beforeEach(() => {
-    process.env.SHARED_API_KEYS = undefined
+    delete process.env.SHARED_API_KEYS
   })
 
   afterEach(() => {
+    if (originalEnv === undefined) {
+      delete process.env.SHARED_API_KEYS
+      return
+    }
     process.env.SHARED_API_KEYS = originalEnv
   })
 
@@ -49,16 +57,28 @@ describe('shared_keys', () => {
     })
   })
 
-  it('rejects an entry missing the `model` field (required since the demo-model refactor)', async () => {
+  it('returns misconfigured (not throws) when an entry is missing the `model` field', async () => {
     setEnv(JSON.stringify({ invite_a: { api_key: 'sk-ant-test', rate_limit_turns_lifetime: 20 } }))
     const { resolveApiKey } = await importFresh()
-    expect(() => resolveApiKey('invite_a')).toThrow(/SHARED_API_KEYS is required/)
+    expect(resolveApiKey('invite_a')).toEqual({ kind: 'misconfigured' })
   })
 
-  it('rejects an entry whose `model` is not a known DemoModel handle', async () => {
+  it('returns misconfigured when `model` is not a known DemoModel handle', async () => {
     setEnv(JSON.stringify({ invite_a: { ...validShare, model: 'gpt_5_mini' } }))
     const { resolveApiKey } = await importFresh()
-    expect(() => resolveApiKey('invite_a')).toThrow(/SHARED_API_KEYS is required/)
+    expect(resolveApiKey('invite_a')).toEqual({ kind: 'misconfigured' })
+  })
+
+  it('returns misconfigured when SHARED_API_KEYS is unset', async () => {
+    setEnv(undefined)
+    const { resolveApiKey } = await importFresh()
+    expect(resolveApiKey('invite_a')).toEqual({ kind: 'misconfigured' })
+  })
+
+  it('returns misconfigured when the env is neither plain JSON nor base64 JSON', async () => {
+    setEnv('not-json-not-base64-@@@')
+    const { resolveApiKey } = await importFresh()
+    expect(resolveApiKey('invite_a')).toEqual({ kind: 'misconfigured' })
   })
 
   it('silently drops the reserved __default__ share id but keeps siblings', async () => {
@@ -79,5 +99,11 @@ describe('shared_keys', () => {
       expect(resolution.apiKey).toBe('sk-ant-test')
       expect(resolution.bucket).toBe('invite_a')
     }
+  })
+
+  it('null shareId returns share_required regardless of server config health', async () => {
+    setEnv(undefined)
+    const { resolveApiKey } = await importFresh()
+    expect(resolveApiKey(null)).toEqual({ kind: 'share_required' })
   })
 })

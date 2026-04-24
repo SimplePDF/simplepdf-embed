@@ -26,7 +26,10 @@ type RateLimitReason = 'lifetime' | 'system_failure'
 // the call site before being passed in.
 export type EventPayloads = {
   // shared_keys.ts (server)
-  'shared_keys.parse_failed': { reason: 'invalid_json' | 'schema_mismatch' }
+  'shared_keys.parse_failed': {
+    reason: 'empty_env' | 'invalid_json' | 'schema_mismatch' | 'empty_map'
+    detail: string
+  }
   'shared_keys.reserved_id_rejected': { share_id: string }
 
   // rate_limit.ts (server)
