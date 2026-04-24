@@ -1,13 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
-import { monitoring, normalizeError } from '../../lib/monitoring'
-import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
-import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { readShareCookie } from '../../server/share_cookie'
-import { resolveApiKey } from '../../server/shared_keys'
 import {
-  ChatRequestSchema,
   DetectFieldsInput,
   FocusFieldInput,
   GetDocumentContentInput,
@@ -16,8 +10,13 @@ import {
   SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
-  SYSTEM_PROMPT,
-} from '../../server/tools'
+} from '../../adapters/client-tools'
+import { monitoring, normalizeError } from '../../lib/monitoring'
+import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
+import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
+import { readShareCookie } from '../../server/share_cookie'
+import { resolveApiKey } from '../../server/shared_keys'
+import { ChatRequestSchema, SYSTEM_PROMPT } from '../../server/tools'
 
 const MODEL_ID = 'claude-haiku-4-5-20251001'
 const MAX_DURATION_MS = 60_000

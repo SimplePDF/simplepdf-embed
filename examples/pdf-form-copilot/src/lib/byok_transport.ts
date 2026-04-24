@@ -10,8 +10,8 @@ import {
   SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
-  SYSTEM_PROMPT,
-} from '../server/tools'
+} from '../adapters/client-tools'
+import { SYSTEM_PROMPT } from '../server/tools'
 import type { ByokConfig } from './byok'
 import { formatStreamError } from './error_classifier'
 import { monitoring, normalizeError } from './monitoring'

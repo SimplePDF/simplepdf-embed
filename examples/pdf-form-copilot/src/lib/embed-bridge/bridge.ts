@@ -1,50 +1,15 @@
-import { type RefObject, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
-import { monitoring } from './monitoring'
-
-export type BridgeResult<TData = null> =
-  | { success: true; data: TData }
-  | { success: false; error: { code: string; message: string } }
-
-type SupportedFieldType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE'
-
-export type FieldRecord = {
-  field_id: string
-  name: string | null
-  type: SupportedFieldType
-  page: number
-  value: string | null
-}
-
-export type DocumentContentPage = {
-  page: number
-  content: string
-}
-
-export type DocumentContentResult = {
-  name: string
-  pages: DocumentContentPage[]
-}
-
-export type LoadDocumentArgs = {
-  dataUrl: string
-  name?: string
-  initialPage?: number
-}
-
-export type CreateFieldArgs = {
-  type: SupportedFieldType
-  x: number
-  y: number
-  width: number
-  height: number
-  page: number
-  value?: string | null
-}
-
-export type RemoveFieldsArgs = {
-  fieldIds?: string[] | null
-  page?: number | null
-}
+import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import type {
+  BridgeRequestType,
+  BridgeResult,
+  BridgeState,
+  CreateFieldArgs,
+  DocumentContentResult,
+  FieldRecord,
+  IframeBridge,
+  LoadDocumentArgs,
+  RemoveFieldsArgs,
+} from './types'
 
 type PendingRequest = {
   resolve: (result: BridgeResult<unknown>) => void
@@ -52,19 +17,6 @@ type PendingRequest = {
   startedAtMs: number
   timeoutId: ReturnType<typeof setTimeout>
 }
-
-type BridgeRequestType =
-  | 'LOAD_DOCUMENT'
-  | 'GO_TO'
-  | 'SELECT_TOOL'
-  | 'DETECT_FIELDS'
-  | 'REMOVE_FIELDS'
-  | 'GET_DOCUMENT_CONTENT'
-  | 'GET_FIELDS'
-  | 'SET_FIELD_VALUE'
-  | 'FOCUS_FIELD'
-  | 'CREATE_FIELD'
-  | 'SUBMIT'
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000
 const FAST_REQUEST_TIMEOUT_MS = 5_000
@@ -101,79 +53,80 @@ const generateRequestId = (): string => {
   return `req_${Math.random().toString(36).slice(2)}_${Date.now().toString(36)}`
 }
 
-// State machine. Transitions are strictly forward (booting -> editor_ready ->
-// document_loaded) except for `editor_ready` -> `editor_ready` on EDITOR_READY
-// re-emission (fresh iframe, no doc yet). Impossible states like
-// `{ editorReady: false, documentLoaded: true }` are unrepresentable.
-export type BridgeState =
-  | { kind: 'booting' }
-  | { kind: 'editor_ready' }
-  | { kind: 'document_loaded'; documentId: string | null }
-
-export type IframeBridge = {
-  getState: () => BridgeState
-  loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
-  goTo: (args: { page: number }) => Promise<BridgeResult>
-  selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
-  detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
-  removeFields: (args?: RemoveFieldsArgs) => Promise<BridgeResult<{ removed_count: number }>>
-  getDocumentContent: (args: {
-    extractionMode: 'auto' | 'ocr'
-  }) => Promise<BridgeResult<DocumentContentResult>>
-  getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
-  setFieldValue: (args: { fieldId: string; value: string | null }) => Promise<BridgeResult>
-  focusField: (args: {
-    fieldId: string
-  }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
-  createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
-  submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
-}
-
-type CreateBridgeArgs = {
-  iframeRef: RefObject<HTMLIFrameElement | null>
+export type CreateBridgeArgs = {
+  // Getter returning the iframe element. Called each time the bridge needs
+  // to reach the editor (postMessage send, probe, identity check on incoming
+  // messages). Framework-agnostic: React callers pass `() => ref.current`;
+  // vanilla JS callers pass `() => document.getElementById('my-iframe')`;
+  // Vue callers pass `() => myRef.value`.
+  getIframe: () => HTMLIFrameElement | null
+  // Origin the iframe is served from. The bridge verifies every incoming
+  // message against this value and sends postMessage with it as the target
+  // origin.
   editorOrigin: string
-  onStateChange: () => void
+  // Optional: receive state-machine transitions. Subscribe/unsubscribe via
+  // the returned `subscribe` function is the alternative pull-based API.
+  onStateChange?: (state: BridgeState) => void
+  // Optional structured logger. Defaults to no-op.
+  logger?: BridgeLogger
 }
 
-const createBridge = ({
-  iframeRef,
+export type EmbedBridge = {
+  bridge: IframeBridge
+  subscribe: (listener: (state: BridgeState) => void) => () => void
+  dispose: () => void
+}
+
+export const createBridge = ({
+  getIframe,
   editorOrigin,
   onStateChange,
-}: CreateBridgeArgs): { bridge: IframeBridge; dispose: () => void } => {
+  logger = NOOP_LOGGER,
+}: CreateBridgeArgs): EmbedBridge => {
   const pending = new Map<string, PendingRequest>()
+  const listeners = new Set<(state: BridgeState) => void>()
   let state: BridgeState = { kind: 'booting' }
   let documentId: string | null = null
 
+  if (onStateChange !== undefined) {
+    listeners.add(onStateChange)
+  }
+
+  const notify = (): void => {
+    for (const listener of listeners) {
+      listener(state)
+    }
+  }
+
   const transitionTo = (next: BridgeState): void => {
     state = next
-    onStateChange()
+    notify()
   }
 
   const sendRequest = <TData>(
     type: BridgeRequestType,
     data: Record<string, unknown>,
-  ): Promise<BridgeResult<TData>> => {
-    return new Promise((resolve) => {
-      const iframe = iframeRef.current
-      if (!iframe || !iframe.contentWindow) {
-        resolve({ success: false, error: { code: 'iframe_not_ready', message: 'Iframe is not mounted' } })
+  ): Promise<BridgeResult<TData>> =>
+    new Promise((resolve) => {
+      const iframe = getIframe()
+      if (iframe === null || iframe.contentWindow === null) {
+        resolve({
+          success: false,
+          error: { code: 'iframe_not_ready', message: 'Iframe is not mounted' },
+        })
         return
       }
 
       const requestId = generateRequestId()
       const timeoutMs = getRequestTimeoutMs(type)
       const startedAtMs = Date.now()
-      monitoring.info('iframe.request_sent', {
-        request_id: requestId,
-        timeout_ms: timeoutMs,
-        type,
-      })
+      logger.info('iframe.request_sent', { request_id: requestId, type, timeout_ms: timeoutMs })
       const timeoutId = setTimeout(() => {
         pending.delete(requestId)
-        monitoring.warn('iframe.request_timed_out', {
-          elapsed_ms: Date.now() - startedAtMs,
+        logger.warn('iframe.request_timed_out', {
           request_id: requestId,
           type,
+          elapsed_ms: Date.now() - startedAtMs,
         })
         resolve({
           success: false,
@@ -193,7 +146,6 @@ const createBridge = ({
 
       iframe.contentWindow.postMessage(JSON.stringify({ type, request_id: requestId, data }), editorOrigin)
     })
-  }
 
   const probeRequestIds = new Set<string>()
   let probeInterval: ReturnType<typeof setInterval> | null = null
@@ -212,13 +164,13 @@ const createBridge = ({
   const logEditorReady = (source: EditorReadySource): void => {
     switch (source) {
       case 'editor_ready_event':
-        monitoring.info('editor.ready_via_event', {})
+        logger.info('editor.ready_via_event', {})
         return
       case 'probe_response':
-        monitoring.info('editor.ready_via_probe', {})
+        logger.info('editor.ready_via_probe', {})
         return
       case 'fallback_timeout':
-        monitoring.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
+        logger.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
         return
       default:
         source satisfies never
@@ -247,10 +199,10 @@ const createBridge = ({
     }
     switch (source) {
       case 'probe_success':
-        monitoring.info('document.loaded_via_probe', {})
+        logger.info('document.loaded_via_probe', {})
         break
       case 'document_loaded_event':
-        monitoring.info('document.loaded_via_event', {})
+        logger.info('document.loaded_via_event', {})
         break
       default:
         source satisfies never
@@ -260,7 +212,7 @@ const createBridge = ({
   }
 
   const sendProbe = (): void => {
-    const iframe = iframeRef.current
+    const iframe = getIframe()
     if (iframe === null || iframe.contentWindow === null) {
       return
     }
@@ -273,7 +225,7 @@ const createBridge = ({
   }
 
   // Fallback only for editor readiness, never for document-loaded. A
-  // document-loaded fallback would wrongly flip the chat UI to "ready" on the
+  // document-loaded fallback would wrongly flip consumers to "ready" on the
   // custom-PDF path where the user hasn't picked a file yet.
   const readyTimeout = setTimeout(() => {
     markEditorReady('fallback_timeout')
@@ -283,27 +235,30 @@ const createBridge = ({
   // confirms a document is loaded (success: true) or the hard fallback fires.
   // A success: false with code 'bad_request:no_document_loaded' still counts
   // as an editor-ready signal (the postMessage bridge is alive), so we flip
-  // isEditorReady on the first response but keep probing for doc-loaded.
-  // This handles PDFs that don't emit DOCUMENT_LOADED (e.g. documents with
-  // no AcroFields) without waiting the full 30s fallback.
+  // state on the first response but keep probing for doc-loaded.
   sendProbe()
   probeInterval = setInterval(sendProbe, EDITOR_READY_PROBE_INTERVAL_MS)
 
-  const onMessage = (event: MessageEvent<string>) => {
+  const onMessage = (event: MessageEvent<string>): void => {
     if (event.origin !== editorOrigin) {
       if (event.origin !== '' && typeof event.data === 'string' && event.data.length < 200) {
-        monitoring.debug('iframe.ignored_cross_origin_message', {
+        logger.debug('iframe.ignored_cross_origin_message', {
           origin: event.origin,
           expected: editorOrigin,
         })
       }
       return
     }
-    if (event.source !== iframeRef.current?.contentWindow) {
+    const iframe = getIframe()
+    if (event.source !== iframe?.contentWindow) {
       return
     }
 
-    const payload = ((): { type: string; data?: Record<string, unknown>; request_id?: string } | null => {
+    const payload = ((): {
+      type: string
+      data?: Record<string, unknown>
+      request_id?: string
+    } | null => {
       try {
         return JSON.parse(event.data)
       } catch {
@@ -326,8 +281,7 @@ const createBridge = ({
         documentId = rawDocId
         // A late-arriving DOCUMENT_LOADED (after the probe already flipped
         // the state to document_loaded) must still propagate the fresh
-        // documentId to consumers. Re-emit the state so useSyncExternalStore
-        // picks up the updated payload.
+        // documentId to consumers.
         if (state.kind === 'document_loaded') {
           transitionTo({ kind: 'document_loaded', documentId })
           return
@@ -349,9 +303,9 @@ const createBridge = ({
       // The iframe answered a readiness probe. Any response means the
       // postMessage bridge is alive → editor ready. A success: true payload
       // additionally means a document is loaded (the editor rejects GET_FIELDS
-      // with bad_request:no_document_loaded otherwise), so we can flip
-      // isDocumentLoaded without waiting for a DOCUMENT_LOADED event — some
-      // PDFs never emit it (e.g. docs with no AcroFields).
+      // with bad_request:no_document_loaded otherwise), so we can flip the
+      // state without waiting for a DOCUMENT_LOADED event — some PDFs never
+      // emit it (e.g. docs with no AcroFields).
       probeRequestIds.delete(requestId)
       markEditorReady('probe_response')
       const probeResult = payload.data?.result as BridgeResult<unknown> | undefined
@@ -361,18 +315,18 @@ const createBridge = ({
       return
     }
     const entry = pending.get(requestId)
-    if (!entry) {
-      monitoring.warn('iframe.request_missing_pending', { request_id: requestId })
+    if (entry === undefined) {
+      logger.warn('iframe.request_missing_pending', { request_id: requestId })
       return
     }
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
     const result = payload.data?.result as BridgeResult<unknown> | undefined
-    monitoring.info('iframe.request_received', {
-      elapsed_ms: Date.now() - entry.startedAtMs,
+    logger.info('iframe.request_received', {
       request_id: requestId,
-      success: result?.success ?? false,
       type: entry.requestType,
+      elapsed_ms: Date.now() - entry.startedAtMs,
+      success: result?.success ?? false,
     })
     entry.resolve(
       result ?? {
@@ -386,97 +340,55 @@ const createBridge = ({
 
   const bridge: IframeBridge = {
     getState: () => state,
-    loadDocument: ({ dataUrl, name, initialPage }) =>
+    loadDocument: ({ dataUrl, name, initialPage }: LoadDocumentArgs) =>
       sendRequest('LOAD_DOCUMENT', { data_url: dataUrl, name, page: initialPage }),
     goTo: ({ page }) => sendRequest('GO_TO', { page }),
     selectTool: ({ tool }) => sendRequest('SELECT_TOOL', { tool }),
     detectFields: (args) => sendRequest('DETECT_FIELDS', { debug_mode: args?.debugMode === true }),
-    removeFields: (args) =>
-      sendRequest('REMOVE_FIELDS', { field_ids: args?.fieldIds ?? null, page: args?.page ?? null }),
+    removeFields: (args?: RemoveFieldsArgs) =>
+      sendRequest('REMOVE_FIELDS', {
+        field_ids: args?.fieldIds ?? null,
+        page: args?.page ?? null,
+      }),
     getDocumentContent: ({ extractionMode }) =>
-      sendRequest('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
-    getFields: () => sendRequest('GET_FIELDS', {}),
+      sendRequest<DocumentContentResult>('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
+    getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
     setFieldValue: ({ fieldId, value }) => sendRequest('SET_FIELD_VALUE', { field_id: fieldId, value }),
     focusField: ({ fieldId }) => sendRequest('FOCUS_FIELD', { field_id: fieldId }),
-    createField: ({ type, x, y, width, height, page, value }) =>
-      sendRequest('CREATE_FIELD', { type, x, y, width, height, page, value: value ?? null }),
+    createField: ({ type, x, y, width, height, page, value }: CreateFieldArgs) =>
+      sendRequest<{ field_id: string }>('CREATE_FIELD', {
+        type,
+        x,
+        y,
+        width,
+        height,
+        page,
+        value: value ?? null,
+      }),
     submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
   }
 
-  const dispose = () => {
-    window.removeEventListener('message', onMessage)
-    clearTimeout(readyTimeout)
-    if (probeInterval !== null) {
-      clearInterval(probeInterval)
-      probeInterval = null
+  const subscribe = (listener: (nextState: BridgeState) => void): (() => void) => {
+    listeners.add(listener)
+    return () => {
+      listeners.delete(listener)
     }
-    probeRequestIds.clear()
-    for (const { timeoutId, resolve } of pending.values()) {
-      clearTimeout(timeoutId)
-      resolve({ success: false, error: { code: 'bridge_disposed', message: 'Iframe bridge was disposed' } })
-    }
-    pending.clear()
   }
 
-  return { bridge, dispose }
-}
-
-type UseIframeBridgeArgs = {
-  iframeRef: RefObject<HTMLIFrameElement | null>
-  editorOrigin: string
-  // When this key changes, the bridge is disposed and re-created. Use it to
-  // force a full reset of all iframe state (isEditorReady + isDocumentLoaded +
-  // pending requests) whenever the iframe is about to remount — e.g. on a
-  // form switch.
-  resetKey: string
-}
-
-const BOOTING_STATE: BridgeState = { kind: 'booting' }
-
-export const useIframeBridge = ({
-  iframeRef,
-  editorOrigin,
-  resetKey,
-}: UseIframeBridgeArgs): {
-  bridge: IframeBridge | null
-  bridgeState: BridgeState
-} => {
-  const bridgeRef = useRef<IframeBridge | null>(null)
-  const listenersRef = useRef<Set<() => void>>(new Set())
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: resetKey is a remount sentinel; the effect body doesn't read it, but changing it must tear down the bridge + start fresh (state-machine + probe + pending-request reset) on form or locale switches, so it has to be a dep.
-  useEffect(() => {
-    const notify = () => {
-      for (const listener of listenersRef.current) {
-        listener()
-      }
+  const dispose = (): void => {
+    window.removeEventListener('message', onMessage)
+    clearTimeout(readyTimeout)
+    stopProbing()
+    for (const { timeoutId, resolve } of pending.values()) {
+      clearTimeout(timeoutId)
+      resolve({
+        success: false,
+        error: { code: 'bridge_disposed', message: 'Iframe bridge was disposed' },
+      })
     }
-    const { bridge, dispose } = createBridge({
-      iframeRef,
-      editorOrigin,
-      onStateChange: notify,
-    })
-    bridgeRef.current = bridge
-    // Notify subscribers so the fresh booting snapshot is picked up immediately.
-    notify()
-    return () => {
-      dispose()
-      bridgeRef.current = null
-      notify()
-    }
-  }, [iframeRef, editorOrigin, resetKey])
+    pending.clear()
+    listeners.clear()
+  }
 
-  const subscribe = useCallback((listener: () => void): (() => void) => {
-    listenersRef.current.add(listener)
-    return () => {
-      listenersRef.current.delete(listener)
-    }
-  }, [])
-
-  const getStateSnapshot = useCallback((): BridgeState => bridgeRef.current?.getState() ?? BOOTING_STATE, [])
-  const getServerSnapshot = useCallback((): BridgeState => BOOTING_STATE, [])
-
-  const bridgeState = useSyncExternalStore(subscribe, getStateSnapshot, getServerSnapshot)
-
-  return { bridge: bridgeRef.current, bridgeState }
+  return { bridge, subscribe, dispose }
 }
