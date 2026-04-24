@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import { Modal, ModalCloseButton } from './modal'
+import { Modal, ModalCloseButton } from './ui/modal'
 
 type InfoModalProps = {
   open: boolean

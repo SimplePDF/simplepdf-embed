@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import { Modal, ModalHeader } from './modal'
+import { Modal, ModalHeader } from './ui/modal'
 
 type SubmitDemoModalProps = {
   open: boolean

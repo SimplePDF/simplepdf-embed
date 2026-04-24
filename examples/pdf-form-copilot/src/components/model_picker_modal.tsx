@@ -8,7 +8,7 @@ import {
   PROVIDER_ENTRIES,
   type ProviderEntry,
 } from '../lib/byok'
-import { Modal, ModalCloseButton } from './modal'
+import { Modal, ModalCloseButton } from './ui/modal'
 
 type ModelPickerModalProps = {
   open: boolean

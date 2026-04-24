@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { filterLanguages, getLanguageByCode, LANGUAGES, type Language } from '../lib/languages'
-import { Dropdown } from './dropdown'
+import { Dropdown } from './ui/dropdown'
 
 type LanguagePickerProps = {
   value: string
