@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Editörün yüklenmesi bekleniyor…",
     "subtitleNoDocument": "Bir belge yükleyin",
+    "subtitleNoModel": "Sohbet için kendi modelinizi getirin",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Yapay zeka modelini değiştir",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Kullanıcı tarafından eklenen yeni alan",
     "errorAuthTitle": "Kimlik doğrulama başarısız oldu.",
     "errorAuthBody": "Yapay zeka sağlayıcısı API anahtarınızı reddetti. Anahtarı doğrulamak için <switchModel>yapay zeka modelini değiştirin</switchModel> ve tekrar deneyin.",
+    "errorByokActivatedTitle": "Artık {{model}} kullanıyorsunuz.",
+    "errorByokActivatedButton": "Sohbete devam et",
+    "errorByokActivatedResumeMessage": "Devam edelim",
     "errorGenericTitle": "Tam hata",
     "welcomeTitle": "Form Copilot’u kendi API anahtarınızla deneyin",
     "welcomeBody": "Anahtarınız yalnızca bu sekmede kalır. İstekler tarayıcınızdan seçtiğiniz yapay zeka sağlayıcısına gönderilir.",

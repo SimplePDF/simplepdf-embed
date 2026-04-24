@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Odotetaan editorin latautumista…",
     "subtitleNoDocument": "Lataa asiakirja",
+    "subtitleNoModel": "Tuo oma malli keskustelua varten",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Vaihda tekoälymalli",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Käyttäjän lisäämä uusi kenttä",
     "errorAuthTitle": "Tunnistautuminen epäonnistui.",
     "errorAuthBody": "Tekoälytarjoaja hylkäsi API-avaimesi. <switchModel>Vaihda tekoälymalli</switchModel> avaimen vahvistamiseksi ja yritä uudelleen.",
+    "errorByokActivatedTitle": "Käytät nyt mallia {{model}}.",
+    "errorByokActivatedButton": "Jatka keskustelua",
+    "errorByokActivatedResumeMessage": "Jatketaan",
     "errorGenericTitle": "Koko virhe",
     "welcomeTitle": "Kokeile Form Copilotia omalla API-avaimellasi",
     "welcomeBody": "Avaimesi pysyy vain tällä välilehdellä. Pyynnöt lähetetään selaimestasi valitsemallesi tekoälytarjoajalle.",

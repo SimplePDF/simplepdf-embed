@@ -1,10 +1,8 @@
-import { createAnthropic } from '@ai-sdk/anthropic'
-import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createFileRoute } from '@tanstack/react-router'
-import { generateText, type LanguageModel } from 'ai'
-import { DEMO_MODELS, type DemoModel } from '../../lib/demo_model'
+import { generateText } from 'ai'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody } from '../../server/http'
+import { buildLanguageModel } from '../../server/language_model'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
@@ -13,19 +11,6 @@ import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 const MAX_INPUT_CHARS = 20_000
 const MAX_OUTPUT_TOKENS = 350
 const MAX_BODY_BYTES = 128 * 1024
-
-const buildLanguageModel = ({ model, apiKey }: { model: DemoModel; apiKey: string }): LanguageModel => {
-  const config = DEMO_MODELS[model]
-  switch (config.provider) {
-    case 'anthropic':
-      return createAnthropic({ apiKey })(config.modelId)
-    case 'deepseek':
-      return createDeepSeek({ apiKey })(config.modelId)
-    default:
-      config.provider satisfies never
-      throw new Error(`Unhandled provider: ${String(config.provider)}`)
-  }
-}
 
 const SYSTEM_PROMPT = `You compress a PDF form's extracted text into a dense summary for another LLM that will help a user fill the form.
 

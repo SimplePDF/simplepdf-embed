@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Đang chờ trình chỉnh sửa tải…",
     "subtitleNoDocument": "Tải một tài liệu",
+    "subtitleNoModel": "Mang mô hình của riêng bạn để trò chuyện",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Chuyển đổi mô hình AI",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Trường mới do người dùng thêm",
     "errorAuthTitle": "Xác thực không thành công.",
     "errorAuthBody": "Nhà cung cấp AI đã từ chối khóa API của bạn. <switchModel>Đổi mô hình AI</switchModel> để xác minh khóa, rồi thử lại.",
+    "errorByokActivatedTitle": "Bạn hiện đang dùng {{model}}.",
+    "errorByokActivatedButton": "Tiếp tục trò chuyện",
+    "errorByokActivatedResumeMessage": "Tiếp tục nào",
     "errorGenericTitle": "Lỗi đầy đủ",
     "welcomeTitle": "Thử Form Copilot bằng khóa API của riêng bạn",
     "welcomeBody": "Khóa của bạn chỉ ở lại trong thẻ này. Yêu cầu được gửi từ trình duyệt của bạn đến nhà cung cấp AI mà bạn chọn.",

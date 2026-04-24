@@ -5,17 +5,32 @@ import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../l
 type ErrorBannerProps = {
   error: Error
   onSwitchModel: () => void
+  // Set when a BYOK key is active. If the last error was the demo
+  // rate-limit / demo-key-rejected banner, flipping BYOK on mid-error is a
+  // resolution signal — swap the amber "Thanks for trying the demo" copy for
+  // the "You're now using <model>" confirmation + Resume CTA.
+  byokModelLabel: string | null
+  onResumeAfterByok: () => void
 }
 
 // Each branch has its own visual treatment (amber for the rate-limit demo
-// nudge, rose for every other failure). A switch on the classifier output
-// keeps the exhaustiveness guard at the default arm.
-export const ErrorBanner = ({ error, onSwitchModel }: ErrorBannerProps): ReactElement => {
+// nudge, rose for every other failure, emerald for the BYOK-activated
+// resolution state). A switch on the classifier output keeps the
+// exhaustiveness guard at the default arm.
+export const ErrorBanner = ({
+  error,
+  onSwitchModel,
+  byokModelLabel,
+  onResumeAfterByok,
+}: ErrorBannerProps): ReactElement => {
   const kind = classifyError(error)
   switch (kind) {
     case 'authentication':
       return <AuthPanel onSwitchModel={onSwitchModel} />
     case 'demo_rate_limited':
+      if (byokModelLabel !== null) {
+        return <ByokActivatedPanel modelLabel={byokModelLabel} onResume={onResumeAfterByok} />
+      }
       return <RateLimitPanel onSwitchModel={onSwitchModel} />
     case 'server':
       return <ServerPanel message={getErrorDisplayMessage(error)} />
@@ -48,6 +63,31 @@ const AuthPanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
           }}
         />
       </div>
+    </div>
+  )
+}
+
+type ByokActivatedPanelProps = {
+  modelLabel: string
+  onResume: () => void
+}
+
+// Shown after the user sets a BYOK key while a demo rate-limit banner was
+// visible. Emerald treatment (distinct from the amber demo-blocked state)
+// signals that the block is lifted; the Resume CTA dismisses the stale
+// error so the chat input unlocks.
+const ByokActivatedPanel = ({ modelLabel, onResume }: ByokActivatedPanelProps): ReactElement => {
+  const { t } = useTranslation()
+  return (
+    <div className="rounded border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+      <div className="font-medium">{t('chat.errorByokActivatedTitle', { model: modelLabel })}</div>
+      <button
+        type="button"
+        onClick={onResume}
+        className="mt-2 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+      >
+        {t('chat.errorByokActivatedButton')}
+      </button>
     </div>
   )
 }

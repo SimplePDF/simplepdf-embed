@@ -292,6 +292,13 @@ export const ChatPane = ({
   const byokConfigRef = useRef<ByokConfig | null>(byokConfig)
   byokConfigRef.current = byokConfig
   const [hasFilledField, setHasFilledField] = useState(false)
+  // useChat keeps the last turn's error latched until a new turn starts. We
+  // need a local dismissed marker so the "You're now using X / Resume" CTA
+  // can clear a stale banner without sending a message. We track by error
+  // identity: once the user dismisses a specific Error reference, only that
+  // one stays hidden; the next turn produces a new reference and surfaces
+  // its banner normally.
+  const [dismissedError, setDismissedError] = useState<Error | null>(null)
 
   const openModelPicker = useCallback((): void => {
     void navigate({
@@ -583,18 +590,22 @@ export const ChatPane = ({
   const unblockedByByok = byokConfig !== null
   const serverLocked = demoGate.kind === 'byok' && !unblockedByByok
   const demoModelLabel = demoGate.kind === 'demo' ? DEMO_MODELS[demoGate.model].label : null
-  // Header label: whichever model will actually run the next turn. Shown
-  // regardless of editor-ready state so the user knows what they're talking
-  // to before the iframe finishes booting.
-  const activeModelLabel = ((): string => {
-    if (byokConfig !== null) {
-      return (
-        findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
-        byokConfig.model
-      )
+  // Is there a model that will run the next turn? When false, the header
+  // reverts to the brand heading instead of rendering "Form Copilot" in the
+  // H2 slot styled like a model name — which misreads as "the model is
+  // called Form Copilot" next to a Switch-AI-model CTA. The Welcome banner
+  // below owns the CTA in that state.
+  const hasActiveModel = byokConfig !== null || demoGate.kind === 'demo'
+  const byokModelLabel = ((): string | null => {
+    if (byokConfig === null) {
+      return null
     }
-    return demoModelLabel ?? t('chat.heading')
+    return (
+      findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
+      byokConfig.model
+    )
   })()
+  const activeModelLabel = byokModelLabel ?? demoModelLabel ?? t('chat.heading')
   const canSend = isReady && !isStreaming && !serverLocked
   const hasUserMessage = messages.some((message) => message.role === 'user')
 
@@ -640,24 +651,36 @@ export const ChatPane = ({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
-        <div>
-          <h2 className="text-sm font-semibold leading-5 text-slate-900">{activeModelLabel}</h2>
+        {/* `min-w-0` lets the header's text flex-children shrink below their
+            intrinsic width so `truncate` can actually ellipsis on narrow
+            panes instead of forcing overflow. */}
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-semibold leading-5 text-slate-900">
+            {hasActiveModel ? activeModelLabel : t('chat.heading')}
+          </h2>
           {/* Same leading/height on both branches so the transition from
               "Waiting for the editor to load…" to the Switch-AI-model button
-              doesn't jump the header vertically. `block + leading-4 + h-4`
-              forces both the paragraph and the button into identical
-              line-boxes regardless of user-agent button defaults. */}
-          {isReady ? (
+              doesn't jump the header vertically. `block + leading-4 + h-4 +
+              truncate` forces both the paragraph and the button into
+              identical line-boxes regardless of user-agent button defaults
+              and prevents long translations from wrapping into a second
+              (then clipped) line. */}
+          {hasActiveModel && isReady ? (
             <button
               type="button"
               onClick={openModelPicker}
-              className="block h-4 text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
+              className="block h-4 truncate text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
             >
               {t('chat.switchModel')}
             </button>
           ) : (
-            <p className="block h-4 text-xs leading-4 text-slate-500">
-              {requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')}
+            <p className="block h-4 truncate text-xs leading-4 text-slate-500">
+              {((): string => {
+                if (!hasActiveModel) {
+                  return t('chat.subtitleNoModel')
+                }
+                return requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')
+              })()}
             </p>
           )}
         </div>
@@ -700,7 +723,23 @@ export const ChatPane = ({
                   return <MessageView key={message.id} message={message} />
                 })}
                 {isStreaming ? <ThinkingIndicator /> : null}
-                {error !== undefined ? <ErrorBanner error={error} onSwitchModel={openModelPicker} /> : null}
+                {error !== undefined && error !== dismissedError ? (
+                  <ErrorBanner
+                    error={error}
+                    onSwitchModel={openModelPicker}
+                    byokModelLabel={byokModelLabel}
+                    onResumeAfterByok={() => {
+                      // Dismiss the stale demo-blocked banner, kick off a
+                      // "Let's continue" turn so the assistant picks up the
+                      // thread on the freshly-wired BYOK key, and focus the
+                      // input so the user can type a follow-up without an
+                      // extra click.
+                      setDismissedError(error)
+                      void sendMessage({ text: t('chat.errorByokActivatedResumeMessage') })
+                      inputRef.current?.focus()
+                    }}
+                  />
+                ) : null}
               </div>
             )
           })()}

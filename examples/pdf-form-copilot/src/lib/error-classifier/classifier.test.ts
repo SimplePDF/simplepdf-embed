@@ -205,6 +205,16 @@ describe(classifyError.name, () => {
     }
   })
 
+  // /api/chat's serializeStreamError only rewrites 401 / 402 / 403 / 429
+  // upstream into the rate_limited envelope. A 400 Bad Request would
+  // otherwise have been miscategorised as "demo is capped" — this test
+  // guards that a raw 400 (not wrapped into the rate_limited shape) still
+  // falls through so the generic panel can show the real diagnostic.
+  it('classifies a raw upstream 400 as null (generic panel), not demo_rate_limited', () => {
+    const error = Object.assign(new Error('bad request'), { statusCode: 400 })
+    expect(classifyError(error)).toBeNull()
+  })
+
   it('returns null when no status can be recovered', () => {
     expect(classifyError(new Error('mysterious failure'))).toBeNull()
   })

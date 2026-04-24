@@ -64,6 +64,7 @@
     "heading": "Chat",
     "subtitleWaiting": "Waiting for the editor to load…",
     "subtitleNoDocument": "Load a document",
+    "subtitleNoModel": "Bring your own model to chat",
     "switchModel": "Switch AI model",
     "modelPicker": {
       "title": "Bring your own model",
@@ -95,6 +96,9 @@
     "errorAuthBody": "The AI provider rejected your API key. <switchModel>Open the AI model selection</switchModel> to verify the key, and try again.",
     "errorRateLimitedTitle": "Thanks for trying the demo!",
     "errorRateLimitedBody": "Running it costs us real money, so access is capped. To keep going, <switchModel>use your own API key</switchModel>.",
+    "errorByokActivatedTitle": "You're now using {{model}}.",
+    "errorByokActivatedButton": "Resume conversation",
+    "errorByokActivatedResumeMessage": "Let's continue",
     "errorServerTitle": "Something went wrong",
     "errorGenericTitle": "Full error",
     "welcomeTitle": "Try Form Copilot with your own API key",

@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Se așteaptă încărcarea editorului…",
     "subtitleNoDocument": "Încarcă un document",
+    "subtitleNoModel": "Adu-ți propriul model pentru a discuta",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Schimbă modelul AI",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Câmp nou adăugat de utilizator",
     "errorAuthTitle": "Autentificarea a eșuat.",
     "errorAuthBody": "Furnizorul AI ți-a respins cheia API. <switchModel>Schimbă modelul AI</switchModel> pentru a verifica cheia și încearcă din nou.",
+    "errorByokActivatedTitle": "Acum folosești {{model}}.",
+    "errorByokActivatedButton": "Reia conversația",
+    "errorByokActivatedResumeMessage": "Hai să continuăm",
     "errorGenericTitle": "Eroare completă",
     "welcomeTitle": "Încearcă Form Copilot cu propria ta cheie API",
     "welcomeBody": "Cheia ta rămâne doar în această filă. Solicitările sunt trimise din browserul tău către furnizorul AI ales.",

@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "في انتظار تحميل المحرر…",
     "subtitleNoDocument": "حمّل مستندًا",
+    "subtitleNoModel": "أحضر نموذجك الخاص للدردشة",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "تبديل نموذج الذكاء الاصطناعي",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "حقل جديد أضافه المستخدم",
     "errorAuthTitle": "فشل التحقق من الهوية.",
     "errorAuthBody": "رفض مزود الذكاء الاصطناعي مفتاح API الخاص بك. <switchModel>بدّل نموذج الذكاء الاصطناعي</switchModel> للتحقق من المفتاح، ثم حاول مرة أخرى.",
+    "errorByokActivatedTitle": "أنت تستخدم الآن {{model}}.",
+    "errorByokActivatedButton": "استئناف المحادثة",
+    "errorByokActivatedResumeMessage": "هيّا نكمل",
     "errorGenericTitle": "الخطأ الكامل",
     "welcomeTitle": "جرّب Form Copilot باستخدام مفتاح API الخاص بك",
     "welcomeBody": "يبقى مفتاحك في هذه العلامة التبويبية فقط. تُرسل الطلبات من متصفحك إلى مزود الذكاء الاصطناعي الذي اخترته.",

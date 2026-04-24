@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Wachten tot de editor is geladen…",
     "subtitleNoDocument": "Laad een document",
+    "subtitleNoModel": "Gebruik uw eigen model om te chatten",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "AI-model wisselen",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nieuw veld toegevoegd door de gebruiker",
     "errorAuthTitle": "Verificatie mislukt.",
     "errorAuthBody": "De AI-provider heeft uw API-sleutel geweigerd. <switchModel>Wissel van AI-model</switchModel> om de sleutel te verifiëren en probeer het opnieuw.",
+    "errorByokActivatedTitle": "U gebruikt nu {{model}}.",
+    "errorByokActivatedButton": "Gesprek hervatten",
+    "errorByokActivatedResumeMessage": "Laten we doorgaan",
     "errorGenericTitle": "Volledige fout",
     "welcomeTitle": "Probeer Form Copilot met uw eigen API-sleutel",
     "welcomeBody": "Uw sleutel blijft alleen in dit tabblad. Verzoeken worden vanuit uw browser naar de door u gekozen AI-provider verzonden.",

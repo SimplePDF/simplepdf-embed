@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Oczekiwanie na załadowanie edytora…",
     "subtitleNoDocument": "Załaduj dokument",
+    "subtitleNoModel": "Użyj własnego modelu do czatu",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Zmień model AI",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nowe pole dodane przez użytkownika",
     "errorAuthTitle": "Uwierzytelnianie nie powiodło się.",
     "errorAuthBody": "Dostawca AI odrzucił Twój klucz API. <switchModel>Zmień model AI</switchModel>, aby zweryfikować klucz, i spróbuj ponownie.",
+    "errorByokActivatedTitle": "Używasz teraz {{model}}.",
+    "errorByokActivatedButton": "Wznów rozmowę",
+    "errorByokActivatedResumeMessage": "Kontynuujmy",
     "errorGenericTitle": "Pełny błąd",
     "welcomeTitle": "Wypróbuj Form Copilot z własnym kluczem API",
     "welcomeBody": "Twój klucz pozostaje tylko w tej karcie. Żądania są wysyłane z Twojej przeglądarki do wybranego dostawcy AI.",

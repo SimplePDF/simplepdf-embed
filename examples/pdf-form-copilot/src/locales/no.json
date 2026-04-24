@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Venter på at redigeringsverktøyet skal laste…",
     "subtitleNoDocument": "Last inn et dokument",
+    "subtitleNoModel": "Ta med din egen modell for å chatte",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Bytt AI-modell",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nytt felt lagt til av brukeren",
     "errorAuthTitle": "Autentisering mislyktes.",
     "errorAuthBody": "AI-leverandøren avviste API-nøkkelen din. <switchModel>Bytt AI-modell</switchModel> for å bekrefte nøkkelen, og prøv igjen.",
+    "errorByokActivatedTitle": "Du bruker nå {{model}}.",
+    "errorByokActivatedButton": "Gjenoppta samtalen",
+    "errorByokActivatedResumeMessage": "Vi fortsetter",
     "errorGenericTitle": "Full feil",
     "welcomeTitle": "Prøv Form Copilot med din egen API-nøkkel",
     "welcomeBody": "Nøkkelen din blir kun i denne fanen. Forespørsler sendes fra nettleseren din til den valgte AI-leverandøren.",

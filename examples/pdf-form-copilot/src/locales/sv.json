@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Väntar på att redigeraren ska laddas…",
     "subtitleNoDocument": "Ladda ett dokument",
+    "subtitleNoModel": "Ta med din egen modell för att chatta",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Byt AI-modell",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nytt fält tillagt av användaren",
     "errorAuthTitle": "Autentiseringen misslyckades.",
     "errorAuthBody": "AI-leverantören avvisade din API-nyckel. <switchModel>Byt AI-modell</switchModel> för att verifiera nyckeln och försök igen.",
+    "errorByokActivatedTitle": "Du använder nu {{model}}.",
+    "errorByokActivatedButton": "Återuppta samtalet",
+    "errorByokActivatedResumeMessage": "Vi fortsätter",
     "errorGenericTitle": "Fullständigt fel",
     "welcomeTitle": "Prova Form Copilot med din egen API-nyckel",
     "welcomeBody": "Din nyckel stannar endast i den här fliken. Förfrågningar skickas från din webbläsare till den AI-leverantör du väljer.",

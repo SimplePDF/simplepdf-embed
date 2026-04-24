@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Warten, bis der Editor geladen ist…",
     "subtitleNoDocument": "Dokument laden",
+    "subtitleNoModel": "Eigenes Modell zum Chatten verwenden",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "KI-Modell wechseln",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Neues Feld vom Benutzer hinzugefügt",
     "errorAuthTitle": "Authentifizierung fehlgeschlagen.",
     "errorAuthBody": "Der KI-Anbieter hat Ihren API-Schlüssel abgelehnt. <switchModel>KI-Modell wechseln</switchModel>, um den Schlüssel zu überprüfen, und erneut versuchen.",
+    "errorByokActivatedTitle": "Sie verwenden jetzt {{model}}.",
+    "errorByokActivatedButton": "Unterhaltung fortsetzen",
+    "errorByokActivatedResumeMessage": "Weiter geht’s",
     "errorGenericTitle": "Fehlerdetails",
     "welcomeTitle": "Testen Sie Form Copilot mit Ihrem eigenen API-Schlüssel",
     "welcomeBody": "Ihr Schlüssel bleibt nur in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",

@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Очікування завантаження редактора…",
     "subtitleNoDocument": "Завантажте документ",
+    "subtitleNoModel": "Принесіть власну модель для спілкування",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Змінити модель ШІ",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Нове поле, додане користувачем",
     "errorAuthTitle": "Автентифікація не вдалася.",
     "errorAuthBody": "Постачальник ШІ відхилив ваш ключ API. <switchModel>Змініть модель ШІ</switchModel>, щоб перевірити ключ, і спробуйте знову.",
+    "errorByokActivatedTitle": "Ви тепер використовуєте {{model}}.",
+    "errorByokActivatedButton": "Відновити розмову",
+    "errorByokActivatedResumeMessage": "Продовжуймо",
     "errorGenericTitle": "Повна помилка",
     "welcomeTitle": "Спробуйте Form Copilot з власним ключем API",
     "welcomeBody": "Ваш ключ залишається лише в цій вкладці. Запити надсилаються з вашого браузера до обраного постачальника ШІ.",

@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "ממתין לטעינת העורך…",
     "subtitleNoDocument": "טענו מסמך",
+    "subtitleNoModel": "הביאו את המודל שלכם כדי לשוחח",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "החלפת מודל AI",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "שדה חדש שנוסף על ידי המשתמש",
     "errorAuthTitle": "האימות נכשל.",
     "errorAuthBody": "ספק ה-AI דחה את מפתח ה-API שלך. <switchModel>החלף מודל AI</switchModel> כדי לאמת את המפתח ונסה שוב.",
+    "errorByokActivatedTitle": "אתם משתמשים כעת ב־{{model}}.",
+    "errorByokActivatedButton": "חידוש השיחה",
+    "errorByokActivatedResumeMessage": "בואו נמשיך",
     "errorGenericTitle": "שגיאה מלאה",
     "welcomeTitle": "נסו את Form Copilot עם מפתח ה־API שלכם",
     "welcomeBody": "המפתח שלכם נשאר רק בלשונית זו. הבקשות נשלחות מהדפדפן שלכם לספק ה־AI שבחרתם.",

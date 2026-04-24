@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Ootan redaktori laadimist…",
     "subtitleNoDocument": "Laadi dokument",
+    "subtitleNoModel": "Too oma mudel vestlemiseks",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Vaheta AI-mudelit",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Kasutaja lisatud uus väli",
     "errorAuthTitle": "Autentimine ebaõnnestus.",
     "errorAuthBody": "AI-teenusepakkuja lükkas sinu API-võtme tagasi. <switchModel>Vaheta AI-mudelit</switchModel>, et võtit kontrollida, ja proovi uuesti.",
+    "errorByokActivatedTitle": "Kasutate nüüd mudelit {{model}}.",
+    "errorByokActivatedButton": "Jätka vestlust",
+    "errorByokActivatedResumeMessage": "Jätkame",
     "errorGenericTitle": "Täielik viga",
     "welcomeTitle": "Proovi Form Copilotit oma API-võtmega",
     "welcomeBody": "Sinu võti jääb ainult sellesse vahekaarti. Päringud saadetakse sinu brauserist valitud AI-teenusepakkujale.",

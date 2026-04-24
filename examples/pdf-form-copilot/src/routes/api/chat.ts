@@ -1,8 +1,6 @@
-import { createAnthropic } from '@ai-sdk/anthropic'
-import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createFileRoute } from '@tanstack/react-router'
-import { convertToModelMessages, type LanguageModel, streamText, type UIMessage } from 'ai'
-import { DEMO_MODELS, type DemoModel } from '../../lib/demo_model'
+import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { DEMO_MODELS } from '../../lib/demo_model'
 import {
   DetectFieldsInput,
   FocusFieldInput,
@@ -15,6 +13,7 @@ import {
 } from '../../lib/embed-bridge-adapters/client-tools'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
+import { buildLanguageModel } from '../../server/language_model'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
@@ -38,38 +37,32 @@ const getUpstreamStatus = (error: unknown): number | null => {
 
 // Serialises a stream-level error from the provider into a payload the client
 // classifier will recognise. The shared-key path is the only one that hits
-// /api/chat (BYOK bypasses the server entirely), so any upstream 4xx here is a
-// "demo key is spent / disabled" signal from the user's perspective —
-// surface it as the demo_rate_limited banner instead of an auth error, so the
-// UX reads the same whether we hit the per-share lifetime cap or Anthropic
-// revoked our key. 5xx stays as a server error; unknown shapes pass through
-// so the generic panel can show the raw text.
+// /api/chat (BYOK bypasses the server entirely), so an upstream auth / billing
+// / quota refusal here is a "demo key is spent / disabled" signal from the
+// user's perspective — surface it as the demo_rate_limited banner instead of
+// an auth error, so the UX reads the same whether we hit the per-share
+// lifetime cap or Anthropic revoked our key.
+//
+// Narrow list of statuses that mean "the shared key can't serve this
+// request": 401 auth, 402 payment required, 403 forbidden/quota, 429 rate
+// limited. Any other 4xx (400 bad request, 404, 413, 422, ...) falls through
+// so the generic panel can show the actual diagnostic instead of a misleading
+// "demo is capped" banner. 5xx stays as a server error.
 //
 // No user-facing copy here — the client's RateLimitPanel renders the
 // localised chat.errorRateLimited* strings on its own once the classifier
 // tags this as demo_rate_limited.
+const DEMO_KEY_REJECTED_STATUSES = new Set([401, 402, 403, 429])
+
 const serializeStreamError = (error: unknown): string => {
   const status = getUpstreamStatus(error)
-  if (status !== null && status >= 400 && status < 500) {
+  if (status !== null && DEMO_KEY_REJECTED_STATUSES.has(status)) {
     return JSON.stringify({
       error: 'rate_limited',
       reason: 'demo_key_rejected',
     })
   }
   return error instanceof Error ? error.message : String(error)
-}
-
-const buildLanguageModel = ({ model, apiKey }: { model: DemoModel; apiKey: string }): LanguageModel => {
-  const config = DEMO_MODELS[model]
-  switch (config.provider) {
-    case 'anthropic':
-      return createAnthropic({ apiKey })(config.modelId)
-    case 'deepseek':
-      return createDeepSeek({ apiKey })(config.modelId)
-    default:
-      config.provider satisfies never
-      throw new Error(`Unhandled provider: ${String(config.provider)}`)
-  }
 }
 
 const isFreshUserTurn = (messages: UIMessage[]): boolean => {

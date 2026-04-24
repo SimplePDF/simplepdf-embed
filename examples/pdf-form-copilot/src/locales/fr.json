@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "En attente du chargement de l’éditeur…",
     "subtitleNoDocument": "Charger un document",
+    "subtitleNoModel": "Apportez votre propre modèle pour chatter",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Changer de modèle IA",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nouveau champ ajouté par l’utilisateur",
     "errorAuthTitle": "L’authentification a échoué.",
     "errorAuthBody": "Le fournisseur d’IA a refusé votre clé API. <switchModel>Changer de modèle IA</switchModel> pour la vérifier, puis réessayez.",
+    "errorByokActivatedTitle": "Vous utilisez désormais {{model}}.",
+    "errorByokActivatedButton": "Reprendre la conversation",
+    "errorByokActivatedResumeMessage": "Continuons",
     "errorGenericTitle": "Erreur complète",
     "welcomeTitle": "Essayez Form Copilot avec votre propre clé API",
     "welcomeBody": "Votre clé reste dans cet onglet uniquement. Les requêtes partent de votre navigateur vers le fournisseur d’IA que vous avez choisi.",

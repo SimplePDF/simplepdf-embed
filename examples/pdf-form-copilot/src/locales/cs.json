@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Čekání na načtení editoru…",
     "subtitleNoDocument": "Načíst dokument",
+    "subtitleNoModel": "Přineste si vlastní model pro chat",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Přepnout AI model",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "Nové pole přidané uživatelem",
     "errorAuthTitle": "Ověření selhalo.",
     "errorAuthBody": "AI poskytovatel odmítl váš API klíč. <switchModel>Přepněte AI model</switchModel>, ověřte klíč a zkuste to znovu.",
+    "errorByokActivatedTitle": "Nyní používáte {{model}}.",
+    "errorByokActivatedButton": "Pokračovat v konverzaci",
+    "errorByokActivatedResumeMessage": "Pokračujme",
     "errorGenericTitle": "Úplná chyba",
     "welcomeTitle": "Vyzkoušejte Form Copilot s vlastním API klíčem",
     "welcomeBody": "Váš klíč zůstává jen v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",

@@ -65,6 +65,7 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "संपादक के लोड होने की प्रतीक्षा है…",
     "subtitleNoDocument": "एक दस्तावेज़ लोड करें",
+    "subtitleNoModel": "चैट के लिए अपना खुद का मॉडल लाएँ",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "AI मॉडल बदलें",
     "modelPicker": {
@@ -95,6 +96,9 @@
     "newFieldHint": "उपयोगकर्ता द्वारा जोड़ा गया नया फ़ील्ड",
     "errorAuthTitle": "प्रमाणीकरण विफल रहा।",
     "errorAuthBody": "AI प्रदाता ने आपकी API कुंजी अस्वीकार कर दी। कुंजी सत्यापित करने के लिए <switchModel>AI मॉडल बदलें</switchModel> और फिर से प्रयास करें।",
+    "errorByokActivatedTitle": "आप अब {{model}} का उपयोग कर रहे हैं।",
+    "errorByokActivatedButton": "बातचीत फिर से शुरू करें",
+    "errorByokActivatedResumeMessage": "चलिए जारी रखें",
     "errorGenericTitle": "पूरी त्रुटि",
     "welcomeTitle": "अपनी खुद की API कुंजी के साथ Form Copilot आज़माएँ",
     "welcomeBody": "आपकी कुंजी केवल इसी टैब में रहती है। अनुरोध आपके ब्राउज़र से आपके चुने हुए AI प्रदाता को भेजे जाते हैं।",
