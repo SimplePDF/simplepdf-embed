@@ -3,6 +3,5 @@ export {
   classifyError,
   formatStreamError,
   getErrorDisplayMessage,
-  getErrorStatusCode,
   parseStreamErrorMessage,
 } from './classifier'

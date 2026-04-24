@@ -5,31 +5,37 @@ import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../l
 type ErrorBannerProps = {
   error: Error
   onSwitchModel: () => void
-  // Set when a BYOK key is active. If the last error was the demo
-  // rate-limit / demo-key-rejected banner, flipping BYOK on mid-error is a
-  // resolution signal — swap the amber "Thanks for trying the demo" copy for
-  // the "You're now using <model>" confirmation + Resume CTA.
-  byokModelLabel: string | null
-  onResumeAfterByok: () => void
+  // When non-null the consumer has a model ready to pick up the
+  // conversation on — typically a BYOK key the user just wired, or a share
+  // switch. Both rate-limit and authentication banners are stale in that
+  // state (the next turn will run on the new model), so both swap to the
+  // "You're now using <model>" + Resume panel. If the new model's key is
+  // still bad, the resume turn produces a fresh error and the proper
+  // banner re-appears within one round-trip — self-healing.
+  resumeModelLabel: string | null
+  onResume: () => void
 }
 
 // Each branch has its own visual treatment (amber for the rate-limit demo
-// nudge, rose for every other failure, emerald for the BYOK-activated
-// resolution state). A switch on the classifier output keeps the
-// exhaustiveness guard at the default arm.
+// nudge, rose for every other failure, emerald for the resolution state
+// when a new model is wired up). A switch on the classifier output keeps
+// the exhaustiveness guard at the default arm.
 export const ErrorBanner = ({
   error,
   onSwitchModel,
-  byokModelLabel,
-  onResumeAfterByok,
+  resumeModelLabel,
+  onResume,
 }: ErrorBannerProps): ReactElement => {
   const kind = classifyError(error)
   switch (kind) {
     case 'authentication':
+      if (resumeModelLabel !== null) {
+        return <ResumePanel modelLabel={resumeModelLabel} onResume={onResume} />
+      }
       return <AuthPanel onSwitchModel={onSwitchModel} />
     case 'demo_rate_limited':
-      if (byokModelLabel !== null) {
-        return <ByokActivatedPanel modelLabel={byokModelLabel} onResume={onResumeAfterByok} />
+      if (resumeModelLabel !== null) {
+        return <ResumePanel modelLabel={resumeModelLabel} onResume={onResume} />
       }
       return <RateLimitPanel onSwitchModel={onSwitchModel} />
     case 'server':
@@ -67,16 +73,16 @@ const AuthPanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
   )
 }
 
-type ByokActivatedPanelProps = {
+type ResumePanelProps = {
   modelLabel: string
   onResume: () => void
 }
 
-// Shown after the user sets a BYOK key while a demo rate-limit banner was
-// visible. Emerald treatment (distinct from the amber demo-blocked state)
+// Shown when a fresh model has been wired up (BYOK key set, or share
+// switched) while an error banner was still visible. Emerald treatment
 // signals that the block is lifted; the Resume CTA dismisses the stale
-// error so the chat input unlocks.
-const ByokActivatedPanel = ({ modelLabel, onResume }: ByokActivatedPanelProps): ReactElement => {
+// error and fires a continuation turn on the new model.
+const ResumePanel = ({ modelLabel, onResume }: ResumePanelProps): ReactElement => {
   const { t } = useTranslation()
   return (
     <div className="rounded border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">

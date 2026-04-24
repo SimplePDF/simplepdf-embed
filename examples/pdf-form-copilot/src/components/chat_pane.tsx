@@ -727,16 +727,16 @@ export const ChatPane = ({
                   <ErrorBanner
                     error={error}
                     onSwitchModel={openModelPicker}
-                    byokModelLabel={byokModelLabel}
-                    onResumeAfterByok={() => {
-                      // Dismiss the stale demo-blocked banner, kick off a
-                      // "Let's continue" turn so the assistant picks up the
-                      // thread on the freshly-wired BYOK key, and focus the
-                      // input so the user can type a follow-up without an
-                      // extra click.
+                    resumeModelLabel={byokModelLabel}
+                    onResume={() => {
+                      // Dismiss the stale banner and kick off a
+                      // "Let's continue" turn so the assistant picks up on
+                      // the freshly-wired model. The existing `canSend`
+                      // effect re-focuses the input automatically once the
+                      // turn finishes — no need to force focus here on a
+                      // disabled input.
                       setDismissedError(error)
                       void sendMessage({ text: t('chat.errorByokActivatedResumeMessage') })
-                      inputRef.current?.focus()
                     }}
                   />
                 ) : null}

@@ -55,25 +55,16 @@ export const parseStreamErrorMessage = (message: string): StreamErrorEnvelope | 
   }
 }
 
-export const getErrorStatusCode = (error: Error): number | null => {
-  const direct = getDirectStatusCode(error)
-  if (direct !== null) {
-    return direct
-  }
-  const envelope = parseStreamErrorMessage(error.message)
-  return envelope?.statusCode ?? null
-}
-
 export const getErrorDisplayMessage = (error: Error): string => {
   const envelope = parseStreamErrorMessage(error.message)
   return envelope?.message ?? error.message
 }
 
 export const classifyError = (error: Error): KnownErrorKind | null => {
-  // An envelope-shaped message means the error went through /api/chat — the
-  // server-paid demo path. BYOK never reaches that endpoint, so envelope-
-  // sourced 429 / auth failures are unambiguously demo-side and earn the
-  // amber "Thanks for trying the demo!" panel.
+  // Envelope first. An envelope-shaped message means the error went through
+  // /api/chat — the server-paid demo path. BYOK never reaches that endpoint,
+  // so envelope-sourced 429 / auth failures are unambiguously demo-side and
+  // earn the amber "Thanks for trying the demo!" panel.
   const envelope = parseStreamErrorMessage(error.message)
   if (envelope !== null) {
     if (envelope.statusCode === 429) {
@@ -88,12 +79,12 @@ export const classifyError = (error: Error): KnownErrorKind | null => {
     return null
   }
   // Fall-through: the status came directly off an AI SDK APICallError.
-  // That's the BYOK path (stream runs browser-to-provider). 401 = user's own
-  // key was rejected -> auth panel. 5xx = infra. A raw 429 here means the
-  // user's own provider is throttling their key, not that the demo is
+  // That's the BYOK path (stream runs browser-to-provider). 401 = user's
+  // own key was rejected -> auth panel. 5xx = infra. A raw 429 here means
+  // the user's own provider is throttling their key, not that the demo is
   // capped -- let it drop to the generic panel so the raw provider message
   // is shown. We never blame the demo for a BYOK user's rate limit.
-  const status = getErrorStatusCode(error)
+  const status = getDirectStatusCode(error)
   if (status === null) {
     return null
   }

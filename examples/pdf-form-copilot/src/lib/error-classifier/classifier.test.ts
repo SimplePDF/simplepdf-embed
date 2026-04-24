@@ -3,7 +3,6 @@ import {
   classifyError,
   formatStreamError,
   getErrorDisplayMessage,
-  getErrorStatusCode,
   parseStreamErrorMessage,
 } from './classifier'
 
@@ -104,27 +103,6 @@ describe(parseStreamErrorMessage.name, () => {
     expect(parseStreamErrorMessage('["statusCode",401]')).toBeNull()
     expect(parseStreamErrorMessage('42')).toBeNull()
     expect(parseStreamErrorMessage('null')).toBeNull()
-  })
-})
-
-describe(getErrorStatusCode.name, () => {
-  it('reads statusCode directly from the AI SDK APICallError', () => {
-    expect(getErrorStatusCode(buildAnthropic401Error())).toBe(401)
-  })
-
-  it('reads statusCode from the JSON envelope we injected server-side', () => {
-    const error = new Error(JSON.stringify({ statusCode: 401, message: 'invalid x-api-key' }))
-    expect(getErrorStatusCode(error)).toBe(401)
-  })
-
-  it('returns null when the error has neither a property nor a valid envelope', () => {
-    expect(getErrorStatusCode(new Error('plain text error'))).toBeNull()
-  })
-
-  it('returns the direct property when both direct and envelope would resolve', () => {
-    const error = new Error(JSON.stringify({ statusCode: 500, message: 'ignored' }))
-    Object.assign(error, { statusCode: 401 })
-    expect(getErrorStatusCode(error)).toBe(401)
   })
 })
 
