@@ -74,19 +74,8 @@ const ModelPickerModalBody = ({ onClose, activeConfig, onApply }: ModelPickerBod
       </div>
 
       <div className="mt-4 space-y-5 text-sm text-slate-700">
-        <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
-          <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            {t('chat.modelPicker.currentSectionTitle')}
-          </div>
-          <div className="mt-1">
-            <div className="text-sm font-semibold text-slate-900">{t('chat.modelPicker.currentModel')}</div>
-            <div className="text-[11px] text-slate-500">{t('chat.modelPicker.currentProvider')}</div>
-          </div>
-        </section>
-
         <section>
-          <h3 className="text-sm font-semibold text-slate-900">{t('chat.modelPicker.byokSectionTitle')}</h3>
-          <p className="mt-1 text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
+          <p className="text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             {PROVIDER_ENTRIES.map((entry: ProviderEntry) => {

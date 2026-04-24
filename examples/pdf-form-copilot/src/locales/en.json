@@ -66,11 +66,7 @@
     "subtitleNoDocument": "Load a document",
     "switchModel": "Switch AI model",
     "modelPicker": {
-      "title": "Switch AI model",
-      "currentSectionTitle": "Recommended",
-      "currentProvider": "Anthropic",
-      "currentModel": "Claude Haiku 4.5",
-      "byokSectionTitle": "Bring your own API key",
+      "title": "Bring your own model",
       "byokIntro": "Pick a provider and paste your key to chat through it instead.",
       "byokSecurityTitle": "Your key stays on your device.",
       "byokSecurityBody": "Keys are held in memory only (never written to disk, never sent to SimplePDF's servers) and every LLM request is fired straight from your browser to the provider you chose.",
