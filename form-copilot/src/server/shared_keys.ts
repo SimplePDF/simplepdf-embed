@@ -42,6 +42,30 @@ type ParseEnvResult =
   | { ok: true; data: unknown; source: 'json' | 'base64' }
   | { ok: false; detail: string }
 
+// Strip one pair of wrapping quotes (single or double) if present. Operators
+// often paste `'{"dev":...}'` or `"{...}"` from shell history into the env
+// UI, which round-trips through base64 as a quoted blob. JSON.parse rejects
+// both, so we peel one layer before retrying.
+const unquote = (input: string): string => {
+  if (input.length < 2) {
+    return input
+  }
+  const first = input.at(0)
+  const last = input.at(-1)
+  if ((first === "'" && last === "'") || (first === '"' && last === '"')) {
+    return input.slice(1, -1)
+  }
+  return input
+}
+
+const tryJsonParse = (input: string): { ok: true; data: unknown } | { ok: false; error: Error } => {
+  try {
+    return { ok: true, data: JSON.parse(input) }
+  } catch (e) {
+    return { ok: false, error: e as Error }
+  }
+}
+
 // Accept either plain JSON or base64-encoded JSON. Plain is the default;
 // base64 exists because DigitalOcean App Platform (and other hosts with
 // quote-sensitive env-var UIs / YAML app specs) sometimes mangle the
@@ -49,31 +73,34 @@ type ParseEnvResult =
 // ASCII-only with no quote characters, so it survives any input path.
 //
 // Operator encodes with e.g. `base64 -w0 <<< '{"dev":{...}}'` and pastes.
-// The parser tries plain JSON first, falls back to base64-then-JSON, and
-// surfaces both error messages so an operator can tell at a glance which
-// path was expected and why it failed.
+// The parser tries plain JSON first, falls back to base64-then-JSON. On
+// either path we also try an un-quoted variant to absorb accidental
+// shell-style wrapping. On full failure we surface every attempted error
+// so an operator can tell at a glance which path was expected and why.
 const parseShareEnv = (raw: string): ParseEnvResult => {
   const trimmed = raw.trim()
-  const plainResult = ((): { ok: true; data: unknown } | { ok: false; error: Error } => {
-    try {
-      return { ok: true, data: JSON.parse(trimmed) }
-    } catch (e) {
-      return { ok: false, error: e as Error }
-    }
-  })()
+  const plainResult = tryJsonParse(trimmed)
   if (plainResult.ok) {
     return { ok: true, data: plainResult.data, source: 'json' }
   }
-  const base64Result = ((): { ok: true; data: unknown } | { ok: false; error: Error } => {
-    try {
-      const decoded = Buffer.from(trimmed, 'base64').toString('utf-8')
-      return { ok: true, data: JSON.parse(decoded) }
-    } catch (e) {
-      return { ok: false, error: e as Error }
+  const plainUnquoted = unquote(trimmed)
+  if (plainUnquoted !== trimmed) {
+    const retried = tryJsonParse(plainUnquoted)
+    if (retried.ok) {
+      return { ok: true, data: retried.data, source: 'json' }
     }
-  })()
+  }
+  const decoded = Buffer.from(trimmed, 'base64').toString('utf-8').trim()
+  const base64Result = tryJsonParse(decoded)
   if (base64Result.ok) {
     return { ok: true, data: base64Result.data, source: 'base64' }
+  }
+  const base64Unquoted = unquote(decoded)
+  if (base64Unquoted !== decoded) {
+    const retried = tryJsonParse(base64Unquoted)
+    if (retried.ok) {
+      return { ok: true, data: retried.data, source: 'base64' }
+    }
   }
   return {
     ok: false,

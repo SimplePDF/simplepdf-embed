@@ -62,7 +62,7 @@ export const Route = createFileRoute('/api/summarize')({
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'misconfigured') {
           return Response.json(
-            { error: 'misconfigured_environment' },
+            { error: 'misconfigured_environment', message: 'Misconfigured environment' },
             { status: 500 },
           )
         }

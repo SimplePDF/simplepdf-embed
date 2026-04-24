@@ -48,6 +48,9 @@ export const parseStreamErrorMessage = (message: string): StreamErrorEnvelope | 
       if (parsed.error === 'share_required') {
         return { statusCode: 401, message: messageField }
       }
+      if (parsed.error === 'misconfigured_environment') {
+        return { statusCode: 500, message: messageField }
+      }
     }
     return null
   } catch {

@@ -101,6 +101,25 @@ describe('shared_keys', () => {
     }
   })
 
+  it('strips accidental shell-style single quotes around a base64-encoded payload', async () => {
+    // Operators often paste `base64 <<< '{"dev":...}'` — the shell keeps the
+    // single quotes inside the here-string, so the base64 decodes to a
+    // quoted blob that JSON.parse rejects. unquote() should absorb this.
+    const json = JSON.stringify({ invite_a: validShare })
+    const quotedJson = `'${json}'`
+    const base64 = Buffer.from(quotedJson, 'utf-8').toString('base64')
+    setEnv(base64)
+    const { resolveApiKey } = await importFresh()
+    expect(resolveApiKey('invite_a').kind).toBe('shared')
+  })
+
+  it('strips accidental shell-style double quotes around a plain JSON payload', async () => {
+    const json = JSON.stringify({ invite_a: validShare })
+    setEnv(`"${json}"`)
+    const { resolveApiKey } = await importFresh()
+    expect(resolveApiKey('invite_a').kind).toBe('shared')
+  })
+
   it('null shareId returns share_required regardless of server config health', async () => {
     setEnv(undefined)
     const { resolveApiKey } = await importFresh()
