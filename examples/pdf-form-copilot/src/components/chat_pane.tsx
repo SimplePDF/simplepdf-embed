@@ -583,6 +583,18 @@ export const ChatPane = ({
   const unblockedByByok = byokConfig !== null
   const serverLocked = demoGate.kind === 'byok' && !unblockedByByok
   const demoModelLabel = demoGate.kind === 'demo' ? DEMO_MODELS[demoGate.model].label : null
+  // Header label: whichever model will actually run the next turn. Shown
+  // regardless of editor-ready state so the user knows what they're talking
+  // to before the iframe finishes booting.
+  const activeModelLabel = ((): string => {
+    if (byokConfig !== null) {
+      return (
+        findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
+        byokConfig.model
+      )
+    }
+    return demoModelLabel ?? t('chat.heading')
+  })()
   const canSend = isReady && !isStreaming && !serverLocked
   const hasUserMessage = messages.some((message) => message.role === 'user')
 
@@ -629,29 +641,19 @@ export const ChatPane = ({
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         <div>
+          <h2 className="text-sm font-semibold text-slate-900">{activeModelLabel}</h2>
           {isReady ? (
-            <>
-              <h2 className="text-sm font-semibold text-slate-900">
-                {byokConfig !== null
-                  ? (findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
-                    byokConfig.model)
-                  : (demoModelLabel ?? t('chat.heading'))}
-              </h2>
-              <button
-                type="button"
-                onClick={openModelPicker}
-                className="text-xs font-medium text-sky-600 hover:text-sky-700"
-              >
-                {t('chat.switchModel')}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={openModelPicker}
+              className="text-xs font-medium text-sky-600 hover:text-sky-700"
+            >
+              {t('chat.switchModel')}
+            </button>
           ) : (
-            <>
-              <h2 className="text-sm font-semibold text-slate-900">{t('chat.heading')}</h2>
-              <p className="text-xs text-slate-500">
-                {requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')}
-              </p>
-            </>
+            <p className="text-xs text-slate-500">
+              {requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -776,8 +778,13 @@ type WelcomeBannerProps = {
 
 const WelcomeBanner = ({ onSwitchModel, onOpenInfo }: WelcomeBannerProps) => {
   const { t } = useTranslation()
+  // `flex-1` (not h-full) so the banner grows into the parent's remaining
+  // column space. The parent wrapper (`flex min-h-full flex-col`) only
+  // declares a min-height, so `h-full` resolves to auto and the banner
+  // collapses against its content — leaving the text near the top of the
+  // scroll region instead of centered vertically.
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
       <div className="max-w-sm text-base font-semibold text-slate-900">{t('chat.welcomeTitle')}</div>
       <p className="max-w-sm text-sm leading-relaxed text-slate-600">{t('chat.welcomeBody')}</p>
       <div className="flex flex-col items-center gap-2">

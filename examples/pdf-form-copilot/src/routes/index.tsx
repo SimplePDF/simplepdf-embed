@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
 import { useCallback, useRef } from 'react'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
@@ -11,7 +10,6 @@ import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../li
 import { i18n } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger, monitoring } from '../lib/monitoring'
-import { isSameOrigin } from '../server/rate_limit'
 import { resolveShareModel } from '../server/shared_keys'
 
 export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
@@ -29,14 +27,20 @@ type HomeSearch = {
 // Two-state gate: either the invite is valid and the chat runs against the
 // per-share demo model, or the visitor has to bring their own key via the
 // Model Picker. The UI reads this to label the active model and to decide
-// whether to show the Welcome banner. Cross-origin probes collapse to
-// 'byok' — the client cannot infer which share ids exist.
+// whether to show the Welcome banner.
 export type DemoGate = { kind: 'byok' } | { kind: 'demo'; model: DemoModel }
 
 // The share id lives directly in `?share=<id>` on the page URL — no cookie
 // round-trip, no URL stripping — so an invite link can be copy-pasted and
 // reused verbatim. The loader forwards the id to this server fn, which
 // treats a blank / missing id as "no invite".
+//
+// No same-origin gate here: a direct address-bar navigation doesn't send
+// Origin or Referer, so a strict check would collapse every paste of an
+// invite link into the 'byok' branch. Cross-origin JS fetches to this
+// server-fn endpoint can't read the response under the browser's default
+// CORS policy (we don't serve Access-Control-Allow-Origin), so an attacker
+// already can't enumerate shares from another site.
 const readDemoGate = createServerFn({ method: 'GET' })
   .inputValidator((raw: unknown): { shareId: string | null } => {
     if (typeof raw !== 'object' || raw === null || !('shareId' in raw)) {
@@ -49,10 +53,6 @@ const readDemoGate = createServerFn({ method: 'GET' })
     return { shareId: value }
   })
   .handler(async ({ data }): Promise<DemoGate> => {
-    const request = getRequest()
-    if (!isSameOrigin(request)) {
-      return { kind: 'byok' }
-    }
     const model = resolveShareModel(data.shareId)
     if (model === null) {
       return { kind: 'byok' }
