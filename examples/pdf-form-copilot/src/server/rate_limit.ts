@@ -191,6 +191,26 @@ export const isSameOrigin = (request: Request): boolean => {
   return false
 }
 
+// Second-chance detector for "is this a legitimate browser?" used by the
+// misbehavior flag: some privacy configurations (Firefox strict tracking
+// protection, privacy extensions, some VPNs) strip Origin AND Referer on
+// cross-site / proxy-routed requests, which would otherwise trip the flag.
+// Sec-Fetch-Site / Sec-Fetch-Mode are on the browser's "forbidden headers"
+// list (https://fetch.spec.whatwg.org/#forbidden-header-name). in-page JS
+// cannot set them, and every modern Chromium / Firefox / Safari / Edge sets
+// them on same-origin fetch() calls. A caller that spoofs Origin can also
+// spoof these, so this is an additional lane, not a security control.
+export const looksLikeBrowserFetch = (request: Request): boolean => {
+  const site = request.headers.get('sec-fetch-site')
+  const mode = request.headers.get('sec-fetch-mode')
+  // Our chat UI issues cross-origin `fetch` requests only when running from
+  // file:// (which the production surface doesn't support); same-origin is
+  // the normal case. `cors` covers the cross-origin case as a fallback.
+  const siteOk = site === 'same-origin' || site === 'same-site'
+  const modeOk = mode === 'cors' || mode === 'same-origin'
+  return siteOk && modeOk
+}
+
 // Salts the SHA-256 IP hash with a server-side secret. Without a salt, a leak
 // of the persisted S3 object would let anyone brute-force the 2^32 IPv4 space
 // in minutes. The salt stays in the server's env and is never persisted with

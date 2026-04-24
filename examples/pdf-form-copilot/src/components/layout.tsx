@@ -6,7 +6,6 @@ import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import { CerfaDorModal } from './cerfa_dor_modal'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
-import { SubmitDemoModal } from './submit_demo_modal'
 
 const CERFA_DOR_LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
 
@@ -61,7 +60,6 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
   const isInfoOpen = search.show === 'info'
-  const isSubmitOpen = search.show === 'submit'
   const isFrench = locale === 'fr'
   // The Cerfa d'Or easter egg is French-only. Honour ?show=cerfa_dor only
   // when the user is on the FR locale so the URL param is a no-op elsewhere.
@@ -165,7 +163,6 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
         onSelectUseCaseForm={switchToUseCaseForm}
         locale={locale}
       />
-      <SubmitDemoModal open={isSubmitOpen} onClose={closeModal} locale={locale} />
       {isFrench ? <CerfaDorModal open={isCerfaDorOpen} onClose={closeModal} /> : null}
     </header>
   )

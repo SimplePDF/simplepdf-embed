@@ -59,7 +59,8 @@ Visitors who want the demo without an invite link open the Model Picker inside t
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | No (defaults to `form-copilot`) | The `<company>.simplepdf.com` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. Get your own company identifier: https://simplepdf.com/auth/signup |
+| `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | **Yes** | The `<company>.<base_domain>` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. Get your own company identifier: https://simplepdf.com/auth/signup. Missing / empty = app throws at startup. |
+| `VITE_SIMPLEPDF_BASE_DOMAIN` | **Yes** | Full base URL (protocol + host + optional port), e.g. `https://simplepdf.com` or `http://simplepdf.nil:3105`. The company identifier above is spliced in as a subdomain. Missing / empty / invalid URL = app throws at startup. |
 | `VITE_ENABLE_DEVTOOLS` | No | Set to `true` to surface the TanStack Router devtools panel in local dev. |
 
 ### Rate-limit persistence (optional; all seven must be set together)

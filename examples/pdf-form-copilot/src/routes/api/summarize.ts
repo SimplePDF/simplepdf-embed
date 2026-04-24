@@ -3,7 +3,14 @@ import { generateText } from 'ai'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
-import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
+import { isMisbehaving, markMisbehavior } from '../../server/misbehavior'
+import {
+  getClientIp,
+  hashIp,
+  isSameOrigin,
+  looksLikeBrowserFetch,
+  rateLimiter,
+} from '../../server/rate_limit'
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
@@ -40,7 +47,15 @@ export const Route = createFileRoute('/api/summarize')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!isSameOrigin(request)) {
+        const ip = getClientIp(request)
+        const ipHash = await hashIp(ip)
+        if (isMisbehaving(ipHash)) {
+          return Response.json({ error: 'forbidden_blocked' }, { status: 403 })
+        }
+        // Same-origin is the happy path; Sec-Fetch-* is the second-chance
+        // lane for privacy-hardened browsers that strip Origin/Referer.
+        if (!isSameOrigin(request) && !looksLikeBrowserFetch(request)) {
+          markMisbehavior(ipHash, 'non_browser_origin')
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
         const shareId = readShareIdFromUrl(request)
@@ -69,8 +84,6 @@ export const Route = createFileRoute('/api/summarize')({
             { status: 503 },
           )
         }
-        const ip = getClientIp(request)
-        const ipHash = await hashIp(ip)
         const decision = ((): ReturnType<typeof rateLimiter.check> => {
           try {
             return rateLimiter.check({

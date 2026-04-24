@@ -1,4 +1,4 @@
-import { Check, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
+import { Check, Download, ImageIcon, MousePointer, PenTool, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SupportedFieldType } from '../lib/embed-bridge'
@@ -11,8 +11,11 @@ type ToolbarProps = {
   selected: ToolbarTool
   onSelect: (tool: ToolbarTool) => void
   disabled: boolean
-  submitEnabled: boolean
-  onSubmit: () => void
+  // Flips the Download button between quiet (white, secondary) and loud
+  // (brand-blue, primary). Both variants remain clickable; the variant is a
+  // visual nudge, not a gate.
+  downloadPrimary: boolean
+  onDownload: () => void
 }
 
 const BoxedTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) => (
@@ -29,13 +32,16 @@ const BoxedTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) =
   </svg>
 )
 
-type ToolOption = {
+export type ToolOption = {
   value: ToolbarTool
   labelKey: string
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
-const OPTIONS: ToolOption[] = [
+// Exported so other surfaces (e.g. the FieldAddedHint renderer in chat_pane)
+// can reuse the same icon + label mapping per tool without duplicating the
+// entries.
+export const TOOLBAR_OPTIONS: ToolOption[] = [
   { value: null, labelKey: 'toolbar.cursor', icon: MousePointer },
   { value: 'TEXT', labelKey: 'toolbar.text', icon: Type },
   { value: 'CHECKBOX', labelKey: 'toolbar.checkbox', icon: Check },
@@ -44,12 +50,15 @@ const OPTIONS: ToolOption[] = [
   { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: BoxedTextIcon },
 ]
 
-export const Toolbar = ({ selected, onSelect, disabled, submitEnabled, onSubmit }: ToolbarProps) => {
+export const Toolbar = ({ selected, onSelect, disabled, downloadPrimary, onDownload }: ToolbarProps) => {
   const { t } = useTranslation()
-  const submitLabel = t('toolbar.submit')
+  const downloadLabel = t('toolbar.submit')
+  const downloadClass = downloadPrimary
+    ? 'border-sky-600 bg-sky-600 text-white hover:bg-sky-700 hover:border-sky-700'
+    : 'border-slate-200 bg-white text-slate-600 hover:border-sky-600 hover:text-sky-600'
   return (
     <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-2">
-      {OPTIONS.map((option) => {
+      {TOOLBAR_OPTIONS.map((option) => {
         const isActive = option.value === selected
         const Icon = option.icon
         const label = t(option.labelKey)
@@ -74,14 +83,14 @@ export const Toolbar = ({ selected, onSelect, disabled, submitEnabled, onSubmit 
       })}
       <button
         type="button"
-        disabled={disabled || !submitEnabled}
-        onClick={onSubmit}
-        aria-label={submitLabel}
-        title={submitLabel}
-        className="ml-auto inline-flex h-7 items-center gap-1.5 rounded border border-sky-600 bg-sky-600 px-2.5 text-[11px] font-semibold text-white transition hover:bg-sky-700 hover:border-sky-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+        disabled={disabled}
+        onClick={onDownload}
+        aria-label={downloadLabel}
+        title={downloadLabel}
+        className={`ml-auto inline-flex h-7 items-center gap-1.5 rounded border px-2.5 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 ${downloadClass}`}
       >
-        <Send size={12} strokeWidth={2.2} />
-        {submitLabel}
+        <Download size={12} strokeWidth={2.2} />
+        {downloadLabel}
       </button>
     </div>
   )

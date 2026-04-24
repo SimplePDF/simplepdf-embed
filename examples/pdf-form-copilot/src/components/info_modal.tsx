@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import { Modal, ModalCloseButton } from './ui/modal'
+import { Modal, ModalCloseButton, ModalFooter } from './ui/modal'
 
 type InfoModalProps = {
   open: boolean
@@ -502,7 +502,7 @@ export const InfoModal = ({
         </div>
       </div>
 
-      <footer className="flex items-center justify-center border-t border-slate-100 bg-slate-50/60 px-7 py-3.5 text-[11.5px] text-slate-500">
+      <ModalFooter variant="centered">
         <span>
           <Trans
             i18nKey="infoModal.availableOn"
@@ -519,7 +519,7 @@ export const InfoModal = ({
             }}
           />
         </span>
-      </footer>
+      </ModalFooter>
     </Modal>
   )
 }

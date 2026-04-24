@@ -37,6 +37,7 @@ const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
     case 'CREATE_FIELD':
     case 'FOCUS_FIELD':
     case 'GET_FIELDS':
+    case 'DOWNLOAD':
     case 'GO_TO':
     case 'LOAD_DOCUMENT':
     case 'REMOVE_FIELDS':
@@ -396,6 +397,7 @@ export const createBridge = ({
         value: value ?? null,
       }),
     submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
+    download: () => sendRequest('DOWNLOAD', {}),
   }
 
   const subscribe = (listener: (nextState: BridgeState) => void): (() => void) => {

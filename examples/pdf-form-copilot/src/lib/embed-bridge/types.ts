@@ -106,6 +106,7 @@ export type BridgeRequestType =
   | 'FOCUS_FIELD'
   | 'CREATE_FIELD'
   | 'SUBMIT'
+  | 'DOWNLOAD'
 
 export type IframeBridge = {
   getState: () => BridgeState
@@ -124,4 +125,5 @@ export type IframeBridge = {
   }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
   createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
+  download: () => Promise<BridgeResult>
 }

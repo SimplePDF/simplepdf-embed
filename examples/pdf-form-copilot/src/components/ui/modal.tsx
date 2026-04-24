@@ -124,3 +124,48 @@ export const ModalHeader = ({
     </div>
   )
 }
+
+// Shared footer shell used by info_modal (centered variant) and
+// download_modal (split variant with left + right action slots).
+// Centralises the border / background / padding / text sizing so every
+// modal's footer bar reads the same. Discriminated union keeps the two
+// shapes mutually exclusive at the type level.
+type ModalFooterCenteredProps = {
+  variant: 'centered'
+  children: ReactNode
+  className?: string
+}
+
+type ModalFooterSplitProps = {
+  variant: 'split'
+  left: ReactNode
+  right: ReactNode
+  className?: string
+}
+
+type ModalFooterProps = ModalFooterCenteredProps | ModalFooterSplitProps
+
+const MODAL_FOOTER_BASE_CLASS =
+  'border-t border-slate-100 bg-slate-50/60 px-6 py-3.5 text-[11.5px] text-slate-500'
+
+export const ModalFooter = (props: ModalFooterProps): ReactElement => {
+  switch (props.variant) {
+    case 'centered': {
+      const wrapperClass = props.className ?? `${MODAL_FOOTER_BASE_CLASS} flex items-center justify-center`
+      return <footer className={wrapperClass}>{props.children}</footer>
+    }
+    case 'split': {
+      const wrapperClass =
+        props.className ?? `${MODAL_FOOTER_BASE_CLASS} flex items-center justify-between gap-3`
+      return (
+        <footer className={wrapperClass}>
+          <div className="flex items-center">{props.left}</div>
+          <div className="flex items-center">{props.right}</div>
+        </footer>
+      )
+    }
+    default:
+      props satisfies never
+      throw new Error('Unsupported ModalFooter variant')
+  }
+}

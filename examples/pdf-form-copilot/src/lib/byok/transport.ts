@@ -1,5 +1,3 @@
-import { createAnthropic } from '@ai-sdk/anthropic'
-import { createOpenAI } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { SYSTEM_PROMPT } from '../../server/tools'
 import {
@@ -14,33 +12,13 @@ import {
 } from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
 import { monitoring, normalizeError } from '../monitoring'
+import { buildBrowserModel } from './model'
 import type { ByokConfig } from './providers'
 
 const MAX_OUTPUT_TOKENS = 500
 
 const buildLanguageInstruction = (languageLabel: string): string =>
   `Language: reply in ${languageLabel}. If the form itself is in a different language, you may quote its original text verbatim but always explain and converse in ${languageLabel}.`
-
-const buildModel = (config: ByokConfig) => {
-  switch (config.provider) {
-    case 'anthropic': {
-      const anthropic = createAnthropic({
-        apiKey: config.apiKey,
-        // Required flag to allow API calls from the browser; SimplePDF never
-        // sees this key, it lives only in tab memory.
-        headers: { 'anthropic-dangerous-direct-browser-access': 'true' },
-      })
-      return anthropic(config.model)
-    }
-    case 'openai': {
-      const openai = createOpenAI({ apiKey: config.apiKey })
-      return openai(config.model)
-    }
-    default:
-      config.provider satisfies never
-      throw new Error(`Unsupported BYOK provider: ${String(config.provider)}`)
-  }
-}
 
 type BrowserChatBody = {
   messages: UIMessage[]
@@ -74,7 +52,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
 
   const modelMessages = await convertToModelMessages(parsed.messages)
   const result = streamText({
-    model: buildModel(config),
+    model: buildBrowserModel(config),
     messages: [
       {
         role: 'system',
@@ -84,6 +62,12 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
       { role: 'system', content: buildLanguageInstruction(languageLabel) },
       ...modelMessages,
     ],
+    // useChat.stop() aborts the signal on `init`. forwarding it to
+    // streamText is what makes the Stop button actually kill the inflight
+    // provider request on the BYOK path. `RequestInit.signal` is typed as
+    // `AbortSignal | null`; streamText wants `AbortSignal | undefined`, so
+    // coalesce the null to undefined.
+    abortSignal: init?.signal ?? undefined,
     maxRetries: 0,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     tools: {

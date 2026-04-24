@@ -9,13 +9,13 @@ import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
 import { i18n } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
-import { bridgeLogger, monitoring } from '../lib/monitoring'
+import { bridgeLogger } from '../lib/monitoring'
 import { resolveShareModel } from '../server/shared_keys'
 
-export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
+export type ShowParam = 'info' | 'model' | 'download' | 'cerfa_dor'
 
 const isShowParam = (value: unknown): value is ShowParam =>
-  value === 'info' || value === 'model' || value === 'submit' || value === 'cerfa_dor'
+  value === 'info' || value === 'model' || value === 'download' || value === 'cerfa_dor'
 
 type HomeSearch = {
   form: FormId
@@ -86,20 +86,30 @@ export const Route = createFileRoute('/')({
   loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.shareId } }),
 })
 
-const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'copilot'
+// Both env vars are required at build time. No defaults: a misconfigured
+// deployment MUST fail loudly instead of silently pointing at production
+// SimplePDF with a shared company identifier.
+const COMPANY_IDENTIFIER = ((): string => {
+  const raw = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
+  if (typeof raw !== 'string' || raw.trim() === '') {
+    throw new Error('VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)')
+  }
+  return raw.trim()
+})()
 
-// VITE_SIMPLEPDF_BASE_DOMAIN accepts a full base URL (protocol + host + optional
-// port). The company identifier is spliced in as a subdomain when building the
-// iframe origin. Useful for pointing the example at a local dev checkout of
-// the SimplePDF editor (e.g. `http://simplepdf.nil:3105`) without touching the
-// source. Unset defaults to the production marketing origin.
+// Full base URL (protocol + host + optional port). The company identifier is
+// spliced in as a subdomain when building the iframe origin. Useful for
+// pointing the example at a local dev checkout of the SimplePDF editor
+// (e.g. `http://simplepdf.nil:3105`) without touching the source.
 const BASE_DOMAIN_URL = ((): URL => {
-  const raw = import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN ?? 'https://simplepdf.com'
+  const raw = import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN
+  if (typeof raw !== 'string' || raw.trim() === '') {
+    throw new Error('VITE_SIMPLEPDF_BASE_DOMAIN is required (see .env.example)')
+  }
   try {
-    return new URL(raw)
+    return new URL(raw.trim())
   } catch {
-    monitoring.warn('base_domain.invalid', { raw })
-    return new URL('https://simplepdf.com')
+    throw new Error(`VITE_SIMPLEPDF_BASE_DOMAIN is not a valid URL: ${raw}`)
   }
 })()
 const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`

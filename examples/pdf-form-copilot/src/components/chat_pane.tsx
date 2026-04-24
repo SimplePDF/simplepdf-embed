@@ -25,14 +25,14 @@ import { getLanguageByCode } from '../lib/languages'
 import { monitoring, normalizeError } from '../lib/monitoring'
 import type { DemoGate } from '../routes/index'
 import { SYSTEM_PROMPT } from '../server/tools'
+import { DownloadModal } from './download_modal'
 import { ErrorBanner } from './error_banner'
 import { LanguagePicker } from './language_picker'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
-import { ToolIcon } from './tool_icons'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
-import { Toolbar, type ToolbarTool } from './toolbar'
+import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 import { Button } from './ui/button'
 
 const homeRoute = getRouteApi('/')
@@ -118,11 +118,44 @@ const isToolbarTool = (value: unknown): value is ToolbarTool =>
   value === 'SIGNATURE' ||
   value === 'PICTURE'
 
-const buildNewFieldMessage = (delta: number): string => {
-  if (delta === 1) {
-    return 'A new field was just added to the document. Please continue helping me with it.'
+type PlacementTool = Exclude<ToolbarTool, null>
+
+// "New field added" hint, tagged via UIMessage.metadata so the renderer is
+// an O(1) metadata check (no prefix string coupling). The text remains
+// human-readable for the LLM's context window; the metadata carries the
+// structured payload for the UI.
+type NewFieldHintMetadata = { kind: 'new_field_hint'; tool: PlacementTool; delta: number }
+
+const buildNewFieldMessage = ({
+  tool,
+  delta,
+}: {
+  tool: PlacementTool
+  delta: number
+}): { text: string; metadata: NewFieldHintMetadata } => {
+  const text =
+    delta === 1
+      ? `A new ${tool} field was just added to the document. Please continue helping me with it.`
+      : `${delta} new ${tool} fields were just added to the document. Please continue helping me with them.`
+  return { text, metadata: { kind: 'new_field_hint', tool, delta } }
+}
+
+const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
+const isPlacementTool = (value: unknown): value is PlacementTool =>
+  typeof value === 'string' && (PLACEMENT_TOOLS as readonly string[]).includes(value)
+
+const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
+  const meta = message.metadata
+  if (typeof meta !== 'object' || meta === null) {
+    return null
   }
-  return `${delta} new fields were just added to the document. Please continue helping me with them.`
+  if (!('kind' in meta) || meta.kind !== 'new_field_hint') {
+    return null
+  }
+  if (!('tool' in meta) || !isPlacementTool(meta.tool)) {
+    return null
+  }
+  return meta.tool
 }
 
 // Wraps successful tool results in a structural envelope so the LLM can
@@ -202,7 +235,7 @@ const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => bo
 
 // Runtime narrowing over BridgeResult payloads. The dispatcher returns
 // `BridgeResult<unknown>` by design (the bridge itself doesn't validate
-// per-tool shapes — that's the client-tools / middleware concern), so the
+// per-tool shapes. that's the client-tools / middleware concern), so the
 // compaction middleware verifies the expected shape before touching the
 // data. A future middleware that rewrites the payload simply bypasses
 // compaction instead of crashing on undefined .fields / .pages.
@@ -223,17 +256,18 @@ const hasDocumentContentShape = (data: unknown): data is DocumentContentResult =
   return typeof data.name === 'string' && Array.isArray(data.pages)
 }
 
-// Demo-only: intercept submit_download and show a "this is a demo" modal
-// instead of triggering the real bridge.submit(). Keeps the public adapter
-// generic; the package's native submit tool still calls bridge.submit().
-const createDemoSubmitMiddleware =
-  ({ onOpen }: { onOpen: () => void }): ToolMiddleware =>
+// Demo-only: intercept submit_download and route it through the host's
+// download-request handler. The handler owns the counter that decides
+// between firing bridge.download() directly and opening the upsell modal,
+// so LLM-driven and toolbar-driven downloads stay on the same cadence.
+const createDemoDownloadMiddleware =
+  ({ onRequestDownload }: { onRequestDownload: () => void }): ToolMiddleware =>
   async ({ toolName }, next) => {
     if (toolName !== 'submit_download') {
       return next()
     }
-    onOpen()
-    return { success: true, data: { status: 'demo_submission_acknowledged' } }
+    onRequestDownload()
+    return { success: true, data: { status: 'download_requested' } }
   }
 
 // Demo-only: sync the host app's toolbar UI whenever the LLM picks a tool.
@@ -244,6 +278,22 @@ const createToolbarSyncMiddleware =
     if (toolName === 'select_tool' && result.success) {
       const nextTool = isToolbarTool(input.tool) ? input.tool : null
       onChange(nextTool)
+    }
+    return result
+  }
+
+// When the LLM itself creates a field (via `create_field`), the iframe's
+// field count goes up. If we did nothing, the post-stream getFields would
+// count those fields as "user-added" and nudge the LLM about a field it
+// just created itself. This middleware fires `onLlmCreatedField` on every
+// successful `create_field` so the host can advance its baseline and keep
+// the delta user-attributed only.
+const createLlmFieldBaselineMiddleware =
+  ({ onLlmCreatedField }: { onLlmCreatedField: () => void }): ToolMiddleware =>
+  async ({ toolName }, next) => {
+    const result = await next()
+    if (toolName === 'create_field' && result.success) {
+      onLlmCreatedField()
     }
     return result
   }
@@ -272,6 +322,7 @@ export const ChatPane = ({
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
   const isModelPickerOpen = search.show === 'model'
+  const isDownloadModalOpen = search.show === 'download'
   const shareIdRef = useRef<string | null>(search.share ?? null)
   shareIdRef.current = search.share ?? null
   const [draft, setDraft] = useState('')
@@ -286,12 +337,10 @@ export const ChatPane = ({
   // scrolls back to the bottom. No manual scrollTo juggling in this file.
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLInputElement>(null)
-  const fieldBaselineRef = useRef<number | null>(null)
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
   const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
   const byokConfigRef = useRef<ByokConfig | null>(byokConfig)
   byokConfigRef.current = byokConfig
-  const [hasFilledField, setHasFilledField] = useState(false)
   // useChat keeps the last turn's error latched until a new turn starts. We
   // need a local dismissed marker so the "You're now using X / Resume" CTA
   // can clear a stale banner without sending a message. We track by error
@@ -312,11 +361,45 @@ export const ChatPane = ({
     })
   }, [navigate])
 
-  const openSubmitModal = useCallback((): void => {
+  const openDownloadModal = useCallback((): void => {
     void navigate({
-      search: (prev) => ({ ...prev, show: 'submit' }),
+      search: (prev) => ({ ...prev, show: 'download' }),
     })
   }, [navigate])
+
+  const closeDownloadModal = useCallback((): void => {
+    void navigate({
+      search: ({ show: _omit, ...rest }) => rest,
+    })
+  }, [navigate])
+
+  // Counts every completed download request (toolbar click or LLM tool call).
+  // The modal opens on the first download and on every third one after that,
+  // enough surface area to land the Pro upsell without annoying repeat users.
+  // In-memory per tab: a reload resets it.
+  const downloadCountRef = useRef(0)
+
+  const fireDownload = useCallback((): void => {
+    const activeBridge = bridgeRef.current
+    if (activeBridge === null) {
+      return
+    }
+    void activeBridge.download()
+  }, [])
+
+  const handleDownloadRequested = useCallback((): void => {
+    downloadCountRef.current += 1
+    const count = downloadCountRef.current
+    // N=1 (first ever) AND every third after (4, 7, 10, …) open the modal,
+    // which owns the actual bridge.download() call via its onConfirm. Other
+    // downloads fire the bridge directly.
+    const shouldOpenModal = count === 1 || count % 3 === 1
+    if (shouldOpenModal) {
+      openDownloadModal()
+      return
+    }
+    fireDownload()
+  }, [fireDownload, openDownloadModal])
 
   const openInfoModal = useCallback((): void => {
     void navigate({
@@ -382,12 +465,21 @@ export const ChatPane = ({
       bridge,
       systemPrompt: SYSTEM_PROMPT,
       middleware: [
-        createDemoSubmitMiddleware({ onOpen: openSubmitModal }),
+        createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }),
         createToolbarSyncMiddleware({ onChange: setToolbarTool }),
+        createLlmFieldBaselineMiddleware({
+          // When the LLM creates a field, bump the baseline so the
+          // post-stream detector does not attribute it to the user.
+          onLlmCreatedField: () => {
+            if (fieldBaselineRef.current !== null) {
+              fieldBaselineRef.current += 1
+            }
+          },
+        }),
         createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
       ],
     })
-  }, [bridge, openSubmitModal])
+  }, [bridge, handleDownloadRequested])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
@@ -509,31 +601,52 @@ export const ChatPane = ({
     void activeBridge.selectTool({ tool })
   }, [])
 
-  // Unified field-state poll. One timer covers BOTH:
-  //   - Toolbar delta: when a toolbar tool is active, notify the LLM when the
-  //     user has dropped a new field on the document.
-  //   - hasFilledField: tracks whether any field carries a non-empty value,
-  //     gating the Submit button.
-  // Coalescing the two loops halves the iframe round-trips and keeps the
-  // polling cadence at a single knob.
-  //
-  // Terminates the moment `hasFilledField` flips true: the Submit button is
-  // now enabled, we have demonstrated the core demo flow, and there's no
-  // reason to keep hitting the iframe. The poll restarts on the next bridge
-  // remount (form / locale switch) or when hasFilledField is reset.
+  // Download button styling is driven by message count: quiet (white) until
+  // the conversation has at least 5 messages, then brand-blue to signal
+  // "now's a good time to download". The button is always clickable either
+  // way.
+  const downloadPrimary = messages.length >= 5
+
+  const isStreaming = status === 'streaming' || status === 'submitted'
+  const isStreamingRef = useRef(isStreaming)
+  isStreamingRef.current = isStreaming
+
+  // "User just dropped a field" detection. Lightweight GET_FIELDS loop that
+  // runs ONLY while a toolbar placement tool is active, so normal chat has
+  // zero iframe traffic. Covers both cases:
+  //   - Idle add (toolbar active, no stream): next tick fires the hint and
+  //     nudges the LLM on the following turn.
+  //   - Mid-stream add (user drops a field while the assistant is mid
+  //     response): delta is detected but `sendMessage` is skipped to avoid
+  //     breaking the tool_use / tool_result pairing. The baseline is held;
+  //     the first tick after the stream settles catches the delta.
+  // LLM-created fields are excluded via `createLlmFieldBaselineMiddleware`
+  // (bumps the baseline on every successful create_field), so only
+  // user-placed fields trigger the hint.
+  const fieldBaselineRef = useRef<number | null>(null)
   useEffect(() => {
-    if (bridge === null || !isReady) {
-      fieldBaselineRef.current = null
-      setHasFilledField(false)
-      return
-    }
-    if (hasFilledField) {
+    if (bridge === null || !isReady || toolbarTool === null) {
       fieldBaselineRef.current = null
       return
     }
+    // Reset the baseline on every activation AND on every tool switch. A
+    // stale baseline from a previous tool would mis-attribute a held delta
+    // to the new tool (e.g. user drops a TEXT field mid-stream, flips to
+    // CHECKBOX, the held delta would fire "new checkbox" when it was a
+    // text field). Fresh baseline on the next tick fixes that; the rare
+    // flip-mid-drop-during-stream case loses the attribution, which is an
+    // intentional cost of the explicit tool-switch.
+    fieldBaselineRef.current = null
     let cancelled = false
     let timeoutId: ReturnType<typeof setTimeout> | null = null
     const poll = async (): Promise<void> => {
+      if (isStreamingRef.current) {
+        // Short-circuit: no iframe call while the assistant is streaming.
+        // sendMessage is blocked anyway, and re-fetching fields at 200ms
+        // for the duration of a stream is pure iframe noise. The first
+        // post-stream tick catches whatever was dropped mid-stream.
+        return
+      }
       const activeBridge = bridgeRef.current
       if (activeBridge === null) {
         return
@@ -542,29 +655,27 @@ export const ChatPane = ({
       if (cancelled || !result.success) {
         return
       }
-      const fields = result.data.fields
-      const hasAnyValue = fields.some((field) => field.value !== null && field.value !== '')
-      if (hasAnyValue) {
-        // Terminal state: flip the flag; the useEffect rerun (new hasFilledField
-        // dep) will tear down the timer before the next tick fires.
-        cancelled = true
-        setHasFilledField(true)
-        return
-      }
-      if (toolbarTool === null) {
-        fieldBaselineRef.current = null
-        return
-      }
-      const count = fields.length
+      const count = result.data.fields.length
       if (fieldBaselineRef.current === null) {
         fieldBaselineRef.current = count
         return
       }
-      if (count > fieldBaselineRef.current) {
-        const delta = count - fieldBaselineRef.current
-        fieldBaselineRef.current = count
-        void sendMessage({ text: buildNewFieldMessage(delta) })
+      if (count <= fieldBaselineRef.current) {
+        return
       }
+      if (isStreamingRef.current) {
+        // Hold the baseline; the first post-stream tick catches the delta.
+        return
+      }
+      const delta = count - fieldBaselineRef.current
+      fieldBaselineRef.current = count
+      // One-shot: once we've fired the hint for this toolbar-tool session,
+      // cancel the loop so the 200ms tick does not keep re-fetching fields
+      // on every subsequent render. Re-activation of the toolbar tool
+      // (cursor → tool again) is required to arm a new detection cycle.
+      cancelled = true
+      const payload = buildNewFieldMessage({ tool: toolbarTool, delta })
+      void sendMessage({ text: payload.text, metadata: payload.metadata })
     }
     const pollLoop = async (): Promise<void> => {
       await poll()
@@ -573,7 +684,7 @@ export const ChatPane = ({
       }
       timeoutId = setTimeout(() => {
         void pollLoop()
-      }, 1000)
+      }, 200)
     }
     void pollLoop()
     return () => {
@@ -582,17 +693,16 @@ export const ChatPane = ({
         clearTimeout(timeoutId)
       }
     }
-  }, [bridge, isReady, toolbarTool, sendMessage, hasFilledField])
+  }, [bridge, isReady, toolbarTool, sendMessage])
 
-  const isStreaming = status === 'streaming' || status === 'submitted'
-  // Access is blocked only until the visitor brings their own key — BYOK runs
+  // Access is blocked only until the visitor brings their own key. BYOK runs
   // the stream entirely in the browser via runByokStream and never hits /api/chat.
   const unblockedByByok = byokConfig !== null
   const serverLocked = demoGate.kind === 'byok' && !unblockedByByok
   const demoModelLabel = demoGate.kind === 'demo' ? DEMO_MODELS[demoGate.model].label : null
   // Is there a model that will run the next turn? When false, the header
   // reverts to the brand heading instead of rendering "Form Copilot" in the
-  // H2 slot styled like a model name — which misreads as "the model is
+  // H2 slot styled like a model name. which misreads as "the model is
   // called Form Copilot" next to a Switch-AI-model CTA. The Welcome banner
   // below owns the CTA in that state.
   const hasActiveModel = byokConfig !== null || demoGate.kind === 'demo'
@@ -600,10 +710,11 @@ export const ChatPane = ({
     if (byokConfig === null) {
       return null
     }
-    return (
-      findProvider(byokConfig.provider).models.find((m) => m.id === byokConfig.model)?.label ??
-      byokConfig.model
-    )
+    const spec = findProvider(byokConfig.provider)
+    if (spec.kind !== 'catalog') {
+      return byokConfig.model
+    }
+    return spec.models.find((m) => m.id === byokConfig.model)?.label ?? byokConfig.model
   })()
   const activeModelLabel = byokModelLabel ?? demoModelLabel ?? t('chat.heading')
   const canSend = isReady && !isStreaming && !serverLocked
@@ -701,8 +812,8 @@ export const ChatPane = ({
         selected={toolbarTool}
         onSelect={handleToolbarSelect}
         disabled={!isReady}
-        submitEnabled={hasFilledField}
-        onSubmit={openSubmitModal}
+        downloadPrimary={downloadPrimary}
+        onDownload={handleDownloadRequested}
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
@@ -717,8 +828,9 @@ export const ChatPane = ({
             return (
               <div className="space-y-4 p-4">
                 {messages.map((message) => {
-                  if (isFieldAddedHint(message)) {
-                    return <FieldAddedHint key={message.id} />
+                  const hintTool = readFieldHintTool(message)
+                  if (hintTool !== null) {
+                    return <FieldAddedHint key={message.id} tool={hintTool} />
                   }
                   return <MessageView key={message.id} message={message} />
                 })}
@@ -733,7 +845,7 @@ export const ChatPane = ({
                       // "Let's continue" turn so the assistant picks up on
                       // the freshly-wired model. The existing `canSend`
                       // effect re-focuses the input automatically once the
-                      // turn finishes — no need to force focus here on a
+                      // turn finishes. no need to force focus here on a
                       // disabled input.
                       setDismissedError(error)
                       void sendMessage({ text: t('chat.errorByokActivatedResumeMessage') })
@@ -774,6 +886,12 @@ export const ChatPane = ({
         demoGate={demoGate}
         onApply={setByokConfig}
       />
+      <DownloadModal
+        open={isDownloadModalOpen}
+        onClose={closeDownloadModal}
+        onConfirm={fireDownload}
+        locale={language}
+      />
     </div>
   )
 }
@@ -782,35 +900,26 @@ type MessageViewProps = {
   message: UIMessage
 }
 
-const FIELD_ADDED_HINT_PREFIXES = [
-  'A new field was just added to the document',
-  'new fields were just added to the document',
-] as const
+type FieldAddedHintProps = { tool: PlacementTool }
 
-const isFieldAddedHint = (message: UIMessage): boolean => {
-  if (message.role !== 'user') {
-    return false
+const FieldAddedHint = ({ tool }: FieldAddedHintProps) => {
+  const { t, i18n } = useTranslation()
+  const option = TOOLBAR_OPTIONS.find((entry) => entry.value === tool)
+  if (option === undefined) {
+    return null
   }
-  for (const part of message.parts) {
-    if (part.type === 'text') {
-      for (const prefix of FIELD_ADDED_HINT_PREFIXES) {
-        if (part.text.includes(prefix)) {
-          return true
-        }
-      }
-    }
-  }
-  return false
-}
-
-const FieldAddedHint = () => {
-  const { t } = useTranslation()
+  const Icon = option.icon
+  // Lowercase the localised label before interpolation so the sentence
+  // reads as "New text field added by the user" rather than the proper-noun
+  // "New Text field ...". `toLocaleLowerCase` with the active locale
+  // handles locale-specific casing (e.g. Turkish dotted/dotless I).
+  const fieldLabel = t(option.labelKey).toLocaleLowerCase(i18n.language)
   return (
     <div className="flex items-center justify-center gap-1.5 py-1 text-[11px] text-slate-400">
       <span className="text-slate-400">
-        <ToolIcon kind="write" size={12} />
+        <Icon size={12} />
       </span>
-      <span>{t('chat.newFieldHint')}</span>
+      <span>{t('chat.newFieldHint', { field: fieldLabel })}</span>
     </div>
   )
 }
@@ -825,7 +934,7 @@ const WelcomeBanner = ({ onSwitchModel, onOpenInfo }: WelcomeBannerProps) => {
   // `flex-1` (not h-full) so the banner grows into the parent's remaining
   // column space. The parent wrapper (`flex min-h-full flex-col`) only
   // declares a min-height, so `h-full` resolves to auto and the banner
-  // collapses against its content — leaving the text near the top of the
+  // collapses against its content. leaving the text near the top of the
   // scroll region instead of centered vertically.
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">

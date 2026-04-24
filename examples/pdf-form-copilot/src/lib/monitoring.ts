@@ -58,6 +58,9 @@ export type EventPayloads = {
     language: string
   }
 
+  // misbehavior.ts (server)
+  'misbehavior.flagged': { ip_hash: string; reason: 'non_browser_origin' }
+
   // summarize.ts (server)
   'summarize.blocked_system_failure': { ip_hash: string | null; detail: string }
   'summarize.rate_limit_threw': { ip_hash: string; detail: string }
