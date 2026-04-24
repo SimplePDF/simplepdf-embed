@@ -86,7 +86,8 @@
       "validatingButton": "Verifierar nyckel…",
       "cancelButton": "Avbryt",
       "comingSoon": "Kommer snart",
-      "registerInterest": "Anmäl ditt intresse: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Anmäl ditt intresse →",
+      "registerInterestMessage": "Hej SimplePDF-team, jag är intresserad av att använda Form Copilot med {{provider}}. Kan ni berätta när det blir tillgängligt och hur konfigurationen ser ut?\n\nPlan jag är intresserad av:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF-formulär är röriga. De kommer inskannade utan färdiga fält, eller med dåliga fältnamn som tvingar AI att jobba hårdare. Betalda SimplePDF-planer löser också det, med obligatoriska fält, standardvärden och fältalias.",
     "upsellCta": "Kontakta oss",
     "upsellPricing": "Se företagsplaner",
-    "upsellContactMessage": "Hej SimplePDF-team, jag provar Form Copilot och skulle vilja veta mer om Skicka in-flödet (Submit) i de betalda planerna: automatisk leverans till mitt eget lager och aviseringar via webhook eller e-post.",
+    "upsellContactMessage": "Hej SimplePDF-team, jag provar Form Copilot och skulle vilja veta mer om Skicka in-flödet (Submit) i de betalda planerna: automatisk leverans till mitt eget lager och aviseringar via webhook eller e-post.\n\nPlan jag är intresserad av:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Stäng"
   },
   "toolInvocation": {

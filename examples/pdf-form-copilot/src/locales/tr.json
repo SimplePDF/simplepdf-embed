@@ -86,7 +86,8 @@
       "validatingButton": "Anahtar doğrulanıyor…",
       "cancelButton": "İptal",
       "comingSoon": "Yakında",
-      "registerInterest": "İlginizi kaydedin: <email>hello@simplepdf.com</email>",
+      "registerInterest": "İlginizi kaydedin →",
+      "registerInterestMessage": "Merhaba SimplePDF ekibi, Form Copilot’u {{provider}} ile kullanmakla ilgileniyorum. Ne zaman kullanıma sunulacağını ve kurulumun nasıl göründüğünü paylaşabilir misiniz?\n\nİlgilendiğim plan:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF formları dağınıktır. Hazır alanlar olmadan taranmış şekilde ya da yapay zekanın işini zorlaştıran kötü alan adlarıyla gelirler. Ücretli SimplePDF planları bunu da düzeltir; zorunlu alanlar, varsayılan değerler ve alan takma adları ile.",
     "upsellCta": "Bizimle iletişime geçin",
     "upsellPricing": "Kurumsal planları inceleyin",
-    "upsellContactMessage": "Merhaba SimplePDF ekibi, Form Copilot’u deniyorum ve ücretli planlardaki Gönder (Submit) akışı hakkında daha fazla bilgi almak istiyorum: doldurulmuş PDF’lerin kendi depoma otomatik teslimi, webhook veya e-posta bildirimleriyle birlikte.",
+    "upsellContactMessage": "Merhaba SimplePDF ekibi, Form Copilot’u deniyorum ve ücretli planlardaki Gönder (Submit) akışı hakkında daha fazla bilgi almak istiyorum: doldurulmuş PDF’lerin kendi depoma otomatik teslimi, webhook veya e-posta bildirimleriyle birlikte.\n\nİlgilendiğim plan:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Kapat"
   },
   "toolInvocation": {

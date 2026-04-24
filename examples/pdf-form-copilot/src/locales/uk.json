@@ -86,7 +86,8 @@
       "validatingButton": "Перевірка ключа…",
       "cancelButton": "Скасувати",
       "comingSoon": "Незабаром",
-      "registerInterest": "Зареєструйте зацікавленість: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Зареєструйте зацікавленість →",
+      "registerInterestMessage": "Вітаю команду SimplePDF, мене цікавить використання Form Copilot з {{provider}}. Чи могли б ви написати, коли це буде доступно та як виглядає налаштування?\n\nТариф, який мене цікавить:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF-форми часто безладні. Вони приходять відсканованими без готових полів або з поганими назвами полів, через які штучний інтелект виконує зайву роботу. Платні тарифи SimplePDF виправляють і це — завдяки обов’язковим полям, значенням за замовчуванням та аліасам полів.",
     "upsellCta": "Зв’яжіться з нами",
     "upsellPricing": "Переглянути бізнес-тарифи",
-    "upsellContactMessage": "Вітаю команду SimplePDF, я пробую Form Copilot і хотів би дізнатися більше про потік Надіслати (Submit) у платних тарифах: автоматичну доставку в моє власне сховище та сповіщення через webhook чи електронну пошту.",
+    "upsellContactMessage": "Вітаю команду SimplePDF, я пробую Form Copilot і хотів би дізнатися більше про потік Надіслати (Submit) у платних тарифах: автоматичну доставку в моє власне сховище та сповіщення через webhook чи електронну пошту.\n\nТариф, який мене цікавить:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Закрити"
   },
   "toolInvocation": {

@@ -86,7 +86,8 @@
       "validatingButton": "Verifica della chiave…",
       "cancelButton": "Annulla",
       "comingSoon": "Prossimamente",
-      "registerInterest": "Registra il tuo interesse: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Registra il tuo interesse →",
+      "registerInterestMessage": "Ciao team SimplePDF, sono interessato a usare Form Copilot con {{provider}}. Potreste dirmi quando sarà disponibile e come avviene la configurazione?\n\nPiano che mi interessa:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "I moduli PDF sono disordinati. Arrivano scansionati senza campi pronti o con nomi di campo scadenti che fanno lavorare di più l’IA. I piani SimplePDF a pagamento risolvono anche questo, con campi obbligatori, valori predefiniti e alias dei campi.",
     "upsellCta": "Contattaci",
     "upsellPricing": "Vedi i piani business",
-    "upsellContactMessage": "Ciao team SimplePDF, sto provando Form Copilot e vorrei saperne di più sul flusso di Invio (Submit) nei piani a pagamento: consegna automatica nel mio storage e notifiche via webhook o e-mail.",
+    "upsellContactMessage": "Ciao team SimplePDF, sto provando Form Copilot e vorrei saperne di più sul flusso di Invio (Submit) nei piani a pagamento: consegna automatica nel mio storage e notifiche via webhook o e-mail.\n\nPiano che mi interessa:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Chiudi"
   },
   "toolInvocation": {

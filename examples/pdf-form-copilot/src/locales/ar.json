@@ -86,7 +86,8 @@
       "validatingButton": "جارٍ التحقق من المفتاح…",
       "cancelButton": "إلغاء",
       "comingSoon": "قريبًا",
-      "registerInterest": "سجّل اهتمامك: <email>hello@simplepdf.com</email>",
+      "registerInterest": "سجّل اهتمامك →",
+      "registerInterestMessage": "مرحبًا فريق SimplePDF، أنا مهتم باستخدام Form Copilot مع {{provider}}. هل يمكنكم إخباري متى سيكون متاحًا وكيف يبدو الإعداد؟\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "نماذج PDF فوضوية. تصل ممسوحة ضوئيًا بدون حقول جاهزة، أو بأسماء حقول سيئة تجعل الذكاء الاصطناعي يعمل بجهد أكبر. خطط SimplePDF المدفوعة تحل ذلك أيضًا، بالحقول المطلوبة والقيم الافتراضية وتسمية الحقول البديلة.",
     "upsellCta": "تواصل معنا",
     "upsellPricing": "استعرض خطط الأعمال",
-    "upsellContactMessage": "مرحبًا فريق SimplePDF، أجرب Form Copilot وأود معرفة المزيد عن تدفق الإرسال (Submit) في الخطط المدفوعة: التسليم التلقائي إلى وحدة التخزين الخاصة بي، إلى جانب إشعارات webhook والبريد الإلكتروني.",
+    "upsellContactMessage": "مرحبًا فريق SimplePDF، أجرب Form Copilot وأود معرفة المزيد عن تدفق الإرسال (Submit) في الخطط المدفوعة: التسليم التلقائي إلى وحدة التخزين الخاصة بي، إلى جانب إشعارات webhook والبريد الإلكتروني.\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "إغلاق"
   },
   "toolInvocation": {

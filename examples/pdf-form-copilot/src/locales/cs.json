@@ -86,7 +86,8 @@
       "validatingButton": "Ověřování klíče…",
       "cancelButton": "Zrušit",
       "comingSoon": "Brzy",
-      "registerInterest": "Zaregistrujte svůj zájem: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Zaregistrujte svůj zájem →",
+      "registerInterestMessage": "Ahoj týme SimplePDF, mám zájem používat Form Copilot s {{provider}}. Můžete mi napsat, kdy bude k dispozici a jak vypadá nastavení?\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF formuláře bývají nepřehledné. Přicházejí naskenované bez připravených polí, nebo se špatnými názvy polí, které nutí AI víc pracovat. Placené plány SimplePDF tohle řeší také, a to povinnými poli, výchozími hodnotami a aliasy polí.",
     "upsellCta": "Napište nám",
     "upsellPricing": "Prohlédnout firemní plány",
-    "upsellContactMessage": "Ahoj týme SimplePDF, zkouším Form Copilot a rád bych se dozvěděl víc o procesu Odeslat (Submit) v placených plánech: automatické doručení do mého vlastního úložiště a upozornění přes webhook nebo e-mail.",
+    "upsellContactMessage": "Ahoj týme SimplePDF, zkouším Form Copilot a rád bych se dozvěděl víc o procesu Odeslat (Submit) v placených plánech: automatické doručení do mého vlastního úložiště a upozornění přes webhook nebo e-mail.\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Zavřít"
   },
   "toolInvocation": {

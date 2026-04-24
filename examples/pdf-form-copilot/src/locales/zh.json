@@ -86,7 +86,8 @@
       "validatingButton": "正在验证密钥…",
       "cancelButton": "取消",
       "comingSoon": "即将推出",
-      "registerInterest": "登记您的兴趣：<email>hello@simplepdf.com</email>",
+      "registerInterest": "登记您的兴趣 →",
+      "registerInterestMessage": "您好 SimplePDF 团队，我有兴趣将 Form Copilot 与 {{provider}} 一起使用。请问何时可以使用，配置流程是怎样的？\n\n我感兴趣的方案：\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF 表单常常杂乱无章。它们可能是扫描件，没有现成字段，或字段名不合理，让 AI 多花工夫。SimplePDF 的付费套餐也能解决这些问题，支持必填字段、默认值和字段别名。",
     "upsellCta": "联系我们",
     "upsellPricing": "查看企业版方案",
-    "upsellContactMessage": "您好 SimplePDF 团队，我正在试用 Form Copilot，想进一步了解付费方案的提交（Submit）流程：自动交付到我自己的存储，以及通过 webhook 或邮件发送的通知。",
+    "upsellContactMessage": "您好 SimplePDF 团队，我正在试用 Form Copilot，想进一步了解付费方案的提交（Submit）流程：自动交付到我自己的存储，以及通过 webhook 或邮件发送的通知。\n\n我感兴趣的方案：\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "关闭"
   },
   "toolInvocation": {

@@ -21,6 +21,7 @@ export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
     (part) => part.state === 'input-streaming' || part.state === 'input-available',
   )
   const isExpanded = isManuallyExpanded || hasError
+  const groupedIconClassName = hasError ? 'text-rose-500' : 'text-slate-500'
 
   if (parts.length === 1) {
     const part = parts[0]
@@ -36,7 +37,7 @@ export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-100"
       >
         <span className="flex items-center gap-2.5">
-          <span className="text-slate-500">
+          <span className={groupedIconClassName}>
             {isAnyRunning ? <HourglassIcon size={14} /> : <ToolIcon kind={dominantKind(parts)} />}
           </span>
           <span>{t('toolInvocation.groupSummary', { count: parts.length })}</span>

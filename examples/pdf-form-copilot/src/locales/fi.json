@@ -86,7 +86,8 @@
       "validatingButton": "Vahvistetaan avainta…",
       "cancelButton": "Peruuta",
       "comingSoon": "Tulossa pian",
-      "registerInterest": "Ilmoita kiinnostuksesi: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Ilmoita kiinnostuksesi →",
+      "registerInterestMessage": "Hei SimplePDF-tiimi, olen kiinnostunut käyttämään Form Copilotia {{provider}}-palvelun kanssa. Voisitteko kertoa, milloin se on saatavilla ja miltä määritys näyttää?\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF-lomakkeet ovat sekavia. Ne saapuvat skannattuina ilman valmiita kenttiä tai huonoilla kenttänimillä, jotka vaativat tekoälyltä enemmän työtä. SimplePDF:n maksulliset sopimukset korjaavat tämänkin pakollisilla kentillä, oletusarvoilla ja kenttien aliaksilla.",
     "upsellCta": "Ota yhteyttä",
     "upsellPricing": "Katso yritysratkaisut",
-    "upsellContactMessage": "Hei SimplePDF-tiimi, kokeilen Form Copilotia ja haluaisin kuulla lisää maksullisten sopimusten Lähetä-virrasta (Submit): täytettyjen PDF:ien automaattinen toimitus omaan tallennustilaani sekä ilmoitukset webhookilla tai sähköpostilla.",
+    "upsellContactMessage": "Hei SimplePDF-tiimi, kokeilen Form Copilotia ja haluaisin kuulla lisää maksullisten sopimusten Lähetä-virrasta (Submit): täytettyjen PDF:ien automaattinen toimitus omaan tallennustilaani sekä ilmoitukset webhookilla tai sähköpostilla.\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Sulje"
   },
   "toolInvocation": {

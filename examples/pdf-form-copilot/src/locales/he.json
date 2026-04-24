@@ -86,7 +86,8 @@
       "validatingButton": "מאמת מפתח…",
       "cancelButton": "ביטול",
       "comingSoon": "בקרוב",
-      "registerInterest": "הירשמו לעניין: <email>hello@simplepdf.com</email>",
+      "registerInterest": "הירשמו לעניין →",
+      "registerInterestMessage": "שלום לצוות SimplePDF, מעניין אותי להשתמש ב־Form Copilot עם {{provider}}. תוכלו לעדכן מתי זה יהיה זמין וכיצד נראית ההגדרה?\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "טפסי PDF לא מסודרים. הם מגיעים סרוקים ללא שדות מוכנים, או עם שמות שדות גרועים שמקשים על הבינה המלאכותית. תוכניות SimplePDF בתשלום פותרות גם את זה, עם שדות חובה, ערכי ברירת מחדל וכינויי שדות.",
     "upsellCta": "דברו איתנו",
     "upsellPricing": "הצג תוכניות עסקיות",
-    "upsellContactMessage": "שלום לצוות SimplePDF, אני מתנסה ב־Form Copilot ואשמח לדעת עוד על זרימת השליחה (Submit) בתוכניות בתשלום: שליחה אוטומטית לאחסון שלי, יחד עם התראות webhook או דואר אלקטרוני.",
+    "upsellContactMessage": "שלום לצוות SimplePDF, אני מתנסה ב־Form Copilot ואשמח לדעת עוד על זרימת השליחה (Submit) בתוכניות בתשלום: שליחה אוטומטית לאחסון שלי, יחד עם התראות webhook או דואר אלקטרוני.\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "סגור"
   },
   "toolInvocation": {

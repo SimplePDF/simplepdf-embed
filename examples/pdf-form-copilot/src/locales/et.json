@@ -86,7 +86,8 @@
       "validatingButton": "Võtme kinnitamine…",
       "cancelButton": "Tühista",
       "comingSoon": "Tulekul",
-      "registerInterest": "Registreeri oma huvi: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Registreeri oma huvi →",
+      "registerInterestMessage": "Tere SimplePDF-i tiim, olen huvitatud Form Copiloti kasutamisest koos {{provider}}-iga. Kas saaksite öelda, millal see kättesaadavaks muutub ja milline näeb välja seadistus?\n\nPakett, mis mind huvitab:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF-vormid on segased. Need saabuvad skannitud kujul ilma valmisväljadeta või kehvade välja nimedega, mis panevad tehisintellekti rohkem tööd tegema. SimplePDF-i tasulised paketid lahendavad ka selle, kohustuslike väljade, vaikeväärtuste ja välja aliastega.",
     "upsellCta": "Võta meiega ühendust",
     "upsellPricing": "Vaata ärilahendusi",
-    "upsellContactMessage": "Tere SimplePDF-i tiim, proovin Form Copiloti ja sooviksin rohkem teada tasuliste pakettide Esita-voo (Submit) kohta: täidetud PDF-ide automaatne saatmine minu enda salvestusruumi ning teavitused webhooki või e-postiga.",
+    "upsellContactMessage": "Tere SimplePDF-i tiim, proovin Form Copiloti ja sooviksin rohkem teada tasuliste pakettide Esita-voo (Submit) kohta: täidetud PDF-ide automaatne saatmine minu enda salvestusruumi ning teavitused webhooki või e-postiga.\n\nPakett, mis mind huvitab:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Sulge"
   },
   "toolInvocation": {

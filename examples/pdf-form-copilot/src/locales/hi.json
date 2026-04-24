@@ -86,7 +86,8 @@
       "validatingButton": "कुंजी सत्यापित कर रहा है…",
       "cancelButton": "रद्द करें",
       "comingSoon": "जल्द आ रहा है",
-      "registerInterest": "अपनी रुचि दर्ज करें: <email>hello@simplepdf.com</email>",
+      "registerInterest": "अपनी रुचि दर्ज करें →",
+      "registerInterestMessage": "नमस्ते SimplePDF टीम, मुझे {{provider}} के साथ Form Copilot का उपयोग करने में रुचि है। क्या आप बता सकते हैं कि यह कब उपलब्ध होगा और सेटअप कैसा दिखता है?\n\nजिस प्लान में मेरी रुचि है:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF फ़ॉर्म अस्त-व्यस्त होते हैं। वे तैयार फ़ील्ड के बिना स्कैन होकर आते हैं, या खराब फ़ील्ड नामों के साथ जो AI के लिए काम को कठिन बनाते हैं। सशुल्क SimplePDF प्लान इसे भी ठीक करते हैं, आवश्यक फ़ील्ड, डिफ़ॉल्ट मान और फ़ील्ड एलियासिंग के साथ।",
     "upsellCta": "हमसे बात करें",
     "upsellPricing": "बिज़नेस प्लान देखें",
-    "upsellContactMessage": "नमस्ते SimplePDF टीम, मैं Form Copilot आज़मा रहा हूँ और सशुल्क प्लान के सबमिट (Submit) फ़्लो के बारे में और जानना चाहता हूँ: मेरी अपनी स्टोरेज में स्वचालित डिलीवरी के साथ-साथ webhook या ईमेल से सूचनाएँ।",
+    "upsellContactMessage": "नमस्ते SimplePDF टीम, मैं Form Copilot आज़मा रहा हूँ और सशुल्क प्लान के सबमिट (Submit) फ़्लो के बारे में और जानना चाहता हूँ: मेरी अपनी स्टोरेज में स्वचालित डिलीवरी के साथ-साथ webhook या ईमेल से सूचनाएँ।\n\nजिस प्लान में मेरी रुचि है:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "बंद करें"
   },
   "toolInvocation": {

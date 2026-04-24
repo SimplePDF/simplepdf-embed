@@ -86,7 +86,8 @@
       "validatingButton": "Sleutel verifiëren…",
       "cancelButton": "Annuleren",
       "comingSoon": "Binnenkort beschikbaar",
-      "registerInterest": "Meld uw interesse aan: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Meld uw interesse aan →",
+      "registerInterestMessage": "Hallo SimplePDF-team, ik heb interesse om Form Copilot met {{provider}} te gebruiken. Kunt u laten weten wanneer het beschikbaar komt en hoe de setup eruitziet?\n\nAbonnement waarin ik geïnteresseerd ben:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "PDF-formulieren zijn rommelig. Ze komen gescand binnen zonder kant-en-klare velden, of met slechte veldnamen waardoor de AI harder moet werken. Betaalde SimplePDF-abonnementen lossen dat ook op, met verplichte velden, standaardwaarden en veldaliasen.",
     "upsellCta": "Neem contact op",
     "upsellPricing": "Bekijk zakelijke plannen",
-    "upsellContactMessage": "Hallo SimplePDF-team, ik probeer Form Copilot uit en wil graag meer weten over de Verzenden-flow (Submit) in de betaalde abonnementen: automatische levering naar mijn eigen opslag en meldingen via webhook of e-mail.",
+    "upsellContactMessage": "Hallo SimplePDF-team, ik probeer Form Copilot uit en wil graag meer weten over de Verzenden-flow (Submit) in de betaalde abonnementen: automatische levering naar mijn eigen opslag en meldingen via webhook of e-mail.\n\nAbonnement waarin ik geïnteresseerd ben:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Sluiten"
   },
   "toolInvocation": {

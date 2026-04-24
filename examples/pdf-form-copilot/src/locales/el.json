@@ -86,7 +86,8 @@
       "validatingButton": "Επαλήθευση κλειδιού…",
       "cancelButton": "Ακύρωση",
       "comingSoon": "Σύντομα διαθέσιμο",
-      "registerInterest": "Δηλώστε ενδιαφέρον: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Δηλώστε ενδιαφέρον →",
+      "registerInterestMessage": "Γεια σας ομάδα SimplePDF, ενδιαφέρομαι να χρησιμοποιήσω το Form Copilot με {{provider}}. Μπορείτε να μου πείτε πότε θα είναι διαθέσιμο και πώς γίνεται η ρύθμιση;\n\nΠρόγραμμα που με ενδιαφέρει:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "Τα PDF φόρμας είναι ακατάστατα. Φτάνουν σαρωμένα χωρίς έτοιμα πεδία ή με κακά ονόματα πεδίων που δυσκολεύουν την εργασία του AI. Τα επί πληρωμή προγράμματα SimplePDF διορθώνουν και αυτό, με υποχρεωτικά πεδία, προεπιλεγμένες τιμές και ψευδώνυμα πεδίων.",
     "upsellCta": "Επικοινωνήστε μαζί μας",
     "upsellPricing": "Δείτε επιχειρηματικά προγράμματα",
-    "upsellContactMessage": "Γεια σας ομάδα SimplePDF, δοκιμάζω το Form Copilot και θα ήθελα να μάθω περισσότερα για τη ροή Υποβολής (Submit) στα επί πληρωμή προγράμματα: αυτόματη παράδοση στον δικό μου αποθηκευτικό χώρο και ειδοποιήσεις μέσω webhook ή email.",
+    "upsellContactMessage": "Γεια σας ομάδα SimplePDF, δοκιμάζω το Form Copilot και θα ήθελα να μάθω περισσότερα για τη ροή Υποβολής (Submit) στα επί πληρωμή προγράμματα: αυτόματη παράδοση στον δικό μου αποθηκευτικό χώρο και ειδοποιήσεις μέσω webhook ή email.\n\nΠρόγραμμα που με ενδιαφέρει:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Κλείσιμο"
   },
   "toolInvocation": {

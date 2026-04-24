@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import {
   type ByokConfig,
   type ByokProviderId,
@@ -11,6 +11,7 @@ import {
   validateApiKey,
 } from '../lib/byok'
 import { DEMO_MODELS } from '../lib/demo_model'
+import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import type { DemoGate } from '../routes/index'
 import { Modal, ModalCloseButton } from './ui/modal'
 import { TextInput } from './ui/text_input'
@@ -120,7 +121,8 @@ const customErrorKey = (reason: ValidateFailureKind): string => {
 }
 
 const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: ModelPickerBodyProps) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language
   const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(
     activeConfig?.provider ?? null,
   )
@@ -356,23 +358,23 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
                     ) : null}
                   </span>
                   {isExpanded ? (
-                    <span className="mt-1 block text-[11px] leading-snug text-slate-500">
-                      <Trans
-                        i18nKey="chat.modelPicker.registerInterest"
-                        components={{
-                          email: (
-                            // biome-ignore lint/a11y/useAnchorContent: children injected by i18next <Trans>.
-                            <a
-                              href={`mailto:hello@simplepdf.com?subject=${encodeURIComponent(
-                                `Form Copilot: ${t(entry.labelKey)} interest`,
-                              )}`}
-                              onClick={(event) => event.stopPropagation()}
-                              className="font-medium text-sky-600 hover:text-sky-700"
-                            />
-                          ),
-                        }}
-                      />
-                    </span>
+                    <a
+                      href={buildSimplepdfUrl({
+                        locale,
+                        path: '/contact',
+                        query: {
+                          message: t('chat.modelPicker.registerInterestMessage', {
+                            provider: t(entry.labelKey),
+                          }),
+                        },
+                      })}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(event) => event.stopPropagation()}
+                      className="mt-1 block text-[11px] font-medium leading-snug text-sky-600 hover:text-sky-700"
+                    >
+                      {t('chat.modelPicker.registerInterest')}
+                    </a>
                   ) : null}
                 </button>
               )

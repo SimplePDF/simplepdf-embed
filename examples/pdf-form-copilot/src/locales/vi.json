@@ -86,7 +86,8 @@
       "validatingButton": "Đang xác minh khóa…",
       "cancelButton": "Hủy",
       "comingSoon": "Sắp ra mắt",
-      "registerInterest": "Đăng ký quan tâm: <email>hello@simplepdf.com</email>",
+      "registerInterest": "Đăng ký quan tâm →",
+      "registerInterestMessage": "Chào đội ngũ SimplePDF, tôi quan tâm đến việc sử dụng Form Copilot với {{provider}}. Các bạn có thể cho biết khi nào sẽ khả dụng và việc thiết lập trông như thế nào không?\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -150,7 +151,7 @@
     "upsellFields": "Biểu mẫu PDF thường lộn xộn. Chúng đến dưới dạng bản quét không có trường sẵn, hoặc có tên trường kém khiến AI phải làm việc vất vả hơn. Các gói trả phí của SimplePDF cũng khắc phục điều đó, với trường bắt buộc, giá trị mặc định và bí danh trường.",
     "upsellCta": "Liên hệ với chúng tôi",
     "upsellPricing": "Xem gói doanh nghiệp",
-    "upsellContactMessage": "Chào đội ngũ SimplePDF, tôi đang dùng thử Form Copilot và muốn tìm hiểu thêm về luồng Gửi (Submit) trên các gói trả phí: tự động chuyển vào kho lưu trữ của riêng tôi, cùng với thông báo qua webhook hoặc email.",
+    "upsellContactMessage": "Chào đội ngũ SimplePDF, tôi đang dùng thử Form Copilot và muốn tìm hiểu thêm về luồng Gửi (Submit) trên các gói trả phí: tự động chuyển vào kho lưu trữ của riêng tôi, cùng với thông báo qua webhook hoặc email.\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Đóng"
   },
   "toolInvocation": {
