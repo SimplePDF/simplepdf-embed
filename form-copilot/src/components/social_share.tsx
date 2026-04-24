@@ -32,6 +32,8 @@ const LinkedInIcon = ({ size = 14 }: { size?: number }) => (
   </svg>
 )
 
+// Chain-link glyph for the Copy-link button. Fill via currentColor so the
+// wrapping button drives colour.
 const LinkIcon = ({ size = 14 }: { size?: number }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -57,6 +59,11 @@ const COPIED_RESET_MS = 2000
 // Share the exact URL the user is on right now. Preserves ?share, ?form,
 // ?lang, and any other query params so the recipient lands on the same
 // form, in the same locale, with the same invite / model config.
+//
+// Note: LinkedIn + X share dialogs need the URL to be publicly scrapable
+// for the link-preview card to render. On localhost the popup opens but
+// the card silently drops. Once the hosted demo URL is live this renders
+// correctly; Copy link works regardless.
 const getShareUrl = (): string => {
   if (typeof window === 'undefined') {
     return ''
@@ -79,8 +86,8 @@ const buildShareHref = ({
       // been flaky since LinkedIn's 2023 migration.
       return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
     case 'x.com':
-      // Canonical `/intent/post` endpoint on x.com. The URL is appended to
-      // the text so X's preview picks it up as a link card (the separate
+      // Canonical `/intent/post` endpoint on x.com. URL is appended to the
+      // text so X's preview picks it up as a link card (the separate
       // `&url=` param stopped rendering a card reliably post-rename).
       return `https://x.com/intent/post?text=${encodeURIComponent(`${tweetText} ${url}`)}`
     default:
