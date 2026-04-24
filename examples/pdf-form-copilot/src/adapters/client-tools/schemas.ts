@@ -18,18 +18,18 @@ export const DetectFieldsInput = z
     'Asks the editor to auto-detect and create fields on the document. Use when get_fields returned 0 fields before asking the user to add fields manually.',
   )
 
-// Must stay in lockstep with the toolbar in the host app. BOXED_TEXT is a
-// field TYPE, not a toolbar option; excluding it from this schema keeps the
-// LLM from picking a tool the host UI can't surface.
+// Aligned with the bridge's SupportedFieldType. The LLM may pick any of
+// the five tool variants + null (cursor); the host UI mirrors the same
+// five in its toolbar.
 export const SelectToolInput = z
   .object({
     tool: z
-      .enum(['TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
+      .enum(['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
       .nullable()
       .describe('Editor tool to activate. Pass null to return to the cursor.'),
   })
   .describe(
-    'Switches the active editor tool. Use tool="TEXT" to let the user drop text fields on the document when the form has no native fields.',
+    'Switches the active editor tool. Use tool="TEXT" for free-form text, "BOXED_TEXT" for box-per-character fields (e.g. IBAN), or any of the other field types to let the user drop fields on a document without native AcroFields.',
   )
 
 export const SetFieldValueInput = z

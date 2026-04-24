@@ -1,6 +1,6 @@
 import type { UIMessage } from 'ai'
 import { z } from 'zod'
-import { isLanguageCode, LANGUAGES } from '../lib/languages'
+import { LANGUAGES } from '../lib/languages'
 
 // Iframe tool Zod schemas + client tool-name union live in adapters/client-tools
 // (re-exported as the public surface). This file keeps the server-boundary
@@ -39,8 +39,6 @@ export const SummarizeRequestSchema = z.object({
   pages: z.array(SummarizePageSchema),
   language_label: LanguageLabelSchema.optional(),
 })
-
-export { isLanguageCode }
 
 export const SYSTEM_PROMPT = `You are Form Copilot, a polite concierge that fills a PDF form for a non-technical user inside the SimplePDF editor.
 

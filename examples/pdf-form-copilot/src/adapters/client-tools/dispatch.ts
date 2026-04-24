@@ -10,12 +10,8 @@ const isSupportedFieldType = (value: unknown): value is SupportedFieldType =>
   value === 'PICTURE' ||
   value === 'SIGNATURE'
 
-const isSelectableTool = (value: unknown): value is SupportedFieldType | null => {
-  if (value === null) {
-    return true
-  }
-  return isSupportedFieldType(value) && value !== 'BOXED_TEXT'
-}
+const isSelectableTool = (value: unknown): value is SupportedFieldType | null =>
+  value === null || isSupportedFieldType(value)
 
 // Core dispatcher. Given a tool name and the raw input object the LLM
 // produced, route to the matching bridge method. Input-shape violations

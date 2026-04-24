@@ -6,7 +6,6 @@ export type { MiddlewareContext, ToolMiddleware } from './middleware'
 export { composeMiddleware } from './middleware'
 export type { ClientToolName } from './schemas'
 export {
-  CLIENT_TOOL_NAMES,
   CLIENT_TOOL_SCHEMAS,
   DetectFieldsInput,
   FocusFieldInput,

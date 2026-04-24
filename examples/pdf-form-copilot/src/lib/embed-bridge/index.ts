@@ -15,3 +15,4 @@ export type {
   RemoveFieldsArgs,
   SupportedFieldType,
 } from './types'
+export { isBridgeResultLike } from './types'

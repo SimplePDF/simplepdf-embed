@@ -5,6 +5,38 @@ export type BridgeResult<TData = null> =
   | { success: true; data: TData }
   | { success: false; error: { code: string; message: string } }
 
+// Runtime guard for BridgeResult shapes received from the iframe. The
+// postMessage payload is JSON parsed from an untrusted source — same-origin
+// policy narrows the attacker surface, but a malicious page on the editor
+// origin could still forge results. We validate the discriminator + the
+// error shape; callers keep the `data` payload as `unknown` and narrow
+// further at the dispatch layer.
+export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknown> => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  if (!('success' in value)) {
+    return false
+  }
+  if (value.success === true) {
+    return 'data' in value
+  }
+  if (value.success === false) {
+    if (!('error' in value)) {
+      return false
+    }
+    const error = value.error
+    if (typeof error !== 'object' || error === null) {
+      return false
+    }
+    if (!('code' in error) || !('message' in error)) {
+      return false
+    }
+    return typeof error.code === 'string' && typeof error.message === 'string'
+  }
+  return false
+}
+
 export type SupportedFieldType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE'
 
 export type FieldRecord = {

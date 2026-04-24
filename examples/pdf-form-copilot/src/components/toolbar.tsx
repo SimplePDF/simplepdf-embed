@@ -1,8 +1,11 @@
-import { Check, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
+import { Check, Grid3x3, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { SupportedFieldType } from '../lib/embed-bridge'
 
-export type ToolbarTool = 'TEXT' | 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | null
+// Equivalent to SupportedFieldType | null. Kept as a named alias so the
+// toolbar's five buttons + cursor state read cleanly at call sites.
+export type ToolbarTool = SupportedFieldType | null
 
 type ToolbarProps = {
   selected: ToolbarTool
@@ -21,6 +24,7 @@ type ToolOption = {
 const OPTIONS: ToolOption[] = [
   { value: null, labelKey: 'toolbar.cursor', icon: MousePointer },
   { value: 'TEXT', labelKey: 'toolbar.text', icon: Type },
+  { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: Grid3x3 },
   { value: 'CHECKBOX', labelKey: 'toolbar.checkbox', icon: Check },
   { value: 'SIGNATURE', labelKey: 'toolbar.signature', icon: PenTool },
   { value: 'PICTURE', labelKey: 'toolbar.picture', icon: ImageIcon },

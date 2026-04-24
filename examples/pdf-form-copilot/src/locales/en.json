@@ -122,6 +122,7 @@
   "toolbar": {
     "cursor": "Cursor",
     "text": "Text",
+    "boxedText": "Boxed text",
     "checkbox": "Checkbox",
     "signature": "Signature",
     "picture": "Picture",

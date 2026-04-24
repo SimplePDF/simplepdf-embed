@@ -98,7 +98,12 @@ type CompactedField = {
 type CompactedDocumentContent = { name: string | null; pages: DocumentContentPage[] }
 
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
-  value === null || value === 'TEXT' || value === 'CHECKBOX' || value === 'SIGNATURE' || value === 'PICTURE'
+  value === null ||
+  value === 'TEXT' ||
+  value === 'BOXED_TEXT' ||
+  value === 'CHECKBOX' ||
+  value === 'SIGNATURE' ||
+  value === 'PICTURE'
 
 const buildNewFieldMessage = (delta: number): string => {
   if (delta === 1) {
@@ -169,25 +174,40 @@ const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => bo
     if (!result.success) {
       return result
     }
-    if (toolName === 'get_fields') {
-      const typed = result as BridgeResult<{ fields: FieldRecord[] }>
-      if (!typed.success) {
-        return typed
-      }
-      return { success: true, data: { fields: compactFields(typed.data.fields) } }
+    if (toolName === 'get_fields' && hasFieldsShape(result.data)) {
+      return { success: true, data: { fields: compactFields(result.data.fields) } }
     }
-    if (toolName === 'get_document_content') {
-      const typed = result as BridgeResult<DocumentContentResult>
-      if (!typed.success) {
-        return typed
-      }
-      const name = typed.data.name === '' ? null : typed.data.name
-      const pages = getByokActive() ? typed.data.pages : truncatePages(typed.data.pages)
+    if (toolName === 'get_document_content' && hasDocumentContentShape(result.data)) {
+      const name = result.data.name === '' ? null : result.data.name
+      const pages = getByokActive() ? result.data.pages : truncatePages(result.data.pages)
       const compacted: CompactedDocumentContent = { name, pages }
       return { success: true, data: compacted }
     }
     return result
   }
+}
+
+// Runtime narrowing over BridgeResult payloads. The dispatcher returns
+// `BridgeResult<unknown>` by design (the bridge itself doesn't validate
+// per-tool shapes — that's the client-tools / middleware concern), so the
+// compaction middleware verifies the expected shape before touching the
+// data. A future middleware that rewrites the payload simply bypasses
+// compaction instead of crashing on undefined .fields / .pages.
+const hasFieldsShape = (data: unknown): data is { fields: FieldRecord[] } => {
+  if (typeof data !== 'object' || data === null || !('fields' in data)) {
+    return false
+  }
+  return Array.isArray(data.fields)
+}
+
+const hasDocumentContentShape = (data: unknown): data is DocumentContentResult => {
+  if (typeof data !== 'object' || data === null) {
+    return false
+  }
+  if (!('name' in data) || !('pages' in data)) {
+    return false
+  }
+  return typeof data.name === 'string' && Array.isArray(data.pages)
 }
 
 // Demo-only: intercept submit_download and show a "this is a demo" modal

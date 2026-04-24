@@ -1,14 +1,15 @@
 import { type BridgeLogger, NOOP_LOGGER } from './logger'
-import type {
-  BridgeRequestType,
-  BridgeResult,
-  BridgeState,
-  CreateFieldArgs,
-  DocumentContentResult,
-  FieldRecord,
-  IframeBridge,
-  LoadDocumentArgs,
-  RemoveFieldsArgs,
+import {
+  type BridgeRequestType,
+  type BridgeResult,
+  type BridgeState,
+  type CreateFieldArgs,
+  type DocumentContentResult,
+  type FieldRecord,
+  type IframeBridge,
+  isBridgeResultLike,
+  type LoadDocumentArgs,
+  type RemoveFieldsArgs,
 } from './types'
 
 type PendingRequest = {
@@ -138,6 +139,11 @@ export const createBridge = ({
       }, timeoutMs)
 
       pending.set(requestId, {
+        // The stored resolver is typed `BridgeResult<unknown>`; the outer
+        // promise is `BridgeResult<TData>`. The cast is the generic boundary
+        // between the bridge (which cannot know per-tool payload shapes) and
+        // the caller (who declared TData). Runtime validation belongs in the
+        // client-tools layer via Zod, not here.
         resolve: (result) => resolve(result as BridgeResult<TData>),
         requestType: type,
         startedAtMs,
@@ -250,7 +256,13 @@ export const createBridge = ({
       return
     }
     const iframe = getIframe()
-    if (event.source !== iframe?.contentWindow) {
+    // Iframe torn down (ref cleared between dispatch and receive, or a
+    // spurious message delivered after dispose): don't transition state on
+    // a dead iframe, don't resolve requests it will never look up.
+    if (iframe === null) {
+      return
+    }
+    if (event.source !== iframe.contentWindow) {
       return
     }
 
@@ -308,8 +320,8 @@ export const createBridge = ({
       // emit it (e.g. docs with no AcroFields).
       probeRequestIds.delete(requestId)
       markEditorReady('probe_response')
-      const probeResult = payload.data?.result as BridgeResult<unknown> | undefined
-      if (probeResult !== undefined && probeResult.success === true) {
+      const probeResult = payload.data?.result
+      if (isBridgeResultLike(probeResult) && probeResult.success === true) {
         markDocumentLoaded('probe_success')
       }
       return
@@ -321,19 +333,20 @@ export const createBridge = ({
     }
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
-    const result = payload.data?.result as BridgeResult<unknown> | undefined
+    const rawResult = payload.data?.result
+    const result: BridgeResult<unknown> = isBridgeResultLike(rawResult)
+      ? rawResult
+      : {
+          success: false,
+          error: { code: 'missing_result', message: 'REQUEST_RESULT payload had no result' },
+        }
     logger.info('iframe.request_received', {
       request_id: requestId,
       type: entry.requestType,
       elapsed_ms: Date.now() - entry.startedAtMs,
-      success: result?.success ?? false,
+      success: result.success,
     })
-    entry.resolve(
-      result ?? {
-        success: false,
-        error: { code: 'missing_result', message: 'REQUEST_RESULT payload had no result' },
-      },
-    )
+    entry.resolve(result)
   }
 
   window.addEventListener('message', onMessage)
