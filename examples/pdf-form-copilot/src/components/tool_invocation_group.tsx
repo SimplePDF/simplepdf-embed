@@ -37,6 +37,13 @@ export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-100"
       >
         <span className="flex items-center gap-2.5">
+          {/* Precedence: any tool still loading → spinner (wins over error,
+              so a mid-flight failure in a 3-tool group still signals
+              "things are in progress"). The wrapper colours the icon
+              rose-500 when hasError, so a mixed running+error group shows
+              a red spinner (both signals at once). When nothing is loading,
+              the dominant kind icon stands in, also coloured rose-500 on
+              failure. */}
           <span className={groupedIconClassName}>
             {isAnyRunning ? <HourglassIcon size={14} /> : <ToolIcon kind={dominantKind(parts)} />}
           </span>

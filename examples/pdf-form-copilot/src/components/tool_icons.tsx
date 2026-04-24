@@ -91,7 +91,7 @@ const WriteIcon = ({ size }: { size: number }) => (
 )
 
 export const HourglassIcon = ({ size = 14 }: { size?: number }) => (
-  <span className="hourglass-flip" aria-hidden="true">
+  <span className="hourglass-flip inline-block translate-y-[2px]" aria-hidden="true">
     <svg
       width={size}
       height={size}
