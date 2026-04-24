@@ -180,7 +180,7 @@ export const Route = createFileRoute('/api/chat')({
             },
             select_tool: {
               description:
-                'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor). Use TEXT to invite the user to drop fields on a scanned document that has no native fields.',
+                'Switches the editor tool (TEXT, BOXED_TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor). Use TEXT to invite the user to drop fields on a scanned document that has no native fields.',
               inputSchema: SelectToolInput,
             },
             set_field_value: {

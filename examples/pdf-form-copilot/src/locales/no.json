@@ -124,6 +124,7 @@
     "checkbox": "Avkrysningsboks",
     "signature": "Signatur",
     "picture": "Bilde",
+    "boxedText": "Tekst i ruter",
     "submit": "Send inn"
   },
   "submitDemo": {

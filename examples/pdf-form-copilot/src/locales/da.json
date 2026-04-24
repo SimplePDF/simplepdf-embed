@@ -124,6 +124,7 @@
     "checkbox": "Afkrydsningsfelt",
     "signature": "Underskrift",
     "picture": "Billede",
+    "boxedText": "Tekst i felter",
     "submit": "Indsend"
   },
   "submitDemo": {

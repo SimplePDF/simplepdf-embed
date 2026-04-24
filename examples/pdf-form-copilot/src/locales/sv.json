@@ -124,6 +124,7 @@
     "checkbox": "Kryssruta",
     "signature": "Signatur",
     "picture": "Bild",
+    "boxedText": "Text i rutor",
     "submit": "Skicka in"
   },
   "submitDemo": {

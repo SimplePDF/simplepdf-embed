@@ -101,7 +101,8 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
         inputSchema: DetectFieldsInput,
       },
       select_tool: {
-        description: 'Switches the editor tool (TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
+        description:
+          'Switches the editor tool (TEXT, BOXED_TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor).',
         inputSchema: SelectToolInput,
       },
       set_field_value: {

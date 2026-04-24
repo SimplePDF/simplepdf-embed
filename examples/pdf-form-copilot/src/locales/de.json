@@ -124,6 +124,7 @@
     "checkbox": "Kontrollkästchen",
     "signature": "Unterschrift",
     "picture": "Bild",
+    "boxedText": "Kästchentext",
     "submit": "Senden"
   },
   "submitDemo": {

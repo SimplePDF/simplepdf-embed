@@ -124,6 +124,7 @@
     "checkbox": "Case à cocher",
     "signature": "Signature",
     "picture": "Image",
+    "boxedText": "Texte en cases",
     "submit": "Envoyer"
   },
   "submitDemo": {

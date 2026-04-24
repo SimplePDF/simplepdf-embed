@@ -124,6 +124,7 @@
     "checkbox": "Märkeruut",
     "signature": "Allkiri",
     "picture": "Pilt",
+    "boxedText": "Tekst lahtrites",
     "submit": "Esita"
   },
   "submitDemo": {

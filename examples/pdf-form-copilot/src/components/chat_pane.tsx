@@ -45,30 +45,39 @@ type ChatPaneProps = {
   accessBlocked: boolean
 }
 
-// In-memory chat store keyed by document_id. Survives component remounts
-// (e.g. form switches that tear down the ChatPane) but intentionally resets
-// on page reload. Capped at MAX_TRACKED_DOCUMENTS entries with LRU eviction
-// to prevent unbounded growth on power-users who explore many documents.
-const MAX_TRACKED_DOCUMENTS = 50
+// In-memory chat store keyed by (document_id, language). Survives component
+// remounts (e.g. form switches that tear down the ChatPane) but intentionally
+// resets on page reload. Language is part of the key so switching locale
+// starts a fresh thread in the new language and restores the previous one on
+// switch-back. Capped at MAX_TRACKED_ENTRIES with LRU eviction to prevent
+// unbounded growth on power-users who explore many documents / languages.
+const MAX_TRACKED_ENTRIES = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
-const readPersistedMessages = (documentId: string | null): UIMessage[] => {
+const buildCacheKey = (documentId: string | null, language: string): string | null => {
   if (documentId === null) {
-    return []
+    return null
   }
-  return chatHistoryStore.get(documentId) ?? []
+  return `${documentId}::${language}`
 }
 
-const writePersistedMessages = (documentId: string | null, messages: UIMessage[]): void => {
-  if (documentId === null) {
+const readPersistedMessages = (cacheKey: string | null): UIMessage[] => {
+  if (cacheKey === null) {
+    return []
+  }
+  return chatHistoryStore.get(cacheKey) ?? []
+}
+
+const writePersistedMessages = (cacheKey: string | null, messages: UIMessage[]): void => {
+  if (cacheKey === null) {
     return
   }
   // Map iteration order is insertion order, so delete-then-set moves the key
-  // to the end — a poor-man's LRU. Evict the oldest when capacity exceeds the
+  // to the end, a poor-man's LRU. Evict the oldest when capacity exceeds the
   // cap.
-  chatHistoryStore.delete(documentId)
-  chatHistoryStore.set(documentId, messages)
-  if (chatHistoryStore.size > MAX_TRACKED_DOCUMENTS) {
+  chatHistoryStore.delete(cacheKey)
+  chatHistoryStore.set(cacheKey, messages)
+  if (chatHistoryStore.size > MAX_TRACKED_ENTRIES) {
     const oldest = chatHistoryStore.keys().next().value
     if (oldest !== undefined) {
       chatHistoryStore.delete(oldest)
@@ -322,8 +331,9 @@ export const ChatPane = ({
     })
   }, [])
 
-  const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(documentId))
-  const hydratedDocumentIdRef = useRef<string | null>(documentId)
+  const cacheKey = buildCacheKey(documentId, language)
+  const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(cacheKey))
+  const hydratedCacheKeyRef = useRef<string | null>(cacheKey)
 
   const enqueueToolExecution = useCallback((task: () => Promise<void>): Promise<void> => {
     const nextTask = toolExecutionQueueRef.current.catch(() => undefined).then(task)
@@ -543,16 +553,16 @@ export const ChatPane = ({
   }, [canSend])
 
   useEffect(() => {
-    if (hydratedDocumentIdRef.current === documentId) {
+    if (hydratedCacheKeyRef.current === cacheKey) {
       return
     }
-    hydratedDocumentIdRef.current = documentId
-    setMessages(readPersistedMessages(documentId))
-  }, [documentId, setMessages])
+    hydratedCacheKeyRef.current = cacheKey
+    setMessages(readPersistedMessages(cacheKey))
+  }, [cacheKey, setMessages])
 
   useEffect(() => {
-    writePersistedMessages(documentId, messages)
-  }, [documentId, messages])
+    writePersistedMessages(cacheKey, messages)
+  }, [cacheKey, messages])
 
   const handleSend = useCallback(
     (prompt: string): void => {

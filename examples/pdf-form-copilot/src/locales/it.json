@@ -124,6 +124,7 @@
     "checkbox": "Casella di controllo",
     "signature": "Firma",
     "picture": "Immagine",
+    "boxedText": "Testo in caselle",
     "submit": "Invia"
   },
   "submitDemo": {

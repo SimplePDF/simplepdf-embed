@@ -124,6 +124,7 @@
     "checkbox": "Прапорець",
     "signature": "Підпис",
     "picture": "Зображення",
+    "boxedText": "Текст у клітинках",
     "submit": "Надіслати"
   },
   "submitDemo": {

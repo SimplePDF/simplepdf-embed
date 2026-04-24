@@ -124,6 +124,7 @@
     "checkbox": "Valintaruutu",
     "signature": "Allekirjoitus",
     "picture": "Kuva",
+    "boxedText": "Teksti ruuduissa",
     "submit": "Lähetä"
   },
   "submitDemo": {
