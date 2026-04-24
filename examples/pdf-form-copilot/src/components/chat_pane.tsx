@@ -420,13 +420,30 @@ export const ChatPane = ({
             error: result.error,
           })
         }
-        await Promise.resolve(
-          addToolOutput({
-            tool: toolName,
-            toolCallId: toolCall.toolCallId,
-            output: wrapToolResult(result),
-          }),
-        )
+        if (result.success) {
+          await Promise.resolve(
+            addToolOutput({
+              tool: toolName,
+              toolCallId: toolCall.toolCallId,
+              output: wrapToolResult(result),
+            }),
+          )
+        } else {
+          // Bridge-level failures (iframe returned success: false, or we hit a
+          // timeout / bridge-disposed / bad_input) surface as real tool errors,
+          // not as a success envelope carrying an error payload. This lights
+          // up the red state on the tool-invocation card and lets the LLM's
+          // tool-error recovery rules fire instead of it treating the failure
+          // as a normal data response.
+          await Promise.resolve(
+            addToolOutput({
+              tool: toolName,
+              toolCallId: toolCall.toolCallId,
+              state: 'output-error',
+              errorText: `${result.error.code}: ${result.error.message}`,
+            }),
+          )
+        }
       }).catch((toolExecutionError: unknown) => {
         monitoring.error('chat.queued_tool_execution_failed', {
           detail: normalizeError(toolExecutionError),

@@ -19,26 +19,29 @@ type PendingRequest = {
   timeoutId: ReturnType<typeof setTimeout>
 }
 
-const DEFAULT_REQUEST_TIMEOUT_MS = 30_000
-const FAST_REQUEST_TIMEOUT_MS = 5_000
-const SLOW_REQUEST_TIMEOUT_MS = 20_000
+const DEFAULT_REQUEST_TIMEOUT_MS = 6_000
+const HEAVY_REQUEST_TIMEOUT_MS = 30_000
 const EDITOR_READY_PROBE_INTERVAL_MS = 500
 const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 
+// Only DETECT_FIELDS and GET_DOCUMENT_CONTENT do real work on the editor side
+// (OCR, whole-document scan) that can legitimately exceed a few seconds. Every
+// other request is either a postMessage round-trip or a targeted DOM op and
+// should resolve well inside 6s. A request that overshoots is a symptom, not a
+// cold path to tolerate.
 const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
   switch (requestType) {
+    case 'DETECT_FIELDS':
+    case 'GET_DOCUMENT_CONTENT':
+      return HEAVY_REQUEST_TIMEOUT_MS
     case 'CREATE_FIELD':
     case 'FOCUS_FIELD':
     case 'GET_FIELDS':
     case 'GO_TO':
+    case 'LOAD_DOCUMENT':
     case 'REMOVE_FIELDS':
     case 'SELECT_TOOL':
     case 'SET_FIELD_VALUE':
-      return FAST_REQUEST_TIMEOUT_MS
-    case 'DETECT_FIELDS':
-    case 'GET_DOCUMENT_CONTENT':
-      return SLOW_REQUEST_TIMEOUT_MS
-    case 'LOAD_DOCUMENT':
     case 'SUBMIT':
       return DEFAULT_REQUEST_TIMEOUT_MS
     default:
@@ -150,7 +153,9 @@ export const createBridge = ({
         timeoutId,
       })
 
-      iframe.contentWindow.postMessage(JSON.stringify({ type, request_id: requestId, data }), editorOrigin)
+      const outbound = { type, request_id: requestId, data }
+      logger.debug('iframe.raw_sent', { payload: outbound })
+      iframe.contentWindow.postMessage(JSON.stringify(outbound), editorOrigin)
     })
 
   const probeRequestIds = new Set<string>()
@@ -281,6 +286,8 @@ export const createBridge = ({
     if (payload === null) {
       return
     }
+
+    logger.debug('iframe.raw_received', { payload })
 
     if (payload.type === 'EDITOR_READY') {
       markEditorReady('editor_ready_event')

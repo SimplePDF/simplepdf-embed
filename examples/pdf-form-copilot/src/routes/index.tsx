@@ -5,6 +5,7 @@ import { useCallback, useRef } from 'react'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
+import type { BridgeLogger } from '../lib/embed-bridge'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
 import { i18n } from '../lib/i18n'
@@ -25,6 +26,20 @@ type HomeSearch = {
   show?: ShowParam
   share?: string
 }
+
+// Console-backed bridge logger. Gated on `VITE_ENABLE_DEVTOOLS` (same env flag
+// that toggles TanStack devtools) so production builds constant-fold the
+// logger reference to `undefined` and strip the dump of raw tool traffic.
+const DEVTOOLS_ENABLED = import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
+
+const DEBUG_BRIDGE_LOGGER: BridgeLogger | undefined = DEVTOOLS_ENABLED
+  ? {
+      debug: (event, payload) => console.debug(`[copilot:bridge] ${event}`, payload),
+      info: (event, payload) => console.info(`[copilot:bridge] ${event}`, payload),
+      warn: (event, payload) => console.warn(`[copilot:bridge] ${event}`, payload),
+      error: (event, payload) => console.error(`[copilot:bridge] ${event}`, payload),
+    }
+  : undefined
 
 // Opaque gate: the client only needs to know whether access is blocked, not
 // whether the share id happens to be valid. Collapsing to a single boolean
@@ -153,6 +168,7 @@ function Home() {
     iframeRef,
     editorOrigin: EDITOR_ORIGIN,
     resetKey: editorResetKey,
+    logger: DEBUG_BRIDGE_LOGGER,
   })
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
   const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
