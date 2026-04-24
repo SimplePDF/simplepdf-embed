@@ -3,9 +3,20 @@
 // shape is validated at compile time against the event dictionary below. The
 // `[copilot]` prefix lives here once, not at each call site.
 //
-// All levels are gated behind `import.meta.env.DEV` so production builds
-// strip the call bodies entirely. Vite substitutes the constant at build
-// time and the branch tree-shakes; nothing reaches stdout in prod.
+// This module is also the single place where log visibility is gated:
+// error() always runs so real failures stay visible in production without any
+// flag flip; info / warn / debug are gated on VITE_ENABLE_DEVTOOLS so regular
+// visitors don't see internal telemetry in their console. Vite substitutes
+// the env literal at build time, so the gated branches tree-shake in
+// production.
+//
+// The lib/embed-bridge package needs a BridgeLogger it can call
+// unconditionally (it doesn't know about the devtools flag). `bridgeLogger`
+// below is the adapter: same always-on-error / gated-chatty behaviour as
+// `monitoring`, reshaped into the BridgeLogger contract. That keeps the
+// gating decision in one file.
+
+import type { BridgeLogger, LogPayload } from './embed-bridge'
 
 type RateLimitReason = 'lifetime' | 'system_failure'
 
@@ -99,28 +110,35 @@ export type EventPayloads = {
 export type EventName = keyof EventPayloads
 
 const PREFIX = '[copilot]'
+const BRIDGE_PREFIX = '[copilot:bridge]'
 
-// Build-time constant. Vite replaces `import.meta.env.DEV` with `true` /
-// `false` literal; the `if (!ENABLED) return` below then tree-shakes the
-// body in production bundles.
-const ENABLED = import.meta.env.DEV === true
+const DEVTOOLS_ENABLED = import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
 
-const emit = <E extends EventName>(sink: typeof console.info, event: E, payload: EventPayloads[E]): void => {
-  if (!ENABLED) {
+// Gated print: swallowed unless VITE_ENABLE_DEVTOOLS is set. Used for info,
+// warn, debug. Vite folds DEVTOOLS_ENABLED to a literal at build time so the
+// body tree-shakes out in production.
+const print = (prefix: string, sink: typeof console.info, event: string, payload: LogPayload): void => {
+  if (!DEVTOOLS_ENABLED) {
     return
   }
-  sink(`${PREFIX} ${event}`, payload)
+  sink(`${prefix} ${event}`, payload)
+}
+
+// Always-on print: real failures stay visible in production without any
+// flag flip.
+const printError = (prefix: string, event: string, payload: LogPayload): void => {
+  console.error(`${prefix} ${event}`, payload)
 }
 
 export const monitoring = {
   info: <E extends EventName>(event: E, payload: EventPayloads[E]): void =>
-    emit(console.info, event, payload),
+    print(PREFIX, console.info, event, payload),
   warn: <E extends EventName>(event: E, payload: EventPayloads[E]): void =>
-    emit(console.warn, event, payload),
+    print(PREFIX, console.warn, event, payload),
   error: <E extends EventName>(event: E, payload: EventPayloads[E]): void =>
-    emit(console.error, event, payload),
+    printError(PREFIX, event, payload),
   debug: <E extends EventName>(event: E, payload: EventPayloads[E]): void =>
-    emit(console.debug, event, payload),
+    print(PREFIX, console.debug, event, payload),
 }
 
 export const normalizeError = (error: unknown): string => {
@@ -128,4 +146,16 @@ export const normalizeError = (error: unknown): string => {
     return `${error.name}: ${error.message}`
   }
   return String(error)
+}
+
+// Adapter so the lib/embed-bridge package can call a logger unconditionally
+// without knowing about the devtools flag. Same gating policy: error always
+// prints, info / warn / debug only when VITE_ENABLE_DEVTOOLS is on. The
+// `[copilot:bridge]` prefix keeps bridge-sourced logs visually distinct
+// from application logs.
+export const bridgeLogger: BridgeLogger = {
+  debug: (event, payload) => print(BRIDGE_PREFIX, console.debug, event, payload),
+  info: (event, payload) => print(BRIDGE_PREFIX, console.info, event, payload),
+  warn: (event, payload) => print(BRIDGE_PREFIX, console.warn, event, payload),
+  error: (event, payload) => printError(BRIDGE_PREFIX, event, payload),
 }

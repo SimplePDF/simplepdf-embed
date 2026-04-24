@@ -5,12 +5,11 @@ import { useCallback, useRef } from 'react'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
-import type { BridgeLogger } from '../lib/embed-bridge'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
 import { i18n } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
-import { monitoring } from '../lib/monitoring'
+import { bridgeLogger, monitoring } from '../lib/monitoring'
 import { isSameOrigin } from '../server/rate_limit'
 import { readShareCookie, writeShareCookie } from '../server/share_cookie'
 import { isShareValid } from '../server/shared_keys'
@@ -26,33 +25,6 @@ type HomeSearch = {
   show?: ShowParam
   share?: string
 }
-
-// Console-backed bridge logger. Errors always reach the console (helpful for
-// production debug reports — the browser's devtools shows them with a red
-// icon and no expansion by default). The chatty levels (info / warn / debug,
-// including the raw postMessage dumps) only surface when
-// `VITE_ENABLE_DEVTOOLS=true` — the same flag that turns on TanStack's
-// devtools panel — so regular visitors never see a wall of [copilot:bridge]
-// logs in their console.
-const DEVTOOLS_ENABLED = import.meta.env.VITE_ENABLE_DEVTOOLS === 'true'
-
-const bridgeErrorSink = (event: string, payload: Record<string, unknown>): void => {
-  console.error(`[copilot:bridge] ${event}`, payload)
-}
-
-const BRIDGE_LOGGER: BridgeLogger = DEVTOOLS_ENABLED
-  ? {
-      debug: (event, payload) => console.debug(`[copilot:bridge] ${event}`, payload),
-      info: (event, payload) => console.info(`[copilot:bridge] ${event}`, payload),
-      warn: (event, payload) => console.warn(`[copilot:bridge] ${event}`, payload),
-      error: bridgeErrorSink,
-    }
-  : {
-      debug: () => {},
-      info: () => {},
-      warn: () => {},
-      error: bridgeErrorSink,
-    }
 
 // Opaque gate: the client only needs to know whether access is blocked, not
 // whether the share id happens to be valid. Collapsing to a single boolean
@@ -181,7 +153,7 @@ function Home() {
     iframeRef,
     editorOrigin: EDITOR_ORIGIN,
     resetKey: editorResetKey,
-    logger: BRIDGE_LOGGER,
+    logger: bridgeLogger,
   })
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
   const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
