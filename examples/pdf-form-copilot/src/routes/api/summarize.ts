@@ -61,7 +61,7 @@ export const Route = createFileRoute('/api/summarize')({
         const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
-          return Response.json({ error: 'share_required', message: 'Invite link required' }, { status: 401 })
+          return Response.json({ error: 'share_required' }, { status: 401 })
         }
 
         const body = await parseJsonBody({

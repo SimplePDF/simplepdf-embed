@@ -177,6 +177,22 @@ describe(classifyError.name, () => {
     expect(classifyError(error)).toBe('demo_rate_limited')
   })
 
+  // /api/chat's onError translates an upstream provider 4xx (e.g. the shared
+  // Anthropic key gets disabled and the provider returns 401
+  // `authentication_error`) into the same rate_limited envelope used for the
+  // per-share lifetime cap. The classifier must surface it as
+  // demo_rate_limited so the amber banner tells the user to BYOK instead of
+  // the auth-failure copy — the demo user never typed a key.
+  it('classifies the upstream-rejected envelope (demo_key_rejected) as "demo_rate_limited"', () => {
+    const error = new Error(JSON.stringify({ error: 'rate_limited', reason: 'demo_key_rejected' }))
+    expect(classifyError(error)).toBe('demo_rate_limited')
+  })
+
+  it('classifies a { error: "rate_limited" } body with no message or reason as "demo_rate_limited"', () => {
+    const error = new Error(JSON.stringify({ error: 'rate_limited' }))
+    expect(classifyError(error)).toBe('demo_rate_limited')
+  })
+
   it('classifies a { error: "share_required" } body as "authentication"', () => {
     const error = new Error(JSON.stringify({ error: 'share_required', message: 'Invite link required' }))
     expect(classifyError(error)).toBe('authentication')

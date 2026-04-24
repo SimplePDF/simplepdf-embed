@@ -23,6 +23,42 @@ import { ChatRequestSchema, SYSTEM_PROMPT } from '../../server/tools'
 const MAX_DURATION_MS = 60_000
 const MAX_BODY_BYTES = 256 * 1024
 
+const getUpstreamStatus = (error: unknown): number | null => {
+  if (typeof error !== 'object' || error === null) {
+    return null
+  }
+  if ('statusCode' in error && typeof error.statusCode === 'number') {
+    return error.statusCode
+  }
+  if ('status' in error && typeof error.status === 'number') {
+    return error.status
+  }
+  return null
+}
+
+// Serialises a stream-level error from the provider into a payload the client
+// classifier will recognise. The shared-key path is the only one that hits
+// /api/chat (BYOK bypasses the server entirely), so any upstream 4xx here is a
+// "demo key is spent / disabled" signal from the user's perspective —
+// surface it as the demo_rate_limited banner instead of an auth error, so the
+// UX reads the same whether we hit the per-share lifetime cap or Anthropic
+// revoked our key. 5xx stays as a server error; unknown shapes pass through
+// so the generic panel can show the raw text.
+//
+// No user-facing copy here — the client's RateLimitPanel renders the
+// localised chat.errorRateLimited* strings on its own once the classifier
+// tags this as demo_rate_limited.
+const serializeStreamError = (error: unknown): string => {
+  const status = getUpstreamStatus(error)
+  if (status !== null && status >= 400 && status < 500) {
+    return JSON.stringify({
+      error: 'rate_limited',
+      reason: 'demo_key_rejected',
+    })
+  }
+  return error instanceof Error ? error.message : String(error)
+}
+
 const buildLanguageModel = ({ model, apiKey }: { model: DemoModel; apiKey: string }): LanguageModel => {
   const config = DEMO_MODELS[model]
   switch (config.provider) {
@@ -77,13 +113,9 @@ export const Route = createFileRoute('/api/chat')({
         const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
-          return Response.json(
-            {
-              error: 'share_required',
-              message: 'This demo requires a valid invite link. Bring your own API key to keep going.',
-            },
-            { status: 401 },
-          )
+          // Message omitted on purpose — the client's ErrorBanner renders
+          // localised chat.errorAuth* strings for the authentication kind.
+          return Response.json({ error: 'share_required' }, { status: 401 })
         }
 
         const body = await parseJsonBody({
@@ -152,8 +184,6 @@ export const Route = createFileRoute('/api/chat')({
             {
               error: 'rate_limited',
               reason: decision.reason,
-              message:
-                'Thanks for trying the demo! Running it costs us real money, so access is capped. To keep going, use your own API key.',
             },
             { status: 429 },
           )
@@ -251,7 +281,7 @@ export const Route = createFileRoute('/api/chat')({
           language: languageLabel,
         })
 
-        return result.toUIMessageStreamResponse()
+        return result.toUIMessageStreamResponse({ onError: serializeStreamError })
       },
     },
   },
