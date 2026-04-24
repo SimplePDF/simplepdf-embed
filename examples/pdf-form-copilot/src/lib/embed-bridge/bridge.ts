@@ -341,12 +341,21 @@ export const createBridge = ({
     pending.delete(requestId)
     clearTimeout(entry.timeoutId)
     const rawResult = payload.data?.result
-    const result: BridgeResult<unknown> = isBridgeResultLike(rawResult)
-      ? rawResult
-      : {
+    const result: BridgeResult<unknown> = ((): BridgeResult<unknown> => {
+      if (!isBridgeResultLike(rawResult)) {
+        return {
           success: false,
           error: { code: 'missing_result', message: 'REQUEST_RESULT payload had no result' },
         }
+      }
+      // Editor-side void ops emit `{ success: true }` without `data`. Normalize
+      // to `{ success: true, data: null }` so middleware and consumers don't
+      // have to handle the missing-field shape.
+      if (rawResult.success === true && !('data' in rawResult)) {
+        return { success: true, data: null }
+      }
+      return rawResult
+    })()
     logger.info('iframe.request_received', {
       request_id: requestId,
       type: entry.requestType,

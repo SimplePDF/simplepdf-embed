@@ -19,7 +19,12 @@ export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknow
     return false
   }
   if (value.success === true) {
-    return 'data' in value
+    // `data` is optional on the wire: the editor-side Result type omits it
+    // for void operations (SELECT_TOOL, SET_FIELD_VALUE, GO_TO, SUBMIT…).
+    // The bridge normalizes missing `data` to `null` downstream, so the guard
+    // accepts both shapes. Requiring `data` here would flip every void
+    // success into a fake `missing_result` failure.
+    return true
   }
   if (value.success === false) {
     if (!('error' in value)) {
