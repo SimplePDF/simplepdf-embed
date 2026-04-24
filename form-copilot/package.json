@@ -12,6 +12,7 @@
     "dev": "vite dev --port 3001",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "node .output/server/index.mjs",
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
