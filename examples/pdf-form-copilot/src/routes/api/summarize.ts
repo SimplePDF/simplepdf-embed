@@ -4,7 +4,7 @@ import { generateText } from 'ai'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { readShareCookie } from '../../server/share_cookie'
+import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 
@@ -44,7 +44,7 @@ export const Route = createFileRoute('/api/summarize')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = readShareCookie()
+        const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json({ error: 'share_required', message: 'Invite link required' }, { status: 401 })

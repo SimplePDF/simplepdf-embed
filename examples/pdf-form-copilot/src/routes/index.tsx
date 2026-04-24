@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { useCallback, useRef } from 'react'
@@ -11,7 +11,6 @@ import { i18n } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger, monitoring } from '../lib/monitoring'
 import { isSameOrigin } from '../server/rate_limit'
-import { readShareCookie, writeShareCookie } from '../server/share_cookie'
 import { isShareValid } from '../server/shared_keys'
 
 export type ShowParam = 'info' | 'model' | 'submit' | 'cerfa_dor'
@@ -36,37 +35,27 @@ export type DemoGate = {
   accessBlocked: boolean
 }
 
-const readDemoGate = createServerFn({ method: 'GET' }).handler(async (): Promise<DemoGate> => {
-  const request = getRequest()
-  if (!isSameOrigin(request)) {
-    // Treat cross-origin probes as blocked; the client cannot infer validity.
-    return { accessBlocked: true }
-  }
-  const shareId = readShareCookie()
-  return {
-    accessBlocked: !isShareValid(shareId),
-  }
-})
-
-// Server-only: on the initial GET for /?share=<id>, validate the id, set the
-// httpOnly cookie, and swallow the param from the URL the user can copy. If
-// the id is invalid we still strip the param (no sense leaving a failed
-// secret in the address bar), but we do not set a cookie — the visitor sees
-// the Welcome banner and is directed to BYOK.
-const consumeShareQueryParam = createServerFn({ method: 'POST' })
-  .inputValidator((raw: unknown): { shareId: string } => {
-    if (typeof raw === 'object' && raw !== null && 'shareId' in raw) {
-      const value = (raw as { shareId: unknown }).shareId
-      if (typeof value === 'string' && value !== '') {
-        return { shareId: value }
-      }
+// The share id lives directly in `?share=<id>` on the page URL — no cookie
+// round-trip, no URL stripping — so an invite link can be copy-pasted and
+// reused verbatim. The loader forwards the id to this server fn, which
+// treats a blank / missing id as "no invite".
+const readDemoGate = createServerFn({ method: 'GET' })
+  .inputValidator((raw: unknown): { shareId: string | null } => {
+    if (typeof raw !== 'object' || raw === null || !('shareId' in raw)) {
+      return { shareId: null }
     }
-    throw new Error('shareId is required')
+    const value = (raw as { shareId: unknown }).shareId
+    if (typeof value !== 'string' || value === '') {
+      return { shareId: null }
+    }
+    return { shareId: value }
   })
-  .handler(async ({ data }): Promise<void> => {
-    if (isShareValid(data.shareId)) {
-      writeShareCookie(data.shareId)
+  .handler(async ({ data }): Promise<DemoGate> => {
+    const request = getRequest()
+    if (!isSameOrigin(request)) {
+      return { accessBlocked: true }
     }
+    return { accessBlocked: !isShareValid(data.shareId) }
   })
 
 export const Route = createFileRoute('/')({
@@ -78,19 +67,6 @@ export const Route = createFileRoute('/')({
     ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
   }),
   beforeLoad: async ({ search }) => {
-    // Strip `?share=` from the URL the moment the page loads. The share id is
-    // moved into an httpOnly cookie server-side and the browser history is
-    // rewritten to the bare path so the visitor can copy / share the URL
-    // without leaking the invite secret.
-    if (search.share !== undefined && search.share !== '') {
-      await consumeShareQueryParam({ data: { shareId: search.share } })
-      const strippedSearch: HomeSearch = {
-        form: search.form,
-        lang: search.lang,
-        ...(search.show !== undefined ? { show: search.show } : {}),
-      }
-      throw redirect({ to: '/', search: strippedSearch, replace: true })
-    }
     if (i18n.language !== search.lang) {
       // Awaited so the route never renders with the previous language flashing
       // in before react-i18next has switched — the initial i18n config seeds
@@ -99,7 +75,13 @@ export const Route = createFileRoute('/')({
       await i18n.changeLanguage(search.lang)
     }
   },
-  loader: async (): Promise<DemoGate> => readDemoGate(),
+  // loaderDeps reads from the already-validated search, so `search.share`
+  // is typed as the `HomeSearch['share']` (`string | undefined`) and the
+  // loader gets a pre-normalised `shareId: string | null`.
+  loaderDeps: ({ search }) => ({
+    shareId: search.share !== undefined && search.share !== '' ? search.share : null,
+  }),
+  loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.shareId } }),
 })
 
 const COMPANY_IDENTIFIER = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER ?? 'pdf-form-copilot'
@@ -165,6 +147,7 @@ function Home() {
         search: (prev) => ({
           form: prev.form ?? DEFAULT_FORM_ID,
           lang: nextLang,
+          ...(prev.share !== undefined ? { share: prev.share } : {}),
         }),
       })
     },

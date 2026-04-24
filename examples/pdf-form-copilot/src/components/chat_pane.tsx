@@ -270,6 +270,8 @@ export const ChatPane = ({
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
   const isModelPickerOpen = search.show === 'model'
+  const shareIdRef = useRef<string | null>(search.share ?? null)
+  shareIdRef.current = search.share ?? null
   const [draft, setDraft] = useState('')
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
@@ -329,7 +331,22 @@ export const ChatPane = ({
         if (activeConfig !== null) {
           return runByokStream({ config: activeConfig, init })
         }
-        return window.fetch(input as RequestInfo, init)
+        // Forward the share id on the fetch URL so the server reads the
+        // same invite that's visible in the address bar. The input coming
+        // in from the AI SDK is either a string or a URL-like Request; we
+        // rebuild it through URL to handle both and to keep an existing
+        // query string intact.
+        const activeShare = shareIdRef.current
+        const rawUrl = typeof input === 'string' ? input : (input as Request).url
+        const target = ((): string => {
+          if (activeShare === null) {
+            return rawUrl
+          }
+          const url = new URL(rawUrl, window.location.origin)
+          url.searchParams.set('share', activeShare)
+          return url.toString()
+        })()
+        return window.fetch(target, init)
       }) as typeof fetch,
     })
   }, [])

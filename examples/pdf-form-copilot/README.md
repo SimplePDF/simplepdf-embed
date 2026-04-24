@@ -48,7 +48,7 @@ SHARED_API_KEYS='{"<share_id>":{"api_key":"sk-ant-...","rate_limit_turns_lifetim
 - The reserved id `__default__` is rejected at parse time.
 - Requests without a valid `?share=` return 401.
 
-On arrival, the server consumes `?share=<id>`, validates it, writes an HttpOnly + Secure + SameSite=Strict cookie (`simplepdf-share`, 24h max-age, scoped to `/`), and redirects to the bare `/`. The cookie is the only carrier used by subsequent API calls; the address bar never shows the secret. A fresh `?share=` arrival refreshes the 24h TTL; closing the browser ends the session unless the cookie is still within TTL.
+The share id lives directly in the address bar via `?share=<id>` for the entire session — there is no cookie, no server-side rewrite. The server reads the same `?share=` from the page URL (route loader) and from every `/api/chat` / `/api/summarize` fetch URL. Copy-pasting the URL with `?share=<id>` hands someone else a working invite until the per-share lifetime cap is hit.
 
 Visitors who want the demo without an invite link open the Model Picker inside the app and bring their own key. BYOK runs the stream entirely in the browser; it never hits `/api/chat` or `/api/summarize`.
 

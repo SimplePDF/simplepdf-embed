@@ -14,7 +14,7 @@ import {
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'
-import { readShareCookie } from '../../server/share_cookie'
+import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { ChatRequestSchema, SYSTEM_PROMPT } from '../../server/tools'
 
@@ -60,7 +60,7 @@ export const Route = createFileRoute('/api/chat')({
         if (!isSameOrigin(request)) {
           return Response.json({ error: 'forbidden_origin' }, { status: 403 })
         }
-        const shareId = readShareCookie()
+        const shareId = readShareIdFromUrl(request)
         const resolution = resolveApiKey(shareId)
         if (resolution.kind === 'share_required') {
           return Response.json(
