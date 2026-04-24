@@ -5,7 +5,7 @@ import {
   getErrorDisplayMessage,
   getErrorStatusCode,
   parseStreamErrorMessage,
-} from './error_classifier'
+} from './classifier'
 
 // Real-world APICallError payload emitted by `@ai-sdk/anthropic` when
 // Anthropic returns a 401 `authentication_error` during BYOK streaming.

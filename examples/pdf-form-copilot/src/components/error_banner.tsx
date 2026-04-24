@@ -1,6 +1,6 @@
 import { type ReactElement, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../lib/error_classifier'
+import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../lib/error-classifier'
 
 type ErrorBannerProps = {
   error: Error

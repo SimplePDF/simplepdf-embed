@@ -11,9 +11,8 @@ import {
   isClientToolName,
   type ToolInput,
   type ToolMiddleware,
-} from '../adapters/client-tools'
-import { type ByokConfig, findProvider } from '../lib/byok'
-import { runByokStream } from '../lib/byok_transport'
+} from '../embed-bridge-adapters/client-tools'
+import { type ByokConfig, findProvider, runByokStream } from '../lib/byok'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -134,9 +133,9 @@ const wrapToolResult = (result: BridgeResult<unknown>): unknown => {
 }
 
 // --- Middleware factories for the client-tools dispatcher ---------------
-// Each layer is demo-specific; none of them live inside the adapters/
-// packages. Adding / removing / replacing them is a one-line change to the
-// `createClientTools` call below.
+// Each layer is demo-specific; none of them live inside the
+// embed-bridge-adapters/ packages. Adding / removing / replacing them is a
+// one-line change to the `createClientTools` call below.
 
 // Compresses get_fields output to drop noise (redundant name == field_id,
 // empty values), and truncates get_document_content to stay inside the

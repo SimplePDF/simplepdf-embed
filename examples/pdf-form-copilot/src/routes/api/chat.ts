@@ -10,7 +10,7 @@ import {
   SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
-} from '../../adapters/client-tools'
+} from '../../embed-bridge-adapters/client-tools'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { getClientIp, hashIp, isSameOrigin, rateLimiter } from '../../server/rate_limit'

@@ -10,11 +10,11 @@ import {
   SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
-} from '../adapters/client-tools'
-import { SYSTEM_PROMPT } from '../server/tools'
-import type { ByokConfig } from './byok'
-import { formatStreamError } from './error_classifier'
-import { monitoring, normalizeError } from './monitoring'
+} from '../../embed-bridge-adapters/client-tools'
+import { SYSTEM_PROMPT } from '../../server/tools'
+import { formatStreamError } from '../error-classifier'
+import { monitoring, normalizeError } from '../monitoring'
+import type { ByokConfig } from './providers'
 
 const MAX_OUTPUT_TOKENS = 500
 
