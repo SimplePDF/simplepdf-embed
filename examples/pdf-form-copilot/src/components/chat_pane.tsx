@@ -5,13 +5,6 @@ import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } 
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import { useStickToBottom } from 'use-stick-to-bottom'
-import {
-  type ClientTools,
-  createClientTools,
-  isClientToolName,
-  type ToolInput,
-  type ToolMiddleware,
-} from '../embed-bridge-adapters/client-tools'
 import { type ByokConfig, findProvider, runByokStream } from '../lib/byok'
 import type {
   BridgeResult,
@@ -20,6 +13,13 @@ import type {
   FieldRecord,
   IframeBridge,
 } from '../lib/embed-bridge'
+import {
+  type ClientTools,
+  createClientTools,
+  isClientToolName,
+  type ToolInput,
+  type ToolMiddleware,
+} from '../lib/embed-bridge-adapters/client-tools'
 import { getLanguageByCode } from '../lib/languages'
 import { monitoring, normalizeError } from '../lib/monitoring'
 import { SYSTEM_PROMPT } from '../server/tools'
@@ -134,8 +134,8 @@ const wrapToolResult = (result: BridgeResult<unknown>): unknown => {
 
 // --- Middleware factories for the client-tools dispatcher ---------------
 // Each layer is demo-specific; none of them live inside the
-// embed-bridge-adapters/ packages. Adding / removing / replacing them is a
-// one-line change to the `createClientTools` call below.
+// lib/embed-bridge-adapters/ packages. Adding / removing / replacing them is
+// a one-line change to the `createClientTools` call below.
 
 // Compresses get_fields output to drop noise (redundant name == field_id,
 // empty values), and truncates get_document_content to stay inside the

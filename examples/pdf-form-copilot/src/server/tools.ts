@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { LANGUAGES } from '../lib/languages'
 
 // Iframe tool Zod schemas + client tool-name union live in
-// embed-bridge-adapters/client-tools (re-exported as the public surface). This
-// file keeps the server-boundary request schemas, the system prompt, and the
-// language-label whitelist.
+// lib/embed-bridge-adapters/client-tools (re-exported as the public surface).
+// This file keeps the server-boundary request schemas, the system prompt, and
+// the language-label whitelist.
 
 const KNOWN_LANGUAGE_LABELS: readonly string[] = LANGUAGES.map((language) => language.label)
 

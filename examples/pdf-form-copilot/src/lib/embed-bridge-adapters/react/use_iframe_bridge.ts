@@ -1,5 +1,5 @@
 import { type RefObject, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
-import { type BridgeLogger, type BridgeState, createBridge, type IframeBridge } from '../../lib/embed-bridge'
+import { type BridgeLogger, type BridgeState, createBridge, type IframeBridge } from '../../embed-bridge'
 
 type UseIframeBridgeArgs = {
   iframeRef: RefObject<HTMLIFrameElement | null>

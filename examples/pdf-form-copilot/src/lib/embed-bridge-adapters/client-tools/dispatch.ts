@@ -1,4 +1,4 @@
-import type { BridgeResult, IframeBridge, SupportedFieldType } from '../../lib/embed-bridge'
+import type { BridgeResult, IframeBridge, SupportedFieldType } from '../../embed-bridge'
 import { type ClientToolName, isClientToolName } from './schemas'
 
 export type ToolInput = Record<string, unknown>

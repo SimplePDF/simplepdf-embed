@@ -1,4 +1,4 @@
-import type { BridgeResult, IframeBridge } from '../../lib/embed-bridge'
+import type { BridgeResult, IframeBridge } from '../../embed-bridge'
 import { safeDispatch, type ToolInput } from './dispatch'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
 import { CLIENT_TOOL_SCHEMAS, isClientToolName } from './schemas'

@@ -1,4 +1,4 @@
-import type { BridgeResult } from '../../lib/embed-bridge'
+import type { BridgeResult } from '../../embed-bridge'
 import type { ToolInput } from './dispatch'
 
 // Onion-style middleware. Each layer receives a context (tool name + input)

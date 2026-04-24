@@ -1,6 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import { SYSTEM_PROMPT } from '../../server/tools'
 import {
   DetectFieldsInput,
   FocusFieldInput,
@@ -10,8 +11,7 @@ import {
   SelectToolInput,
   SetFieldValueInput,
   SubmitDownloadInput,
-} from '../../embed-bridge-adapters/client-tools'
-import { SYSTEM_PROMPT } from '../../server/tools'
+} from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
 import { monitoring, normalizeError } from '../monitoring'
 import type { ByokConfig } from './providers'
