@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
@@ -152,6 +152,34 @@ function Home() {
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
   const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
 
+  // WORKAROUND: the SimplePDF editor does not currently emit an outbound
+  // FIELD_ADDED event when the user drops a field via the toolbar, so the
+  // chat_pane's "new field added by the user" hint has to detect it via a
+  // polling GET_FIELDS loop. To keep that loop narrow, we gate it on whether
+  // the user's cursor is over the iframe — if the cursor is somewhere else
+  // (hovering the chat, etc.), there's no chance a field is about to be
+  // dropped, and polling is pure noise. `pointerenter` / `pointerleave` on
+  // the parent's <iframe> element fire reliably on entry / exit of the
+  // iframe's bounding box, even though pointermove events inside the iframe
+  // don't bubble up to the parent. Remove this workaround if the editor
+  // starts emitting a FIELD_ADDED event.
+  const [isCursorOverEditor, setIsCursorOverEditor] = useState(false)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: editorResetKey is used as a proxy for "iframe element was remounted" — when the key flips, EditorPane re-renders a fresh <iframe> and iframeRef.current points at the new node, so we re-attach listeners.
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (iframe === null) {
+      return
+    }
+    const onEnter = (): void => setIsCursorOverEditor(true)
+    const onLeave = (): void => setIsCursorOverEditor(false)
+    iframe.addEventListener('pointerenter', onEnter)
+    iframe.addEventListener('pointerleave', onLeave)
+    return () => {
+      iframe.removeEventListener('pointerenter', onEnter)
+      iframe.removeEventListener('pointerleave', onLeave)
+    }
+  }, [editorResetKey])
+
   const handleLanguageChange = useCallback(
     (nextLang: string): void => {
       void navigate({
@@ -186,6 +214,7 @@ function Home() {
           onLanguageChange={handleLanguageChange}
           documentId={documentId}
           demoGate={demoGate}
+          isCursorOverEditor={isCursorOverEditor}
         />
       }
     />

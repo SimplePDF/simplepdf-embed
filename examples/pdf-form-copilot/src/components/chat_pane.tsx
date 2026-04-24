@@ -13,6 +13,7 @@ import type {
   DocumentContentResult,
   FieldRecord,
   IframeBridge,
+  SupportedFieldType,
 } from '../lib/embed-bridge'
 import {
   type ClientTools,
@@ -27,6 +28,7 @@ import type { DemoGate } from '../routes/index'
 import { SYSTEM_PROMPT } from '../server/tools'
 import { DownloadModal } from './download_modal'
 import { ErrorBanner } from './error_banner'
+import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
 import { LanguagePicker } from './language_picker'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
@@ -45,6 +47,12 @@ type ChatPaneProps = {
   onLanguageChange: (code: string) => void
   documentId: string | null
   demoGate: DemoGate
+  // True while the user's cursor is over the editor iframe. Used as an
+  // additional gate on the FieldAddedHint poll so we stop hitting the
+  // iframe the moment the user moves their cursor elsewhere (e.g. into
+  // the chat panel). See the `pointerenter` / `pointerleave` hookup in
+  // routes/index.tsx for the rationale and the "workaround" comment.
+  isCursorOverEditor: boolean
 }
 
 // In-memory chat store keyed by (document_id, language). Survives component
@@ -317,6 +325,7 @@ export const ChatPane = ({
   onLanguageChange,
   documentId,
   demoGate,
+  isCursorOverEditor,
 }: ChatPaneProps) => {
   const { t } = useTranslation()
   const navigate = homeRoute.useNavigate()
@@ -453,6 +462,22 @@ export const ChatPane = ({
     return nextTask
   }, [])
 
+  // Refs-not-props for isStreaming + onFieldAdded: useDetectUserAddedField
+  // must be called BEFORE `tools` useMemo (which needs advanceBaseline),
+  // but both of those pieces of information come from useChat which runs
+  // AFTER `tools`. Refs break the cycle; they are synced once useChat's
+  // output is in scope (a bit further down in this component).
+  const isStreamingRef = useRef(false)
+  const onFieldAddedRef = useRef<(event: { tool: SupportedFieldType; delta: number }) => void>(() => {})
+  const { advanceBaseline: advanceFieldDetectionBaseline } = useDetectUserAddedField({
+    bridge,
+    isReady,
+    toolbarTool,
+    isCursorOverEditor,
+    isStreamingRef,
+    onFieldAddedRef,
+  })
+
   // Build the client-tools adapter per bridge instance. The bridge itself
   // comes from useIframeBridge and swaps on form / locale reset; everything
   // the middleware needs is read via closures over stable refs or callbacks,
@@ -468,18 +493,15 @@ export const ChatPane = ({
         createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }),
         createToolbarSyncMiddleware({ onChange: setToolbarTool }),
         createLlmFieldBaselineMiddleware({
-          // When the LLM creates a field, bump the baseline so the
-          // post-stream detector does not attribute it to the user.
-          onLlmCreatedField: () => {
-            if (fieldBaselineRef.current !== null) {
-              fieldBaselineRef.current += 1
-            }
-          },
+          // When the LLM creates a field, bump the detection hook's
+          // baseline so the next user-placed-field check does not
+          // attribute it to the user.
+          onLlmCreatedField: () => advanceFieldDetectionBaseline(1),
         }),
         createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
       ],
     })
-  }, [bridge, handleDownloadRequested])
+  }, [bridge, handleDownloadRequested, advanceFieldDetectionBaseline])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
@@ -608,92 +630,16 @@ export const ChatPane = ({
   const downloadPrimary = messages.length >= 5
 
   const isStreaming = status === 'streaming' || status === 'submitted'
-  const isStreamingRef = useRef(isStreaming)
+  // Sync the streaming + onFieldAdded refs that useDetectUserAddedField is
+  // reading. See the hook file for why it takes refs instead of props for
+  // these (breaks the circular ordering: hook must be called before
+  // useChat because `tools` useMemo references advanceBaseline, but the
+  // values these refs carry come from useChat itself).
   isStreamingRef.current = isStreaming
-
-  // "User just dropped a field" detection. Lightweight GET_FIELDS loop that
-  // runs ONLY while a toolbar placement tool is active, so normal chat has
-  // zero iframe traffic. Covers both cases:
-  //   - Idle add (toolbar active, no stream): next tick fires the hint and
-  //     nudges the LLM on the following turn.
-  //   - Mid-stream add (user drops a field while the assistant is mid
-  //     response): delta is detected but `sendMessage` is skipped to avoid
-  //     breaking the tool_use / tool_result pairing. The baseline is held;
-  //     the first tick after the stream settles catches the delta.
-  // LLM-created fields are excluded via `createLlmFieldBaselineMiddleware`
-  // (bumps the baseline on every successful create_field), so only
-  // user-placed fields trigger the hint.
-  const fieldBaselineRef = useRef<number | null>(null)
-  useEffect(() => {
-    if (bridge === null || !isReady || toolbarTool === null) {
-      fieldBaselineRef.current = null
-      return
-    }
-    // Reset the baseline on every activation AND on every tool switch. A
-    // stale baseline from a previous tool would mis-attribute a held delta
-    // to the new tool (e.g. user drops a TEXT field mid-stream, flips to
-    // CHECKBOX, the held delta would fire "new checkbox" when it was a
-    // text field). Fresh baseline on the next tick fixes that; the rare
-    // flip-mid-drop-during-stream case loses the attribution, which is an
-    // intentional cost of the explicit tool-switch.
-    fieldBaselineRef.current = null
-    let cancelled = false
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    const poll = async (): Promise<void> => {
-      if (isStreamingRef.current) {
-        // Short-circuit: no iframe call while the assistant is streaming.
-        // sendMessage is blocked anyway, and re-fetching fields at 200ms
-        // for the duration of a stream is pure iframe noise. The first
-        // post-stream tick catches whatever was dropped mid-stream.
-        return
-      }
-      const activeBridge = bridgeRef.current
-      if (activeBridge === null) {
-        return
-      }
-      const result = await activeBridge.getFields()
-      if (cancelled || !result.success) {
-        return
-      }
-      const count = result.data.fields.length
-      if (fieldBaselineRef.current === null) {
-        fieldBaselineRef.current = count
-        return
-      }
-      if (count <= fieldBaselineRef.current) {
-        return
-      }
-      if (isStreamingRef.current) {
-        // Hold the baseline; the first post-stream tick catches the delta.
-        return
-      }
-      const delta = count - fieldBaselineRef.current
-      fieldBaselineRef.current = count
-      // One-shot: once we've fired the hint for this toolbar-tool session,
-      // cancel the loop so the 200ms tick does not keep re-fetching fields
-      // on every subsequent render. Re-activation of the toolbar tool
-      // (cursor → tool again) is required to arm a new detection cycle.
-      cancelled = true
-      const payload = buildNewFieldMessage({ tool: toolbarTool, delta })
-      void sendMessage({ text: payload.text, metadata: payload.metadata })
-    }
-    const pollLoop = async (): Promise<void> => {
-      await poll()
-      if (cancelled) {
-        return
-      }
-      timeoutId = setTimeout(() => {
-        void pollLoop()
-      }, 200)
-    }
-    void pollLoop()
-    return () => {
-      cancelled = true
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId)
-      }
-    }
-  }, [bridge, isReady, toolbarTool, sendMessage])
+  onFieldAddedRef.current = ({ tool, delta }) => {
+    const payload = buildNewFieldMessage({ tool, delta })
+    void sendMessage({ text: payload.text, metadata: payload.metadata })
+  }
 
   // Access is blocked only until the visitor brings their own key. BYOK runs
   // the stream entirely in the browser via runByokStream and never hits /api/chat.
