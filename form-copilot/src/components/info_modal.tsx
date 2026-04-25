@@ -326,14 +326,8 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
   [
     { text: '  │   ' },
     { text: '│                       │', blue: true },
-    { text: '     │       ' },
-    { text: '│  Telemetry + metadata  │', blue: true },
-  ],
-  [
-    { text: '  │   ' },
-    { text: '│                       │', blue: true },
     { text: ' ────┼─────► ' },
-    { text: '│   pre-signed URLs      │', blue: true },
+    { text: '│  Telemetry + metadata  │', blue: true },
   ],
   [
     { text: '  │   ' },

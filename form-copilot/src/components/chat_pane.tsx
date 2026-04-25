@@ -803,7 +803,7 @@ export const ChatPane = ({
           })()}
         </div>
       </div>
-      <div className="border-t border-slate-200 p-3">
+      <div className="border-t border-sky-700 bg-sky-700 p-3">
         <form
           onSubmit={(event) => {
             event.preventDefault()
