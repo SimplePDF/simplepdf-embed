@@ -87,7 +87,7 @@ Browser
 ### Run the demo locally (no SimplePDF account needed)
 
 > [!TIP]
-> The demo runs **as-is** against the SimplePDF workspace that powers <https://form-copilot.simplepdf.com>. That workspace whitelists `http://localhost:3001` (the default dev-server port), so the embedded editor loads without you having to create an account.
+> The demo runs **as-is** against the SimplePDF workspace that powers <https://form-copilot.simplepdf.com>. That workspace whitelists exactly one local origin: **`http://localhost:3001`** (the default dev-server port).
 >
 > Drop this into your `.env`:
 >
@@ -104,6 +104,9 @@ npm run dev               # http://localhost:3001
 ```
 
 In the running app, open the chat sidebar, click **Bring your own provider**, paste a key from Anthropic / OpenAI / DeepSeek (or point at any OpenAI-compatible endpoint like Ollama / LM Studio), and you're filling forms.
+
+> [!IMPORTANT]
+> **Keep the dev port at 3001.** The SimplePDF demo workspace whitelists exactly one local origin, `http://localhost:3001`, and the editor will only load on a parent page served from that exact host and port. The browser enforces this on iframe load: any other port (e.g. 3000, 5173) or any other host is refused. The `dev` script in `package.json` pins port 3001; don't override it with `--port` flags. To run on your own domain or a different port, you need a SimplePDF [Pro](https://simplepdf.com/pricing) account so you can set your own `companyIdentifier` and whitelist your origin in the SimplePDF dashboard.
 
 ### Share it without asking viewers for a key
 

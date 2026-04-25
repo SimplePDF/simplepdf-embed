@@ -82,7 +82,7 @@ Use `AskUserQuestion`:
 - **Question:** Where do you want Form Copilot to run?
 - **Header:** `Host`
 - **Options:**
-  - `Local only` (Recommended): _"Just `npm run dev` on your dev machine. Easiest path for trying things out, contributing to the fork, or building a local-only tool."_
+  - `Local only` (Recommended): _"Just `npm run dev` on your dev machine, served at `http://localhost:3001`. The demo's SimplePDF workspace whitelists that exact origin, so no Pro account is needed. The port has to stay 3001."_
   - `DigitalOcean App Platform`: _"One-click deploy via the bundled `.do/deploy.template.yaml`. Cheapest hosted option (~$12-24/mo)."_
   - `Vercel / Render / fly.io`: _"Other PaaS hosts. The Vercel AI SDK + nitro `node-server` stack works on all of them; we'll set up env vars + build commands."_
   - `Custom (Docker, my own server)`: _"Run the production build (`npm start`) wherever you want."_
@@ -206,10 +206,12 @@ Open http://localhost:3001. Expected:
 - The iframe loads with a demo sample form.
 - The chat sidebar shows the Model Picker (if BYOK) or is ready to send (if `?share=<id>`).
 
+The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the `companyIdentifier` whitelists exactly the origin `http://localhost:3001` and only that origin: any other port (3000, 5173) or any other host gets refused at iframe load. Don't override the port with `--port` flags.
+
 If the iframe fails to load:
 
-1. Their `companyIdentifier` doesn't match a real account that whitelists `localhost:3001`. Verify the `.env` value matches their SimplePDF dashboard.
-2. In the dashboard, add `http://localhost:3001` to the embed-origins whitelist. Save. Refresh.
+1. The dev server is not on port 3001. Re-run `npm run dev` without overrides.
+2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to add `http://localhost:3001` to the embed-origins whitelist in their SimplePDF dashboard.
 
 Wait for them to confirm the editor renders.
 
