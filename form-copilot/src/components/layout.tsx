@@ -114,7 +114,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
             src="https://cdn.simplepdf.com/simple-pdf/assets/common/logo-white.png"
             alt=""
             aria-hidden="true"
-            className="h-6 w-6 flex-none"
+            className="h-[34px] w-[34px] flex-none"
           />
           <span className="truncate text-base font-semibold md:text-lg">{t('header.brand')}</span>
         </a>
