@@ -216,7 +216,7 @@ The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the 
 If the iframe fails to load:
 
 1. The dev server is not on port 3001. Re-run `npm run dev` without overrides.
-2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to add `http://localhost:3001` to the embed-origins whitelist in their SimplePDF dashboard.
+2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves: open `https://<companyIdentifier>.simplepdf.com/account/embed`, find the **Security** section, click **Whitelist origin**, paste the URL, save.
 
 Wait for them to confirm the editor renders.
 
@@ -262,9 +262,10 @@ Wait for them to confirm the deploy succeeded and they have a URL.
 
 In the SimplePDF dashboard:
 
-1. Go to Settings → Embed origins (the exact label may have evolved; the section concerns "where can the editor be embedded").
-2. Add their deploy URL: `https://my-app.example.com` (or whatever was assigned).
-3. Save.
+1. Open `https://<companyIdentifier>.simplepdf.com/account/embed` (replace `<companyIdentifier>` with their value from Q3).
+2. Scroll to the **Security** section.
+3. Click the **Whitelist origin** button and enter their deploy URL exactly: `https://my-app.example.com` (or whatever was assigned). Match the protocol (`https://`) and host without a trailing slash.
+4. Save.
 
 Then open the deploy URL. The iframe should load. If not, the most likely causes:
 
