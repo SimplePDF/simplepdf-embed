@@ -45,8 +45,8 @@ Fork it, drop in your own `companyIdentifier`, wire up your AI provider, and shi
 
 The hosted demo at **<https://form-copilot.simplepdf.com>** runs on SimplePDF [**Premium**](https://simplepdf.com/pricing). It relies on two Premium-only capabilities:
 
-- **White-labelling** — embed the editor with your own chrome (no SimplePDF branding)
-- **Programmatic control** — drive the editor over the iframe `postMessage` API (load documents, fill fields, switch tools, submit)
+- **White-labelling**: embed the editor with your own chrome (no SimplePDF branding)
+- **Programmatic control**: drive the editor over the iframe `postMessage` API (load documents, fill fields, switch tools, submit)
 
 To run this code on your own domain, you need a SimplePDF account that includes those capabilities. [Compare plans →](https://simplepdf.com/pricing)
 
@@ -62,62 +62,64 @@ Browser
                      └─ Vercel AI SDK ──> Anthropic / OpenAI / DeepSeek
 ```
 
-- The PDF editor renders inside the SimplePDF iframe — **PDF data never leaves the browser**
+- The PDF editor renders inside the SimplePDF iframe. **PDF data never leaves the browser.**
 - Form Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
-- Tool calls are executed in the browser, against the iframe — your server only proxies the chat stream
+- Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
 
 ## Built with
 
-- [SimplePDF](https://simplepdf.com) — the embedded PDF editor
-- [TanStack Start](https://tanstack.com/start) — React 19, Vite, Nitro fullstack
-- [Vercel AI SDK](https://sdk.vercel.ai) — `streamText` + tool calling
+- [SimplePDF](https://simplepdf.com): the embedded PDF editor
+- [TanStack Start](https://tanstack.com/start): React 19, Vite, Nitro fullstack
+- [Vercel AI SDK](https://sdk.vercel.ai): `streamText` + tool calling
 - [Anthropic](https://anthropic.com), [OpenAI](https://openai.com), [DeepSeek](https://deepseek.com), or any AI SDK provider
 - [Tailwind CSS](https://tailwindcss.com)
 - [Biome](https://biomejs.dev) (lint + format), [Vitest](https://vitest.dev) (tests)
 
 ## Getting started
 
-### Prerequisites
+### Run the demo locally (no SimplePDF account needed)
 
-- Node.js 24.x
-- A SimplePDF [Premium](https://simplepdf.com/pricing) account (for white-labelling + programmatic control on your domain)
-- An API key from your AI provider of choice
+> [!TIP]
+> The demo runs **as-is** against the SimplePDF workspace that powers <https://form-copilot.simplepdf.com>. That workspace whitelists `http://localhost:3001` (the default dev-server port), so the embedded editor loads without you having to create an account.
+>
+> Drop these into your `.env`:
+>
+> ```env
+> VITE_SIMPLEPDF_COMPANY_IDENTIFIER=form-copilot
+> VITE_SIMPLEPDF_BASE_DOMAIN=https://simplepdf.com
+> ```
 
-### Setup
+Then:
 
-1. Clone this directory (or fork the [parent repo](https://github.com/SimplePDF/simplepdf-embed))
+```sh
+npm install
+cp .env.example .env      # then set the two VITE_* values above
+npm run dev               # http://localhost:3001
+```
 
-2. Install dependencies:
+In the running app, open the chat sidebar, click **Bring your own provider**, paste a key from Anthropic / OpenAI / DeepSeek (or point at any OpenAI-compatible endpoint like Ollama / LM Studio), and you're filling forms.
 
-   ```sh
-   npm install
-   ```
+### Ship it on your own domain
 
-3. Create your `.env`:
+Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Premium](https://simplepdf.com/pricing) account so that:
 
-   ```sh
-   cp .env.example .env
-   ```
+1. You get your own `companyIdentifier`
+2. You can whitelist your serving origin in the SimplePDF dashboard
+3. White-labelling and programmatic control (Premium-only) are enabled on your account
 
-   Required:
+Then in `.env`:
 
-   - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` — your SimplePDF company subdomain
-   - `VITE_SIMPLEPDF_BASE_DOMAIN` — `https://simplepdf.com`
+- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER`: your company subdomain
+- `VITE_SIMPLEPDF_BASE_DOMAIN`: `https://simplepdf.com`
 
-   Then add your serving origin (e.g. `https://app.example.com`) to the embed whitelist in your SimplePDF dashboard. The iframe will refuse to load on origins that aren't whitelisted.
-
-4. Run:
-
-   ```sh
-   npm run dev          # http://localhost:3001
-   ```
+The iframe will refuse to load on origins that aren't whitelisted, so add your serving origin (e.g. `https://app.example.com`) before deploying.
 
 ### Wire up your AI provider
 
 Server-side streaming lives in `src/routes/api/chat.ts`. Replace the bundled key resolution with whatever your app uses (env var, secret manager, per-tenant config) and pick a provider in `src/server/language_model.ts`. The Vercel AI SDK abstracts everything behind `streamText`.
 
-If you want users to bring their own keys (BYOK), the browser-direct path in `src/lib/byok/` runs `streamText` straight from the browser to the provider — your server is bypassed entirely.
+If you want users to bring their own keys (BYOK), the browser-direct path in `src/lib/byok/` runs `streamText` straight from the browser to the provider; your server is bypassed entirely.
 
 ## Tools exposed to the LLM
 
@@ -145,7 +147,7 @@ Tool input + output schemas: `src/lib/embed-bridge-adapters/client-tools.ts`. Sy
 | `src/components/chat_pane.tsx` | Chat UI + streaming + tool routing |
 | `src/lib/byok/` | Browser-direct provider plumbing (delete if you don't need BYOK) |
 | `src/locales/` | 22 locale files (en / fr / de / es / it / pt / nl / ja / …) |
-| `src/forms/` | Sample forms — replace with your own |
+| `src/forms/` | Sample forms (replace with your own) |
 | `src/routes/__root.tsx` | `<head>` (title, meta, favicon) |
 
 ## Privacy by design
@@ -154,7 +156,7 @@ The architecture is deliberate:
 
 - **Document data stays in the browser.** SimplePDF processes PDFs client-side. The iframe never uploads document bytes to SimplePDF.
 - **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
-- **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket — never to SimplePDF servers.
+- **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket, never to SimplePDF servers.
 
 ## Scripts
 
@@ -169,6 +171,6 @@ The architecture is deliberate:
 
 ## License
 
-MIT — see [LICENSE](./LICENSE). Use it, fork it, ship it inside your product.
+MIT. See [LICENSE](./LICENSE). Use it, fork it, ship it inside your product.
 
-The MIT license covers this code. The SimplePDF editor itself is a hosted service — running this app on your own domain requires a SimplePDF account with white-labelling and programmatic control. [See pricing →](https://simplepdf.com/pricing)
+The MIT license covers this code. The SimplePDF editor itself is a hosted service: running this app on your own domain requires a SimplePDF account with white-labelling and programmatic control. [See pricing →](https://simplepdf.com/pricing)
