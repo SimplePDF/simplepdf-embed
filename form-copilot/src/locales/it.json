@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sanità",
-        "body": "I moduli di accettazione paziente e di richiesta rimborso contengono spesso dati sensibili e richiedono revisione. Form Copilot aiuta a compilare il modulo passo dopo passo tramite il provider di IA approvato dalla tua organizzazione. Il documento resta nel browser e gli invii vanno direttamente allo storage e ai sistemi scelti dalla tua organizzazione."
+        "body": "I moduli di accettazione paziente e di richiesta rimborso contengono spesso dati sensibili e richiedono revisione. Form Copilot aiuta a compilare il modulo passo dopo passo tramite il provider di IA approvato dalla tua organizzazione."
       },
       "insurance": {
         "title": "Assicurazione",

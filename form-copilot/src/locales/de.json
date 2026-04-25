@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Gesundheitswesen",
-        "body": "Patientenaufnahme- und Abrechnungsformulare enthalten oft sensible Daten und erfordern eine Prüfung. Form Copilot hilft, das Formular Schritt für Schritt mit dem von Ihrer Organisation genehmigten KI-Anbieter auszufüllen. Das Dokument bleibt im Browser und Einreichungen gehen direkt an den Speicher und die Systeme, die Ihre Organisation wählt."
+        "body": "Patientenaufnahme- und Abrechnungsformulare enthalten oft sensible Daten und erfordern eine Prüfung. Form Copilot hilft, das Formular Schritt für Schritt mit dem von Ihrer Organisation genehmigten KI-Anbieter auszufüllen."
       },
       "insurance": {
         "title": "Versicherung",

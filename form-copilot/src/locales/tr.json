@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sağlık",
-        "body": "Hasta kabul ve tazminat formları genellikle hassas veriler içerir ve inceleme gerektirir. Form Copilot, kuruluşunuzun onayladığı yapay zeka sağlayıcısını kullanarak formu adım adım doldurmanıza yardımcı olur. Belge tarayıcıda kalır ve gönderimler doğrudan kuruluşunuzun seçtiği depolama ve sistemlere gider."
+        "body": "Hasta kabul ve tazminat formları genellikle hassas veriler içerir ve inceleme gerektirir. Form Copilot, kuruluşunuzun onayladığı yapay zeka sağlayıcısını kullanarak formu adım adım doldurmanıza yardımcı olur."
       },
       "insurance": {
         "title": "Sigorta",

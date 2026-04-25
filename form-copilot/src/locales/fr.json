@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Santé",
-        "body": "Les formulaires d’admission des patients et de remboursement contiennent souvent des données sensibles et nécessitent un contrôle. Form Copilot aide à remplir le formulaire étape par étape via le fournisseur d’IA approuvé par votre organisation. Le document reste dans le navigateur et les soumissions partent directement vers le stockage et les systèmes choisis par votre organisation."
+        "body": "Les formulaires d’admission des patients et de remboursement contiennent souvent des données sensibles et nécessitent un contrôle. Form Copilot aide à remplir le formulaire étape par étape via le fournisseur d’IA approuvé par votre organisation."
       },
       "insurance": {
         "title": "Assurance",

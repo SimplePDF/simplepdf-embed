@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Saúde",
-        "body": "Os formulários de admissão de pacientes e de pedidos de reembolso contêm frequentemente dados sensíveis e requerem revisão. O Form Copilot ajuda a preencher o formulário passo a passo através do fornecedor de IA aprovado pela sua organização. O documento permanece no navegador e as submissões vão directamente para o armazenamento e sistemas escolhidos pela sua organização."
+        "body": "Os formulários de admissão de pacientes e de pedidos de reembolso contêm frequentemente dados sensíveis e requerem revisão. O Form Copilot ajuda a preencher o formulário passo a passo através do fornecedor de IA aprovado pela sua organização."
       },
       "insurance": {
         "title": "Seguros",

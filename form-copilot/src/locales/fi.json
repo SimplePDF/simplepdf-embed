@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Terveydenhuolto",
-        "body": "Potilastietolomakkeet ja korvausvaatimuslomakkeet sisältävät usein arkaluonteisia tietoja ja vaativat tarkistuksen. Form Copilot auttaa täyttämään lomakkeen vaihe vaiheelta organisaatiosi hyväksymän tekoälytarjoajan kautta. Asiakirja pysyy selaimessa ja lähetykset menevät suoraan organisaatiosi valitsemiin tallennuksiin ja järjestelmiin."
+        "body": "Potilastietolomakkeet ja korvausvaatimuslomakkeet sisältävät usein arkaluonteisia tietoja ja vaativat tarkistuksen. Form Copilot auttaa täyttämään lomakkeen vaihe vaiheelta organisaatiosi hyväksymän tekoälytarjoajan kautta."
       },
       "insurance": {
         "title": "Vakuutus",

@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Chăm sóc sức khỏe",
-        "body": "Các biểu mẫu tiếp nhận bệnh nhân và yêu cầu bồi thường thường chứa dữ liệu nhạy cảm và cần được xem xét. Form Copilot giúp hoàn thành biểu mẫu từng bước bằng nhà cung cấp AI được tổ chức của bạn phê duyệt. Tài liệu vẫn nằm trong trình duyệt và các lần gửi đi trực tiếp đến kho lưu trữ và hệ thống mà tổ chức của bạn chọn."
+        "body": "Các biểu mẫu tiếp nhận bệnh nhân và yêu cầu bồi thường thường chứa dữ liệu nhạy cảm và cần được xem xét. Form Copilot giúp hoàn thành biểu mẫu từng bước bằng nhà cung cấp AI được tổ chức của bạn phê duyệt."
       },
       "insurance": {
         "title": "Bảo hiểm",

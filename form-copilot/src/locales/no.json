@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Helsetjenester",
-        "body": "Pasientinntaks- og kravskjemaer inneholder ofte sensitive data og krever gjennomgang. Form Copilot hjelper med å fylle ut skjemaet steg for steg via organisasjonens godkjente AI-leverandør. Dokumentet blir i nettleseren, og innsendinger går rett til lagringen og systemene organisasjonen din velger."
+        "body": "Pasientinntaks- og kravskjemaer inneholder ofte sensitive data og krever gjennomgang. Form Copilot hjelper med å fylle ut skjemaet steg for steg via organisasjonens godkjente AI-leverandør."
       },
       "insurance": {
         "title": "Forsikring",

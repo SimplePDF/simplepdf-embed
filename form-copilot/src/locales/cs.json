@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Zdravotnictví",
-        "body": "Formuláře pro příjem pacientů a zdravotní nároky často obsahují citlivá data a vyžadují kontrolu. Form Copilot pomáhá vyplnit formulář krok za krokem pomocí AI poskytovatele schváleného vaší organizací. Dokument zůstává v prohlížeči a odeslané výsledky míří přímo do úložiště a systémů, které vaše organizace zvolí."
+        "body": "Formuláře pro příjem pacientů a zdravotní nároky často obsahují citlivá data a vyžadují kontrolu. Form Copilot pomáhá vyplnit formulář krok za krokem pomocí AI poskytovatele schváleného vaší organizací."
       },
       "insurance": {
         "title": "Pojištění",

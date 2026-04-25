@@ -52,7 +52,7 @@
       },
       "healthcare": {
         "title": "Healthcare",
-        "body": "Patient intake and claims forms often contain sensitive data and require review. Form Copilot helps complete the form step by step using your organization's approved AI provider. The document stays in the browser, and submissions go directly to the storage and systems your organization chooses."
+        "body": "Patient intake and claims forms often contain sensitive data and require review. Form Copilot helps complete the form step by step using your organization's approved AI provider."
       },
       "insurance": {
         "title": "Insurance",

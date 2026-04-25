@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sanidad",
-        "body": "Los formularios de admisión de pacientes y de reclamaciones suelen contener datos sensibles y requieren revisión. Form Copilot ayuda a completar el formulario paso a paso utilizando el proveedor de IA aprobado por tu organización. El documento permanece en el navegador y los envíos van directamente al almacenamiento y los sistemas que elige tu organización."
+        "body": "Los formularios de admisión de pacientes y de reclamaciones suelen contener datos sensibles y requieren revisión. Form Copilot ayuda a completar el formulario paso a paso utilizando el proveedor de IA aprobado por tu organización."
       },
       "insurance": {
         "title": "Seguros",

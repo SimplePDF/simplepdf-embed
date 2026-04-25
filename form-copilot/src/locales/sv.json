@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sjukvård",
-        "body": "Patientintagsformulär och skadeformulär innehåller ofta känsliga uppgifter och kräver granskning. Form Copilot hjälper till att fylla i formuläret steg för steg med den AI-leverantör som din organisation godkänner. Dokumentet stannar i webbläsaren och inlämningar går direkt till den lagring och de system din organisation väljer."
+        "body": "Patientintagsformulär och skadeformulär innehåller ofta känsliga uppgifter och kräver granskning. Form Copilot hjälper till att fylla i formuläret steg för steg med den AI-leverantör som din organisation godkänner."
       },
       "insurance": {
         "title": "Försäkring",

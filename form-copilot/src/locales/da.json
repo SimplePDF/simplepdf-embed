@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sundhedsvæsen",
-        "body": "Patientindtag og skadesformularer indeholder ofte følsomme data og kræver gennemgang. Form Copilot hjælper med at udfylde formularen trin for trin via din organisations godkendte AI-udbyder. Dokumentet forbliver i browseren, og indsendelser går direkte til det lager og de systemer, din organisation vælger."
+        "body": "Patientindtag og skadesformularer indeholder ofte følsomme data og kræver gennemgang. Form Copilot hjælper med at udfylde formularen trin for trin via din organisations godkendte AI-udbyder."
       },
       "insurance": {
         "title": "Forsikring",

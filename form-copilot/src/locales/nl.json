@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Gezondheidszorg",
-        "body": "Intake- en claimformulieren voor patiënten bevatten vaak gevoelige gegevens en vereisen controle. Form Copilot helpt het formulier stap voor stap in te vullen met de door uw organisatie goedgekeurde AI-provider. Het document blijft in de browser en indieningen gaan direct naar de opslag en systemen die uw organisatie kiest."
+        "body": "Intake- en claimformulieren voor patiënten bevatten vaak gevoelige gegevens en vereisen controle. Form Copilot helpt het formulier stap voor stap in te vullen met de door uw organisatie goedgekeurde AI-provider."
       },
       "insurance": {
         "title": "Verzekering",

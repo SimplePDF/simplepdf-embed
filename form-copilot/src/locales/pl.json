@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Opieka zdrowotna",
-        "body": "Formularze przyjęcia pacjenta i formularze roszczeniowe często zawierają dane wrażliwe i wymagają sprawdzenia. Form Copilot pomaga wypełnić formularz krok po kroku, korzystając z dostawcy AI zatwierdzonego przez Twoją organizację. Dokument pozostaje w przeglądarce, a przesłane dane trafiają bezpośrednio do pamięci masowej i systemów wybranych przez Twoją organizację."
+        "body": "Formularze przyjęcia pacjenta i formularze roszczeniowe często zawierają dane wrażliwe i wymagają sprawdzenia. Form Copilot pomaga wypełnić formularz krok po kroku, korzystając z dostawcy AI zatwierdzonego przez Twoją organizację."
       },
       "insurance": {
         "title": "Ubezpieczenia",

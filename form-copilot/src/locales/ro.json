@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Sănătate",
-        "body": "Formularele de admitere a pacienților și de cereri de rambursare conțin adesea date sensibile și necesită verificare. Form Copilot ajută la completarea formularului pas cu pas folosind furnizorul AI aprobat de organizația dumneavoastră. Documentul rămâne în browser, iar trimiterile merg direct către spațiul de stocare și sistemele alese de organizație."
+        "body": "Formularele de admitere a pacienților și de cereri de rambursare conțin adesea date sensibile și necesită verificare. Form Copilot ajută la completarea formularului pas cu pas folosind furnizorul AI aprobat de organizația dumneavoastră."
       },
       "insurance": {
         "title": "Asigurări",

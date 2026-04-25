@@ -44,7 +44,7 @@
     "useCases": {
       "healthcare": {
         "title": "Tervishoid",
-        "body": "Patsientide vastuvõtuvormid ja kindlustusnõuded sisaldavad sageli tundlikke andmeid ja vajavad ülevaatamist. Form Copilot aitab vormi samm-sammult täita teie organisatsiooni heakskiidetud tehisintellekti teenusepakkujaga. Dokument jääb brauserisse ja esitatud andmed lähevad otse salvestusruumi ja süsteemidesse, mille teie organisatsioon valib."
+        "body": "Patsientide vastuvõtuvormid ja kindlustusnõuded sisaldavad sageli tundlikke andmeid ja vajavad ülevaatamist. Form Copilot aitab vormi samm-sammult täita teie organisatsiooni heakskiidetud tehisintellekti teenusepakkujaga."
       },
       "insurance": {
         "title": "Kindlustus",
