@@ -19,6 +19,9 @@ AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
 <a href="https://form-copilot.simplepdf.com" rel="dofollow"><strong>Try the live demo »</strong></a>
 <br/>
 <br/>
+<a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main"><img src="https://www.deploytodo.com/do-btn-blue.svg" alt="Deploy to DigitalOcean" /></a>
+<br/>
+<br/>
 <a href="https://simplepdf.com/pricing">Pricing</a>
   ·
 <a href="https://discord.gg/n6M8jb5GEP">Join our Discord</a>
@@ -125,6 +128,18 @@ Then in `.env`:
 - `VITE_SIMPLEPDF_BASE_DOMAIN`: `https://simplepdf.com`
 
 The iframe will refuse to load on origins that aren't whitelisted, so add your serving origin (e.g. `https://app.example.com`) before deploying.
+
+#### One-click deploy to DigitalOcean
+
+[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main)
+
+The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/form-copilot`. DigitalOcean prompts you for the env vars at setup time:
+
+- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF Premium company subdomain
+- `VITE_SIMPLEPDF_BASE_DOMAIN` (default `https://simplepdf.com`)
+- `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
+
+Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 
 ### Wire up your AI provider
 

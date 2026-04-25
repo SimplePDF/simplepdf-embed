@@ -1,0 +1,27 @@
+spec:
+  name: form-copilot
+  region: fra
+  services:
+    - name: web
+      github:
+        repo: SimplePDF/simplepdf-embed
+        branch: main
+        deploy_on_push: true
+      source_dir: /form-copilot
+      environment_slug: node-js
+      build_command: npm run build
+      run_command: npm start
+      http_port: 3000
+      instance_count: 1
+      instance_size_slug: apps-s-1vcpu-1gb
+      envs:
+        - key: VITE_SIMPLEPDF_COMPANY_IDENTIFIER
+          scope: BUILD_TIME
+          type: GENERAL
+        - key: VITE_SIMPLEPDF_BASE_DOMAIN
+          value: https://simplepdf.com
+          scope: BUILD_TIME
+          type: GENERAL
+        - key: SHARED_API_KEYS
+          scope: RUN_TIME
+          type: SECRET
