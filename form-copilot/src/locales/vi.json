@@ -69,7 +69,7 @@
     "heading": "Trò chuyện",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Đang chờ trình chỉnh sửa tải…",
-    "subtitleNoDocument": "Tải một tài liệu",
+    "subtitleNoDocument": "Hãy tải tài liệu trước",
     "subtitleNoModel": "Mang nhà cung cấp của riêng bạn để trò chuyện",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Chuyển đổi mô hình AI",
@@ -134,7 +134,6 @@
     "welcomeCta": "Mang khóa API của riêng bạn",
     "welcomeInfoLink": "Cách Form Copilot hoạt động",
     "inputPlaceholderReady": "Trò chuyện với Form Copilot…",
-    "inputPlaceholderWaiting": "Vui lòng đợi…",
     "send": "Gửi"
   },
   "suggestedPrompts": {
@@ -208,6 +207,6 @@
       "loonheffingenScanned": "Loonheffingen đã scan",
       "custom": "Chọn PDF của riêng bạn"
     },
-    "customSubtitle": "Mọi PDF đều hoạt động"
+    "customSubtitle": "Mọi PDF đều hoạt động - giữ trên thiết bị của bạn"
   }
 }

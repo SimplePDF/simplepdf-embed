@@ -69,7 +69,7 @@
     "heading": "Chat",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Warten, bis der Editor geladen ist…",
-    "subtitleNoDocument": "Dokument laden",
+    "subtitleNoDocument": "Lade zuerst ein Dokument",
     "subtitleNoModel": "Eigenen Anbieter zum Chatten verwenden",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "KI-Modell wechseln",
@@ -134,7 +134,6 @@
     "welcomeCta": "Eigenen API-Schlüssel verwenden",
     "welcomeInfoLink": "So funktioniert Form Copilot",
     "inputPlaceholderReady": "Mit Form Copilot sprechen…",
-    "inputPlaceholderWaiting": "Bitte warten…",
     "send": "Senden"
   },
   "suggestedPrompts": {
@@ -208,6 +207,6 @@
       "loonheffingenScanned": "Loonheffingen gescannt",
       "custom": "Eigene PDF auswählen"
     },
-    "customSubtitle": "Jede PDF funktioniert"
+    "customSubtitle": "Jede PDF funktioniert - bleibt auf deinem Gerät"
   }
 }

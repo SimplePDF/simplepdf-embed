@@ -69,7 +69,7 @@
     "heading": "Chat",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Čekání na načtení editoru…",
-    "subtitleNoDocument": "Načíst dokument",
+    "subtitleNoDocument": "Nejprve načtěte dokument",
     "subtitleNoModel": "Přineste si vlastního poskytovatele pro chat",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Přepnout AI model",
@@ -134,7 +134,6 @@
     "welcomeCta": "Použijte vlastní API klíč",
     "welcomeInfoLink": "Jak Form Copilot funguje",
     "inputPlaceholderReady": "Mluvte s Form Copilot…",
-    "inputPlaceholderWaiting": "Čekejte prosím…",
     "send": "Odeslat"
   },
   "suggestedPrompts": {
@@ -209,6 +208,6 @@
       "loonheffingenScanned": "Loonheffingen naskenovaný",
       "custom": "Vyberte si vlastní PDF"
     },
-    "customSubtitle": "Funguje jakékoli PDF"
+    "customSubtitle": "Funguje jakékoli PDF - zůstane ve vašem zařízení"
   }
 }

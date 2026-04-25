@@ -69,7 +69,7 @@
     "heading": "Συνομιλία",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Αναμονή φόρτωσης του επεξεργαστή…",
-    "subtitleNoDocument": "Φορτώστε ένα έγγραφο",
+    "subtitleNoDocument": "Φορτώστε πρώτα ένα έγγραφο",
     "subtitleNoModel": "Φέρτε τον δικό σας πάροχο για συνομιλία",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Αλλαγή μοντέλου AI",
@@ -134,7 +134,6 @@
     "welcomeCta": "Χρησιμοποιήστε το δικό σας κλειδί API",
     "welcomeInfoLink": "Πώς λειτουργεί το Form Copilot",
     "inputPlaceholderReady": "Μιλήστε με το Form Copilot…",
-    "inputPlaceholderWaiting": "Παρακαλώ περιμένετε…",
     "send": "Αποστολή"
   },
   "suggestedPrompts": {
@@ -208,6 +207,6 @@
       "loonheffingenScanned": "Loonheffingen σαρωμένο",
       "custom": "Επιλέξτε το δικό σας PDF"
     },
-    "customSubtitle": "Λειτουργεί με κάθε PDF"
+    "customSubtitle": "Λειτουργεί με κάθε PDF - μένει στη συσκευή σας"
   }
 }

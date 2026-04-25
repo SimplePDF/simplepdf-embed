@@ -68,7 +68,7 @@
   "chat": {
     "heading": "Chat",
     "subtitleWaiting": "Waiting for the editor to load…",
-    "subtitleNoDocument": "Load a document",
+    "subtitleNoDocument": "Load a document first",
     "subtitleNoModel": "Bring your own provider to chat",
     "switchModel": "Switch AI model",
     "modelPicker": {
@@ -133,7 +133,6 @@
     "welcomeCta": "Bring your own API key",
     "welcomeInfoLink": "How Form Copilot works",
     "inputPlaceholderReady": "Talk to Form Copilot…",
-    "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"
   },
   "suggestedPrompts": {
@@ -215,6 +214,6 @@
       "mndaScanned": "HR onboarding (scanned document)",
       "ruptureConventionnelle": "HR (mutual agreement termination)"
     },
-    "customSubtitle": "Any PDF works"
+    "customSubtitle": "Any PDF works - kept on your device"
   }
 }

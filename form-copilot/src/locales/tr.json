@@ -69,7 +69,7 @@
     "heading": "Sohbet",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Editörün yüklenmesi bekleniyor…",
-    "subtitleNoDocument": "Bir belge yükleyin",
+    "subtitleNoDocument": "Önce bir belge yükleyin",
     "subtitleNoModel": "Sohbet için kendi sağlayıcınızı getirin",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Yapay zeka modelini değiştir",
@@ -134,7 +134,6 @@
     "welcomeCta": "Kendi API anahtarınızı getirin",
     "welcomeInfoLink": "Form Copilot nasıl çalışır",
     "inputPlaceholderReady": "Form Copilot ile konuşun…",
-    "inputPlaceholderWaiting": "Lütfen bekleyin…",
     "send": "Gönder"
   },
   "suggestedPrompts": {
@@ -208,6 +207,6 @@
       "loonheffingenScanned": "Loonheffingen taranmış",
       "custom": "Kendi PDF’inizi seçin"
     },
-    "customSubtitle": "Herhangi bir PDF çalışır"
+    "customSubtitle": "Herhangi bir PDF çalışır - cihazınızda kalır"
   }
 }

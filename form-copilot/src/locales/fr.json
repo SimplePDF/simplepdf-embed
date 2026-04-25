@@ -69,7 +69,7 @@
     "heading": "Chat",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "En attente du chargement de l’éditeur…",
-    "subtitleNoDocument": "Charger un document",
+    "subtitleNoDocument": "Chargez d’abord un document",
     "subtitleNoModel": "Apportez votre propre fournisseur pour chatter",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Changer de modèle IA",
@@ -134,7 +134,6 @@
     "welcomeCta": "Apporter votre propre clé API",
     "welcomeInfoLink": "Comment fonctionne Form Copilot",
     "inputPlaceholderReady": "Discuter avec Form Copilot…",
-    "inputPlaceholderWaiting": "Veuillez patienter…",
     "send": "Envoyer"
   },
   "suggestedPrompts": {
@@ -208,7 +207,7 @@
       "loonheffingenScanned": "Loonheffingen numérisé",
       "custom": "Choisir votre propre PDF"
     },
-    "customSubtitle": "N’importe quel PDF fonctionne"
+    "customSubtitle": "N’importe quel PDF fonctionne - reste sur votre appareil"
   },
   "cerfaDor": {
     "buttonAria": "Ouvrir le message pour David Lisnard",

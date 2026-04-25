@@ -665,6 +665,16 @@ export const ChatPane = ({
   const activeModelLabel = byokModelLabel ?? demoModelLabel ?? t('chat.heading')
   const canSend = isReady && !isStreaming && !serverLocked
   const hasUserMessage = messages.some((message) => message.role === 'user')
+  const chatStatusMessage = useMemo((): string => {
+    if (!hasActiveModel) {
+      return t('chat.subtitleNoModel')
+    }
+    if (requiresUserUpload) {
+      return t('chat.subtitleNoDocument')
+    }
+    return t('chat.subtitleWaiting')
+  }, [hasActiveModel, requiresUserUpload, t])
+  const inputPlaceholder = canSend ? t('chat.inputPlaceholderReady') : chatStatusMessage
 
   useEffect(() => {
     if (canSend) {
@@ -731,14 +741,7 @@ export const ChatPane = ({
               {t('chat.switchModel')}
             </button>
           ) : (
-            <p className="block h-4 truncate text-xs leading-4 text-slate-500">
-              {((): string => {
-                if (!hasActiveModel) {
-                  return t('chat.subtitleNoModel')
-                }
-                return requiresUserUpload ? t('chat.subtitleNoDocument') : t('chat.subtitleWaiting')
-              })()}
-            </p>
+            <p className="block h-4 truncate text-xs leading-4 text-slate-500">{chatStatusMessage}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -816,7 +819,7 @@ export const ChatPane = ({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             disabled={!canSend}
-            placeholder={canSend ? t('chat.inputPlaceholderReady') : t('chat.inputPlaceholderWaiting')}
+            placeholder={inputPlaceholder}
             className="flex-1 rounded-full border border-solid border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
             style={{ borderWidth: '1px' }}
           />

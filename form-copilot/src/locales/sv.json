@@ -69,7 +69,7 @@
     "heading": "Chatt",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Väntar på att redigeraren ska laddas…",
-    "subtitleNoDocument": "Ladda ett dokument",
+    "subtitleNoDocument": "Ladda först ett dokument",
     "subtitleNoModel": "Ta med din egen leverantör för att chatta",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Byt AI-modell",
@@ -134,7 +134,6 @@
     "welcomeCta": "Ta med din egen API-nyckel",
     "welcomeInfoLink": "Så fungerar Form Copilot",
     "inputPlaceholderReady": "Prata med Form Copilot…",
-    "inputPlaceholderWaiting": "Vänligen vänta…",
     "send": "Skicka"
   },
   "suggestedPrompts": {
@@ -208,6 +207,6 @@
       "loonheffingenScanned": "Loonheffingen inskannad",
       "custom": "Välj din egen PDF"
     },
-    "customSubtitle": "Alla PDF fungerar"
+    "customSubtitle": "Alla PDF fungerar - stannar på din enhet"
   }
 }
