@@ -118,7 +118,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           />
           <span className="truncate text-base font-semibold md:text-lg">{t('header.brand')}</span>
         </a>
-        <span className="hidden text-sm text-white/75 md:inline">{t('header.tagline')}</span>
+        <span className="hidden text-sm font-medium text-white md:inline">{t('header.tagline')}</span>
         <button
           type="button"
           onClick={openInfoModal}
