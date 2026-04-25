@@ -706,7 +706,7 @@ export const ChatPane = ({
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-emerald-50">
       <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
         {/* `min-w-0` lets the header's text flex-children shrink below their
             intrinsic width so `truncate` can actually ellipsis on narrow
