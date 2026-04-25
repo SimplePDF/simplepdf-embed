@@ -132,17 +132,15 @@ const createRedisLimiter = (url: string): RateLimiter => {
     // unhealthy, taking the public URL down even though the app process
     // is still alive. 3s is plenty for a healthy in-VPC connection.
     connectTimeout: 3_000,
-    // Bounded retry backoff. After 3 failed attempts ioredis stops
-    // re-trying — the limiter stays unready, callers see system_failure,
-    // and we don't keep dragging the event loop with new socket attempts.
-    // ETIMEDOUT during recovery (firewall change propagating, etc.) is
-    // common; the bounded retry keeps the cost predictable.
-    retryStrategy: (times) => {
-      if (times > 3) {
-        return null
-      }
-      return Math.min(times * times * 200, 5_000)
-    },
+    // Quadratic backoff capped at 30s. Each retry attempt is bounded by
+    // connectTimeout (3s above), so the worst-case event-loop cost during
+    // a long outage is two 3s hung sockets per minute — predictable and
+    // negligible. We deliberately NEVER return null (which would tell
+    // ioredis to stop retrying entirely): once the network heals (firewall
+    // change propagates, DO incident clears, deploy completes), the
+    // limiter self-recovers without an app restart. Returns: 200ms, 800ms,
+    // 1.8s, 3.2s, 5s, 7.2s, ... capped at 30s.
+    retryStrategy: (times) => Math.min(times * times * 200, 30_000),
   })
 
   let lastError: string | null = null
