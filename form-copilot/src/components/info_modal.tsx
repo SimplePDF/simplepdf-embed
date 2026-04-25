@@ -246,25 +246,25 @@ const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
     { text: '  │           ' },
     { text: '▼', blue: true },
     { text: '                     │       ' },
-    { text: '│  · telemetry only ·     │', blue: true },
+    { text: '│                         │', blue: true },
   ],
   [
     { text: '  │   ' },
     { text: '┌───────────────────────┐', blue: true },
     { text: '     │       ' },
-    { text: '│   rate-limit metadata   │', blue: true },
+    { text: '│  Telemetry and metadata │', blue: true },
   ],
   [
     { text: '  │   ' },
     { text: '│                       │', blue: true },
     { text: ' ────┼─────► ' },
-    { text: '│   IP-hash counters      │', blue: true },
+    { text: '│           only          │', blue: true },
   ],
   [
     { text: '  │   ' },
     { text: '│   SimplePDF editor    │', blue: true },
     { text: '     │       ' },
-    { text: '│   no document content   │', blue: true },
+    { text: '│                         │', blue: true },
   ],
   [
     { text: '  │   ' },
@@ -327,7 +327,7 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
     { text: '  │   ' },
     { text: '│                       │', blue: true },
     { text: '     │       ' },
-    { text: '│   · metadata only ·    │', blue: true },
+    { text: '│  Telemetry + metadata  │', blue: true },
   ],
   [
     { text: '  │   ' },

@@ -218,10 +218,10 @@ What's actually running when you open <https://form-copilot.simplepdf.com> or `n
   │           │ ⇅ postMessage       │
   │           │   (client-side      │       ┌─── SimplePDF server ────┐
   │           │    tool calls)      │       │                         │
-  │           ▼                     │       │  · telemetry only ·     │
-  │   ┌───────────────────────┐     │       │   rate-limit metadata   │
-  │   │                       │ ────┼─────► │   IP-hash counters      │
-  │   │   SimplePDF editor    │     │       │   no document content   │
+  │           ▼                     │       │                         │
+  │   ┌───────────────────────┐     │       │  Telemetry and metadata │
+  │   │                       │ ────┼─────► │           only          │
+  │   │   SimplePDF editor    │     │       │                         │
   │   │       (iframe)        │     │       │                         │
   │   │                       │     │       └─────────────────────────┘
   │   └───────────────────────┘     │
@@ -229,7 +229,7 @@ What's actually running when you open <https://form-copilot.simplepdf.com> or `n
   └─────────────────────────────────┘
 ```
 
-Field data stays in the browser via `postMessage` between the chat sidebar and the editor iframe. Chat traffic flows through the demo's hosted server to a hosted AI provider (Anthropic Haiku 4.5 or DeepSeek V4), or browser-direct when you bring your own key. The SimplePDF server records only telemetry and metadata (rate-limit IP hashes, usage counters); no webhooks, no document storage, no document content.
+Field data stays in the browser via `postMessage` between the chat sidebar and the editor iframe. Chat traffic flows through the demo's hosted server to a hosted AI provider, or browser-direct when you bring your own key. The SimplePDF server records only telemetry and metadata; no webhooks, no document storage, no document content.
 
 ### Using your own SimplePDF account
 
@@ -248,7 +248,7 @@ What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/
   │           │    tool calls)      │         │
   │           ▼                     │       ┌─┴─ SimplePDF server ───┐
   │   ┌───────────────────────┐     │       │                        │
-  │   │                       │     │       │   · metadata only ·    │
+  │   │                       │     │       │  Telemetry + metadata  │
   │   │                       │ ────┼─────► │   pre-signed URLs      │
   │   │                       │     │       │   never sees the doc   │
   │   │   SimplePDF editor    │     │       └────────────────────────┘
