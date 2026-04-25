@@ -1,6 +1,5 @@
 spec:
   name: form-copilot
-  region: fra
   services:
     - name: web
       github:
