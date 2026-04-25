@@ -1,25 +1,32 @@
-<p align="center">
-  <a href="https://simplepdf.com">
-    <img src="https://simplepdf.com/apple-touch-icon.png" alt="SimplePDF" width="96">
+<br/>
+<br/>
+<div align="center">
+  <a href="https://simplepdf.com" target="_blank">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github-white.png?">
+    <img src="https://cdn.simplepdf.com/simple-pdf/assets/simplepdf-github.png?" width="280" alt="Logo"/>
+  </picture>
   </a>
-</p>
-
-<h1 align="center">Form Copilot</h1>
-
+</div>
+<br/>
+<div align="center">
+AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
+</div>
+<br/>
+<br/>
 <p align="center">
-  AI that helps users fill PDF forms step by step, inside the
-  <a href="https://simplepdf.com">SimplePDF</a> editor.
+<br/>
+<a href="https://form-copilot.simplepdf.com" rel="dofollow"><strong>Try the live demo »</strong></a>
+<br/>
+<br/>
+<a href="https://simplepdf.com/pricing">Pricing</a>
+  ·
+<a href="https://discord.gg/n6M8jb5GEP">Join our Discord</a>
+  ·
+<a href="https://twitter.com/simple_pdf">Follow us on Twitter</a>
 </p>
-
-<p align="center">
-  <a href="https://form-copilot.simplepdf.com"><strong>Live demo</strong></a>
-  &middot;
-  <a href="https://simplepdf.com/pricing">Pricing</a>
-  &middot;
-  <a href="https://simplepdf.com/help">SimplePDF docs</a>
-  &middot;
-  <a href="https://github.com/SimplePDF/simplepdf-embed">Parent repo</a>
-</p>
+<br/>
+<br/>
 
 <p align="center">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License: MIT"></a>
