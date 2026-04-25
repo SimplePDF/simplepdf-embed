@@ -210,12 +210,12 @@ const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
   [
     { text: '  │   ' },
     { text: '┌───────────────┐', blue: true },
-    { text: '   chat      │       │   LLM proxy           │       │  Anthropic Haiku  │' },
+    { text: '   chat      │       │   LLM proxy           │       │                   │' },
   ],
   [
     { text: '  │   ' },
     { text: '│  Form Copilot │', blue: true },
-    { text: ' ────────────┼─────► │   (or BYOK direct)    │ ────► │  or DeepSeek V4   │' },
+    { text: ' ────────────┼─────► │   (or BYOK direct)    │ ────► │     Demo LLM      │' },
   ],
   [
     { text: '  │   ' },

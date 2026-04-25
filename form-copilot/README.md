@@ -210,8 +210,8 @@ What's actually running when you open <https://form-copilot.simplepdf.com> or `n
 ```
   ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐
   │                                 │       │                       │       │                   │
-  │   ┌───────────────┐   chat      │       │  LLM proxy            │       │  Anthropic Haiku  │
-  │   │  Form Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │  or DeepSeek V4   │
+  │   ┌───────────────┐   chat      │       │  LLM proxy            │       │                   │
+  │   │  Form Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
   │   └───────┬───────┘             │       │                       │       │                   │
   │           │                     │       └───────────────────────┘       └───────────────────┘
   │           │                     │
