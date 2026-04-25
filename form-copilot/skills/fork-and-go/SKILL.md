@@ -216,7 +216,7 @@ The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the 
 If the iframe fails to load:
 
 1. The dev server is not on port 3001. Re-run `npm run dev` without overrides.
-2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves: open `https://<companyIdentifier>.simplepdf.com/account/embed`, find the **Security** section, click **Whitelist origin**, paste the URL, save.
+2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves. Easiest path: just load `http://localhost:3001` in the browser once (the iframe will refuse to render, but the editor records the attempted origin), then open `https://<companyIdentifier>.simplepdf.com/account/embed`, scroll to **Security**, and the auto-detected origin will be there ready to one-click approve. Refresh the local page; the iframe now loads.
 
 Wait for them to confirm the editor renders.
 
@@ -260,12 +260,14 @@ Wait for them to confirm the deploy succeeded and they have a URL.
 
 ### Step 8: whitelist the deploy URL (CRITICAL: skip only if `Local only`)
 
-In the SimplePDF dashboard:
+The fastest path uses the editor's origin auto-detection:
 
-1. Open `https://<companyIdentifier>.simplepdf.com/account/embed` (replace `<companyIdentifier>` with their value from Q3).
-2. Scroll to the **Security** section.
-3. Click the **Whitelist origin** button and enter their deploy URL exactly: `https://my-app.example.com` (or whatever was assigned). Match the protocol (`https://`) and host without a trailing slash.
-4. Save.
+1. Open the deploy URL in a browser (e.g. `https://my-app.example.com`). The iframe will refuse to load because the origin isn't whitelisted yet, but the editor records the attempted origin server-side.
+2. In another tab, open `https://<companyIdentifier>.simplepdf.com/account/embed` (replace `<companyIdentifier>` with their value from Q3).
+3. Scroll to the **Security** section. The auto-detected origin from step 1 is listed there ready to approve. Click to whitelist it (no typing, no risk of protocol/trailing-slash mismatch).
+4. Refresh the deploy URL. The iframe now loads.
+
+If they prefer to whitelist before opening the deploy URL: the **Security** section also has a manual **Whitelist origin** button. Match the protocol (`https://`) and host without a trailing slash.
 
 Then open the deploy URL. The iframe should load. If not, the most likely causes:
 
