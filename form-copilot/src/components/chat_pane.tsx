@@ -1,6 +1,7 @@
 import { useChat } from '@ai-sdk/react'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
+import { ArrowUp } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
@@ -825,19 +826,7 @@ export const ChatPane = ({
             aria-label={t('chat.send')}
             className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 21L12 3M12 3L20.5 11.5M12 3L3.5 11.5" />
-            </svg>
+            <ArrowUp size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </form>
       </div>
