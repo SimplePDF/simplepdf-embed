@@ -39,8 +39,8 @@
     "architectureTitle": "Architecture",
     "architectureSubtext": "From chat to submission, the architecture is designed to keep documents and sensitive data under your control, not ours.",
     "architectureTabs": {
-      "demo": "Using the demo account",
-      "production": "Using your own SimplePDF account"
+      "demo": "For this demo",
+      "production": "In production"
     },
     "architectureDemoDescription": "This demo runs on a shared SimplePDF account. The browser hosts both Form Copilot and the SimplePDF editor (loaded in an iframe). Field data stays in the browser via postMessage client-side tool calls. Chat traffic flows through the demo's hosted server to a hosted AI provider (Anthropic Haiku 4.5 or DeepSeek V4), or browser-direct when you bring your own key. The SimplePDF server records only telemetry and metadata (rate-limit IP hashes, usage counters); it never sees the document content.",
     "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives metadata such as pre-signed upload URLs and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server. The webhook carries metadata only, never the document content.",
