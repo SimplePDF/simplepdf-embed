@@ -47,6 +47,19 @@ export const Dropdown = <T,>({
 
   const visibleItems: readonly T[] = search !== undefined && query !== '' ? search.filter(query) : items
 
+  // When the dropdown becomes disabled while open (e.g. the LanguagePicker
+  // disables on `isStreaming` and a tool-call retry keeps streaming true for
+  // a long stretch), the trigger button's HTML `disabled` attribute blocks
+  // its own onClick, leaving the panel visually open with no way to close it
+  // via the trigger. Auto-close matches the semantic of disabled ("no
+  // interactions") and is more predictable than relying on click-outside or
+  // Escape as the only escape hatches.
+  useEffect(() => {
+    if (disabled && isOpen) {
+      setIsOpen(false)
+    }
+  }, [disabled, isOpen])
+
   useEffect(() => {
     if (!isOpen) {
       return
