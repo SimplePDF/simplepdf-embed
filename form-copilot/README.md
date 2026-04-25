@@ -169,6 +169,36 @@ The architecture is deliberate:
 - **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
 - **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket, never to SimplePDF servers.
 
+### How it works in production
+
+```
+  ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐
+  │                                 │       │                 │       │                   │
+  │   ┌───────────────┐   chat      │       │   LLM proxy     │       │  Provider + keys  │
+  │   │  Form Copilot │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
+  │   └───────┬───────┘             │       │                 │       │                   │
+  │           │                     │       └─┬───────────────┘       └───────────────────┘
+  │           │                     │         ▲
+  │           │ ⇅ postMessage       │         │ webhook (optional)
+  │           │   (client-side      │         │
+  │           │    tool calls)      │         │
+  │           ▼                     │       ┌─┴─ SimplePDF server ───┐
+  │   ┌───────────────────────┐     │       │                        │
+  │   │                       │     │       │   · metadata only ·    │
+  │   │                       │ ────┼─────► │   pre-signed URLs      │
+  │   │                       │     │       │   never sees the doc   │
+  │   │   SimplePDF editor    │     │       └────────────────────────┘
+  │   │       (iframe)        │     │
+  │   │                       │     │
+  │   │                       │     │       ┌───────────── Your storage ─────────────┐
+  │   │                       │ ════┼══════►│                                        │
+  │   └───────────────────────┘     │       │  S3 / Azure Blob Storage / SharePoint  │
+  │                                 │       │  direct upload                         │
+  └─────────────────────────────────┘       └────────────────────────────────────────┘
+```
+
+Field data flows over `postMessage` between the chat sidebar and the editor iframe (both inside the same browser tab). Chat messages traverse your server, your AI stack, your logs. The SimplePDF server only sees pre-signed upload URLs (metadata, never document content). Completed PDFs go straight from the browser to your storage bucket; an optional webhook notifies your server when a submission lands.
+
 ## Scripts
 
 | Script | Purpose |
