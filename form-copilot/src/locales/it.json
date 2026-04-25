@@ -133,7 +133,7 @@
     "welcomeBody": "La tua chiave resta solo in questa scheda. Le richieste partono dal tuo browser verso il provider IA che scegli.",
     "welcomeCta": "Porta la tua API key",
     "welcomeInfoLink": "Come funziona Form Copilot",
-    "inputPlaceholderReady": "Chiedi a Form Copilot…",
+    "inputPlaceholderReady": "Parla con Form Copilot…",
     "inputPlaceholderWaiting": "Attendere prego…",
     "send": "Invia"
   },

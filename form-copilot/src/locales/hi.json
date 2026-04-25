@@ -133,7 +133,7 @@
     "welcomeBody": "आपकी कुंजी केवल इसी टैब में रहती है। अनुरोध आपके ब्राउज़र से आपके चुने हुए AI प्रदाता को भेजे जाते हैं।",
     "welcomeCta": "अपनी खुद की API कुंजी लाएँ",
     "welcomeInfoLink": "Form Copilot कैसे काम करता है",
-    "inputPlaceholderReady": "Form Copilot से पूछें…",
+    "inputPlaceholderReady": "Form Copilot से बात करें…",
     "inputPlaceholderWaiting": "कृपया प्रतीक्षा करें…",
     "send": "भेजें"
   },

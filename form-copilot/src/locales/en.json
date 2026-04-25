@@ -132,7 +132,7 @@
     "welcomeBody": "Your key stays in this tab only. Requests are sent from your browser to your selected AI provider.",
     "welcomeCta": "Bring your own API key",
     "welcomeInfoLink": "How Form Copilot works",
-    "inputPlaceholderReady": "Ask Form Copilot…",
+    "inputPlaceholderReady": "Talk to Form Copilot…",
     "inputPlaceholderWaiting": "Please wait…",
     "send": "Send"
   },

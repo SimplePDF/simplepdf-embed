@@ -133,7 +133,7 @@
     "welcomeBody": "您的密钥仅保留在本标签页中。请求会从您的浏览器直接发送到您选择的 AI 提供商。",
     "welcomeCta": "自带 API 密钥",
     "welcomeInfoLink": "Form Copilot 如何运作",
-    "inputPlaceholderReady": "询问 Form Copilot…",
+    "inputPlaceholderReady": "与 Form Copilot 交谈…",
     "inputPlaceholderWaiting": "请稍等…",
     "send": "发送"
   },

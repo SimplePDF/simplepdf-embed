@@ -133,7 +133,7 @@
     "welcomeBody": "Tu clave se queda solo en esta pestaña. Las peticiones se envían desde tu navegador al proveedor de IA que elijas.",
     "welcomeCta": "Usa tu propia clave API",
     "welcomeInfoLink": "Cómo funciona Form Copilot",
-    "inputPlaceholderReady": "Pregunta a Form Copilot…",
+    "inputPlaceholderReady": "Habla con Form Copilot…",
     "inputPlaceholderWaiting": "Espera, por favor…",
     "send": "Enviar"
   },

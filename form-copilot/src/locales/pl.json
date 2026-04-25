@@ -133,7 +133,7 @@
     "welcomeBody": "Twój klucz pozostaje tylko w tej karcie. Żądania są wysyłane z Twojej przeglądarki do wybranego dostawcy AI.",
     "welcomeCta": "Użyj własnego klucza API",
     "welcomeInfoLink": "Jak działa Form Copilot",
-    "inputPlaceholderReady": "Zapytaj Form Copilot…",
+    "inputPlaceholderReady": "Porozmawiaj z Form Copilot…",
     "inputPlaceholderWaiting": "Proszę czekać…",
     "send": "Wyślij"
   },

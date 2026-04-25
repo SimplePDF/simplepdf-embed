@@ -133,7 +133,7 @@
     "welcomeBody": "يبقى مفتاحك في هذه العلامة التبويبية فقط. تُرسل الطلبات من متصفحك إلى مزود الذكاء الاصطناعي الذي اخترته.",
     "welcomeCta": "استخدم مفتاح API الخاص بك",
     "welcomeInfoLink": "كيف يعمل Form Copilot",
-    "inputPlaceholderReady": "اسأل Form Copilot…",
+    "inputPlaceholderReady": "تحدّث مع Form Copilot…",
     "inputPlaceholderWaiting": "يرجى الانتظار…",
     "send": "إرسال"
   },

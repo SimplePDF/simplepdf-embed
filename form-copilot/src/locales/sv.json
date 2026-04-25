@@ -133,7 +133,7 @@
     "welcomeBody": "Din nyckel stannar endast i den här fliken. Förfrågningar skickas från din webbläsare till den AI-leverantör du väljer.",
     "welcomeCta": "Ta med din egen API-nyckel",
     "welcomeInfoLink": "Så fungerar Form Copilot",
-    "inputPlaceholderReady": "Fråga Form Copilot…",
+    "inputPlaceholderReady": "Prata med Form Copilot…",
     "inputPlaceholderWaiting": "Vänligen vänta…",
     "send": "Skicka"
   },

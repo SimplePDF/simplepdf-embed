@@ -133,7 +133,7 @@
     "welcomeBody": "Ihr Schlüssel bleibt nur in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",
     "welcomeCta": "Eigenen API-Schlüssel verwenden",
     "welcomeInfoLink": "So funktioniert Form Copilot",
-    "inputPlaceholderReady": "Form Copilot fragen…",
+    "inputPlaceholderReady": "Mit Form Copilot sprechen…",
     "inputPlaceholderWaiting": "Bitte warten…",
     "send": "Senden"
   },

@@ -133,7 +133,7 @@
     "welcomeBody": "Din nøgle bliver kun i denne fane. Forespørgsler sendes fra din browser til den valgte AI-udbyder.",
     "welcomeCta": "Medbring din egen API-nøgle",
     "welcomeInfoLink": "Sådan fungerer Form Copilot",
-    "inputPlaceholderReady": "Spørg Form Copilot…",
+    "inputPlaceholderReady": "Tal med Form Copilot…",
     "inputPlaceholderWaiting": "Vent venligst…",
     "send": "Send"
   },

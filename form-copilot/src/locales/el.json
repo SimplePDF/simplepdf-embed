@@ -133,7 +133,7 @@
     "welcomeBody": "Το κλειδί σας παραμένει μόνο σε αυτή την καρτέλα. Τα αιτήματα αποστέλλονται από τον περιηγητή σας στον πάροχο AI που επιλέξατε.",
     "welcomeCta": "Χρησιμοποιήστε το δικό σας κλειδί API",
     "welcomeInfoLink": "Πώς λειτουργεί το Form Copilot",
-    "inputPlaceholderReady": "Ρωτήστε το Form Copilot…",
+    "inputPlaceholderReady": "Μιλήστε με το Form Copilot…",
     "inputPlaceholderWaiting": "Παρακαλώ περιμένετε…",
     "send": "Αποστολή"
   },

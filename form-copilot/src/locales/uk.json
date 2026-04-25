@@ -133,7 +133,7 @@
     "welcomeBody": "Ваш ключ залишається лише в цій вкладці. Запити надсилаються з вашого браузера до обраного постачальника ШІ.",
     "welcomeCta": "Використайте власний ключ API",
     "welcomeInfoLink": "Як працює Form Copilot",
-    "inputPlaceholderReady": "Запитайте Form Copilot…",
+    "inputPlaceholderReady": "Поспілкуйтеся з Form Copilot…",
     "inputPlaceholderWaiting": "Зачекайте, будь ласка…",
     "send": "Надіслати"
   },
