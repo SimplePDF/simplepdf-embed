@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "AI, která uživatelům pomáhá vyplnit PDF formuláře krok za krokem",
+    "tagline": "AI, která pomáhá uživatelům vyplnit PDF formuláře krok za krokem",
     "whatIsThisDemo": "Co je toto demo?",
     "useCase": "Načtené PDF",
     "poweredBy": "Pohoní SimplePDF"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Vítejte ve Form Copilot",
+    "tagline": "<accent>AI, která pomáhá</accent> uživatelům vyplnit PDF formuláře krok za krokem",
     "getStarted": "Začít",
     "howItWorks": "Jak Form Copilot funguje",
     "close": "Zavřít uvítání"

@@ -157,6 +157,7 @@
   },
   "welcomeModal": {
     "title": "Welcome to Form Copilot",
+    "tagline": "<accent>AI that helps</accent> users fill PDF forms step by step",
     "getStarted": "Get started",
     "howItWorks": "How Form Copilot works",
     "close": "Close welcome"

@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Tervetuloa Form Copilotiin",
+    "tagline": "<accent>Tekoäly, joka auttaa</accent> käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
     "getStarted": "Aloita",
     "howItWorks": "Näin Form Copilot toimii",
     "close": "Sulje tervetulo"

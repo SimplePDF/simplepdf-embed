@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "ШІ, який крок за кроком допомагає користувачам заповнювати PDF-форми",
+    "tagline": "ШІ, який допомагає користувачам крок за кроком заповнювати PDF-форми",
     "whatIsThisDemo": "Що це за демо?",
     "useCase": "Завантажений PDF",
     "poweredBy": "Працює на SimplePDF"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Ласкаво просимо до Form Copilot",
+    "tagline": "<accent>ШІ, який допомагає</accent> користувачам крок за кроком заповнювати PDF-форми",
     "getStarted": "Почати",
     "howItWorks": "Як працює Form Copilot",
     "close": "Закрити привітання"

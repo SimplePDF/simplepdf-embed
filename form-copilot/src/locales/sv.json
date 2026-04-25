@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Välkommen till Form Copilot",
+    "tagline": "<accent>AI som hjälper</accent> användare att fylla i PDF-formulär steg för steg",
     "getStarted": "Kom igång",
     "howItWorks": "Så fungerar Form Copilot",
     "close": "Stäng välkomstmeddelande"

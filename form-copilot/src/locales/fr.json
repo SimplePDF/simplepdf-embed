@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "Une IA qui aide les utilisateurs à remplir des formulaires PDF étape par étape",
+    "tagline": "L’IA qui vous aide à remplir vos formulaires PDF, étape par étape",
     "whatIsThisDemo": "Qu’est-ce que cette démo ?",
     "useCase": "PDF chargé",
     "poweredBy": "Propulsé par SimplePDF"
@@ -30,9 +30,9 @@
     "aboutIntro": "SimplePDF est conçu dès le départ pour les workflows sensibles. Ces trois choix d’architecture expliquent pourquoi.",
     "aboutBullet1Title": "Traitement des documents dans le navigateur.",
     "aboutBullet1Body": "Les PDF sont modifiés localement sur votre appareil. Le contenu même du document n’est pas téléversé vers les serveurs SimplePDF.",
-    "aboutBullet2Title": "Apportez votre propre IA.",
+    "aboutBullet2Title": "Utilisez votre propre IA.",
     "aboutBullet2Body": "En production, branchez votre propre fournisseur, vos clés, vos pipelines RAG et vos données internes, pour que le trafic reste entre votre serveur et votre stack IA.",
-    "aboutBullet3Title": "Apportez votre propre stockage.",
+    "aboutBullet3Title": "Utilisez votre propre stockage.",
     "aboutBullet3Body": "Les documents finalisés sont envoyés directement depuis le navigateur vers votre stockage, ce qui garantit que les données sensibles restent dans votre infrastructure.",
     "useCasesTitle": "Exemples de workflows",
     "useCasesFooter": "Sélectionnez un workflow ci-dessus pour charger un autre formulaire.",
@@ -70,11 +70,11 @@
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "En attente du chargement de l’éditeur…",
     "subtitleNoDocument": "Chargez d’abord un document",
-    "subtitleNoModel": "Apportez votre propre IA pour discuter",
+    "subtitleNoModel": "Utilisez votre propre IA pour discuter",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Changer de modèle IA",
     "modelPicker": {
-      "title": "Apportez votre propre IA",
+      "title": "Utilisez votre propre IA",
       "currentlyUsedSectionTitle": "Actuellement utilisé",
       "demoRateLimitedBadge": "démo · usage plafonné",
       "byokIntro": "Choisissez un fournisseur et collez votre clé pour chatter à travers lui.",
@@ -131,7 +131,7 @@
     "errorGenericTitle": "Erreur complète",
     "welcomeTitle": "Essayez Form Copilot avec votre propre IA",
     "welcomeBody": "Vos identifiants restent dans cet onglet. Les requêtes partent de votre navigateur vers le fournisseur d’IA que vous avez choisi.",
-    "welcomeCta": "Apporter votre propre IA",
+    "welcomeCta": "Utiliser votre propre IA",
     "welcomeInfoLink": "Comment fonctionne Form Copilot",
     "inputPlaceholderReady": "Discuter avec Form Copilot…",
     "send": "Envoyer"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Bienvenue sur Form Copilot",
+    "tagline": "<accent>L’IA qui vous aide</accent> à remplir vos formulaires PDF, étape par étape",
     "getStarted": "Commencer",
     "howItWorks": "Comment fonctionne Form Copilot",
     "close": "Fermer le message de bienvenue"

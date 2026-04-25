@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Tere tulemast Form Copilotisse",
+    "tagline": "<accent>Tehisintellekt, mis aitab</accent> kasutajatel samm-sammult PDF-vorme täita",
     "getStarted": "Alusta",
     "howItWorks": "Kuidas Form Copilot töötab",
     "close": "Sulge tervitus"

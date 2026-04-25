@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "Kullanıcıların PDF formlarını adım adım doldurmasına yardımcı olan yapay zeka",
+    "tagline": "Yardımcı olan yapay zeka, kullanıcılar PDF formlarını adım adım doldursun diye",
     "whatIsThisDemo": "Bu demo nedir?",
     "useCase": "Yüklenmiş PDF",
     "poweredBy": "SimplePDF tarafından güçlendirilmiştir"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Form Copilot’a hoş geldiniz",
+    "tagline": "<accent>Yardımcı olan yapay zeka</accent>, kullanıcılar PDF formlarını adım adım doldursun diye",
     "getStarted": "Başla",
     "howItWorks": "Form Copilot nasıl çalışır",
     "close": "Karşılamayı kapat"

@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "帮助用户逐步填写 PDF 表单的 AI",
+    "tagline": "AI 帮助用户逐步填写 PDF 表单",
     "whatIsThisDemo": "这个演示是什么？",
     "useCase": "已加载的 PDF",
     "poweredBy": "由 SimplePDF 提供支持"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "欢迎使用 Form Copilot",
+    "tagline": "<accent>AI 帮助</accent>用户逐步填写 PDF 表单",
     "getStarted": "开始使用",
     "howItWorks": "Form Copilot 如何运作",
     "close": "关闭欢迎"

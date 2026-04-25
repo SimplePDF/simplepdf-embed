@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "AI जो उपयोगकर्ताओं को चरण-दर-चरण PDF फ़ॉर्म भरने में मदद करता है",
+    "tagline": "AI जो मदद करता है उपयोगकर्ताओं को चरण-दर-चरण PDF फ़ॉर्म भरने में",
     "whatIsThisDemo": "यह डेमो क्या है?",
     "useCase": "लोड किया गया PDF",
     "poweredBy": "SimplePDF द्वारा संचालित"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Form Copilot में आपका स्वागत है",
+    "tagline": "<accent>AI जो मदद करता है</accent> उपयोगकर्ताओं को चरण-दर-चरण PDF फ़ॉर्म भरने में",
     "getStarted": "शुरू करें",
     "howItWorks": "Form Copilot कैसे काम करता है",
     "close": "स्वागत बंद करें"

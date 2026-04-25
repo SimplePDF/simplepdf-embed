@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Bun venit în Form Copilot",
+    "tagline": "<accent>AI care ajută</accent> utilizatorii să completeze formulare PDF pas cu pas",
     "getStarted": "Începe",
     "howItWorks": "Cum funcționează Form Copilot",
     "close": "Închide salutul"

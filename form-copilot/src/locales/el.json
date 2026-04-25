@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Καλώς ήρθατε στο Form Copilot",
+    "tagline": "<accent>AI που βοηθά</accent> τους χρήστες να συμπληρώνουν φόρμες PDF βήμα βήμα",
     "getStarted": "Ξεκινήστε",
     "howItWorks": "Πώς λειτουργεί το Form Copilot",
     "close": "Κλείσιμο καλωσορίσματος"

@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "ברוכים הבאים ל־Form Copilot",
+    "tagline": "<accent>בינה מלאכותית שמסייעת</accent> למשתמשים למלא טפסי PDF צעד אחר צעד",
     "getStarted": "להתחיל",
     "howItWorks": "איך Form Copilot עובד",
     "close": "סגירת ברכת קבלת הפנים"

@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "AI die gebruikers stap voor stap helpt PDF-formulieren in te vullen",
+    "tagline": "AI die helpt gebruikers PDF-formulieren stap voor stap in te vullen",
     "whatIsThisDemo": "Wat is deze demo?",
     "useCase": "Geladen PDF",
     "poweredBy": "Mogelijk gemaakt door SimplePDF"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Welkom bij Form Copilot",
+    "tagline": "<accent>AI die helpt</accent> gebruikers PDF-formulieren stap voor stap in te vullen",
     "getStarted": "Aan de slag",
     "howItWorks": "Hoe Form Copilot werkt",
     "close": "Welkom sluiten"

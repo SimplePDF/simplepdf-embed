@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "KI, die Benutzern Schritt für Schritt beim Ausfüllen von PDF-Formularen hilft",
+    "tagline": "KI, die hilft, PDF-Formulare Schritt für Schritt auszufüllen",
     "whatIsThisDemo": "Was ist diese Demo?",
     "useCase": "Geladene PDF",
     "poweredBy": "Unterstützt von SimplePDF"
@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "Willkommen bei Form Copilot",
+    "tagline": "<accent>KI, die hilft</accent>, PDF-Formulare Schritt für Schritt auszufüllen",
     "getStarted": "Loslegen",
     "howItWorks": "So funktioniert Form Copilot",
     "close": "Begrüßung schließen"

@@ -158,6 +158,7 @@
   },
   "welcomeModal": {
     "title": "مرحبًا بك في Form Copilot",
+    "tagline": "<accent>ذكاء اصطناعي يساعد</accent> المستخدمين على تعبئة نماذج PDF خطوة بخطوة",
     "getStarted": "ابدأ الآن",
     "howItWorks": "كيف يعمل Form Copilot",
     "close": "إغلاق الترحيب"
