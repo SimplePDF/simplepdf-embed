@@ -33,7 +33,7 @@ AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
 
 <p align="center">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License: MIT"></a>
-  <a href="https://simplepdf.com/pricing"><img src="https://img.shields.io/badge/SimplePDF-Premium-amber" alt="Powered by SimplePDF Premium"></a>
+  <a href="https://simplepdf.com/pricing"><img src="https://img.shields.io/badge/SimplePDF-Pro-amber" alt="Powered by SimplePDF Pro"></a>
 </p>
 
 ---
@@ -46,7 +46,7 @@ Fork it, drop in your own `companyIdentifier`, wire up your AI provider, and shi
 
 ## See it live
 
-The hosted demo at **<https://form-copilot.simplepdf.com>** runs on SimplePDF [**Premium**](https://simplepdf.com/pricing). It relies on two Premium-only capabilities:
+The hosted demo at **<https://form-copilot.simplepdf.com>** runs on SimplePDF [**Pro**](https://simplepdf.com/pricing). It relies on two capabilities available on the Pro plan and above:
 
 - **White-labelling**: embed the editor with your own chrome (no SimplePDF branding)
 - **Programmatic control**: drive the editor over the iframe `postMessage` API (load documents, fill fields, switch tools, submit)
@@ -118,11 +118,11 @@ See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limi
 
 ### Ship it on your own domain
 
-Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Premium](https://simplepdf.com/pricing) account so that:
+Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Pro](https://simplepdf.com/pricing) account (or higher) so that:
 
 1. You get your own `companyIdentifier`
 2. You can whitelist your serving origin in the SimplePDF dashboard
-3. White-labelling and programmatic control (Premium-only) are enabled on your account
+3. White-labelling and programmatic control (Pro and above) are enabled on your account
 
 Then in `.env`:
 
@@ -138,7 +138,7 @@ For multi-container deployments (or any deploy where you want per-IP rate-limit 
 
 The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/form-copilot`. DigitalOcean prompts you for the env vars at setup time:
 
-- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF Premium company subdomain
+- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF company subdomain (Pro plan or higher)
 - `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
 - `REDIS_URL` (optional secret): a Redis-protocol connection URL (Valkey on DO Managed Caching works as-is). Required for multi-container deployments where per-IP rate-limit counters must be shared. Leave empty for single-instance / BYOK-only.
 - `IP_HASH_SALT` (required when `REDIS_URL` is set): salts the SHA-256 IP hash so persisted snapshots aren't brute-forceable. Generate with `openssl rand -hex 32`.

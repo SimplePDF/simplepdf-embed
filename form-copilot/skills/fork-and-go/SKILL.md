@@ -1,10 +1,10 @@
 # Fork and Go
 
-A guided walkthrough for SimplePDF Premium customers forking and deploying their own Form Copilot.
+A guided walkthrough for SimplePDF Pro customers forking and deploying their own Form Copilot.
 
 ## Purpose
 
-Walk a developer through forking the Form Copilot reference implementation into their own product. Covers hosting choice, Premium-account confirmation, AI-provider wiring, demo customization, deploy, and the SimplePDF whitelist step. End state: a running Form Copilot at their chosen URL, talking to their AI provider, whitelisted on their account.
+Walk a developer through forking the Form Copilot reference implementation into their own product. Covers hosting choice, Pro-account confirmation, AI-provider wiring, demo customization, deploy, and the SimplePDF whitelist step. End state: a running Form Copilot at their chosen URL, talking to their AI provider, whitelisted on their account.
 
 ## Triggers
 
@@ -40,7 +40,7 @@ If a section asks more than one thing, ask the FIRST one only and remember the r
 
 Forbidden patterns:
 
-- "Where will you host this? And do you have Premium?" → 2 questions. Forbidden.
+- "Where will you host this? And do you have Pro?" → 2 questions. Forbidden.
 - "Once you tell me X, I'll need Y and Z." → previewing future questions counts as asking them. Forbidden.
 - A bulleted list of 3 things to confirm → 3 questions. Forbidden.
 - "Local or hosted, and if hosted, which platform?" → 2 questions. Ask only the first.
@@ -89,22 +89,22 @@ Use `AskUserQuestion`:
 
 DO NOT proceed until they answer.
 
-### Q2: Premium account
+### Q2: Pro account
 
 After Q1, use `AskUserQuestion`:
 
-- **Question:** Form Copilot needs a SimplePDF Premium account for white-labeling and programmatic control. Do you have one?
+- **Question:** Form Copilot is available on the SimplePDF Pro plan and above (white-labelling and programmatic control are gated there). Do you have a Pro account or higher?
 - **Header:** `Plan`
 - **Options:**
-  - `Yes, I have Premium`: _"Great, we'll wire it up with your companyIdentifier next."_
-  - `No, but I'll get one`: _"Sign up at https://simplepdf.com/auth/signup and pick the Premium plan. I'll wait."_
-  - `Just exploring`: _"Local-only is fine without Premium (the demo workspace whitelists `localhost:3001`). Hosted deploy is gated on Premium."_
+  - `Yes, I have Pro or higher`: _"Great, we'll wire it up with your companyIdentifier next."_
+  - `No, but I'll get one`: _"Sign up at https://simplepdf.com/auth/signup and pick the Pro plan (or higher). I'll wait."_
+  - `Just exploring`: _"Local-only is fine without a Pro account (the demo workspace whitelists `localhost:3001`). Hosted deploy is gated on Pro."_
 
-If they pick `No, but I'll get one`: provide the link and pause until they confirm. If `Just exploring`: set the expectation clearly that local-only works but hosted requires Premium, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
+If they pick `No, but I'll get one`: provide the link and pause until they confirm. If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
 
 ### Q3: companyIdentifier
 
-If they have or will have Premium, ask in plain text (no `AskUserQuestion`):
+If they have or will have Pro (or higher), ask in plain text (no `AskUserQuestion`):
 
 _"What's your SimplePDF companyIdentifier? It's the subdomain piece of `<companyIdentifier>.simplepdf.com`. You'll find it in your dashboard at https://simplepdf.com/account/settings."_
 
