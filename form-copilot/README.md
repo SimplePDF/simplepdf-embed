@@ -81,6 +81,9 @@ Browser
 
 ## Getting started
 
+> [!TIP]
+> Using Claude Code, Codex, or another agentic coding tool? Point it at [`skills/fork-and-go/SKILL.md`](./skills/fork-and-go/SKILL.md) and it will walk you through the entire fork → configure → deploy journey one question at a time. The skill is tool-agnostic markdown; works anywhere your AI assistant can read project files.
+
 ### Run the demo locally (no SimplePDF account needed)
 
 > [!TIP]
