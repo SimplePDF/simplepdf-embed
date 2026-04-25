@@ -826,7 +826,7 @@ export const ChatPane = ({
             aria-label={t('chat.send')}
             className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            <ArrowUp size={18} strokeWidth={1.5} aria-hidden="true" />
+            <ArrowUp size={18} strokeWidth={3} aria-hidden="true" />
           </button>
         </form>
       </div>
