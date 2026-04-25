@@ -15,12 +15,17 @@ type ToolInvocationGroupProps = {
 
 export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
   const { t } = useTranslation()
-  const [isManuallyExpanded, setIsManuallyExpanded] = useState(false)
+  // null = no user interaction yet → auto-expand on error. Once the user
+  // clicks the disclosure, their choice (true/false) wins, even if another
+  // error arrives later. Trades "force the user to see new errors" for
+  // "respect the explicit collapse" — losing the auto-expand on subsequent
+  // errors is recoverable (one click), being unable to collapse is not.
+  const [userOverride, setUserOverride] = useState<boolean | null>(null)
   const hasError = parts.some((part) => part.state === 'output-error')
   const isAnyRunning = parts.some(
     (part) => part.state === 'input-streaming' || part.state === 'input-available',
   )
-  const isExpanded = isManuallyExpanded || hasError
+  const isExpanded = userOverride ?? hasError
   const groupedIconClassName = hasError ? 'text-rose-500' : 'text-slate-500'
 
   if (parts.length === 1) {
@@ -32,7 +37,7 @@ export const ToolInvocationGroup = ({ parts }: ToolInvocationGroupProps) => {
     <div className="my-2 rounded-md border border-slate-200 bg-slate-50">
       <button
         type="button"
-        onClick={() => setIsManuallyExpanded((open) => !open)}
+        onClick={() => setUserOverride(!isExpanded)}
         aria-expanded={isExpanded}
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-100"
       >
