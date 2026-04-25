@@ -124,12 +124,12 @@ export const Route = createFileRoute('/api/chat')({
         })
         // Fail-closed: any throw from rateLimiter.check surfaces as 503 so we
         // never serve the LLM when the cost control is unreliable.
-        const decision = ((): ReturnType<typeof rateLimiter.check> | null => {
+        const decision = await (async () => {
           if (!charged) {
             return null
           }
           try {
-            return rateLimiter.check({
+            return await rateLimiter.check({
               bucket: resolution.bucket,
               ipHash,
               lifetime: resolution.lifetime,
@@ -137,7 +137,7 @@ export const Route = createFileRoute('/api/chat')({
           } catch (error) {
             const detail = normalizeError(error)
             monitoring.error('rate_limit.check_threw', { ip_hash: ipHash, detail })
-            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` } as const
           }
         })()
         if (decision !== null && !decision.allowed) {

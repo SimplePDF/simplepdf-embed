@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { z } from 'zod'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
@@ -86,32 +87,44 @@ export const Route = createFileRoute('/')({
   loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.shareId } }),
 })
 
-// Both env vars are required at build time. No defaults: a misconfigured
-// deployment MUST fail loudly instead of silently pointing at production
-// SimplePDF with a shared company identifier.
-const COMPANY_IDENTIFIER = ((): string => {
-  const raw = import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
-  if (typeof raw !== 'string' || raw.trim() === '') {
-    throw new Error('VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)')
+// Trim incoming env strings, treat empty as missing. Outputs `string | undefined`.
+const TrimmedOptionalString = z.preprocess((val) => {
+  if (typeof val !== 'string') {
+    return undefined
   }
-  return raw.trim()
+  const trimmed = val.trim()
+  return trimmed === '' ? undefined : trimmed
+}, z.string().min(1).optional())
+
+// The company identifier is the only required env var. A missing value MUST
+// fail loudly at startup instead of silently pointing at production SimplePDF
+// with the demo's shared identifier (which would either succeed and bill the
+// demo workspace, or fail at iframe-load time with a confusing whitelist
+// error). Base domain defaults to https://simplepdf.com; the DEV override
+// exists for pointing the iframe at a local SimplePDF dev checkout.
+const ClientEnvSchema = z.object({
+  VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim() : val),
+    z.string().min(1, 'VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)'),
+  ),
+  VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE: TrimmedOptionalString.pipe(z.url().optional()),
+})
+
+const DEFAULT_BASE_DOMAIN = 'https://simplepdf.com'
+
+const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
+  const result = ClientEnvSchema.safeParse({
+    VITE_SIMPLEPDF_COMPANY_IDENTIFIER: import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER,
+    VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE: import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE,
+  })
+  if (!result.success) {
+    throw new Error(`Client env invalid:\n${z.prettifyError(result.error)}`)
+  }
+  return result.data
 })()
 
-// Full base URL (protocol + host + optional port). The company identifier is
-// spliced in as a subdomain when building the iframe origin. Useful for
-// pointing the example at a local dev checkout of the SimplePDF editor
-// (e.g. `http://simplepdf.nil:3105`) without touching the source.
-const BASE_DOMAIN_URL = ((): URL => {
-  const raw = import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN
-  if (typeof raw !== 'string' || raw.trim() === '') {
-    throw new Error('VITE_SIMPLEPDF_BASE_DOMAIN is required (see .env.example)')
-  }
-  try {
-    return new URL(raw.trim())
-  } catch {
-    throw new Error(`VITE_SIMPLEPDF_BASE_DOMAIN is not a valid URL: ${raw}`)
-  }
-})()
+const COMPANY_IDENTIFIER = clientEnv.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
+const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE ?? DEFAULT_BASE_DOMAIN)
 const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
 
 // Locales the SimplePDF editor can render via i18n path-prefix routing.

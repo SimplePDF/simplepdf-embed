@@ -86,18 +86,19 @@ Browser
 > [!TIP]
 > The demo runs **as-is** against the SimplePDF workspace that powers <https://form-copilot.simplepdf.com>. That workspace whitelists `http://localhost:3001` (the default dev-server port), so the embedded editor loads without you having to create an account.
 >
-> Drop these into your `.env`:
+> Drop this into your `.env`:
 >
 > ```env
 > VITE_SIMPLEPDF_COMPANY_IDENTIFIER=form-copilot
-> VITE_SIMPLEPDF_BASE_DOMAIN=https://simplepdf.com
 > ```
+>
+> The base domain defaults to `https://simplepdf.com`. Override only if you're pointing at a non-production SimplePDF host (`VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE`).
 
 Then:
 
 ```sh
 npm install
-cp .env.example .env      # then set the two VITE_* values above
+cp .env.example .env      # then set VITE_SIMPLEPDF_COMPANY_IDENTIFIER as above
 npm run dev               # http://localhost:3001
 ```
 
@@ -124,10 +125,11 @@ Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL
 
 Then in `.env`:
 
-- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER`: your company subdomain
-- `VITE_SIMPLEPDF_BASE_DOMAIN`: `https://simplepdf.com`
+- `VITE_SIMPLEPDF_COMPANY_IDENTIFIER`: your company subdomain (the only required env var; base domain defaults to `https://simplepdf.com`)
 
 The iframe will refuse to load on origins that aren't whitelisted, so add your serving origin (e.g. `https://app.example.com`) before deploying.
+
+For multi-container deployments (or any deploy where you want per-IP rate-limit counters to survive restarts), set `REDIS_URL` to a Redis-protocol-compatible instance (Valkey on DO Managed Caching is the canonical fit at $15/mo). When `REDIS_URL` is set, `IP_HASH_SALT` is also required (the server refuses to boot otherwise) so the persisted hashes can't be brute-forced against a leaked snapshot. Generate one with `openssl rand -hex 32`. Without `REDIS_URL`, counters live in memory per container, which is fine for local dev, single-instance hosts, or BYOK-only deployments.
 
 #### One-click deploy to DigitalOcean
 
@@ -136,8 +138,9 @@ The iframe will refuse to load on origins that aren't whitelisted, so add your s
 The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/form-copilot`. DigitalOcean prompts you for the env vars at setup time:
 
 - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF Premium company subdomain
-- `VITE_SIMPLEPDF_BASE_DOMAIN` (default `https://simplepdf.com`)
 - `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
+- `REDIS_URL` (optional secret): a Redis-protocol connection URL (Valkey on DO Managed Caching works as-is). Required for multi-container deployments where per-IP rate-limit counters must be shared. Leave empty for single-instance / BYOK-only.
+- `IP_HASH_SALT` (required when `REDIS_URL` is set): salts the SHA-256 IP hash so persisted snapshots aren't brute-forceable. Generate with `openssl rand -hex 32`.
 
 Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 

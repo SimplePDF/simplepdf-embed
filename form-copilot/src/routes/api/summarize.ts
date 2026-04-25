@@ -90,9 +90,9 @@ export const Route = createFileRoute('/api/summarize')({
             { status: 503 },
           )
         }
-        const decision = ((): ReturnType<typeof rateLimiter.check> => {
+        const decision = await (async () => {
           try {
-            return rateLimiter.check({
+            return await rateLimiter.check({
               bucket: resolution.bucket,
               ipHash,
               lifetime: resolution.lifetime,
@@ -100,7 +100,7 @@ export const Route = createFileRoute('/api/summarize')({
           } catch (error) {
             const detail = normalizeError(error)
             monitoring.error('summarize.rate_limit_threw', { ip_hash: ipHash, detail })
-            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` } as const
           }
         })()
         if (!decision.allowed) {

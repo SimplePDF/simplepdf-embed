@@ -17,10 +17,12 @@ spec:
         - key: VITE_SIMPLEPDF_COMPANY_IDENTIFIER
           scope: BUILD_TIME
           type: GENERAL
-        - key: VITE_SIMPLEPDF_BASE_DOMAIN
-          value: https://simplepdf.com
-          scope: BUILD_TIME
-          type: GENERAL
         - key: SHARED_API_KEYS
+          scope: RUN_TIME
+          type: SECRET
+        - key: REDIS_URL
+          scope: RUN_TIME
+          type: SECRET
+        - key: IP_HASH_SALT
           scope: RUN_TIME
           type: SECRET

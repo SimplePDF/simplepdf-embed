@@ -1,9 +1,51 @@
+import Redis from 'ioredis'
+import { z } from 'zod'
 import { monitoring, normalizeError } from '../lib/monitoring'
-import { type PersistedState, persistence } from './rate_limit_persistence'
 
-type BucketState = {
-  hits: number
-}
+// Trim incoming env strings, treat empty as missing (some hosts inject empty
+// strings instead of leaving the key unset). Outputs `string | undefined`.
+const TrimmedOptionalString = z.preprocess((val) => {
+  if (typeof val !== 'string') {
+    return undefined
+  }
+  const trimmed = val.trim()
+  return trimmed === '' ? undefined : trimmed
+}, z.string().min(1).optional())
+
+// REDIS_URL is the standard ecosystem name (Heroku, ioredis docs, every
+// Redis-compatible service). Works as-is with Valkey on DO Managed Caching
+// because Valkey is protocol-compatible. The URL contains the password
+// inline (e.g. `rediss://default:<password>@host:25061/0`) so it must be
+// stored as a secret.
+const ServerRateLimitEnvSchema = z
+  .object({
+    REDIS_URL: TrimmedOptionalString,
+    IP_HASH_SALT: TrimmedOptionalString,
+  })
+  .superRefine((data, ctx) => {
+    if (data.REDIS_URL !== undefined && data.IP_HASH_SALT === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['IP_HASH_SALT'],
+        message:
+          'IP_HASH_SALT is required when REDIS_URL is set. Without a salt, the ' +
+          'per-IP rate-limit keys in Redis (rl:<share>:<hash>) are crackable ' +
+          'against a leaked snapshot. Generate one with `openssl rand -hex 32` ' +
+          'and redeploy.',
+      })
+    }
+  })
+
+const rateLimitEnv = ((): z.infer<typeof ServerRateLimitEnvSchema> => {
+  const result = ServerRateLimitEnvSchema.safeParse({
+    REDIS_URL: process.env.REDIS_URL,
+    IP_HASH_SALT: process.env.IP_HASH_SALT,
+  })
+  if (!result.success) {
+    throw new Error(`Rate-limit env invalid:\n${z.prettifyError(result.error)}`)
+  }
+  return result.data
+})()
 
 export type RateLimitDecision =
   | { allowed: true; remaining: number }
@@ -16,132 +58,134 @@ export type RateLimitInput = {
   lifetime: number
 }
 
-// Fail-closed hydration state. Persistence-enabled deployments must complete
-// the S3 load before the limiter accepts traffic; otherwise a returning
-// visitor with an exhausted budget would see their counter reset on every
-// cold start. Tracked as a tagged union so the check() call site can fail
-// loudly with context.
-type HydrationState = { kind: 'pending' } | { kind: 'ready' } | { kind: 'failed'; detail: string }
-
-// Nested map: bucketName -> ipHash -> BucketState. Each share id owns its own
-// per-IP counters so different invites track independently.
-const createEmptyBuckets = (): Map<string, Map<string, BucketState>> => new Map()
-
-export const createRateLimiter = () => {
-  const buckets = createEmptyBuckets()
-
-  const getOrCreate = (bucket: string, ipHash: string): BucketState => {
-    const innerMap = ((): Map<string, BucketState> => {
-      const existing = buckets.get(bucket)
-      if (existing !== undefined) {
-        return existing
-      }
-      const fresh = new Map<string, BucketState>()
-      buckets.set(bucket, fresh)
-      return fresh
-    })()
-    const existingState = innerMap.get(ipHash)
-    if (existingState !== undefined) {
-      return existingState
-    }
-    const freshState: BucketState = { hits: 0 }
-    innerMap.set(ipHash, freshState)
-    return freshState
-  }
-
-  // Hydrate from persisted state (DO Spaces) in the background. Until
-  // hydration completes, the limiter rejects requests with `system_failure`
-  // so a returning visitor with an exhausted budget doesn't get a free cold
-  // counter. If the S3 load itself fails, the limiter stays in the failed
-  // state until the process restarts; the operator must fix the config (or
-  // disable persistence) rather than silently accept degraded correctness.
-  let hydration: HydrationState = persistence.enabled ? { kind: 'pending' } : { kind: 'ready' }
-  if (persistence.enabled) {
-    void persistence
-      .load()
-      .then((state) => {
-        if (state !== null) {
-          for (const entry of state.entries) {
-            const current = getOrCreate(entry.bucket, entry.ipHash)
-            current.hits = Math.max(current.hits, entry.hits)
-          }
-        }
-        hydration = { kind: 'ready' }
-        monitoring.info('rate_limit.hydrated', { entries: state?.entries.length ?? 0 })
-      })
-      .catch((error: unknown) => {
-        const detail = normalizeError(error)
-        hydration = { kind: 'failed', detail }
-        monitoring.error('rate_limit.hydration_failed', { detail })
-      })
-  }
-
-  const snapshotState = (): PersistedState => {
-    const entries: PersistedState['entries'] = []
-    for (const [bucket, inner] of buckets) {
-      for (const [ipHash, { hits }] of inner) {
-        entries.push({ bucket, ipHash, hits })
-      }
-    }
-    return { version: 1, updatedAt: Date.now(), entries }
-  }
-
-  const check = ({ bucket, ipHash, lifetime }: RateLimitInput): RateLimitDecision => {
-    switch (hydration.kind) {
-      case 'pending':
-        return { allowed: false, reason: 'system_failure', detail: 'hydration_pending' }
-      case 'failed':
-        return { allowed: false, reason: 'system_failure', detail: `hydration_failed:${hydration.detail}` }
-      case 'ready':
-        break
-      default:
-        hydration satisfies never
-        return { allowed: false, reason: 'system_failure', detail: 'unreachable' }
-    }
-    if (!Number.isFinite(lifetime) || lifetime <= 0) {
-      return {
-        allowed: false,
-        reason: 'system_failure',
-        detail: `invalid_lifetime:${String(lifetime)}`,
-      }
-    }
-
-    const state = getOrCreate(bucket, ipHash)
-
-    if (state.hits >= lifetime) {
-      return { allowed: false, reason: 'lifetime' }
-    }
-
-    state.hits += 1
-
-    if (persistence.enabled) {
-      persistence.scheduleWrite(snapshotState())
-    }
-
-    return {
-      allowed: true,
-      remaining: lifetime - state.hits,
-    }
-  }
-
-  const isReady = (): boolean => hydration.kind === 'ready'
-
-  const statusDetail = (): string => {
-    switch (hydration.kind) {
-      case 'pending':
-        return 'hydration_pending'
-      case 'failed':
-        return `hydration_failed:${hydration.detail}`
-      case 'ready':
-        return 'ready'
-      default:
-        hydration satisfies never
-        return 'unreachable'
-    }
-  }
-
-  return { check, isReady, statusDetail }
+export type RateLimiter = {
+  check: (input: RateLimitInput) => Promise<RateLimitDecision>
+  isReady: () => boolean
+  statusDetail: () => string
 }
+
+const validateLifetime = (lifetime: number): { ok: true } | { ok: false; detail: string } => {
+  if (!Number.isFinite(lifetime) || lifetime <= 0) {
+    return { ok: false, detail: `invalid_lifetime:${String(lifetime)}` }
+  }
+  return { ok: true }
+}
+
+// In-memory limiter for deployments without REDIS_URL (BYOK-only mode, local
+// dev, single-instance hosts that don't justify a managed cache). Counters
+// reset on every restart, which is fine because there is no shared-key
+// traffic in this mode.
+const createInMemoryLimiter = (): RateLimiter => {
+  const buckets = new Map<string, Map<string, number>>()
+
+  const getOrCreateInner = (bucket: string): Map<string, number> => {
+    const existing = buckets.get(bucket)
+    if (existing !== undefined) {
+      return existing
+    }
+    const fresh = new Map<string, number>()
+    buckets.set(bucket, fresh)
+    return fresh
+  }
+
+  return {
+    check: async ({ bucket, ipHash, lifetime }) => {
+      const validated = validateLifetime(lifetime)
+      if (!validated.ok) {
+        return { allowed: false, reason: 'system_failure', detail: validated.detail }
+      }
+      const inner = getOrCreateInner(bucket)
+      // Check before increment so a rate-limited IP doesn't bloat its counter
+      // unbounded on retry; if the operator later raises the lifetime cap,
+      // the IP unlocks at the new threshold instead of staying stuck.
+      const current = inner.get(ipHash) ?? 0
+      if (current >= lifetime) {
+        return { allowed: false, reason: 'lifetime' }
+      }
+      const next = current + 1
+      inner.set(ipHash, next)
+      return { allowed: true, remaining: lifetime - next }
+    },
+    isReady: () => true,
+    statusDetail: () => 'ready:in_memory',
+  }
+}
+
+// Redis-protocol limiter (Valkey, Redis, KeyDB, anything compatible). Atomic
+// INCR per `(bucket, ipHash)` with no TTL — lifetime caps are persistent by
+// design and don't reset until the operator clears them out of band. On a
+// connection loss, check() returns system_failure and the chat handler's
+// fail-closed guard returns 503.
+const createRedisLimiter = (url: string): RateLimiter => {
+  const client = new Redis(url, {
+    // Fail fast on transient errors so the fail-closed guard kicks in
+    // quickly rather than queuing chat requests behind a long retry chain.
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+    // Don't crash the process on disconnect; the limiter surfaces unready
+    // state via isReady() and check() returns system_failure.
+    lazyConnect: false,
+  })
+
+  let lastError: string | null = null
+
+  client.on('error', (error) => {
+    lastError = normalizeError(error)
+    monitoring.error('rate_limit.redis_error', { detail: lastError })
+  })
+
+  client.on('ready', () => {
+    lastError = null
+    monitoring.info('rate_limit.redis_ready', {})
+  })
+
+  const buildKey = (bucket: string, ipHash: string): string => `rl:${bucket}:${ipHash}`
+
+  return {
+    check: async ({ bucket, ipHash, lifetime }) => {
+      const validated = validateLifetime(lifetime)
+      if (!validated.ok) {
+        return { allowed: false, reason: 'system_failure', detail: validated.detail }
+      }
+      if (client.status !== 'ready') {
+        return {
+          allowed: false,
+          reason: 'system_failure',
+          detail: `redis_not_ready:${client.status}`,
+        }
+      }
+      try {
+        const next = await client.incr(buildKey(bucket, ipHash))
+        if (next > lifetime) {
+          // Roll back the overshoot so a rate-limited IP doesn't grow its
+          // counter unbounded on retry. Concurrent overshoots may transiently
+          // settle slightly above lifetime, but the counter doesn't drift.
+          await client.decr(buildKey(bucket, ipHash))
+          return { allowed: false, reason: 'lifetime' }
+        }
+        return { allowed: true, remaining: lifetime - next }
+      } catch (error) {
+        const detail = normalizeError(error)
+        return { allowed: false, reason: 'system_failure', detail: `redis_incr_failed:${detail}` }
+      }
+    },
+    isReady: () => client.status === 'ready',
+    statusDetail: () => {
+      const base = `redis:${client.status}`
+      return lastError === null ? base : `${base}:last_error=${lastError}`
+    },
+  }
+}
+
+const createRateLimiter = (): RateLimiter => {
+  if (rateLimitEnv.REDIS_URL === undefined) {
+    monitoring.info('rate_limit.in_memory_mode', {})
+    return createInMemoryLimiter()
+  }
+  return createRedisLimiter(rateLimitEnv.REDIS_URL)
+}
+
+export const rateLimiter = createRateLimiter()
 
 export const getClientIp = (request: Request): string => {
   const headerNames = ['do-connecting-ip', 'cf-connecting-ip', 'x-forwarded-for', 'x-real-ip']
@@ -203,19 +247,12 @@ export const isSameOrigin = (request: Request): boolean => {
 export const looksLikeBrowserFetch = (request: Request): boolean => {
   const site = request.headers.get('sec-fetch-site')
   const mode = request.headers.get('sec-fetch-mode')
-  // Our chat UI issues cross-origin `fetch` requests only when running from
-  // file:// (which the production surface doesn't support); same-origin is
-  // the normal case. `cors` covers the cross-origin case as a fallback.
   const siteOk = site === 'same-origin' || site === 'same-site'
   const modeOk = mode === 'cors' || mode === 'same-origin'
   return siteOk && modeOk
 }
 
-// Salts the SHA-256 IP hash with a server-side secret. Without a salt, a leak
-// of the persisted S3 object would let anyone brute-force the 2^32 IPv4 space
-// in minutes. The salt stays in the server's env and is never persisted with
-// the entries.
-const IP_HASH_SALT = process.env.IP_HASH_SALT ?? ''
+const IP_HASH_SALT = rateLimitEnv.IP_HASH_SALT ?? ''
 
 export const hashIp = async (ip: string): Promise<string> => {
   const encoder = new TextEncoder()
@@ -228,5 +265,3 @@ export const hashIp = async (ip: string): Promise<string> => {
   }
   return hex.slice(0, 16)
 }
-
-export const rateLimiter = createRateLimiter()

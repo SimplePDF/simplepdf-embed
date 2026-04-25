@@ -33,15 +33,10 @@ export type EventPayloads = {
   'shared_keys.reserved_id_rejected': { share_id: string }
 
   // rate_limit.ts (server)
-  'rate_limit.hydrated': { entries: number }
-  'rate_limit.hydration_failed': { detail: string }
   'rate_limit.check_threw': { ip_hash: string; detail: string }
-
-  // rate_limit_persistence.ts (server)
-  'rate_limit.flushed': { entries: number }
-  'rate_limit.flush_failed': { detail: string }
-  'rate_limit.load_invalid_shape': Record<string, never>
-  'rate_limit.load_failed': { detail: string }
+  'rate_limit.in_memory_mode': Record<string, never>
+  'rate_limit.redis_ready': Record<string, never>
+  'rate_limit.redis_error': { detail: string }
 
   // chat.ts (server)
   'chat.blocked_system_failure': { ip_hash: string | null; detail: string }
