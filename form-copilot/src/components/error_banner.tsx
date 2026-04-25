@@ -42,7 +42,7 @@ export const ErrorBanner = ({
     case 'server':
       return <ServerPanel message={getErrorDisplayMessage(error)} />
     case 'service_unavailable':
-      return <ServiceUnavailablePanel />
+      return <ServiceUnavailablePanel onSwitchModel={onSwitchModel} />
     case null:
       return <GenericPanel message={getErrorDisplayMessage(error)} />
     default:
@@ -53,13 +53,28 @@ export const ErrorBanner = ({
 
 // Infra-level errors where `error.message` is the upstream's HTML response
 // body (DO 503 page, generic load-balancer 5xx, etc.). The payload has no
-// useful content — show only "Something went wrong" + a clean explanation.
-const ServiceUnavailablePanel = (): ReactElement => {
+// useful content, so we show "Something went wrong" + a clean explanation
+// + the BYOK escape hatch (switching to your own AI bypasses our server
+// entirely, so a DO outage is recoverable without waiting for it to clear).
+const ServiceUnavailablePanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
   const { t } = useTranslation()
   return (
     <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
       <div className="font-medium">{t('chat.errorServerTitle')}</div>
-      <p className="mt-1 leading-relaxed">{t('chat.errorServiceUnavailableBody')}</p>
+      <p className="mt-1 leading-relaxed">
+        <Trans
+          i18nKey="chat.errorServiceUnavailableBody"
+          components={{
+            switchModel: (
+              <button
+                type="button"
+                onClick={onSwitchModel}
+                className="font-medium underline underline-offset-2 hover:text-rose-900"
+              />
+            ),
+          }}
+        />
+      </p>
     </div>
   )
 }
