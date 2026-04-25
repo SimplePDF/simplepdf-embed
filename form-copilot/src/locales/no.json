@@ -38,7 +38,12 @@
     "useCasesFooter": "Velg en arbeidsflyt over for å laste et annet skjema.",
     "architectureTitle": "Arkitektur",
     "architectureSubtext": "Fra chat til innsending er arkitekturen designet for å holde dokumenter og sensitive data under din kontroll, ikke vår.",
-    "architectureLabel": "Slik fungerer det i produksjon",
+    "architectureDemoSubtext": "Dokumentet du laster inn forlater aldri nettleseren din. Dataene du sender via chatten går til LLM-en du har valgt.",
+    "architectureTabs": {
+      "demo": "For denne demoen",
+      "production": "I produksjon"
+    },
+    "architectureDemoDescription": "Denne demoen kjører på en delt SimplePDF-konto. Nettleseren er vert for både Form Copilot og SimplePDF-redigeringsverktøyet (lastet i en iframe). Feltdata blir værende i nettleseren via postMessage verktøykall på klientsiden. Chattrafikk går gjennom demoens hostede server til en hostet AI-leverandør, eller direkte fra nettleseren når du tar med din egen nøkkel. SimplePDF-serveren registrerer bare telemetri og metadata; den ser aldri innholdet i dokumentet.",
     "architectureDescription": "Nettleseren kjører Form Copilot og SimplePDF-redigeringsverktøyet inne i en iframe. De to kommuniserer gjennom postMessage verktøykall på klientsiden, slik at feltdata aldri forlater nettleseren. Chatmeldinger sendes via din server til din AI-stack (leverandør, nøkler, RAG, interne data). SimplePDF-serveren mottar bare metadata som forhåndssignerte opplastings-URL-er, og ser aldri selve dokumentet. Det ferdige dokumentet lastes direkte opp fra redigeringsverktøyet til din lagring (S3, Azure Blob Storage eller SharePoint), og omgår SimplePDF-serveren. Når en innsending er ferdig, kan en valgfri webhook varsle din server. Webhooken inneholder kun metadata, aldri dokumentinnholdet.",
     "tryThisForm": "Prøv dette skjemaet →",
     "useCases": {

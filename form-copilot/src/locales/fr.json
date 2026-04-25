@@ -38,7 +38,12 @@
     "useCasesFooter": "Sélectionnez un workflow ci-dessus pour charger un autre formulaire.",
     "architectureTitle": "Architecture",
     "architectureSubtext": "Du chat à la soumission, l’architecture est conçue pour que les documents et les données sensibles restent sous votre contrôle, pas le nôtre.",
-    "architectureLabel": "Comment ça fonctionne en production",
+    "architectureDemoSubtext": "Le document que vous chargez ne quitte jamais votre navigateur. Les données que vous envoyez via le chat vont au LLM que vous avez sélectionné.",
+    "architectureTabs": {
+      "demo": "Pour cette démo",
+      "production": "En production"
+    },
+    "architectureDemoDescription": "Cette démo s’exécute sur un compte SimplePDF partagé. Le navigateur héberge à la fois Form Copilot et l’éditeur SimplePDF (chargé dans un iframe). Les données des champs restent dans le navigateur grâce aux appels d’outils côté client en postMessage. Le trafic du chat passe par le serveur hébergé de la démo vers un fournisseur d’IA hébergé, ou directement depuis le navigateur lorsque vous apportez votre propre clé. Le serveur SimplePDF n’enregistre que de la télémétrie et des métadonnées ; il ne voit jamais le contenu du document.",
     "architectureDescription": "Le navigateur exécute Form Copilot et l’éditeur SimplePDF dans un iframe. Les deux communiquent via des appels d’outils côté client en postMessage, si bien que les données des champs ne quittent jamais le navigateur. Les messages du chat sont relayés par votre serveur vers votre stack IA (fournisseur, clés, RAG, données internes). Le serveur SimplePDF ne reçoit que des métadonnées, comme des URL d’upload pré-signées, et ne voit jamais le document lui-même. Le document finalisé est téléversé directement depuis l’éditeur vers votre stockage (S3, Azure Blob Storage ou SharePoint), en contournant le serveur SimplePDF. Lorsqu’une soumission se termine, un webhook optionnel peut avertir votre serveur. Le webhook transporte uniquement des métadonnées, jamais le contenu du document.",
     "tryThisForm": "Essayer ce formulaire →",
     "useCases": {

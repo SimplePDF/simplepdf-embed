@@ -38,7 +38,12 @@
     "useCasesFooter": "Wybierz powyżej przepływ pracy, aby załadować inny formularz.",
     "architectureTitle": "Architektura",
     "architectureSubtext": "Od czatu do przesłania, architektura została zaprojektowana tak, aby dokumenty i wrażliwe dane pozostawały pod Twoją, a nie naszą kontrolą.",
-    "architectureLabel": "Jak to działa w środowisku produkcyjnym",
+    "architectureDemoSubtext": "Dokument, który ładujesz, nigdy nie opuszcza Twojej przeglądarki. Dane, które wysyłasz przez czat, trafiają do wybranego przez Ciebie LLM.",
+    "architectureTabs": {
+      "demo": "Dla tego demo",
+      "production": "W środowisku produkcyjnym"
+    },
+    "architectureDemoDescription": "To demo działa na współdzielonym koncie SimplePDF. Przeglądarka uruchamia zarówno Form Copilot, jak i edytor SimplePDF (wczytany w iframe). Dane pól pozostają w przeglądarce dzięki wywołaniom narzędzi postMessage po stronie klienta. Ruch czatu przechodzi przez hostowany serwer demo do hostowanego dostawcy AI, lub bezpośrednio z przeglądarki, gdy przyniesiesz własny klucz. Serwer SimplePDF rejestruje wyłącznie telemetrię i metadane; nigdy nie widzi treści dokumentu.",
     "architectureDescription": "Przeglądarka uruchamia Form Copilot oraz edytor SimplePDF wewnątrz iframe. Oba komunikują się przez wywołania narzędzi postMessage po stronie klienta, więc dane pól nigdy nie opuszczają przeglądarki. Wiadomości czatu są przekazywane przez Twój serwer do Twojego stosu AI (dostawca, klucze, RAG, dane wewnętrzne). Serwer SimplePDF otrzymuje tylko metadane, takie jak wstępnie podpisane adresy URL do przesyłania, i nigdy nie widzi samego dokumentu. Ukończony dokument jest przesyłany bezpośrednio z edytora do Twojej pamięci masowej (S3, Azure Blob Storage lub SharePoint), z pominięciem serwera SimplePDF. Gdy przesyłanie się zakończy, opcjonalny webhook może powiadomić Twój serwer. Webhook przenosi jedynie metadane, nigdy zawartość dokumentu.",
     "tryThisForm": "Wypróbuj ten formularz →",
     "useCases": {

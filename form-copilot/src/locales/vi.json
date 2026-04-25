@@ -38,7 +38,12 @@
     "useCasesFooter": "Chọn một quy trình làm việc ở trên để tải biểu mẫu khác.",
     "architectureTitle": "Kiến trúc",
     "architectureSubtext": "Từ trò chuyện đến gửi, kiến trúc được thiết kế để tài liệu và dữ liệu nhạy cảm luôn thuộc quyền kiểm soát của bạn, không phải của chúng tôi.",
-    "architectureLabel": "Cách hoạt động trong môi trường sản xuất",
+    "architectureDemoSubtext": "Tài liệu bạn tải lên không bao giờ rời khỏi trình duyệt của bạn. Dữ liệu bạn gửi qua trò chuyện đi đến LLM mà bạn đã chọn.",
+    "architectureTabs": {
+      "demo": "Cho bản demo này",
+      "production": "Trong môi trường sản xuất"
+    },
+    "architectureDemoDescription": "Bản demo này chạy trên một tài khoản SimplePDF dùng chung. Trình duyệt lưu trữ cả Form Copilot và trình chỉnh sửa SimplePDF (được tải trong một iframe). Dữ liệu trường được giữ trong trình duyệt thông qua các cuộc gọi công cụ phía máy khách bằng postMessage. Lưu lượng trò chuyện đi qua máy chủ được lưu trữ của bản demo đến nhà cung cấp AI được lưu trữ, hoặc trực tiếp từ trình duyệt khi bạn mang khóa của riêng mình. Máy chủ SimplePDF chỉ ghi lại telemetry và siêu dữ liệu; nó không bao giờ thấy nội dung của tài liệu.",
     "architectureDescription": "Trình duyệt chạy Form Copilot và trình chỉnh sửa SimplePDF bên trong một iframe. Hai thành phần giao tiếp qua các cuộc gọi công cụ phía máy khách bằng postMessage, nên dữ liệu trường không bao giờ rời trình duyệt. Tin nhắn trò chuyện được chuyển qua máy chủ của bạn đến ngăn xếp AI của bạn (nhà cung cấp, khóa, RAG, dữ liệu nội bộ). Máy chủ SimplePDF chỉ nhận siêu dữ liệu như URL tải lên đã ký trước và không bao giờ thấy bản thân tài liệu. Tài liệu hoàn chỉnh được tải trực tiếp từ trình chỉnh sửa lên bộ lưu trữ của bạn (S3, Azure Blob Storage hoặc SharePoint), bỏ qua máy chủ SimplePDF. Khi gửi hoàn tất, một webhook tùy chọn có thể thông báo cho máy chủ của bạn. Webhook chỉ mang siêu dữ liệu, không bao giờ mang nội dung tài liệu.",
     "tryThisForm": "Thử biểu mẫu này →",
     "useCases": {

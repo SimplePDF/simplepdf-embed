@@ -38,7 +38,12 @@
     "useCasesFooter": "Selecteer hierboven een workflow om een ander formulier te laden.",
     "architectureTitle": "Architectuur",
     "architectureSubtext": "Van chat tot indiening, de architectuur is ontworpen om documenten en gevoelige data onder uw controle te houden, niet die van ons.",
-    "architectureLabel": "Hoe het werkt in productie",
+    "architectureDemoSubtext": "Het document dat u laadt verlaat nooit uw browser. De gegevens die u via de chat verstuurt gaan naar de LLM die u hebt geselecteerd.",
+    "architectureTabs": {
+      "demo": "Voor deze demo",
+      "production": "In productie"
+    },
+    "architectureDemoDescription": "Deze demo draait op een gedeeld SimplePDF-account. De browser host zowel Form Copilot als de SimplePDF-editor (geladen in een iframe). Veldgegevens blijven in de browser via postMessage client-side toolaanroepen. Chatverkeer loopt via de gehoste server van de demo naar een gehoste AI-provider, of rechtstreeks vanuit de browser wanneer u uw eigen sleutel meebrengt. De SimplePDF-server registreert alleen telemetrie en metadata; hij ziet de inhoud van het document nooit.",
     "architectureDescription": "De browser draait Form Copilot en de SimplePDF-editor binnen een iframe. De twee communiceren via postMessage client-side toolaanroepen, zodat veldgegevens nooit de browser verlaten. Chatberichten worden via uw server doorgegeven aan uw AI-stack (provider, sleutels, RAG, interne data). De SimplePDF-server ontvangt alleen metadata zoals vooraf ondertekende upload-URL’s en ziet het document zelf nooit. Het voltooide document wordt direct vanuit de editor geupload naar uw opslag (S3, Azure Blob Storage of SharePoint) en omzeilt de SimplePDF-server. Wanneer een indiening is voltooid, kan een optionele webhook uw server op de hoogte stellen. De webhook bevat alleen metadata, nooit de inhoud van het document.",
     "tryThisForm": "Probeer dit formulier →",
     "useCases": {

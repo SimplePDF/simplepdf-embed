@@ -38,7 +38,12 @@
     "useCasesFooter": "Wählen Sie oben einen Workflow aus, um ein anderes Formular zu laden.",
     "architectureTitle": "Architektur",
     "architectureSubtext": "Vom Chat bis zur Einreichung ist die Architektur darauf ausgelegt, Dokumente und sensible Daten unter Ihrer Kontrolle zu halten, nicht unter unserer.",
-    "architectureLabel": "So funktioniert es in der Produktion",
+    "architectureDemoSubtext": "Das von Ihnen geladene Dokument verlässt Ihren Browser nie. Die Daten, die Sie über den Chat senden, gehen an das von Ihnen gewählte LLM.",
+    "architectureTabs": {
+      "demo": "Für diese Demo",
+      "production": "In der Produktion"
+    },
+    "architectureDemoDescription": "Diese Demo läuft auf einem gemeinsam genutzten SimplePDF-Konto. Der Browser hostet sowohl Form Copilot als auch den SimplePDF-Editor (geladen in einem iframe). Felddaten bleiben dank postMessage-clientseitiger Tool-Aufrufe im Browser. Der Chat-Verkehr läuft über den gehosteten Server der Demo zu einem gehosteten KI-Anbieter, oder direkt aus dem Browser, wenn Sie Ihren eigenen Schlüssel mitbringen. Der SimplePDF-Server zeichnet nur Telemetrie und Metadaten auf; den Dokumentinhalt sieht er nie.",
     "architectureDescription": "Der Browser führt Form Copilot und den SimplePDF-Editor in einem iframe aus. Beide kommunizieren über postMessage-clientseitige Tool-Aufrufe, sodass Felddaten den Browser nie verlassen. Chat-Nachrichten werden über Ihren Server an Ihren KI-Stack weitergeleitet (Anbieter, Schlüssel, RAG, interne Daten). Der SimplePDF-Server erhält nur Metadaten wie vorab signierte Upload-URLs und sieht das Dokument selbst nie. Das fertige Dokument wird direkt vom Editor an Ihren Speicher (S3, Azure Blob Storage oder SharePoint) hochgeladen, am SimplePDF-Server vorbei. Nach Abschluss einer Einreichung kann ein optionaler Webhook Ihren Server benachrichtigen. Der Webhook überträgt nur Metadaten, niemals den Dokumentinhalt.",
     "tryThisForm": "Dieses Formular ausprobieren →",
     "useCases": {

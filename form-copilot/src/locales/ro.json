@@ -38,7 +38,12 @@
     "useCasesFooter": "Selectați un flux de lucru de mai sus pentru a încărca un alt formular.",
     "architectureTitle": "Arhitectură",
     "architectureSubtext": "De la chat la trimitere, arhitectura este concepută pentru ca documentele și datele sensibile să rămână sub controlul dumneavoastră, nu al nostru.",
-    "architectureLabel": "Cum funcționează în producție",
+    "architectureDemoSubtext": "Documentul pe care îl încărcați nu părăsește niciodată browserul dumneavoastră. Datele pe care le trimiteți prin chat ajung la LLM-ul pe care l-ați selectat.",
+    "architectureTabs": {
+      "demo": "Pentru această demonstrație",
+      "production": "În producție"
+    },
+    "architectureDemoDescription": "Această demonstrație rulează pe un cont SimplePDF partajat. Browserul găzduiește atât Form Copilot, cât și editorul SimplePDF (încărcat într-un iframe). Datele câmpurilor rămân în browser prin apeluri de instrumente postMessage pe partea clientului. Traficul chat-ului trece prin serverul găzduit al demonstrației către un furnizor AI găzduit, sau direct din browser atunci când vă aduceți propria cheie. Serverul SimplePDF înregistrează doar telemetrie și metadate; nu vede niciodată conținutul documentului.",
     "architectureDescription": "Browserul rulează Form Copilot și editorul SimplePDF într-un iframe. Cele două comunică prin apeluri de instrumente pe partea clientului prin postMessage, astfel încât datele câmpurilor nu părăsesc niciodată browserul. Mesajele din chat sunt transmise prin serverul dumneavoastră către stiva dumneavoastră AI (furnizor, chei, RAG, date interne). Serverul SimplePDF primește doar metadate, precum URL-uri de încărcare presemnate, și nu vede niciodată documentul propriu-zis. Documentul finalizat este încărcat direct din editor către spațiul dumneavoastră de stocare (S3, Azure Blob Storage sau SharePoint), ocolind serverul SimplePDF. Când o trimitere se finalizează, un webhook opțional poate notifica serverul dumneavoastră. Webhook-ul transportă doar metadate, niciodată conținutul documentului.",
     "tryThisForm": "Încearcă acest formular →",
     "useCases": {

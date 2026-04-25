@@ -102,13 +102,13 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
 
   const brandHref = buildSimplepdfUrl({ locale, query: { s: 'form-copilot' } })
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 md:gap-4 md:px-6">
+    <header className="flex items-center justify-between gap-3 bg-sky-700 px-4 py-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">
         <a
           href={brandHref}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 rounded text-slate-900 hover:opacity-80"
+          className="flex items-center gap-1.5 rounded text-white hover:opacity-80"
         >
           <img
             src="https://simplepdf.com/android-chrome-512x512.png"
@@ -118,12 +118,12 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           />
           <span className="truncate text-base font-semibold md:text-lg">{t('header.brand')}</span>
         </a>
-        <span className="hidden text-sm text-slate-500 md:inline">{t('header.tagline')}</span>
+        <span className="hidden text-sm text-white/75 md:inline">{t('header.tagline')}</span>
         <button
           type="button"
           onClick={openInfoModal}
           aria-label={t('header.whatIsThisDemo')}
-          className="flex h-5 w-5 flex-none items-center justify-center rounded-full border border-slate-300 text-[11px] font-semibold text-slate-500 transition hover:border-sky-600 hover:text-sky-600"
+          className="flex h-5 w-5 flex-none items-center justify-center rounded-full border border-white/40 text-[11px] font-semibold text-white/80 transition hover:border-white hover:text-white"
         >
           ?
         </button>
@@ -152,7 +152,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           href={brandHref}
           target="_blank"
           rel="noreferrer"
-          className="hidden text-slate-400 hover:text-slate-600 md:inline"
+          className="hidden text-white/70 hover:text-white md:inline"
         >
           {t('header.poweredBy')}
         </a>
