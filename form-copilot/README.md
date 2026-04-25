@@ -100,6 +100,17 @@ npm run dev               # http://localhost:3001
 
 In the running app, open the chat sidebar, click **Bring your own provider**, paste a key from Anthropic / OpenAI / DeepSeek (or point at any OpenAI-compatible endpoint like Ollama / LM Studio), and you're filling forms.
 
+### Share it without asking viewers for a key
+
+Sharing the demo with non-technical users (a teammate, a prospect, a friend) is friction-heavy if every visitor has to paste a provider key. To skip that step, set `SHARED_API_KEYS` in your `.env` and append `?share=<id>` to the URL: the server pays for the LLM under your account, the chat opens already wired up, and the Model Picker stays out of the way.
+
+Two providers are supported on the shared-key path:
+
+- Anthropic Claude Haiku 4.5 (`model: "anthropic_haiku_4_5"`)
+- DeepSeek V4 Flash (`model: "deepseek_v4_flash"`)
+
+See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limit options, and the portable base64 one-liner for hosts that mangle embedded quotes (DigitalOcean App Platform, Render, fly.io). Then visit `http://localhost:3001/?share=<id>` and you're set.
+
 ### Ship it on your own domain
 
 Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Premium](https://simplepdf.com/pricing) account so that:
