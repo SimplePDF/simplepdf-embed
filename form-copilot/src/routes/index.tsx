@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { ChatPane } from '../components/chat_pane'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
+import { WelcomeModal } from '../components/welcome_modal'
 import type { DemoModel } from '../lib/demo_model'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
@@ -208,29 +209,73 @@ function Home() {
     [navigate],
   )
 
+  // First-load splash: render the welcome modal until the user dismisses it.
+  // Gated to lg+ viewports because the mobile fallback in Layout takes over
+  // below 1024px and the modal artwork doesn't fit there. Lazy initialiser
+  // runs once on mount; SSR returns false to avoid hydration mismatch (the
+  // modal pops in on the client when needed).
+  const [welcomeOpen, setWelcomeOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+    if (window.localStorage.getItem(WELCOME_DISMISSED_KEY) !== null) {
+      return false
+    }
+    return window.matchMedia('(min-width: 1024px)').matches
+  })
+
+  const dismissWelcome = useCallback((): void => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(WELCOME_DISMISSED_KEY, '1')
+    }
+    setWelcomeOpen(false)
+  }, [])
+
+  const handleOpenInfoFromWelcome = useCallback((): void => {
+    dismissWelcome()
+    void navigate({
+      to: '/',
+      search: (prev) => ({
+        form: prev.form ?? DEFAULT_FORM_ID,
+        lang: prev.lang ?? DEFAULT_LANGUAGE_CODE,
+        show: 'info' as const,
+        ...(prev.share !== undefined ? { share: prev.share } : {}),
+      }),
+    })
+  }, [dismissWelcome, navigate])
+
   return (
-    <Layout
-      locale={lang}
-      currentFormId={form}
-      editor={
-        <EditorPane
-          ref={iframeRef}
-          iframeKey={editorResetKey}
-          editorSrc={buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang })}
-        />
-      }
-      chat={
-        <ChatPane
-          bridge={bridge}
-          isReady={isDocumentLoaded}
-          requiresUserUpload={form === 'custom'}
-          language={lang}
-          onLanguageChange={handleLanguageChange}
-          documentId={documentId}
-          demoGate={demoGate}
-          isCursorOverEditor={isCursorOverEditor}
-        />
-      }
-    />
+    <>
+      <Layout
+        locale={lang}
+        currentFormId={form}
+        editor={
+          <EditorPane
+            ref={iframeRef}
+            iframeKey={editorResetKey}
+            editorSrc={buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang })}
+          />
+        }
+        chat={
+          <ChatPane
+            bridge={bridge}
+            isReady={isDocumentLoaded}
+            requiresUserUpload={form === 'custom'}
+            language={lang}
+            onLanguageChange={handleLanguageChange}
+            documentId={documentId}
+            demoGate={demoGate}
+            isCursorOverEditor={isCursorOverEditor}
+          />
+        }
+      />
+      <WelcomeModal
+        open={welcomeOpen}
+        onClose={dismissWelcome}
+        onOpenInfo={handleOpenInfoFromWelcome}
+      />
+    </>
   )
 }
+
+const WELCOME_DISMISSED_KEY = 'form-copilot:welcome-dismissed'

@@ -153,7 +153,14 @@
     "signature": "Podpis",
     "picture": "Obrázek",
     "boxedText": "Text v polích",
-    "download": "Stáhnout"
+    "download": "Stáhnout",
+    "submit": "Odeslat"
+  },
+  "welcomeModal": {
+    "title": "Vítejte ve Form Copilot",
+    "getStarted": "Začít",
+    "howItWorks": "Jak Form Copilot funguje",
+    "close": "Zavřít uvítání"
   },
   "download": {
     "title": "Stáhněte si vyplněné PDF",

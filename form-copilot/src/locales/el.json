@@ -153,7 +153,14 @@
     "signature": "Υπογραφή",
     "picture": "Εικόνα",
     "boxedText": "Κείμενο σε πλαίσια",
-    "download": "Λήψη"
+    "download": "Λήψη",
+    "submit": "Υποβολή"
+  },
+  "welcomeModal": {
+    "title": "Καλώς ήρθατε στο Form Copilot",
+    "getStarted": "Ξεκινήστε",
+    "howItWorks": "Πώς λειτουργεί το Form Copilot",
+    "close": "Κλείσιμο καλωσορίσματος"
   },
   "download": {
     "title": "Κατεβάστε το συμπληρωμένο σας PDF",

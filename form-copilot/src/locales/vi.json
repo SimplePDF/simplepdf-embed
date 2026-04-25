@@ -153,7 +153,14 @@
     "signature": "Chữ ký",
     "picture": "Hình ảnh",
     "boxedText": "Văn bản trong ô",
-    "download": "Tải xuống"
+    "download": "Tải xuống",
+    "submit": "Gửi"
+  },
+  "welcomeModal": {
+    "title": "Chào mừng đến với Form Copilot",
+    "getStarted": "Bắt đầu",
+    "howItWorks": "Cách Form Copilot hoạt động",
+    "close": "Đóng lời chào"
   },
   "download": {
     "title": "Tải xuống PDF đã điền của bạn",

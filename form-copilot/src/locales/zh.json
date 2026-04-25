@@ -153,7 +153,14 @@
     "signature": "签名",
     "picture": "图片",
     "boxedText": "方格文本",
-    "download": "下载"
+    "download": "下载",
+    "submit": "提交"
+  },
+  "welcomeModal": {
+    "title": "欢迎使用 Form Copilot",
+    "getStarted": "开始使用",
+    "howItWorks": "Form Copilot 如何运作",
+    "close": "关闭欢迎"
   },
   "download": {
     "title": "下载已填写的 PDF",

@@ -153,7 +153,14 @@
     "signature": "Assinatura",
     "picture": "Imagem",
     "boxedText": "Texto em quadrículas",
-    "download": "Transferir"
+    "download": "Transferir",
+    "submit": "Submeter"
+  },
+  "welcomeModal": {
+    "title": "Bem-vindo ao Form Copilot",
+    "getStarted": "Começar",
+    "howItWorks": "Como funciona o Form Copilot",
+    "close": "Fechar boas-vindas"
   },
   "download": {
     "title": "Transfira o seu PDF preenchido",

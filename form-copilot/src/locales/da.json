@@ -153,7 +153,14 @@
     "signature": "Underskrift",
     "picture": "Billede",
     "boxedText": "Tekst i felter",
-    "download": "Download"
+    "download": "Download",
+    "submit": "Indsend"
+  },
+  "welcomeModal": {
+    "title": "Velkommen til Form Copilot",
+    "getStarted": "Kom i gang",
+    "howItWorks": "Sådan fungerer Form Copilot",
+    "close": "Luk velkomst"
   },
   "download": {
     "title": "Download din udfyldte PDF",

@@ -153,7 +153,14 @@
     "signature": "توقيع",
     "picture": "صورة",
     "boxedText": "نص في خانات",
-    "download": "تنزيل"
+    "download": "تنزيل",
+    "submit": "إرسال"
+  },
+  "welcomeModal": {
+    "title": "مرحبًا بك في Form Copilot",
+    "getStarted": "ابدأ الآن",
+    "howItWorks": "كيف يعمل Form Copilot",
+    "close": "إغلاق الترحيب"
   },
   "download": {
     "title": "تنزيل ملف PDF المعبّأ",

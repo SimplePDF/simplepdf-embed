@@ -153,7 +153,14 @@
     "signature": "Allkiri",
     "picture": "Pilt",
     "boxedText": "Tekst lahtrites",
-    "download": "Laadi alla"
+    "download": "Laadi alla",
+    "submit": "Esita"
+  },
+  "welcomeModal": {
+    "title": "Tere tulemast Form Copilotisse",
+    "getStarted": "Alusta",
+    "howItWorks": "Kuidas Form Copilot töötab",
+    "close": "Sulge tervitus"
   },
   "download": {
     "title": "Laadi täidetud PDF alla",

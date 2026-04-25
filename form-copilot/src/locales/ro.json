@@ -153,7 +153,14 @@
     "signature": "Semnătură",
     "picture": "Imagine",
     "boxedText": "Text în căsuțe",
-    "download": "Descarcă"
+    "download": "Descarcă",
+    "submit": "Trimite"
+  },
+  "welcomeModal": {
+    "title": "Bun venit în Form Copilot",
+    "getStarted": "Începe",
+    "howItWorks": "Cum funcționează Form Copilot",
+    "close": "Închide salutul"
   },
   "download": {
     "title": "Descarcă PDF-ul completat",

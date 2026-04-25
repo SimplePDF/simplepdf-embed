@@ -27,6 +27,41 @@ export const Route = createRootRoute({
         name: 'description',
         content: 'Form Copilot: AI that helps users fill PDF forms step by step.',
       },
+      // Meta image lives on the SimplePDF CDN (DO Spaces, aliased to
+      // cdn.simplepdf.com) so a fork doesn't have to host the asset
+      // themselves and social-card crawlers always resolve an absolute URL.
+      {
+        property: 'og:image',
+        content: 'https://cdn.simplepdf.com/simple-pdf/assets/meta/form-copilot-welcome.png',
+      },
+      {
+        property: 'og:image:width',
+        content: '2017',
+      },
+      {
+        property: 'og:image:height',
+        content: '1142',
+      },
+      {
+        property: 'og:title',
+        content: 'Form Copilot by SimplePDF',
+      },
+      {
+        property: 'og:description',
+        content: 'AI that helps users fill PDF forms step by step.',
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://cdn.simplepdf.com/simple-pdf/assets/meta/form-copilot-welcome.png',
+      },
     ],
     links: [
       {

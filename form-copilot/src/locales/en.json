@@ -155,6 +155,12 @@
     "download": "Download",
     "submit": "Submit"
   },
+  "welcomeModal": {
+    "title": "Welcome to Form Copilot",
+    "getStarted": "Get started",
+    "howItWorks": "How Form Copilot works",
+    "close": "Close welcome"
+  },
   "download": {
     "title": "Download your filled PDF",
     "intro": "Your PDF is generated in this browser tab. Nothing leaves your device, and SimplePDF's servers never see the filled file.",

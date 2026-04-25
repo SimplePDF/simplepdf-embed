@@ -153,7 +153,14 @@
     "signature": "हस्ताक्षर",
     "picture": "चित्र",
     "boxedText": "खानों में टेक्स्ट",
-    "download": "डाउनलोड करें"
+    "download": "डाउनलोड करें",
+    "submit": "सबमिट करें"
+  },
+  "welcomeModal": {
+    "title": "Form Copilot में आपका स्वागत है",
+    "getStarted": "शुरू करें",
+    "howItWorks": "Form Copilot कैसे काम करता है",
+    "close": "स्वागत बंद करें"
   },
   "download": {
     "title": "अपनी भरी हुई PDF डाउनलोड करें",

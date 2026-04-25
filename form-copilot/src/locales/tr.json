@@ -153,7 +153,14 @@
     "signature": "İmza",
     "picture": "Resim",
     "boxedText": "Kutucuklu metin",
-    "download": "İndir"
+    "download": "İndir",
+    "submit": "Gönder"
+  },
+  "welcomeModal": {
+    "title": "Form Copilot’a hoş geldiniz",
+    "getStarted": "Başla",
+    "howItWorks": "Form Copilot nasıl çalışır",
+    "close": "Karşılamayı kapat"
   },
   "download": {
     "title": "Doldurulmuş PDF’inizi indirin",

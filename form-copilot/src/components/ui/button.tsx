@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactElement, ReactNode } from 'react'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
-type ButtonSize = 'sm' | 'md'
+type ButtonSize = 'sm' | 'md' | 'lg'
 
 type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> & {
   variant?: ButtonVariant
@@ -20,6 +20,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
 const SIZE_CLASS: Record<ButtonSize, string> = {
   sm: 'rounded px-2 py-1 text-xs',
   md: 'rounded-md px-3 py-2 text-sm',
+  lg: 'rounded-lg px-6 py-4 text-base',
 }
 
 const BASE_CLASS = 'font-medium transition-colors'

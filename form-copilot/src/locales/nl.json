@@ -153,7 +153,14 @@
     "signature": "Handtekening",
     "picture": "Afbeelding",
     "boxedText": "Tekst in vakjes",
-    "download": "Downloaden"
+    "download": "Downloaden",
+    "submit": "Verzenden"
+  },
+  "welcomeModal": {
+    "title": "Welkom bij Form Copilot",
+    "getStarted": "Aan de slag",
+    "howItWorks": "Hoe Form Copilot werkt",
+    "close": "Welkom sluiten"
   },
   "download": {
     "title": "Download uw ingevulde PDF",

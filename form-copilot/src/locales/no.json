@@ -153,7 +153,14 @@
     "signature": "Signatur",
     "picture": "Bilde",
     "boxedText": "Tekst i ruter",
-    "download": "Last ned"
+    "download": "Last ned",
+    "submit": "Send inn"
+  },
+  "welcomeModal": {
+    "title": "Velkommen til Form Copilot",
+    "getStarted": "Kom i gang",
+    "howItWorks": "Slik fungerer Form Copilot",
+    "close": "Lukk velkomst"
   },
   "download": {
     "title": "Last ned den utfylte PDF-en",

@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "Form Copilot Demo",
-    "tagline": "Tekoaly, joka auttaa käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
+    "tagline": "Tekoäly, joka auttaa käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
     "whatIsThisDemo": "Mikä tämä demo on?",
     "useCase": "Ladattu PDF",
     "poweredBy": "Toteuttaja: SimplePDF"
@@ -153,7 +153,14 @@
     "signature": "Allekirjoitus",
     "picture": "Kuva",
     "boxedText": "Teksti ruuduissa",
-    "download": "Lataa"
+    "download": "Lataa",
+    "submit": "Lähetä"
+  },
+  "welcomeModal": {
+    "title": "Tervetuloa Form Copilotiin",
+    "getStarted": "Aloita",
+    "howItWorks": "Näin Form Copilot toimii",
+    "close": "Sulje tervetulo"
   },
   "download": {
     "title": "Lataa täytetty PDF",

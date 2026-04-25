@@ -153,7 +153,14 @@
     "signature": "Unterschrift",
     "picture": "Bild",
     "boxedText": "Kästchentext",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "submit": "Senden"
+  },
+  "welcomeModal": {
+    "title": "Willkommen bei Form Copilot",
+    "getStarted": "Loslegen",
+    "howItWorks": "So funktioniert Form Copilot",
+    "close": "Begrüßung schließen"
   },
   "download": {
     "title": "Laden Sie Ihre ausgefüllte PDF herunter",

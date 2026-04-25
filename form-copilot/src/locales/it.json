@@ -153,7 +153,14 @@
     "signature": "Firma",
     "picture": "Immagine",
     "boxedText": "Testo in caselle",
-    "download": "Scarica"
+    "download": "Scarica",
+    "submit": "Invia"
+  },
+  "welcomeModal": {
+    "title": "Benvenuto in Form Copilot",
+    "getStarted": "Inizia",
+    "howItWorks": "Come funziona Form Copilot",
+    "close": "Chiudi benvenuto"
   },
   "download": {
     "title": "Scarica il tuo PDF compilato",

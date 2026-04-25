@@ -153,7 +153,14 @@
     "signature": "חתימה",
     "picture": "תמונה",
     "boxedText": "טקסט בתאים",
-    "download": "הורד"
+    "download": "הורד",
+    "submit": "שלח"
+  },
+  "welcomeModal": {
+    "title": "ברוכים הבאים ל־Form Copilot",
+    "getStarted": "להתחיל",
+    "howItWorks": "איך Form Copilot עובד",
+    "close": "סגירת ברכת קבלת הפנים"
   },
   "download": {
     "title": "הורד את קובץ ה־PDF הממולא שלך",
