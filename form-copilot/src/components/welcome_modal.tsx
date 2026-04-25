@@ -1,7 +1,7 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from './ui/button'
-import { Modal, ModalCloseButton } from './ui/modal'
+import { ModalCloseButton } from './ui/modal'
 
 type WelcomeModalProps = {
   open: boolean
@@ -10,51 +10,103 @@ type WelcomeModalProps = {
 }
 
 const TITLE_ID = 'welcome-modal-title'
-const ARTWORK_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/meta/form-copilot-welcome.png'
+const ILLUSTRATION_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/common/form-copilot-illustration.png'
+const LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/common/logo-white.png'
 
-// First-load splash. The illustration on the left already carries the brand
-// + tagline; CTAs sit on the right half of the image, below where the
-// headline is rendered in the artwork. The wrapping <Modal> handles backdrop
-// dismiss + Escape; the close button sits in the top-right corner of the
-// panel, layered above the image so it's reachable without clicking outside.
-export const WelcomeModal = ({ open, onClose, onOpenInfo }: WelcomeModalProps): ReactElement => {
-  const { t } = useTranslation()
-  const panelClass =
-    'relative w-full max-w-[936px] overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-900/5'
+// First-load splash. Rendered inline (NOT through createPortal) so the
+// SSR pass can include the markup directly in the initial HTML — the open
+// state is seeded from the welcome-dismissed cookie read server-side. No
+// portal target on the server, no localStorage, no hydration mismatch.
+//
+// Mobile gating happens in CSS (`hidden lg:flex`): the modal HTML ships to
+// every visitor but is invisible below 1024px, where Layout's mobile
+// fallback ("Form Copilot is best experienced on desktop") takes over.
+export const WelcomeModal = ({ open, onClose, onOpenInfo }: WelcomeModalProps): ReactElement | null => {
+  const { t, i18n } = useTranslation()
+  const isEnglish = i18n.language.toLowerCase().startsWith('en')
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    const handleKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => {
+      window.removeEventListener('keydown', handleKey)
+    }
+  }, [open, onClose])
+
+  if (!open) {
+    return null
+  }
+
   return (
-    <Modal open={open} onClose={onClose} labelledBy={TITLE_ID} containerClassName={panelClass}>
-      <div className="absolute right-3 top-3 z-10">
-        <ModalCloseButton onClose={onClose} ariaLabel={t('welcomeModal.close')} />
-      </div>
-      <div className="relative aspect-[2017/1142] w-full">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={TITLE_ID}
+      className="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm lg:flex"
+      onClick={onClose}
+    >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: inner panel stops backdrop-close propagation, not interactive on its own. */}
+      <div
+        className="relative w-full max-w-[1040px] overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-slate-900/5"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="absolute right-3 top-3 z-10">
+          <ModalCloseButton onClose={onClose} ariaLabel={t('welcomeModal.close')} />
+        </div>
+        <div className="grid grid-cols-2 bg-[#96cafc]">
+          <div className="flex items-end justify-center">
+            <img
+              src={ILLUSTRATION_URL}
+              alt=""
+              aria-hidden="true"
+              className="block h-auto w-full object-contain"
+            />
+          </div>
+          <div className="flex flex-col gap-2 p-8">
+            <h2
+              id={TITLE_ID}
+              className="mt-10 text-7xl font-extrabold leading-[1.05] tracking-tight text-slate-900"
+            >
+              Form Copilot
+            </h2>
+            <p className="max-w-[340px] text-[48px] font-bold leading-[1.1] text-slate-900">
+              {isEnglish ? (
+                <>
+                  <span className="text-blue-600">AI that helps</span> users fill PDF forms step by
+                  step
+                </>
+              ) : (
+                t('header.tagline')
+              )}
+            </p>
+            <div className="mt-auto flex flex-col items-start gap-3">
+              <Button size="lg" onClick={onClose}>
+                {t('welcomeModal.getStarted')}
+              </Button>
+              <button
+                type="button"
+                onClick={onOpenInfo}
+                className="text-sm font-medium text-sky-700 underline-offset-4 transition-colors hover:text-sky-800 hover:underline"
+              >
+                {t('welcomeModal.howItWorks')}
+              </button>
+            </div>
+          </div>
+        </div>
         <img
-          src={ARTWORK_URL}
+          src={LOGO_URL}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute bottom-4 right-4 h-32 w-32 opacity-90"
         />
-        {/* CTA stack overlaid on the right half of the artwork, vertically
-            anchored to roughly two-thirds down so it lands beneath the
-            existing "step by step" headline rendered in the illustration.
-            Modal is gated to lg+ viewports at the call site (the mobile
-            fallback in Layout takes over below 1024px), so fixed pixel
-            offsets are fine here. */}
-        <div className="absolute inset-y-0 right-[62px] flex w-[44%] translate-y-[30px] flex-col items-start justify-end gap-3 px-[5%] pb-[8%]">
-          <h2 id={TITLE_ID} className="sr-only">
-            {t('welcomeModal.title')}
-          </h2>
-          <Button size="lg" onClick={onClose}>
-            {t('welcomeModal.getStarted')}
-          </Button>
-          <button
-            type="button"
-            onClick={onOpenInfo}
-            className="text-sm font-medium text-sky-700 underline-offset-4 transition-colors hover:text-sky-800 hover:underline"
-          >
-            {t('welcomeModal.howItWorks')}
-          </button>
-        </div>
       </div>
-    </Modal>
+    </div>
   )
 }

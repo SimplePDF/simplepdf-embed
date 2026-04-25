@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
+import { getRequestHeader, getRequestUrl } from '@tanstack/react-start/server'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { ChatPane } from '../components/chat_pane'
@@ -9,7 +10,7 @@ import { WelcomeModal } from '../components/welcome_modal'
 import type { DemoModel } from '../lib/demo_model'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
-import { i18n } from '../lib/i18n'
+import { i18n, i18nReady, matchLocaleFromAcceptLanguage } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger } from '../lib/monitoring'
 import { resolveShareModel } from '../server/shared_keys'
@@ -62,6 +63,60 @@ const readDemoGate = createServerFn({ method: 'GET' })
     return { kind: 'demo', model }
   })
 
+// Cookie that records the user dismissing the first-load splash. Read
+// server-side so the modal HTML is included (or omitted) directly in the
+// SSR response — no localStorage round-trip, no hydration mismatch, no
+// flash of the modal on subsequent visits. Lightweight string parse:
+// avoids pulling in a cookie-parsing dependency for one entry.
+const WELCOME_DISMISSED_COOKIE = 'form-copilot-welcome-dismissed'
+
+const cookieIsTruthy = (header: string | undefined, name: string): boolean => {
+  if (header === undefined || header === '') {
+    return false
+  }
+  for (const segment of header.split(';')) {
+    const trimmed = segment.trim()
+    const equalsIndex = trimmed.indexOf('=')
+    if (equalsIndex === -1) {
+      continue
+    }
+    const key = trimmed.slice(0, equalsIndex)
+    if (key === name) {
+      return trimmed.slice(equalsIndex + 1) === '1'
+    }
+  }
+  return false
+}
+
+const readWelcomeDismissed = createServerFn({ method: 'GET' }).handler(async (): Promise<boolean> =>
+  cookieIsTruthy(getRequestHeader('cookie'), WELCOME_DISMISSED_COOKIE),
+)
+
+// Server-side: detect the visitor's preferred locale when the URL doesn't
+// carry an explicit `?lang=`. Returns null when the URL DID have a
+// ?lang= (in which case the user's choice wins) or when the
+// Accept-Language header has no overlap with the supported set.
+const readPreferredLocaleWhenLangAbsent = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<string | null> => {
+    const url = (() => {
+      try {
+        return getRequestUrl()
+      } catch {
+        return null
+      }
+    })()
+    if (url !== null && url.searchParams.has('lang')) {
+      return null
+    }
+    return matchLocaleFromAcceptLanguage(getRequestHeader('accept-language'))
+  },
+)
+
+type HomeLoaderData = {
+  demoGate: DemoGate
+  welcomeDismissed: boolean
+}
+
 export const Route = createFileRoute('/')({
   component: Home,
   validateSearch: (raw: Record<string, unknown>): HomeSearch => ({
@@ -71,12 +126,36 @@ export const Route = createFileRoute('/')({
     ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
   }),
   beforeLoad: async ({ search }) => {
-    if (i18n.language !== search.lang) {
+    // Wait for i18next's init() Promise to resolve before the route renders.
+    // Without this, the very first render (SSR pass + first client paint)
+    // runs while init is still mid-microtask and t() returns raw key
+    // strings — visible as a flash of "welcomeModal.getStarted" etc. in the
+    // SSR'd welcome modal HTML.
+    await i18nReady
+
+    // Locale resolution: explicit ?lang= always wins. When absent, fall
+    // back to the visitor's preferred locale (Accept-Language on the
+    // server, navigator.languages on the client via readInitialLocale)
+    // before defaulting to DEFAULT_UI_LOCALE. validateSearch normalises
+    // search.lang to DEFAULT when ?lang= is missing, so we re-detect from
+    // the request to know whether it was explicit.
+    const preferredLocale = await ((): Promise<string | null> => {
+      if (typeof window === 'undefined') {
+        return readPreferredLocaleWhenLangAbsent()
+      }
+      // Client side: an explicit URL value takes precedence; otherwise
+      // the i18n module's readInitialLocale already picked a
+      // navigator-language match if available, so we trust i18n.language
+      // as the detected value.
+      const urlHasLang = new URLSearchParams(window.location.search).has('lang')
+      return Promise.resolve(urlHasLang ? null : i18n.language)
+    })()
+
+    const targetLocale = preferredLocale ?? search.lang
+    if (i18n.language !== targetLocale) {
       // Awaited so the route never renders with the previous language flashing
-      // in before react-i18next has switched — the initial i18n config seeds
-      // DEFAULT_UI_LOCALE, so on reload with ?lang=fr we must wait for the
-      // resource swap + 'languageChanged' event before React hydrates.
-      await i18n.changeLanguage(search.lang)
+      // in before react-i18next has switched.
+      await i18n.changeLanguage(targetLocale)
     }
   },
   // loaderDeps reads from the already-validated search, so `search.share`
@@ -85,7 +164,13 @@ export const Route = createFileRoute('/')({
   loaderDeps: ({ search }) => ({
     shareId: search.share !== undefined && search.share !== '' ? search.share : null,
   }),
-  loader: async ({ deps }): Promise<DemoGate> => readDemoGate({ data: { shareId: deps.shareId } }),
+  loader: async ({ deps }): Promise<HomeLoaderData> => {
+    const [demoGate, welcomeDismissed] = await Promise.all([
+      readDemoGate({ data: { shareId: deps.shareId } }),
+      readWelcomeDismissed(),
+    ])
+    return { demoGate, welcomeDismissed }
+  },
 })
 
 // Trim incoming env strings, treat empty as missing. Outputs `string | undefined`.
@@ -152,7 +237,7 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
 
 function Home() {
   const { form, lang } = Route.useSearch()
-  const demoGate = Route.useLoaderData()
+  const { demoGate, welcomeDismissed } = Route.useLoaderData()
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
@@ -209,24 +294,22 @@ function Home() {
     [navigate],
   )
 
-  // First-load splash: render the welcome modal until the user dismisses it.
-  // Gated to lg+ viewports because the mobile fallback in Layout takes over
-  // below 1024px and the modal artwork doesn't fit there. Lazy initialiser
-  // runs once on mount; SSR returns false to avoid hydration mismatch (the
-  // modal pops in on the client when needed).
-  const [welcomeOpen, setWelcomeOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') {
-      return false
-    }
-    if (window.localStorage.getItem(WELCOME_DISMISSED_KEY) !== null) {
-      return false
-    }
-    return window.matchMedia('(min-width: 1024px)').matches
-  })
+  // First-load splash: open state seeded from the SSR loader (cookie read
+  // server-side), so the modal markup is included or omitted directly in the
+  // initial HTML. No localStorage round-trip, no hydration mismatch, no
+  // flash of the modal on subsequent visits. Mobile viewports are gated via
+  // CSS inside WelcomeModal (the modal renders in the DOM but is hidden
+  // below lg via `hidden lg:flex`), so we don't need a JS viewport check.
+  const [welcomeOpen, setWelcomeOpen] = useState<boolean>(!welcomeDismissed)
 
   const dismissWelcome = useCallback((): void => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(WELCOME_DISMISSED_KEY, '1')
+    if (typeof document !== 'undefined') {
+      // 1-year persistence, restricted to first-party context. `Secure` is
+      // added on HTTPS so production deploys default safe; localhost dev
+      // over HTTP would silently drop a Secure cookie, so we only set it
+      // when the protocol allows.
+      const secureFlag = typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : ''
+      document.cookie = `${WELCOME_DISMISSED_COOKIE}=1; path=/; max-age=31536000; SameSite=Lax${secureFlag}`
     }
     setWelcomeOpen(false)
   }, [])
@@ -278,4 +361,3 @@ function Home() {
   )
 }
 
-const WELCOME_DISMISSED_KEY = 'form-copilot:welcome-dismissed'
