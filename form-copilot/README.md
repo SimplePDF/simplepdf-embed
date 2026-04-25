@@ -203,7 +203,37 @@ The architecture is deliberate:
 - **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
 - **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket, never to SimplePDF servers.
 
-### How it works in production
+### Using the demo account
+
+What's actually running when you open <https://form-copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
+
+```
+  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐
+  │                                 │       │                       │       │                   │
+  │   ┌───────────────┐   chat      │       │  LLM proxy            │       │  Anthropic Haiku  │
+  │   │  Form Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │  or DeepSeek V4   │
+  │   └───────┬───────┘             │       │                       │       │                   │
+  │           │                     │       └───────────────────────┘       └───────────────────┘
+  │           │                     │
+  │           │ ⇅ postMessage       │
+  │           │   (client-side      │       ┌─── SimplePDF server ────┐
+  │           │    tool calls)      │       │                         │
+  │           ▼                     │       │  · telemetry only ·     │
+  │   ┌───────────────────────┐     │       │   rate-limit metadata   │
+  │   │                       │ ────┼─────► │   IP-hash counters      │
+  │   │   SimplePDF editor    │     │       │   no document content   │
+  │   │       (iframe)        │     │       │                         │
+  │   │                       │     │       └─────────────────────────┘
+  │   └───────────────────────┘     │
+  │                                 │
+  └─────────────────────────────────┘
+```
+
+Field data stays in the browser via `postMessage` between the chat sidebar and the editor iframe. Chat traffic flows through the demo's hosted server to a hosted AI provider (Anthropic Haiku 4.5 or DeepSeek V4), or browser-direct when you bring your own key. The SimplePDF server records only telemetry and metadata (rate-limit IP hashes, usage counters); no webhooks, no document storage, no document content.
+
+### Using your own SimplePDF account
+
+What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/pricing) account: your server, your AI stack, your storage, optional webhooks back to your backend.
 
 ```
   ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐
@@ -231,7 +261,7 @@ The architecture is deliberate:
   └─────────────────────────────────┘       └────────────────────────────────────────┘
 ```
 
-Field data flows over `postMessage` between the chat sidebar and the editor iframe (both inside the same browser tab). Chat messages traverse your server, your AI stack, your logs. The SimplePDF server only sees pre-signed upload URLs (metadata, never document content). Completed PDFs go straight from the browser to your storage bucket; an optional webhook notifies your server when a submission lands.
+Chat messages traverse your server, your AI stack, your logs. The SimplePDF server only sees pre-signed upload URLs (metadata, never document content). Completed PDFs go straight from the browser to your storage bucket; an optional webhook notifies your server when a submission lands.
 
 ## Scripts
 

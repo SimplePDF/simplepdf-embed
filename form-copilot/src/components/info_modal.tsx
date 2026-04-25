@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { FormId } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
@@ -197,6 +197,87 @@ const STEP_NUMBERS = [1, 2, 3] as const
 
 type ArchitectureSegment = { text: string; blue?: boolean; large?: boolean }
 
+// Two-tab architecture diagrams. The first tab shows what's actually
+// happening when the user is looking at the demo (shared SimplePDF
+// workspace, hosted AI provider, no webhooks, no BYOS, SimplePDF server
+// only collects telemetry). The second tab shows the production picture
+// a Pro/Premium customer would deploy: their own server, their own AI
+// stack, BYOS for completed documents, optional webhooks.
+
+const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
+  [{ text: '  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐' }],
+  [{ text: '  │                                 │       │                       │       │                   │' }],
+  [
+    { text: '  │   ' },
+    { text: '┌───────────────┐', blue: true },
+    { text: '   chat      │       │   LLM proxy           │       │  Anthropic Haiku  │' },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '│  Form Copilot │', blue: true },
+    { text: ' ────────────┼─────► │   (or BYOK direct)    │ ────► │  or DeepSeek V4   │' },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '└───────┬───────┘', blue: true },
+    { text: '             │       │                       │       │                   │' },
+  ],
+  [
+    { text: '  │           ' },
+    { text: '│', blue: true },
+    { text: '                     │       └───────────────────────┘       └───────────────────┘' },
+  ],
+  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '                     │' }],
+  [
+    { text: '  │           ' },
+    { text: '│', blue: true },
+    { text: ' ' },
+    { text: '⇅', large: true },
+    { text: ' postMessage       │' },
+  ],
+  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '   (client-side      │       ' }, { text: '┌─── SimplePDF server ────┐', blue: true }],
+  [
+    { text: '  │           ' },
+    { text: '│', blue: true },
+    { text: '    tool calls)      │       ' },
+    { text: '│                         │', blue: true },
+  ],
+  [
+    { text: '  │           ' },
+    { text: '▼', blue: true },
+    { text: '                     │       ' },
+    { text: '│  · telemetry only ·     │', blue: true },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '┌───────────────────────┐', blue: true },
+    { text: '     │       ' },
+    { text: '│   rate-limit metadata   │', blue: true },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '│                       │', blue: true },
+    { text: ' ────┼─────► ' },
+    { text: '│   IP-hash counters      │', blue: true },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '│   SimplePDF editor    │', blue: true },
+    { text: '     │       ' },
+    { text: '│   no document content   │', blue: true },
+  ],
+  [
+    { text: '  │   ' },
+    { text: '│       (iframe)        │', blue: true },
+    { text: '     │       ' },
+    { text: '└─────────────────────────┘', blue: true },
+  ],
+  [{ text: '  │   ' }, { text: '│                       │', blue: true }, { text: '     │' }],
+  [{ text: '  │   ' }, { text: '└───────────────────────┘', blue: true }, { text: '     │' }],
+  [{ text: '  │                                 │' }],
+  [{ text: '  └─────────────────────────────────┘' }],
+]
+
 const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
   [{ text: '  ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐' }],
   [{ text: '  │                                 │       │                 │       │                   │' }],
@@ -294,6 +375,8 @@ const STEP_HINT_KEYS: Record<number, string | null> = {
 }
 const ARCHITECTURE_INDICES = [0, 1, 2] as const
 
+type ArchitectureTab = 'demo' | 'production'
+
 export const InfoModal = ({
   open,
   onClose,
@@ -302,6 +385,18 @@ export const InfoModal = ({
 }: InfoModalProps): ReactElement | null => {
   const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'form-copilot' } })
   const { t } = useTranslation()
+  // Default to the demo tab: that's the architecture the visitor is
+  // actually looking at right now. The production tab shows what they'd
+  // build with their own SimplePDF account.
+  const [activeArchitectureTab, setActiveArchitectureTab] = useState<ArchitectureTab>('demo')
+  const architectureLinesByTab: Record<ArchitectureTab, ArchitectureSegment[][]> = {
+    demo: ARCHITECTURE_LINES_DEMO,
+    production: ARCHITECTURE_LINES,
+  }
+  const architectureDescriptionKey: Record<ArchitectureTab, string> = {
+    demo: 'infoModal.architectureDemoDescription',
+    production: 'infoModal.architectureDescription',
+  }
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="info-modal-title" size="lg">
@@ -470,16 +565,33 @@ export const InfoModal = ({
             <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
               {t('infoModal.architectureSubtext')}
             </p>
-            <p className="mt-4 text-[13px] font-semibold text-slate-900">
-              {t('infoModal.architectureLabel')}
-            </p>
-            <p className="sr-only">{t('infoModal.architectureDescription')}</p>
+            <div className="mt-4 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+              {(['demo', 'production'] as const).map((tab) => {
+                const isActive = activeArchitectureTab === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveArchitectureTab(tab)}
+                    aria-pressed={isActive}
+                    className={
+                      isActive
+                        ? 'rounded-md bg-white px-3 py-1.5 text-[12px] font-semibold text-[#002b5f] shadow-sm'
+                        : 'rounded-md px-3 py-1.5 text-[12px] font-medium text-slate-500 hover:text-slate-700'
+                    }
+                  >
+                    {t(`infoModal.architectureTabs.${tab}`)}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="sr-only">{t(architectureDescriptionKey[activeArchitectureTab])}</p>
             <pre
               aria-hidden="true"
               className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-[#f1f7ff] p-5 font-mono text-[11px] leading-[1.55] text-[#002b5f]"
             >
-              {ARCHITECTURE_LINES.map((segments, lineIndex) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: ARCHITECTURE_LINES is a static constant ASCII diagram; ordering is stable and content doesn't reorder.
+              {architectureLinesByTab[activeArchitectureTab].map((segments, lineIndex) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: the active diagram is a static constant; ordering is stable and content doesn't reorder.
                 <span key={`line-${lineIndex}`}>
                   {segments.map((segment, segmentIndex) => {
                     const classes = [
