@@ -6,7 +6,7 @@ spec:
       github:
         repo: SimplePDF/simplepdf-embed
         branch: main
-        deploy_on_push: true
+        deploy_on_push: false
       source_dir: /form-copilot
       environment_slug: node-js
       build_command: npm run build
