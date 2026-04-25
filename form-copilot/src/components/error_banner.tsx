@@ -144,11 +144,12 @@ const GenericPanel = ({ message }: MessagePanelProps): ReactElement => {
   const [isExpanded, setIsExpanded] = useState(false)
   return (
     <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+      <div className="font-medium">{t('chat.errorServerTitle')}</div>
       <button
         type="button"
         onClick={() => setIsExpanded((value) => !value)}
         aria-expanded={isExpanded}
-        className="flex w-full items-center justify-between gap-2 text-left font-medium"
+        className="mt-2 flex w-full items-center justify-between gap-2 text-left text-[11px] font-medium text-rose-600"
       >
         <span>{t('chat.errorGenericTitle')}</span>
         <svg

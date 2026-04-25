@@ -125,6 +125,24 @@ const createRedisLimiter = (url: string): RateLimiter => {
     // Don't crash the process on disconnect; the limiter surfaces unready
     // state via isReady() and check() returns system_failure.
     lazyConnect: false,
+    // Cap each TCP connect attempt at 3s. ioredis defaults to 10s, which
+    // — combined with backoff retries — pile up enough hung sockets under
+    // load to congest the event loop. Once the loop is congested, App
+    // Platform's health check times out and DO marks the instance
+    // unhealthy, taking the public URL down even though the app process
+    // is still alive. 3s is plenty for a healthy in-VPC connection.
+    connectTimeout: 3_000,
+    // Bounded retry backoff. After 3 failed attempts ioredis stops
+    // re-trying — the limiter stays unready, callers see system_failure,
+    // and we don't keep dragging the event loop with new socket attempts.
+    // ETIMEDOUT during recovery (firewall change propagating, etc.) is
+    // common; the bounded retry keeps the cost predictable.
+    retryStrategy: (times) => {
+      if (times > 3) {
+        return null
+      }
+      return Math.min(times * times * 200, 5_000)
+    },
   })
 
   let lastError: string | null = null
