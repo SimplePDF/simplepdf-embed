@@ -84,6 +84,7 @@ Use `AskUserQuestion`:
 - **Options:**
   - `Local only` (Recommended): _"Just `npm run dev` on your dev machine, served at `http://localhost:3001`. The demo's SimplePDF workspace whitelists that exact origin, so no Pro account is needed. The port has to stay 3001."_
   - `DigitalOcean App Platform`: _"One-click deploy via the bundled `.do/deploy.template.yaml`. Cheapest hosted option (~$12-24/mo)."_
+  - `Cloudflare Containers`: _"GA since April 2026. Workers Paid plan ($5/mo) required. The form-copilot Node + nitro stack runs as-is in a Linux container. Needs a small Dockerfile and a `wrangler containers` deploy."_
   - `Vercel / Render / fly.io`: _"Other PaaS hosts. The Vercel AI SDK + nitro `node-server` stack works on all of them; we'll set up env vars + build commands."_
   - `Custom (Docker, my own server)`: _"Run the production build (`npm start`) wherever you want."_
 
@@ -97,10 +98,14 @@ After Q1, use `AskUserQuestion`:
 - **Header:** `Plan`
 - **Options:**
   - `Yes, I have Pro or higher`: _"Great, we'll wire it up with your companyIdentifier next."_
-  - `No, but I'll get one`: _"Sign up at https://simplepdf.com/auth/signup and pick the Pro plan (or higher). I'll wait."_
+  - `No, but I'll get one`: _"I'll point you at the sign-up flow next, with one tip about which welcome path to pick."_
   - `Just exploring`: _"Local-only is fine without a Pro account (the demo workspace whitelists `localhost:3001`). Hosted deploy is gated on Pro."_
 
-If they pick `No, but I'll get one`: provide the link and pause until they confirm. If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
+If they pick `No, but I'll get one`, send them this exact guidance and pause until they confirm:
+
+> _"Sign up at https://simplepdf.com/auth/signup. The welcome flow will ask whether you want to **embed SimplePDF in your app** or **collect submissions**. Pick **'collect submissions'**: that path is short and gets you straight to plan selection, which is what you actually need here. The 'embed in my app' welcome takes you through an integration walkthrough (React / iframe / WordPress / etc.) that you don't need for fork-and-go, since you're already wiring up the embed yourself via this skill. After completing the short onboarding, choose the **Pro** plan (or higher), then copy your `companyIdentifier` from <https://simplepdf.com/account/settings>."_
+
+If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
 
 ### Q3: companyIdentifier
 
@@ -117,9 +122,9 @@ Use `AskUserQuestion`:
 - **Question:** Which AI provider should Form Copilot use server-side?
 - **Header:** `Provider`
 - **Options:**
-  - `Anthropic Claude` (Recommended): _"Default in the demo. Best tool-calling accuracy for the field-filling agent."_
+  - `Anthropic Claude` (Recommended): _"Default in the demo (Haiku 4.5). Mature tool-calling, broad ecosystem support, predictable pricing."_
   - `OpenAI`: _"GPT-4 / GPT-5 family. Solid alternative."_
-  - `DeepSeek`: _"Low-cost. Reasonable quality for the form-filling task."_
+  - `DeepSeek`: _"In our testing, on par with Anthropic Claude Haiku 4.5 for the form-filling task, at a meaningfully lower cost per turn."_
   - `Custom OpenAI-compatible (Ollama, LM Studio, vLLM)`: _"Local or self-hosted endpoint. The browser-direct BYOK path covers this; your server isn't in the loop."_
   - `BYOK only: let users bring their own key`: _"No server-side provider. Visitors paste their own key in the in-app Model Picker. Lowest ops surface."_
 
@@ -246,6 +251,7 @@ If `Custom: walk me through each`: ask them which feature they want to address f
 Per their Q1 choice:
 
 - **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) `SHARED_API_KEYS` / `REDIS_URL` / `IP_HASH_SALT`.
+- **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put SHARED_API_KEYS` etc. Cloudflare's edge sits in front for free WAF + caching.
 - **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the form-copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
 - **Render / fly.io:** point the service at this repo, set build command `npm run build`, start command `npm start`, and configure env vars in the host's dashboard. fly.io needs a `Dockerfile` (build the production output, run `node .output/server/index.mjs`).
 - **Custom Docker:** `npm run build` produces `.output/`. Bundle it in your Dockerfile, expose port 3000, run `node .output/server/index.mjs`.

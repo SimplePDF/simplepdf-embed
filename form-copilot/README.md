@@ -148,6 +148,18 @@ The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simpl
 
 Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 
+#### Other deploy targets
+
+The stack runs unmodified anywhere a Node 24 server can. Tested + documented targets:
+
+- **DigitalOcean App Platform** (one-click button above)
+- **Cloudflare Containers** (GA since April 2026, Workers Paid plan): wrap the build in a small Dockerfile and `npx wrangler containers deploy`. Cloudflare's edge sits in front for free, with WAF rate-limiting and global caching. See <https://developers.cloudflare.com/containers/>.
+- **Vercel**: the nitro `node-server` preset works on Vercel's Node runtime. `vercel deploy` from the `form-copilot/` folder.
+- **Render**, **fly.io**, **Railway**: point at the repo, set build = `npm run build`, start = `npm start`, configure env vars in the dashboard. fly.io expects a Dockerfile.
+- **Self-hosted Docker**: `npm run build` produces `.output/`. `node .output/server/index.mjs`, expose port 3000.
+
+The skill at [`skills/fork-and-go/SKILL.md`](./skills/fork-and-go/SKILL.md) walks you through whichever target you pick.
+
 ### Wire up your AI provider
 
 Server-side streaming lives in `src/routes/api/chat.ts`. Replace the bundled key resolution with whatever your app uses (env var, secret manager, per-tenant config) and pick a provider in `src/server/language_model.ts`. The Vercel AI SDK abstracts everything behind `streamText`.
