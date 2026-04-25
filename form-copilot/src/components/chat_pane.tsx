@@ -774,7 +774,7 @@ export const ChatPane = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <LanguagePicker value={language} onChange={onLanguageChange} disabled={isStreaming} />
+          <LanguagePicker value={language} onChange={onLanguageChange} />
           {isStreaming ? (
             <button
               type="button"
