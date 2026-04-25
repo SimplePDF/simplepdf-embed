@@ -565,7 +565,7 @@ export const InfoModal = ({
             <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
               {t('infoModal.architectureSubtext')}
             </p>
-            <div className="mt-4 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+            <div className="mt-4 inline-flex gap-6">
               {(['demo', 'production'] as const).map((tab) => {
                 const isActive = activeArchitectureTab === tab
                 return (
@@ -574,11 +574,7 @@ export const InfoModal = ({
                     type="button"
                     onClick={() => setActiveArchitectureTab(tab)}
                     aria-pressed={isActive}
-                    className={
-                      isActive
-                        ? 'rounded-md bg-white px-3 py-1.5 text-[12px] font-semibold text-[#002b5f] shadow-sm'
-                        : 'rounded-md px-3 py-1.5 text-[12px] font-medium text-slate-500 hover:text-slate-700'
-                    }
+                    className={isActive ? 'underline underline-offset-4' : ''}
                   >
                     {t(`infoModal.architectureTabs.${tab}`)}
                   </button>
