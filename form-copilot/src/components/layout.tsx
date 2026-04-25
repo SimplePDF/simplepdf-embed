@@ -111,10 +111,10 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
           className="flex items-center gap-1.5 rounded text-white hover:opacity-80"
         >
           <img
-            src="https://simplepdf.com/android-chrome-512x512.png"
+            src="https://cdn.simplepdf.com/simple-pdf/assets/common/logo-white.png"
             alt=""
             aria-hidden="true"
-            className="h-6 w-6 flex-none rounded"
+            className="h-6 w-6 flex-none"
           />
           <span className="truncate text-base font-semibold md:text-lg">{t('header.brand')}</span>
         </a>
