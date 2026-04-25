@@ -103,7 +103,7 @@ After Q1, use `AskUserQuestion`:
 
 If they pick `No, but I'll get one`, send them this exact guidance and pause until they confirm:
 
-> _"Sign up at https://simplepdf.com/auth/signup. The welcome flow will ask whether you want to **embed SimplePDF in your app** or **collect submissions**. Pick **'collect submissions'**: that path is short and gets you straight to plan selection, which is what you actually need here. The 'embed in my app' welcome takes you through an integration walkthrough (React / iframe / WordPress / etc.) that you don't need for fork-and-go, since you're already wiring up the embed yourself via this skill. After completing the short onboarding, choose the **Pro** plan (or higher), then copy your `companyIdentifier` from <https://simplepdf.com/account/settings>."_
+> _"Sign up at https://simplepdf.com/auth/signup. The welcome flow will ask whether you want to **embed SimplePDF in your app** or **collect submissions**. Pick **'collect submissions'**: that path is short and gets you straight to plan selection, which is what you actually need here. The 'embed in my app' welcome takes you through an integration walkthrough (React / iframe / WordPress / etc.) that you don't need for fork-and-go, since you're already wiring up the embed yourself via this skill. After completing the short onboarding, choose the **Pro** plan (or higher). Your `companyIdentifier` is visible in the dashboard sidebar, right under your company name (a small monospaced chip)."_
 
 If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
 
@@ -111,7 +111,7 @@ If `Just exploring`: set the expectation clearly that local-only works but hoste
 
 If they have or will have Pro (or higher), ask in plain text (no `AskUserQuestion`):
 
-_"What's your SimplePDF companyIdentifier? It's the subdomain piece of `<companyIdentifier>.simplepdf.com`. You'll find it in your dashboard at https://simplepdf.com/account/settings."_
+_"What's your SimplePDF companyIdentifier? It's the subdomain piece of `<companyIdentifier>.simplepdf.com`. Open your SimplePDF dashboard and look at the sidebar: the identifier is the small chip right under your company name."_
 
 If `Just exploring`, skip this and use `form-copilot` as the placeholder; remind them once near deploy time.
 
