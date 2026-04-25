@@ -1,6 +1,7 @@
 {
   "name": "form-copilot",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "imports": {
     "#/*": "./src/*"

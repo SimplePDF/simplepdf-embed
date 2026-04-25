@@ -1,101 +1,167 @@
-# Form Copilot
+<p align="center">
+  <a href="https://simplepdf.com">
+    <img src="https://simplepdf.com/apple-touch-icon.png" alt="SimplePDF" width="96">
+  </a>
+</p>
 
-> Form Copilot: AI that helps users fill PDF forms step by step.
+<h1 align="center">Form Copilot</h1>
 
-Standalone TanStack Start app that combines the SimplePDF editor (left pane) with an AI chat sidebar (right pane). The assistant reads, fills, navigates, and submits the PDF through the SimplePDF iframe `postMessage` bridge. Doubles as the canonical integration example for consumers and as a hosted marketing demo.
+<p align="center">
+  AI that helps users fill PDF forms step by step, inside the
+  <a href="https://simplepdf.com">SimplePDF</a> editor.
+</p>
 
-- **Framework**: TanStack Start (Vite + Nitro)
-- **PDF editor**: embedded iframe at `<company>.simplepdf.com`
-- **LLM on the server path**: Claude Haiku 4.5 via the Vercel AI SDK, streamed through a TanStack Start server function
-- **LLM on the BYOK path**: `streamText` runs directly in the browser (OpenAI or Anthropic); the API key stays in tab memory and never touches this server
-- **Tools**: executed client-side via iframe `postMessage` (no tool execution on the server)
-- **Access model**: invite-only via `SHARED_API_KEYS` + `?share=<id>` OR bring-your-own-key via the Model Picker. No open / default-key mode.
+<p align="center">
+  <a href="https://form-copilot.simplepdf.com"><strong>Live demo</strong></a>
+  &middot;
+  <a href="https://simplepdf.com/pricing">Pricing</a>
+  &middot;
+  <a href="https://simplepdf.com/help">SimplePDF docs</a>
+  &middot;
+  <a href="https://github.com/SimplePDF/simplepdf-embed">Parent repo</a>
+</p>
 
-## Running locally
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License: MIT"></a>
+  <a href="https://simplepdf.com/pricing"><img src="https://img.shields.io/badge/SimplePDF-Premium-amber" alt="Powered by SimplePDF Premium"></a>
+</p>
 
-```bash
-npm install
-cp .env.example .env
-# Set SHARED_API_KEYS in .env (JSON shape documented below) before the server
-# will answer. Alternatively, skip the server path entirely and use the Model
-# Picker -> BYOK from the UI.
-npm run dev              # defaults to http://localhost:3001
+---
+
+## About
+
+Form Copilot is a turn-key, MIT-licensed reference implementation that pairs the SimplePDF editor with an AI chat sidebar. The assistant reads the document, fills fields, navigates pages, and submits the PDF, all through the SimplePDF iframe `postMessage` bridge.
+
+Fork it, drop in your own `companyIdentifier`, wire up your AI provider, and ship Form Copilot inside your product without writing the iframe bridge, tool plumbing, or streaming chat from scratch.
+
+## See it live
+
+The hosted demo at **<https://form-copilot.simplepdf.com>** runs on SimplePDF [**Premium**](https://simplepdf.com/pricing). It relies on two Premium-only capabilities:
+
+- **White-labelling** — embed the editor with your own chrome (no SimplePDF branding)
+- **Programmatic control** — drive the editor over the iframe `postMessage` API (load documents, fill fields, switch tools, submit)
+
+To run this code on your own domain, you need a SimplePDF account that includes those capabilities. [Compare plans →](https://simplepdf.com/pricing)
+
+## How it works
+
 ```
+Browser
+  ┌─ Chat sidebar (Form Copilot)
+  │     │
+  │     └─ postMessage ──> SimplePDF editor iframe
+  │
+  └─ /api/chat ──> your server
+                     └─ Vercel AI SDK ──> Anthropic / OpenAI / DeepSeek
+```
+
+- The PDF editor renders inside the SimplePDF iframe — **PDF data never leaves the browser**
+- Form Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
+- LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
+- Tool calls are executed in the browser, against the iframe — your server only proxies the chat stream
+
+## Built with
+
+- [SimplePDF](https://simplepdf.com) — the embedded PDF editor
+- [TanStack Start](https://tanstack.com/start) — React 19, Vite, Nitro fullstack
+- [Vercel AI SDK](https://sdk.vercel.ai) — `streamText` + tool calling
+- [Anthropic](https://anthropic.com), [OpenAI](https://openai.com), [DeepSeek](https://deepseek.com), or any AI SDK provider
+- [Tailwind CSS](https://tailwindcss.com)
+- [Biome](https://biomejs.dev) (lint + format), [Vitest](https://vitest.dev) (tests)
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 24.x
+- A SimplePDF [Premium](https://simplepdf.com/pricing) account (for white-labelling + programmatic control on your domain)
+- An API key from your AI provider of choice
+
+### Setup
+
+1. Clone this directory (or fork the [parent repo](https://github.com/SimplePDF/simplepdf-embed))
+
+2. Install dependencies:
+
+   ```sh
+   npm install
+   ```
+
+3. Create your `.env`:
+
+   ```sh
+   cp .env.example .env
+   ```
+
+   Required:
+
+   - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` — your SimplePDF company subdomain
+   - `VITE_SIMPLEPDF_BASE_DOMAIN` — `https://simplepdf.com`
+
+   Then add your serving origin (e.g. `https://app.example.com`) to the embed whitelist in your SimplePDF dashboard. The iframe will refuse to load on origins that aren't whitelisted.
+
+4. Run:
+
+   ```sh
+   npm run dev          # http://localhost:3001
+   ```
+
+### Wire up your AI provider
+
+Server-side streaming lives in `src/routes/api/chat.ts`. Replace the bundled key resolution with whatever your app uses (env var, secret manager, per-tenant config) and pick a provider in `src/server/language_model.ts`. The Vercel AI SDK abstracts everything behind `streamText`.
+
+If you want users to bring their own keys (BYOK), the browser-direct path in `src/lib/byok/` runs `streamText` straight from the browser to the provider — your server is bypassed entirely.
+
+## Tools exposed to the LLM
+
+The chat sidebar advertises these tools to the model. Each runs inside the iframe via `postMessage`; the server only proxies the stream.
+
+| Tool | Purpose |
+|------|---------|
+| `get_fields` | List form fields currently on the document |
+| `get_document_content` | Extract text content per page |
+| `detect_fields` | Auto-detect missing fields on scanned PDFs |
+| `focus_field` | Highlight + scroll to a field |
+| `set_field_value` | Write a value into a field |
+| `select_tool` | Switch the editor toolbar (TEXT, CHECKBOX, SIGNATURE, etc.) |
+| `go_to_page` | Navigate pages |
+| `submit_download` | Finalize and download the filled PDF |
+
+Tool input + output schemas: `src/lib/embed-bridge-adapters/client-tools.ts`. System prompt: `src/server/tools.ts`.
+
+## Common fork points
+
+| File | What lives there |
+|------|------------------|
+| `src/server/tools.ts` | System prompt + tool registry |
+| `src/server/language_model.ts` | AI provider wiring |
+| `src/components/chat_pane.tsx` | Chat UI + streaming + tool routing |
+| `src/lib/byok/` | Browser-direct provider plumbing (delete if you don't need BYOK) |
+| `src/locales/` | 22 locale files (en / fr / de / es / it / pt / nl / ja / …) |
+| `src/forms/` | Sample forms — replace with your own |
+| `src/routes/__root.tsx` | `<head>` (title, meta, favicon) |
+
+## Privacy by design
+
+The architecture is deliberate:
+
+- **Document data stays in the browser.** SimplePDF processes PDFs client-side. The iframe never uploads document bytes to SimplePDF.
+- **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
+- **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket — never to SimplePDF servers.
 
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
 | `npm run dev` | Start the dev server |
-| `npm run build` | Production build (Nitro output) |
-| `npm run preview` | Preview the production build |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run check` | Biome format + lint check |
-| `npm run test:types` | `tsc --noEmit` |
+| `npm run build` | Production build (Nitro `node-server` preset) |
+| `npm start` | Run the production build |
+| `npm run preview` | Preview the production build via Vite |
+| `npm test` | Run Vitest unit tests |
+| `npm run check` | Biome format + lint |
 
-## Environment
+## License
 
-### Access keys
+MIT — see [LICENSE](./LICENSE). Use it, fork it, ship it inside your product.
 
-`SHARED_API_KEYS` is the only server-paid path. The env is a stringified JSON map of share-id to per-share config:
-
-```
-SHARED_API_KEYS='{"<share_id>":{"api_key":"sk-ant-...","rate_limit_turns_lifetime":20,"model":"anthropic_haiku_4_5"}}'
-```
-
-- `api_key` (required): provider API key used for requests that arrive with `?share=<share_id>`. Anthropic key for `model: "anthropic_haiku_4_5"`, DeepSeek key for `model: "deepseek_v4_flash"`.
-- `rate_limit_turns_lifetime` (required): lifetime cap on fresh user turns per IP for that share. Resets on server restart (or persists to S3, see below).
-- `model` (required): the demo model this invite runs on. One of `"anthropic_haiku_4_5"` (displayed as "Claude Haiku 4.5") or `"deepseek_v4_flash"` (displayed as "DeepSeek V4 Flash"). The label shown above "Switch AI model" in the chat header is driven entirely by `DEMO_MODELS` in `src/lib/demo_model.ts`, so editing a label there immediately changes the UI.
-- The reserved id `__default__` is rejected at parse time.
-- Requests without a valid `?share=` return 401.
-
-The share id lives directly in the address bar via `?share=<id>` for the entire session — there is no cookie, no server-side rewrite. The server reads the same `?share=` from the page URL (route loader) and from every `/api/chat` / `/api/summarize` fetch URL. Copy-pasting the URL with `?share=<id>` hands someone else a working invite until the per-share lifetime cap is hit.
-
-Visitors who want the demo without an invite link open the Model Picker inside the app and bring their own key. BYOK runs the stream entirely in the browser; it never hits `/api/chat` or `/api/summarize`.
-
-**Fail-closed rate limit.** If the limiter is mis-configured or its persistence hydration fails, every `/api/chat` and `/api/summarize` request returns 503 `service_unavailable` instead of silently accepting traffic on an empty in-memory counter. The operator is expected to fix the config (or disable persistence) before the server serves anything.
-
-### Client configuration
-
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` | **Yes** | The `<company>.<base_domain>` subdomain that serves the embedded editor. Exposed to the client because the iframe `src` is built browser-side. Get your own company identifier: https://simplepdf.com/auth/signup. Missing / empty = app throws at startup. |
-| `VITE_SIMPLEPDF_BASE_DOMAIN` | **Yes** | Full base URL (protocol + host + optional port), e.g. `https://simplepdf.com` or `http://simplepdf.nil:3105`. The company identifier above is spliced in as a subdomain. Missing / empty / invalid URL = app throws at startup. |
-| `VITE_ENABLE_DEVTOOLS` | No | Set to `true` to surface the TanStack Router devtools panel in local dev. |
-
-### Rate-limit persistence (optional; all seven must be set together)
-
-| Variable | Purpose |
-|----------|---------|
-| `IP_HASH_SALT` | **Required when the S3 vars below are set.** Salts the SHA-256 IP hash; prevents brute-force of a leaked persisted blob. Server refuses to start if S3 persistence is configured without it. |
-| `S3_ENDPOINT` | e.g. `https://fra1.digitaloceanspaces.com` |
-| `S3_REGION` | e.g. `us-east-1` |
-| `S3_BUCKET` | e.g. `beautiful-space` |
-| `S3_RATE_LIMIT_KEY` | e.g. `simple-pdf/rate-limits/form-copilot.json` |
-| `S3_ACCESS_KEY_ID` | Spaces / S3 access key |
-| `S3_SECRET_ACCESS_KEY` | Spaces / S3 secret |
-
-With all seven set, per-(share, IP) counters are loaded at boot and written every 30s (debounced). Without them, counters live only in memory and reset with the server process.
-
-## Architecture at a glance
-
-```
-Browser
-  Copilot chat -- postMessage --> SimplePDF editor iframe
-     |
-     |-- /api/chat (same-origin only) --> server function
-     |                                      -> Anthropic via Vercel AI SDK
-     |                                      -> per-share rate limiter
-     |
-     |-- BYOK path: streamText in browser --> OpenAI / Anthropic directly
-                                              (never hits our server)
-```
-
-- Every server route (`/api/chat`, `/api/summarize`, the `readDemoGate` server function) enforces a same-origin check. Spoofable from curl but the intent is to constrain the browser path to the hosting origin.
-- Tool-call round trips happen client-side; the server only proxies the stream.
-- Tool results are wrapped in a `{ __untrusted_data, data }` envelope before reaching the LLM. The system prompt includes a matching rule.
-- On the BYOK path, `get_document_content` returns the full document; on the shared-key path, it caps at one page / 1200 chars to stay under the per-share token budget.
-
-## Design notes
-
-See [`plans/P059-pdf-form-copilot.md`](../../../plans/P059-pdf-form-copilot.md) in the parent repo for the full design history, decision log, and code-review remediation trail.
+The MIT license covers this code. The SimplePDF editor itself is a hosted service — running this app on your own domain requires a SimplePDF account with white-labelling and programmatic control. [See pricing →](https://simplepdf.com/pricing)
