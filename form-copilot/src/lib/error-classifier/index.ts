@@ -3,5 +3,6 @@ export {
   classifyError,
   formatStreamError,
   getErrorDisplayMessage,
+  isUpstreamHtmlError,
   parseStreamErrorMessage,
 } from './classifier'

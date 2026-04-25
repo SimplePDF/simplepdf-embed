@@ -2,7 +2,22 @@
 // codes (recovered from the error object or from a JSON envelope we inject on
 // the server side when the SDK rebuilds stream errors without a status code).
 
-export type KnownErrorKind = 'authentication' | 'server' | 'demo_rate_limited'
+export type KnownErrorKind = 'authentication' | 'server' | 'demo_rate_limited' | 'service_unavailable'
+
+// Detects upstream / infra error pages (DO App Platform 503, generic load
+// balancer HTML, etc.) where `error.message` is the raw HTML response body.
+// These payloads have no useful content for the user and must NEVER be
+// rendered as-is — show a clean "service unavailable" panel instead.
+export const isUpstreamHtmlError = (message: string): boolean => {
+  const trimmed = message.trim().toLowerCase()
+  if (trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html')) {
+    return true
+  }
+  // DO App Platform's "failed to forward" 503 page — the canonical case
+  // when the App container is unreachable (Valkey timeout cascade,
+  // health-check failure, deploy in progress, etc.).
+  return trimmed.includes('via_upstream') || trimmed.includes('app platform failed to forward')
+}
 
 export type StreamErrorEnvelope = { statusCode: number; message: string }
 
@@ -64,6 +79,13 @@ export const getErrorDisplayMessage = (error: Error): string => {
 }
 
 export const classifyError = (error: Error): KnownErrorKind | null => {
+  // Upstream HTML check first — these are infra errors where the App
+  // container itself is unreachable, so neither the JSON envelope nor the
+  // direct status path applies. Routing to `service_unavailable` keeps the
+  // raw HTML out of the UI entirely.
+  if (isUpstreamHtmlError(error.message)) {
+    return 'service_unavailable'
+  }
   // Envelope first. An envelope-shaped message means the error went through
   // /api/chat — the server-paid demo path. BYOK never reaches that endpoint,
   // so envelope-sourced 429 / auth failures are unambiguously demo-side and

@@ -128,6 +128,7 @@
     "errorByokActivatedResumeMessage": "Let's continue",
     "errorServerTitle": "Something went wrong",
     "errorGenericTitle": "Full error",
+    "errorServiceUnavailableBody": "The service is temporarily unavailable. Please try again in a few minutes.",
     "welcomeTitle": "Try Form Copilot with your own AI",
     "welcomeBody": "Your credentials stay in this tab. Requests are sent from your browser to your selected AI provider.",
     "welcomeCta": "Bring your own AI",

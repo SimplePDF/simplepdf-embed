@@ -190,4 +190,28 @@ describe(classifyError.name, () => {
   it('returns null when no status can be recovered', () => {
     expect(classifyError(new Error('mysterious failure'))).toBeNull()
   })
+
+  it('classifies DO App Platform 503 HTML as service_unavailable', () => {
+    const doHtml = `<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body>
+<p class="code">Error code: 503</p>
+<p class="text">Well, This is unexpected. An Error has occurred...</p>
+<div style="display:none;">
+<h1>via_upstream (503 -)</h1>
+<p data-translate="connection_timed_out">App Platform failed to forward this request to the application.</p>
+</div>
+</body>
+</html>`
+    expect(classifyError(new Error(doHtml))).toBe('service_unavailable')
+  })
+
+  it('classifies bare HTML upstream payloads (no DOCTYPE) as service_unavailable', () => {
+    expect(classifyError(new Error('<html><body>503</body></html>'))).toBe('service_unavailable')
+  })
+
+  it('classifies via_upstream signature even without HTML wrapper', () => {
+    expect(classifyError(new Error('via_upstream (503 -) something'))).toBe('service_unavailable')
+  })
 })

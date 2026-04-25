@@ -41,12 +41,27 @@ export const ErrorBanner = ({
       return <RateLimitPanel onSwitchModel={onSwitchModel} />
     case 'server':
       return <ServerPanel message={getErrorDisplayMessage(error)} />
+    case 'service_unavailable':
+      return <ServiceUnavailablePanel />
     case null:
       return <GenericPanel message={getErrorDisplayMessage(error)} />
     default:
       kind satisfies never
       return <GenericPanel message={getErrorDisplayMessage(error)} />
   }
+}
+
+// Infra-level errors where `error.message` is the upstream's HTML response
+// body (DO 503 page, generic load-balancer 5xx, etc.). The payload has no
+// useful content — show only "Something went wrong" + a clean explanation.
+const ServiceUnavailablePanel = (): ReactElement => {
+  const { t } = useTranslation()
+  return (
+    <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+      <div className="font-medium">{t('chat.errorServerTitle')}</div>
+      <p className="mt-1 leading-relaxed">{t('chat.errorServiceUnavailableBody')}</p>
+    </div>
+  )
 }
 
 type SwitchModelProps = { onSwitchModel: () => void }
@@ -149,7 +164,7 @@ const GenericPanel = ({ message }: MessagePanelProps): ReactElement => {
         type="button"
         onClick={() => setIsExpanded((value) => !value)}
         aria-expanded={isExpanded}
-        className="mt-2 flex w-full items-center justify-between gap-2 text-left text-[11px] font-medium text-rose-600"
+        className="mt-2 flex w-full items-center justify-between gap-2 text-left text-[11px] font-medium"
       >
         <span>{t('chat.errorGenericTitle')}</span>
         <svg
