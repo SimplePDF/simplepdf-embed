@@ -43,7 +43,7 @@
       "demo": "Para esta demo",
       "production": "En producción"
     },
-    "architectureDemoDescription": "Esta demo se ejecuta en una cuenta compartida de SimplePDF. El navegador aloja tanto Form Copilot como el editor SimplePDF (cargado en un iframe). Los datos de los campos permanecen en el navegador mediante llamadas a herramientas postMessage del lado del cliente. El tráfico del chat pasa por el servidor alojado de la demo hasta un proveedor de IA alojado, o directo desde el navegador cuando aportas tu propia clave. El servidor de SimplePDF solo registra telemetría y metadatos; nunca ve el contenido del documento.",
+    "architectureDemoDescription": "Esta demo se ejecuta en una cuenta compartida de SimplePDF. El navegador aloja tanto Form Copilot como el editor SimplePDF (cargado en un iframe). Los datos de los campos permanecen en el navegador mediante llamadas a herramientas postMessage del lado del cliente. El tráfico del chat pasa por el servidor alojado de la demo hasta un proveedor de IA alojado, o directo desde el navegador cuando aportas tu propia clave API. El servidor de SimplePDF solo registra telemetría y metadatos; nunca ve el contenido del documento.",
     "architectureDescription": "El navegador ejecuta Form Copilot y el editor SimplePDF dentro de un iframe. Ambos se comunican mediante llamadas de herramientas del lado del cliente con postMessage, de modo que los datos de los campos nunca salen del navegador. Los mensajes del chat se redirigen a través de tu servidor hacia tu stack de IA (proveedor, claves, RAG, datos internos). El servidor de SimplePDF solo recibe telemetría y metadatos y nunca ve el documento. El documento completado se sube directamente desde el editor a tu almacenamiento (S3, Azure Blob Storage o SharePoint), sin pasar por el servidor de SimplePDF. Cuando un envío termina, un webhook opcional puede notificar a tu servidor. El webhook solo transporta metadatos, nunca el contenido del documento.",
     "tryThisForm": "Probar este formulario →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Esperando a que cargue el editor…",
     "subtitleNoDocument": "Carga primero un documento",
-    "subtitleNoModel": "Trae tu propio proveedor para chatear",
+    "subtitleNoModel": "Trae tu propia IA para empezar a chatear",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Cambiar modelo de IA",
     "modelPicker": {
-      "title": "Trae tu propio proveedor",
+      "title": "Trae tu propia IA",
       "currentlyUsedSectionTitle": "En uso actualmente",
       "demoRateLimitedBadge": "demo · uso limitado",
       "byokIntro": "Elige un proveedor y pega tu clave para chatear a través de él.",
-      "byokSecurityTitle": "Tu clave se queda en tu dispositivo.",
-      "byokSecurityBody": "Las claves se guardan solo en memoria (nunca se escriben en disco, nunca se envían a los servidores de SimplePDF) y cada petición LLM se envía directamente desde tu navegador al proveedor que elijas.",
+      "byokSecurityTitle": "Tus credenciales se quedan en tu dispositivo.",
+      "byokSecurityBody": "Las credenciales se guardan solo en memoria (nunca se escriben en disco, nunca se envían a los servidores de SimplePDF) y cada petición LLM se envía directamente desde tu navegador a la IA que elijas.",
       "modelSectionTitle": "Modelo",
       "recommendedBadge": "Recomendado",
       "keyInputPlaceholder": "Pega tu API key de {{provider}}",
@@ -87,7 +87,7 @@
       "keyInvalid": "Esta clave API fue rechazada por el proveedor.",
       "keyModelNotFound": "Modelo no encontrado. Elige otro modelo o comprueba que tu plan lo incluya.",
       "keyNetworkError": "No se pudo contactar al proveedor para verificar la clave. Revisa tu conexión e inténtalo de nuevo.",
-      "applyButton": "Usar este proveedor",
+      "applyButton": "Usar esta IA",
       "validatingButton": "Verificando clave…",
       "cancelButton": "Cancelar",
       "comingSoon": "Próximamente",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Reanudar conversación",
     "errorByokActivatedResumeMessage": "Sigamos",
     "errorGenericTitle": "Detalles del error",
-    "welcomeTitle": "Prueba Form Copilot con tu propia clave API",
-    "welcomeBody": "Tu clave se queda solo en esta pestaña. Las peticiones se envían desde tu navegador al proveedor de IA que elijas.",
-    "welcomeCta": "Usa tu propia clave API",
+    "welcomeTitle": "Prueba Form Copilot con tu propia IA",
+    "welcomeBody": "Tus credenciales se quedan en esta pestaña. Las peticiones se envían desde tu navegador al proveedor de IA que elijas.",
+    "welcomeCta": "Trae tu propia IA",
     "welcomeInfoLink": "Cómo funciona Form Copilot",
     "inputPlaceholderReady": "Habla con Form Copilot…",
     "send": "Enviar"
@@ -153,7 +153,7 @@
     "signature": "Firma",
     "picture": "Imagen",
     "boxedText": "Texto en casillas",
-    "submit": "Descargar"
+    "download": "Descargar"
   },
   "download": {
     "title": "Descarga tu PDF completado",

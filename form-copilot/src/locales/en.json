@@ -43,7 +43,7 @@
       "demo": "For this demo",
       "production": "In production"
     },
-    "architectureDemoDescription": "This demo runs on a shared SimplePDF account. The browser hosts both Form Copilot and the SimplePDF editor (loaded in an iframe). Field data stays in the browser via postMessage client-side tool calls. Chat traffic flows through the demo's hosted server to a hosted AI provider, or browser-direct when you bring your own key. The SimplePDF server records only telemetry and metadata; it never sees the document content.",
+    "architectureDemoDescription": "This demo runs on a shared SimplePDF account. The browser hosts both Form Copilot and the SimplePDF editor (loaded in an iframe). Field data stays in the browser via postMessage client-side tool calls. Chat traffic flows through the demo's hosted server to a hosted AI provider, or browser-direct when you bring your own API key. The SimplePDF server records only telemetry and metadata; it never sees the document content.",
     "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives telemetry and metadata and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server. The webhook carries metadata only, never the document content.",
     "tryThisForm": "Try this form →",
     "useCases": {
@@ -66,18 +66,18 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleWaiting": "Waiting for the editor to load…",
     "subtitleNoDocument": "Load a document first",
-    "subtitleNoModel": "Bring your own provider to chat",
+    "subtitleNoModel": "Bring your own AI to start chatting",
     "switchModel": "Switch AI model",
     "modelPicker": {
-      "title": "Bring your own provider",
+      "title": "Bring your own AI",
       "currentlyUsedSectionTitle": "Currently used",
       "demoRateLimitedBadge": "demo · capped usage",
       "byokIntro": "Pick a provider and paste your key to chat through it instead.",
-      "byokSecurityTitle": "Your key stays on your device.",
-      "byokSecurityBody": "Keys are held in memory only (never written to disk, never sent to SimplePDF's servers) and every LLM request is fired straight from your browser to the provider you chose.",
+      "byokSecurityTitle": "Your credentials stay on your device.",
+      "byokSecurityBody": "Credentials are held in memory only (never written to disk, never sent to SimplePDF's servers) and every LLM request is fired straight from your browser to the AI you chose.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Recommended",
       "keyInputPlaceholder": "Paste your {{provider}} API key",
@@ -85,7 +85,7 @@
       "keyInvalid": "This API key was rejected by the provider.",
       "keyModelNotFound": "Model not found. Pick a different model or check that your plan includes it.",
       "keyNetworkError": "Could not reach the provider to verify the key. Check your connection and try again.",
-      "applyButton": "Use this provider",
+      "applyButton": "Use this AI",
       "validatingButton": "Verifying key…",
       "cancelButton": "Cancel",
       "comingSoon": "Coming soon",
@@ -128,9 +128,9 @@
     "errorByokActivatedResumeMessage": "Let's continue",
     "errorServerTitle": "Something went wrong",
     "errorGenericTitle": "Full error",
-    "welcomeTitle": "Try Form Copilot with your own API key",
-    "welcomeBody": "Your key stays in this tab only. Requests are sent from your browser to your selected AI provider.",
-    "welcomeCta": "Bring your own API key",
+    "welcomeTitle": "Try Form Copilot with your own AI",
+    "welcomeBody": "Your credentials stay in this tab. Requests are sent from your browser to your selected AI provider.",
+    "welcomeCta": "Bring your own AI",
     "welcomeInfoLink": "How Form Copilot works",
     "inputPlaceholderReady": "Talk to Form Copilot…",
     "send": "Send"
@@ -152,7 +152,8 @@
     "signature": "Signature",
     "picture": "Picture",
     "boxedText": "Boxed Text",
-    "submit": "Download"
+    "download": "Download",
+    "submit": "Submit"
   },
   "download": {
     "title": "Download your filled PDF",

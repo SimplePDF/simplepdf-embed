@@ -43,7 +43,7 @@
       "demo": "Selle demo jaoks",
       "production": "Tootmises"
     },
-    "architectureDemoDescription": "See demo töötab jagatud SimplePDF kontol. Brauser hostib nii Form Copiloti kui ka SimplePDF redaktorit (mis laaditakse iframe’i). Välja andmed jäävad brauserisse postMessage kliendipoolsete tööriistakutsete kaudu. Vestlusliiklus voolab läbi demo hostitud serveri hostitud AI teenusepakkujani või otse brauserist, kui toote kaasa oma võtme. SimplePDF server salvestab ainult telemeetriat ja metaandmeid; ta ei näe kunagi dokumendi sisu.",
+    "architectureDemoDescription": "See demo töötab jagatud SimplePDF kontol. Brauser hostib nii Form Copiloti kui ka SimplePDF redaktorit (mis laaditakse iframe’i). Välja andmed jäävad brauserisse postMessage kliendipoolsete tööriistakutsete kaudu. Vestlusliiklus voolab läbi demo hostitud serveri hostitud AI teenusepakkujani või otse brauserist, kui toote kaasa oma API-võtme. SimplePDF server salvestab ainult telemeetriat ja metaandmeid; ta ei näe kunagi dokumendi sisu.",
     "architectureDescription": "Brauser käitab Form Copiloti ja SimplePDF redaktorit iframe’i sees. Need kaks suhtlevad postMessage kliendipoolsete tööriistakutsetega, nii et välja andmed ei lahku kunagi brauserist. Vestlusteated saadetakse teie serveri kaudu teie AI-virna (teenusepakkuja, võtmed, RAG, sisemised andmed). SimplePDF server saab ainult telemeetriat ja metaandmeid ega näe kunagi dokumenti ennast. Valminud dokument laaditakse otse redaktorist teie salvestusruumi (S3, Azure Blob Storage või SharePoint), mööda SimplePDF serverit. Kui esitamine on valmis, saab valikuline webhook teie serverile teada anda. Webhook sisaldab ainult metaandmeid, mitte kunagi dokumendi sisu.",
     "tryThisForm": "Proovi seda vormi →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Vestlus",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Ootan redaktori laadimist…",
     "subtitleNoDocument": "Lae esmalt dokument",
-    "subtitleNoModel": "Too oma teenusepakkuja vestlemiseks",
+    "subtitleNoModel": "Too oma tehisintellekt vestluse alustamiseks",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Vaheta AI-mudelit",
     "modelPicker": {
-      "title": "Too oma teenusepakkuja",
+      "title": "Too oma tehisintellekt",
       "currentlyUsedSectionTitle": "Praegu kasutusel",
       "demoRateLimitedBadge": "demo · piiratud kasutus",
       "byokIntro": "Vali teenusepakkuja ja kleebi oma võti, et vestelda selle kaudu.",
-      "byokSecurityTitle": "Sinu võti jääb sinu seadmesse.",
-      "byokSecurityBody": "Võtmed hoitakse ainult mälus (neid ei kirjutata kunagi kettale ega saadeta SimplePDF serveritesse) ja iga LLM päring saadetakse otse sinu brauserist valitud teenusepakkujale.",
+      "byokSecurityTitle": "Sinu mandaadid jäävad sinu seadmesse.",
+      "byokSecurityBody": "Mandaadid hoitakse ainult mälus (neid ei kirjutata kunagi kettale ega saadeta SimplePDF serveritesse) ja iga LLM päring saadetakse otse sinu brauserist valitud tehisintellektile.",
       "modelSectionTitle": "Mudel",
       "recommendedBadge": "Soovitatud",
       "keyInputPlaceholder": "Kleebi oma {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "Teenusepakkuja lükkas selle API võtme tagasi.",
       "keyModelNotFound": "Mudelit ei leitud. Vali muu mudel või kontrolli, et see kuulub sinu plaani.",
       "keyNetworkError": "Võtme kinnitamiseks ei õnnestunud teenusepakkujaga ühendust saada. Kontrolli ühendust ja proovi uuesti.",
-      "applyButton": "Kasuta seda teenusepakkujat",
+      "applyButton": "Kasuta seda tehisintellekti",
       "validatingButton": "Võtme kinnitamine…",
       "cancelButton": "Tühista",
       "comingSoon": "Tulekul",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Jätka vestlust",
     "errorByokActivatedResumeMessage": "Jätkame",
     "errorGenericTitle": "Täielik viga",
-    "welcomeTitle": "Proovi Form Copilotit oma API-võtmega",
-    "welcomeBody": "Sinu võti jääb ainult sellesse vahekaarti. Päringud saadetakse sinu brauserist valitud AI-teenusepakkujale.",
-    "welcomeCta": "Kasuta oma API-võtit",
+    "welcomeTitle": "Proovi Form Copilotit oma tehisintellektiga",
+    "welcomeBody": "Sinu mandaadid jäävad sellesse vahekaarti. Päringud saadetakse sinu brauserist valitud AI-teenusepakkujale.",
+    "welcomeCta": "Too oma tehisintellekt",
     "welcomeInfoLink": "Kuidas Form Copilot töötab",
     "inputPlaceholderReady": "Vestle Form Copilotiga…",
     "send": "Saada"
@@ -153,7 +153,7 @@
     "signature": "Allkiri",
     "picture": "Pilt",
     "boxedText": "Tekst lahtrites",
-    "submit": "Laadi alla"
+    "download": "Laadi alla"
   },
   "download": {
     "title": "Laadi täidetud PDF alla",

@@ -43,7 +43,7 @@
       "demo": "Tätä demoa varten",
       "production": "Tuotannossa"
     },
-    "architectureDemoDescription": "Tämä demo toimii jaetulla SimplePDF-tilillä. Selain isännöi sekä Form Copilotia että SimplePDF-editoria (ladattu iframessa). Kenttätiedot pysyvät selaimessa postMessage-asiakaspuolen työkalukutsuilla. Keskusteluliikenne kulkee demon isännöidyn palvelimen kautta isännöidylle tekoälytarjoajalle, tai suoraan selaimesta, kun tuot oman avaimesi. SimplePDF-palvelin tallentaa vain telemetriaa ja metatietoja; se ei näe koskaan asiakirjan sisältöä.",
+    "architectureDemoDescription": "Tämä demo toimii jaetulla SimplePDF-tilillä. Selain isännöi sekä Form Copilotia että SimplePDF-editoria (ladattu iframessa). Kenttätiedot pysyvät selaimessa postMessage-asiakaspuolen työkalukutsuilla. Keskusteluliikenne kulkee demon isännöidyn palvelimen kautta isännöidylle tekoälytarjoajalle, tai suoraan selaimesta, kun tuot oman API-avaimesi. SimplePDF-palvelin tallentaa vain telemetriaa ja metatietoja; se ei näe koskaan asiakirjan sisältöä.",
     "architectureDescription": "Selain ajaa Form Copilotia ja SimplePDF-editoria iframessa. Ne viestivät postMessage-asiakaspuolen työkalukutsuilla, joten kenttätiedot eivät koskaan poistu selaimesta. Keskusteluviestit välitetään palvelimesi kautta tekoälypinoosi (tarjoaja, avaimet, RAG, sisäiset tiedot). SimplePDF-palvelin saa vain telemetriaa ja metatietoja eikä koskaan näe asiakirjaa itseään. Valmis asiakirja ladataan suoraan editorista tallennustilaasi (S3, Azure Blob Storage tai SharePoint) SimplePDF-palvelimen ohi. Kun lähetys on valmis, valinnainen webhook voi ilmoittaa palvelimellesi. Webhook sisältää vain metatietoja, ei koskaan asiakirjan sisältöä.",
     "tryThisForm": "Kokeile tätä lomaketta →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Keskustelu",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Odotetaan editorin latautumista…",
     "subtitleNoDocument": "Lataa ensin asiakirja",
-    "subtitleNoModel": "Tuo oma tarjoaja keskustelua varten",
+    "subtitleNoModel": "Tuo oma tekoäly keskustelun aloittamiseksi",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Vaihda tekoälymalli",
     "modelPicker": {
-      "title": "Tuo oma tarjoaja",
+      "title": "Tuo oma tekoäly",
       "currentlyUsedSectionTitle": "Parhaillaan käytössä",
       "demoRateLimitedBadge": "demo · rajoitettu käyttö",
       "byokIntro": "Valitse tarjoaja ja lisää avaimesi keskustellaksesi sen kautta.",
-      "byokSecurityTitle": "Avaimesi pysyy laitteellasi.",
-      "byokSecurityBody": "Avaimet säilytetään vain muistissa (niitä ei koskaan kirjoiteta levylle eikä lähetetä SimplePDF:n palvelimille), ja jokainen LLM-pyyntö lähetetään suoraan selaimestasi valitsemallesi tarjoajalle.",
+      "byokSecurityTitle": "Tunnistetietosi pysyvät laitteellasi.",
+      "byokSecurityBody": "Tunnistetiedot säilytetään vain muistissa (niitä ei koskaan kirjoiteta levylle eikä lähetetä SimplePDF:n palvelimille), ja jokainen LLM-pyyntö lähetetään suoraan selaimestasi valitsemallesi tekoälylle.",
       "modelSectionTitle": "Malli",
       "recommendedBadge": "Suositeltu",
       "keyInputPlaceholder": "Lisää {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "Tarjoaja hylkäsi tämän API-avaimen.",
       "keyModelNotFound": "Mallia ei löytynyt. Valitse toinen malli tai tarkista, että se kuuluu sopimukseesi.",
       "keyNetworkError": "Tarjoajaan ei saatu yhteyttä avaimen vahvistamiseksi. Tarkista yhteytesi ja yritä uudelleen.",
-      "applyButton": "Käytä tätä tarjoajaa",
+      "applyButton": "Käytä tätä tekoälyä",
       "validatingButton": "Vahvistetaan avainta…",
       "cancelButton": "Peruuta",
       "comingSoon": "Tulossa pian",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Jatka keskustelua",
     "errorByokActivatedResumeMessage": "Jatketaan",
     "errorGenericTitle": "Koko virhe",
-    "welcomeTitle": "Kokeile Form Copilotia omalla API-avaimellasi",
-    "welcomeBody": "Avaimesi pysyy vain tällä välilehdellä. Pyynnöt lähetetään selaimestasi valitsemallesi tekoälytarjoajalle.",
-    "welcomeCta": "Tuo oma API-avain",
+    "welcomeTitle": "Kokeile Form Copilotia omalla tekoälylläsi",
+    "welcomeBody": "Tunnistetietosi pysyvät tällä välilehdellä. Pyynnöt lähetetään selaimestasi valitsemallesi tekoälytarjoajalle.",
+    "welcomeCta": "Tuo oma tekoäly",
     "welcomeInfoLink": "Näin Form Copilot toimii",
     "inputPlaceholderReady": "Keskustele Form Copilotin kanssa…",
     "send": "Lähetä"
@@ -153,7 +153,7 @@
     "signature": "Allekirjoitus",
     "picture": "Kuva",
     "boxedText": "Teksti ruuduissa",
-    "submit": "Lataa"
+    "download": "Lataa"
   },
   "download": {
     "title": "Lataa täytetty PDF",

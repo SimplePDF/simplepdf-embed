@@ -8,6 +8,7 @@ export type { ClientToolName } from './schemas'
 export {
   CLIENT_TOOL_SCHEMAS,
   DetectFieldsInput,
+  DownloadInput,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
@@ -15,5 +16,5 @@ export {
   isClientToolName,
   SelectToolInput,
   SetFieldValueInput,
-  SubmitDownloadInput,
+  SubmitInput,
 } from './schemas'

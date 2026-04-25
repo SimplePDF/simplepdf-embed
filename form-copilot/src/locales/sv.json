@@ -43,7 +43,7 @@
       "demo": "För denna demo",
       "production": "I produktion"
     },
-    "architectureDemoDescription": "Denna demo körs på ett delat SimplePDF-konto. Webbläsaren är värd för både Form Copilot och SimplePDF-redigeraren (laddad i en iframe). Fältdata stannar i webbläsaren via postMessage-verktygsanrop på klientsidan. Chattrafik går genom demons värdade server till en värdad AI-leverantör, eller direkt från webbläsaren när du tar med din egen nyckel. SimplePDF-servern registrerar endast telemetri och metadata; den ser aldrig dokumentets innehåll.",
+    "architectureDemoDescription": "Denna demo körs på ett delat SimplePDF-konto. Webbläsaren är värd för både Form Copilot och SimplePDF-redigeraren (laddad i en iframe). Fältdata stannar i webbläsaren via postMessage-verktygsanrop på klientsidan. Chattrafik går genom demons värdade server till en värdad AI-leverantör, eller direkt från webbläsaren när du tar med din egen API-nyckel. SimplePDF-servern registrerar endast telemetri och metadata; den ser aldrig dokumentets innehåll.",
     "architectureDescription": "Webbläsaren kör Form Copilot och SimplePDF-redigeraren i en iframe. De två kommunicerar via postMessage-verktygsanrop på klientsidan, så att fältdata aldrig lämnar webbläsaren. Chattmeddelanden proxas via din server till din AI-stack (leverantör, nycklar, RAG, interna data). SimplePDF-servern tar endast emot telemetri och metadata och ser aldrig själva dokumentet. Det färdiga dokumentet laddas upp direkt från redigeraren till din lagring (S3, Azure Blob Storage eller SharePoint), förbi SimplePDF-servern. När en inlämning slutförs kan en valfri webhook meddela din server. Webhooken bär bara metadata, aldrig dokumentinnehållet.",
     "tryThisForm": "Prova detta formulär →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chatt",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Väntar på att redigeraren ska laddas…",
     "subtitleNoDocument": "Ladda först ett dokument",
-    "subtitleNoModel": "Ta med din egen leverantör för att chatta",
+    "subtitleNoModel": "Ta med din egen AI för att börja chatta",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Byt AI-modell",
     "modelPicker": {
-      "title": "Ta med din egen leverantör",
+      "title": "Ta med din egen AI",
       "currentlyUsedSectionTitle": "Används just nu",
       "demoRateLimitedBadge": "demo · begränsad användning",
       "byokIntro": "Välj en leverantör och klistra in din nyckel för att chatta via den istället.",
-      "byokSecurityTitle": "Din nyckel stannar på din enhet.",
-      "byokSecurityBody": "Nycklar hålls endast i minnet (skrivs aldrig till disk, skickas aldrig till SimplePDF:s servrar) och varje LLM-förfrågan skickas direkt från din webbläsare till den leverantör du valt.",
+      "byokSecurityTitle": "Dina inloggningsuppgifter stannar på din enhet.",
+      "byokSecurityBody": "Inloggningsuppgifter hålls endast i minnet (skrivs aldrig till disk, skickas aldrig till SimplePDF:s servrar) och varje LLM-förfrågan skickas direkt från din webbläsare till den AI du valt.",
       "modelSectionTitle": "Modell",
       "recommendedBadge": "Rekommenderad",
       "keyInputPlaceholder": "Klistra in din {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "Den här API-nyckeln avvisades av leverantören.",
       "keyModelNotFound": "Modellen hittades inte. Välj en annan modell eller kontrollera att den ingår i ditt abonnemang.",
       "keyNetworkError": "Det gick inte att nå leverantören för att verifiera nyckeln. Kontrollera din anslutning och försök igen.",
-      "applyButton": "Använd denna leverantör",
+      "applyButton": "Använd denna AI",
       "validatingButton": "Verifierar nyckel…",
       "cancelButton": "Avbryt",
       "comingSoon": "Kommer snart",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Återuppta samtalet",
     "errorByokActivatedResumeMessage": "Vi fortsätter",
     "errorGenericTitle": "Fullständigt fel",
-    "welcomeTitle": "Prova Form Copilot med din egen API-nyckel",
-    "welcomeBody": "Din nyckel stannar endast i den här fliken. Förfrågningar skickas från din webbläsare till den AI-leverantör du väljer.",
-    "welcomeCta": "Ta med din egen API-nyckel",
+    "welcomeTitle": "Prova Form Copilot med din egen AI",
+    "welcomeBody": "Dina inloggningsuppgifter stannar i den här fliken. Förfrågningar skickas från din webbläsare till den AI-leverantör du väljer.",
+    "welcomeCta": "Ta med din egen AI",
     "welcomeInfoLink": "Så fungerar Form Copilot",
     "inputPlaceholderReady": "Prata med Form Copilot…",
     "send": "Skicka"
@@ -153,7 +153,7 @@
     "signature": "Signatur",
     "picture": "Bild",
     "boxedText": "Text i rutor",
-    "submit": "Ladda ner"
+    "download": "Ladda ner"
   },
   "download": {
     "title": "Ladda ner din ifyllda PDF",

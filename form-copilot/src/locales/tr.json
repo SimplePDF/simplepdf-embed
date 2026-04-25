@@ -43,7 +43,7 @@
       "demo": "Bu demo için",
       "production": "Üretimde"
     },
-    "architectureDemoDescription": "Bu demo, paylaşımlı bir SimplePDF hesabı üzerinde çalışır. Tarayıcı, hem Form Copilot’u hem de SimplePDF editörünü (bir iframe içine yüklenmiş) barındırır. Alan verileri postMessage istemci tarafı araç çağrıları aracılığıyla tarayıcıda kalır. Sohbet trafiği, demonun barındırılan sunucusu üzerinden barındırılan bir AI sağlayıcısına akar veya kendi anahtarınızı getirdiğinizde doğrudan tarayıcıdan gider. SimplePDF sunucusu yalnızca telemetri ve meta verileri kaydeder; belgenin içeriğini asla görmez.",
+    "architectureDemoDescription": "Bu demo, paylaşımlı bir SimplePDF hesabı üzerinde çalışır. Tarayıcı, hem Form Copilot’u hem de SimplePDF editörünü (bir iframe içine yüklenmiş) barındırır. Alan verileri postMessage istemci tarafı araç çağrıları aracılığıyla tarayıcıda kalır. Sohbet trafiği, demonun barındırılan sunucusu üzerinden barındırılan bir AI sağlayıcısına akar veya kendi API anahtarınızı getirdiğinizde doğrudan tarayıcıdan gider. SimplePDF sunucusu yalnızca telemetri ve meta verileri kaydeder; belgenin içeriğini asla görmez.",
     "architectureDescription": "Tarayıcı, Form Copilot ve SimplePDF editörünü bir iframe içinde çalıştırır. İkisi postMessage istemci tarafı araç çağrıları üzerinden iletişim kurar, bu nedenle alan verileri tarayıcıdan asla ayrılmaz. Sohbet mesajları sunucunuz üzerinden yapay zeka yığınınıza (sağlayıcı, anahtarlar, RAG, dahili veriler) yönlendirilir. SimplePDF sunucusu yalnızca telemetri ve meta verileri alır ve belgenin kendisini asla görmez. Tamamlanmış belge, SimplePDF sunucusunu atlayarak editörden doğrudan depolama alanınıza (S3, Azure Blob Storage veya SharePoint) yüklenir. Bir gönderim tamamlandığında, isteğe bağlı bir webhook sunucunuzu bilgilendirebilir. Webhook yalnızca meta veri taşır, asla belge içeriği değil.",
     "tryThisForm": "Bu formu dene →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Sohbet",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Editörün yüklenmesi bekleniyor…",
     "subtitleNoDocument": "Önce bir belge yükleyin",
-    "subtitleNoModel": "Sohbet için kendi sağlayıcınızı getirin",
+    "subtitleNoModel": "Sohbete başlamak için kendi yapay zekanızı getirin",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Yapay zeka modelini değiştir",
     "modelPicker": {
-      "title": "Kendi sağlayıcınızı getirin",
+      "title": "Kendi yapay zekanızı getirin",
       "currentlyUsedSectionTitle": "Şu anda kullanılıyor",
       "demoRateLimitedBadge": "demo · kullanım sınırlı",
       "byokIntro": "Bir sağlayıcı seçin ve kendi anahtarınızı yapıştırarak bunun üzerinden sohbet edin.",
-      "byokSecurityTitle": "Anahtarınız cihazınızda kalır.",
-      "byokSecurityBody": "Anahtarlar yalnızca bellekte tutulur (asla diske yazılmaz, asla SimplePDF sunucularına gönderilmez) ve her LLM isteği, seçtiğiniz sağlayıcıya doğrudan tarayıcınızdan gönderilir.",
+      "byokSecurityTitle": "Kimlik bilgileriniz cihazınızda kalır.",
+      "byokSecurityBody": "Kimlik bilgileri yalnızca bellekte tutulur (asla diske yazılmaz, asla SimplePDF sunucularına gönderilmez) ve her LLM isteği, seçtiğiniz yapay zekaya doğrudan tarayıcınızdan gönderilir.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Önerilen",
       "keyInputPlaceholder": "{{provider}} API key’inizi yapıştırın",
@@ -87,7 +87,7 @@
       "keyInvalid": "Bu API anahtarı sağlayıcı tarafından reddedildi.",
       "keyModelNotFound": "Model bulunamadı. Farklı bir model seçin veya planınızın bu modeli içerdiğini kontrol edin.",
       "keyNetworkError": "Anahtarı doğrulamak için sağlayıcıya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
-      "applyButton": "Bu sağlayıcıyı kullan",
+      "applyButton": "Bu yapay zekayı kullan",
       "validatingButton": "Anahtar doğrulanıyor…",
       "cancelButton": "İptal",
       "comingSoon": "Yakında",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Sohbete devam et",
     "errorByokActivatedResumeMessage": "Devam edelim",
     "errorGenericTitle": "Tam hata",
-    "welcomeTitle": "Form Copilot’u kendi API anahtarınızla deneyin",
-    "welcomeBody": "Anahtarınız yalnızca bu sekmede kalır. İstekler tarayıcınızdan seçtiğiniz yapay zeka sağlayıcısına gönderilir.",
-    "welcomeCta": "Kendi API anahtarınızı getirin",
+    "welcomeTitle": "Form Copilot’u kendi yapay zekanızla deneyin",
+    "welcomeBody": "Kimlik bilgileriniz bu sekmede kalır. İstekler tarayıcınızdan seçtiğiniz yapay zeka sağlayıcısına gönderilir.",
+    "welcomeCta": "Kendi yapay zekanızı getirin",
     "welcomeInfoLink": "Form Copilot nasıl çalışır",
     "inputPlaceholderReady": "Form Copilot ile konuşun…",
     "send": "Gönder"
@@ -153,7 +153,7 @@
     "signature": "İmza",
     "picture": "Resim",
     "boxedText": "Kutucuklu metin",
-    "submit": "İndir"
+    "download": "İndir"
   },
   "download": {
     "title": "Doldurulmuş PDF’inizi indirin",

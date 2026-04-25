@@ -43,7 +43,7 @@
       "demo": "להדגמה הזו",
       "production": "בפרודקשן"
     },
-    "architectureDemoDescription": "הדגמה זו פועלת על חשבון SimplePDF משותף. הדפדפן מארח גם את Form Copilot וגם את עורך SimplePDF (הנטען בתוך iframe). נתוני השדות נשארים בדפדפן באמצעות קריאות כלי צד־לקוח של postMessage. תנועת הצ׳אט עוברת דרך השרת המארח של ההדגמה אל ספק AI מארח, או ישירות מהדפדפן כשאתם מביאים מפתח משלכם. שרת SimplePDF מתעד רק טלמטריה ומטא־נתונים; הוא לעולם אינו רואה את תוכן המסמך.",
+    "architectureDemoDescription": "הדגמה זו פועלת על חשבון SimplePDF משותף. הדפדפן מארח גם את Form Copilot וגם את עורך SimplePDF (הנטען בתוך iframe). נתוני השדות נשארים בדפדפן באמצעות קריאות כלי צד־לקוח של postMessage. תנועת הצ׳אט עוברת דרך השרת המארח של ההדגמה אל ספק AI מארח, או ישירות מהדפדפן כשאתם מביאים מפתח API משלכם. שרת SimplePDF מתעד רק טלמטריה ומטא־נתונים; הוא לעולם אינו רואה את תוכן המסמך.",
     "architectureDescription": "הדפדפן מריץ את Form Copilot ואת העורך של SimplePDF בתוך iframe. השניים מתקשרים דרך קריאות כלי צד־לקוח של postMessage, כך שנתוני השדות לעולם אינם יוצאים מהדפדפן. הודעות הצ׳אט מועברות דרך השרת שלכם לסטאק ה־AI שלכם (ספק, מפתחות, RAG, נתונים פנימיים). השרת של SimplePDF מקבל רק טלמטריה ומטא־נתונים, ואינו רואה את המסמך עצמו לעולם. המסמך שהושלם מועלה ישירות מהעורך לאחסון שלכם (S3, Azure Blob Storage או SharePoint), בעקיפה של השרת של SimplePDF. כשההגשה מסתיימת, webhook אופציונלי יכול להודיע לשרת שלכם. ה־webhook מכיל רק מטא־נתונים, לעולם לא את תוכן המסמך.",
     "tryThisForm": "נסו את הטופס הזה ←",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "צ׳אט",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "ממתין לטעינת העורך…",
     "subtitleNoDocument": "טענו תחילה מסמך",
-    "subtitleNoModel": "הביאו את הספק שלכם כדי לשוחח",
+    "subtitleNoModel": "הביאו את הבינה המלאכותית שלכם כדי להתחיל לשוחח",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "החלפת מודל AI",
     "modelPicker": {
-      "title": "הביאו את הספק שלכם",
+      "title": "הביאו את הבינה המלאכותית שלכם",
       "currentlyUsedSectionTitle": "בשימוש כעת",
       "demoRateLimitedBadge": "דמו · שימוש מוגבל",
       "byokIntro": "בחרו ספק והדביקו את המפתח שלכם כדי לשוחח דרכו במקום.",
-      "byokSecurityTitle": "המפתח שלכם נשאר במכשיר שלכם.",
-      "byokSecurityBody": "המפתחות נשמרים בזיכרון בלבד (לעולם לא נכתבים לדיסק, לעולם לא נשלחים לשרתי SimplePDF) וכל בקשת LLM נשלחת ישירות מהדפדפן שלכם לספק שבחרתם.",
+      "byokSecurityTitle": "פרטי ההתחברות שלכם נשארים במכשיר שלכם.",
+      "byokSecurityBody": "פרטי ההתחברות נשמרים בזיכרון בלבד (לעולם לא נכתבים לדיסק, לעולם לא נשלחים לשרתי SimplePDF) וכל בקשת LLM נשלחת ישירות מהדפדפן שלכם לבינה המלאכותית שבחרתם.",
       "modelSectionTitle": "מודל",
       "recommendedBadge": "מומלץ",
       "keyInputPlaceholder": "הדביקו את ה־API key של {{provider}}",
@@ -87,7 +87,7 @@
       "keyInvalid": "מפתח ה־API הזה נדחה על ידי הספק.",
       "keyModelNotFound": "הדגם לא נמצא. בחר דגם אחר או ודא שהוא כלול בחבילה שלך.",
       "keyNetworkError": "לא ניתן היה ליצור קשר עם הספק כדי לאמת את המפתח. בדקו את החיבור ונסו שוב.",
-      "applyButton": "השתמשו בספק הזה",
+      "applyButton": "השתמשו בבינה המלאכותית הזו",
       "validatingButton": "מאמת מפתח…",
       "cancelButton": "ביטול",
       "comingSoon": "בקרוב",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "חידוש השיחה",
     "errorByokActivatedResumeMessage": "בואו נמשיך",
     "errorGenericTitle": "שגיאה מלאה",
-    "welcomeTitle": "נסו את Form Copilot עם מפתח ה־API שלכם",
-    "welcomeBody": "המפתח שלכם נשאר רק בלשונית זו. הבקשות נשלחות מהדפדפן שלכם לספק ה־AI שבחרתם.",
-    "welcomeCta": "הביאו את מפתח ה־API שלכם",
+    "welcomeTitle": "נסו את Form Copilot עם הבינה המלאכותית שלכם",
+    "welcomeBody": "פרטי ההתחברות שלכם נשארים בלשונית זו. הבקשות נשלחות מהדפדפן שלכם לספק ה־AI שבחרתם.",
+    "welcomeCta": "הביאו את הבינה המלאכותית שלכם",
     "welcomeInfoLink": "איך Form Copilot עובד",
     "inputPlaceholderReady": "דברו עם Form Copilot…",
     "send": "שלח"
@@ -153,7 +153,7 @@
     "signature": "חתימה",
     "picture": "תמונה",
     "boxedText": "טקסט בתאים",
-    "submit": "הורד"
+    "download": "הורד"
   },
   "download": {
     "title": "הורד את קובץ ה־PDF הממולא שלך",

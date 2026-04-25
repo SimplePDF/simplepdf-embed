@@ -43,7 +43,7 @@
       "demo": "Pentru această demonstrație",
       "production": "În producție"
     },
-    "architectureDemoDescription": "Această demonstrație rulează pe un cont SimplePDF partajat. Browserul găzduiește atât Form Copilot, cât și editorul SimplePDF (încărcat într-un iframe). Datele câmpurilor rămân în browser prin apeluri de instrumente postMessage pe partea clientului. Traficul chat-ului trece prin serverul găzduit al demonstrației către un furnizor AI găzduit, sau direct din browser atunci când vă aduceți propria cheie. Serverul SimplePDF înregistrează doar telemetrie și metadate; nu vede niciodată conținutul documentului.",
+    "architectureDemoDescription": "Această demonstrație rulează pe un cont SimplePDF partajat. Browserul găzduiește atât Form Copilot, cât și editorul SimplePDF (încărcat într-un iframe). Datele câmpurilor rămân în browser prin apeluri de instrumente postMessage pe partea clientului. Traficul chat-ului trece prin serverul găzduit al demonstrației către un furnizor AI găzduit, sau direct din browser atunci când vă aduceți propria cheie API. Serverul SimplePDF înregistrează doar telemetrie și metadate; nu vede niciodată conținutul documentului.",
     "architectureDescription": "Browserul rulează Form Copilot și editorul SimplePDF într-un iframe. Cele două comunică prin apeluri de instrumente pe partea clientului prin postMessage, astfel încât datele câmpurilor nu părăsesc niciodată browserul. Mesajele din chat sunt transmise prin serverul dumneavoastră către stiva dumneavoastră AI (furnizor, chei, RAG, date interne). Serverul SimplePDF primește doar telemetrie și metadate și nu vede niciodată documentul propriu-zis. Documentul finalizat este încărcat direct din editor către spațiul dumneavoastră de stocare (S3, Azure Blob Storage sau SharePoint), ocolind serverul SimplePDF. Când o trimitere se finalizează, un webhook opțional poate notifica serverul dumneavoastră. Webhook-ul transportă doar metadate, niciodată conținutul documentului.",
     "tryThisForm": "Încearcă acest formular →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Se așteaptă încărcarea editorului…",
     "subtitleNoDocument": "Încarcă mai întâi un document",
-    "subtitleNoModel": "Adu-ți propriul furnizor pentru a discuta",
+    "subtitleNoModel": "Adu-ți propriul AI pentru a începe să discuți",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Schimbă modelul AI",
     "modelPicker": {
-      "title": "Adu-ți propriul furnizor",
+      "title": "Adu-ți propriul AI",
       "currentlyUsedSectionTitle": "Utilizat în prezent",
       "demoRateLimitedBadge": "demo · utilizare limitată",
       "byokIntro": "Alege un furnizor și lipește cheia ta pentru a discuta prin el.",
-      "byokSecurityTitle": "Cheia ta rămâne pe dispozitivul tău.",
-      "byokSecurityBody": "Cheile sunt păstrate doar în memorie (niciodată scrise pe disc, niciodată trimise către serverele SimplePDF) și fiecare cerere LLM este trimisă direct din browserul tău către furnizorul ales.",
+      "byokSecurityTitle": "Datele tale de autentificare rămân pe dispozitivul tău.",
+      "byokSecurityBody": "Datele de autentificare sunt păstrate doar în memorie (niciodată scrise pe disc, niciodată trimise către serverele SimplePDF) și fiecare cerere LLM este trimisă direct din browserul tău către AI-ul ales.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Recomandat",
       "keyInputPlaceholder": "Lipește cheia API {{provider}}",
@@ -87,7 +87,7 @@
       "keyInvalid": "Această cheie API a fost respinsă de furnizor.",
       "keyModelNotFound": "Modelul nu a fost găsit. Alege alt model sau verifică dacă este inclus în planul tău.",
       "keyNetworkError": "Nu s-a putut contacta furnizorul pentru a verifica cheia. Verifică conexiunea și încearcă din nou.",
-      "applyButton": "Folosește acest furnizor",
+      "applyButton": "Folosește acest AI",
       "validatingButton": "Se verifică cheia…",
       "cancelButton": "Anulează",
       "comingSoon": "În curând",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Reia conversația",
     "errorByokActivatedResumeMessage": "Hai să continuăm",
     "errorGenericTitle": "Eroare completă",
-    "welcomeTitle": "Încearcă Form Copilot cu propria ta cheie API",
-    "welcomeBody": "Cheia ta rămâne doar în această filă. Solicitările sunt trimise din browserul tău către furnizorul AI ales.",
-    "welcomeCta": "Folosește propria cheie API",
+    "welcomeTitle": "Încearcă Form Copilot cu propriul tău AI",
+    "welcomeBody": "Datele tale de autentificare rămân în această filă. Solicitările sunt trimise din browserul tău către furnizorul AI ales.",
+    "welcomeCta": "Adu-ți propriul AI",
     "welcomeInfoLink": "Cum funcționează Form Copilot",
     "inputPlaceholderReady": "Vorbește cu Form Copilot…",
     "send": "Trimite"
@@ -153,7 +153,7 @@
     "signature": "Semnătură",
     "picture": "Imagine",
     "boxedText": "Text în căsuțe",
-    "submit": "Descarcă"
+    "download": "Descarcă"
   },
   "download": {
     "title": "Descarcă PDF-ul completat",

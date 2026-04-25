@@ -43,7 +43,7 @@
       "demo": "Cho bản demo này",
       "production": "Trong môi trường sản xuất"
     },
-    "architectureDemoDescription": "Bản demo này chạy trên một tài khoản SimplePDF dùng chung. Trình duyệt lưu trữ cả Form Copilot và trình chỉnh sửa SimplePDF (được tải trong một iframe). Dữ liệu trường được giữ trong trình duyệt thông qua các cuộc gọi công cụ phía máy khách bằng postMessage. Lưu lượng trò chuyện đi qua máy chủ được lưu trữ của bản demo đến nhà cung cấp AI được lưu trữ, hoặc trực tiếp từ trình duyệt khi bạn mang khóa của riêng mình. Máy chủ SimplePDF chỉ ghi lại telemetry và siêu dữ liệu; nó không bao giờ thấy nội dung của tài liệu.",
+    "architectureDemoDescription": "Bản demo này chạy trên một tài khoản SimplePDF dùng chung. Trình duyệt lưu trữ cả Form Copilot và trình chỉnh sửa SimplePDF (được tải trong một iframe). Dữ liệu trường được giữ trong trình duyệt thông qua các cuộc gọi công cụ phía máy khách bằng postMessage. Lưu lượng trò chuyện đi qua máy chủ được lưu trữ của bản demo đến nhà cung cấp AI được lưu trữ, hoặc trực tiếp từ trình duyệt khi bạn mang khóa API của riêng mình. Máy chủ SimplePDF chỉ ghi lại telemetry và siêu dữ liệu; nó không bao giờ thấy nội dung của tài liệu.",
     "architectureDescription": "Trình duyệt chạy Form Copilot và trình chỉnh sửa SimplePDF bên trong một iframe. Hai thành phần giao tiếp qua các cuộc gọi công cụ phía máy khách bằng postMessage, nên dữ liệu trường không bao giờ rời trình duyệt. Tin nhắn trò chuyện được chuyển qua máy chủ của bạn đến ngăn xếp AI của bạn (nhà cung cấp, khóa, RAG, dữ liệu nội bộ). Máy chủ SimplePDF chỉ nhận telemetry và siêu dữ liệu và không bao giờ thấy bản thân tài liệu. Tài liệu hoàn chỉnh được tải trực tiếp từ trình chỉnh sửa lên bộ lưu trữ của bạn (S3, Azure Blob Storage hoặc SharePoint), bỏ qua máy chủ SimplePDF. Khi gửi hoàn tất, một webhook tùy chọn có thể thông báo cho máy chủ của bạn. Webhook chỉ mang siêu dữ liệu, không bao giờ mang nội dung tài liệu.",
     "tryThisForm": "Thử biểu mẫu này →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Trò chuyện",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Đang chờ trình chỉnh sửa tải…",
     "subtitleNoDocument": "Hãy tải tài liệu trước",
-    "subtitleNoModel": "Mang nhà cung cấp của riêng bạn để trò chuyện",
+    "subtitleNoModel": "Mang AI của riêng bạn để bắt đầu trò chuyện",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Chuyển đổi mô hình AI",
     "modelPicker": {
-      "title": "Mang nhà cung cấp của riêng bạn",
+      "title": "Mang AI của riêng bạn",
       "currentlyUsedSectionTitle": "Đang được sử dụng",
       "demoRateLimitedBadge": "demo · giới hạn sử dụng",
       "byokIntro": "Chọn một nhà cung cấp và dán khóa của bạn để trò chuyện qua nhà cung cấp đó.",
-      "byokSecurityTitle": "Khóa của bạn luôn ở trên thiết bị của bạn.",
-      "byokSecurityBody": "Khóa chỉ được lưu trong bộ nhớ (không bao giờ ghi ra đĩa, không bao giờ gửi đến máy chủ của SimplePDF) và mỗi yêu cầu LLM được gửi trực tiếp từ trình duyệt của bạn đến nhà cung cấp bạn đã chọn.",
+      "byokSecurityTitle": "Thông tin xác thực của bạn luôn ở trên thiết bị của bạn.",
+      "byokSecurityBody": "Thông tin xác thực chỉ được lưu trong bộ nhớ (không bao giờ ghi ra đĩa, không bao giờ gửi đến máy chủ của SimplePDF) và mỗi yêu cầu LLM được gửi trực tiếp từ trình duyệt của bạn đến AI bạn đã chọn.",
       "modelSectionTitle": "Mô hình",
       "recommendedBadge": "Khuyên dùng",
       "keyInputPlaceholder": "Dán API key {{provider}} của bạn",
@@ -87,7 +87,7 @@
       "keyInvalid": "Khóa API này đã bị nhà cung cấp từ chối.",
       "keyModelNotFound": "Không tìm thấy mô hình. Hãy chọn mô hình khác hoặc kiểm tra xem gói của bạn có bao gồm mô hình này không.",
       "keyNetworkError": "Không thể kết nối với nhà cung cấp để xác minh khóa. Hãy kiểm tra kết nối và thử lại.",
-      "applyButton": "Dùng nhà cung cấp này",
+      "applyButton": "Dùng AI này",
       "validatingButton": "Đang xác minh khóa…",
       "cancelButton": "Hủy",
       "comingSoon": "Sắp ra mắt",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Tiếp tục trò chuyện",
     "errorByokActivatedResumeMessage": "Tiếp tục nào",
     "errorGenericTitle": "Lỗi đầy đủ",
-    "welcomeTitle": "Thử Form Copilot bằng khóa API của riêng bạn",
-    "welcomeBody": "Khóa của bạn chỉ ở lại trong thẻ này. Yêu cầu được gửi từ trình duyệt của bạn đến nhà cung cấp AI mà bạn chọn.",
-    "welcomeCta": "Mang khóa API của riêng bạn",
+    "welcomeTitle": "Thử Form Copilot với AI của riêng bạn",
+    "welcomeBody": "Thông tin xác thực của bạn ở lại trong thẻ này. Yêu cầu được gửi từ trình duyệt của bạn đến nhà cung cấp AI mà bạn chọn.",
+    "welcomeCta": "Mang AI của riêng bạn",
     "welcomeInfoLink": "Cách Form Copilot hoạt động",
     "inputPlaceholderReady": "Trò chuyện với Form Copilot…",
     "send": "Gửi"
@@ -153,7 +153,7 @@
     "signature": "Chữ ký",
     "picture": "Hình ảnh",
     "boxedText": "Văn bản trong ô",
-    "submit": "Tải xuống"
+    "download": "Tải xuống"
   },
   "download": {
     "title": "Tải xuống PDF đã điền của bạn",

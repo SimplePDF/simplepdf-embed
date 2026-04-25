@@ -43,7 +43,7 @@
       "demo": "Für diese Demo",
       "production": "In der Produktion"
     },
-    "architectureDemoDescription": "Diese Demo läuft auf einem gemeinsam genutzten SimplePDF-Konto. Der Browser hostet sowohl Form Copilot als auch den SimplePDF-Editor (geladen in einem iframe). Felddaten bleiben dank postMessage-clientseitiger Tool-Aufrufe im Browser. Der Chat-Verkehr läuft über den gehosteten Server der Demo zu einem gehosteten KI-Anbieter, oder direkt aus dem Browser, wenn Sie Ihren eigenen Schlüssel mitbringen. Der SimplePDF-Server zeichnet nur Telemetrie und Metadaten auf; den Dokumentinhalt sieht er nie.",
+    "architectureDemoDescription": "Diese Demo läuft auf einem gemeinsam genutzten SimplePDF-Konto. Der Browser hostet sowohl Form Copilot als auch den SimplePDF-Editor (geladen in einem iframe). Felddaten bleiben dank postMessage-clientseitiger Tool-Aufrufe im Browser. Der Chat-Verkehr läuft über den gehosteten Server der Demo zu einem gehosteten KI-Anbieter, oder direkt aus dem Browser, wenn Sie Ihren eigenen API-Schlüssel mitbringen. Der SimplePDF-Server zeichnet nur Telemetrie und Metadaten auf; den Dokumentinhalt sieht er nie.",
     "architectureDescription": "Der Browser führt Form Copilot und den SimplePDF-Editor in einem iframe aus. Beide kommunizieren über postMessage-clientseitige Tool-Aufrufe, sodass Felddaten den Browser nie verlassen. Chat-Nachrichten werden über Ihren Server an Ihren KI-Stack weitergeleitet (Anbieter, Schlüssel, RAG, interne Daten). Der SimplePDF-Server erhält nur Telemetrie und Metadaten und sieht das Dokument selbst nie. Das fertige Dokument wird direkt vom Editor an Ihren Speicher (S3, Azure Blob Storage oder SharePoint) hochgeladen, am SimplePDF-Server vorbei. Nach Abschluss einer Einreichung kann ein optionaler Webhook Ihren Server benachrichtigen. Der Webhook überträgt nur Metadaten, niemals den Dokumentinhalt.",
     "tryThisForm": "Dieses Formular ausprobieren →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Warten, bis der Editor geladen ist…",
     "subtitleNoDocument": "Lade zuerst ein Dokument",
-    "subtitleNoModel": "Eigenen Anbieter zum Chatten verwenden",
+    "subtitleNoModel": "Eigene KI mitbringen und chatten",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "KI-Modell wechseln",
     "modelPicker": {
-      "title": "Eigenen Anbieter verwenden",
+      "title": "Eigene KI mitbringen",
       "currentlyUsedSectionTitle": "Derzeit verwendet",
       "demoRateLimitedBadge": "Demo · Nutzung gedeckelt",
       "byokIntro": "Wählen Sie einen Anbieter und fügen Sie Ihren Schlüssel ein, um stattdessen darüber zu chatten.",
-      "byokSecurityTitle": "Ihr Schlüssel bleibt auf Ihrem Gerät.",
-      "byokSecurityBody": "Schlüssel werden nur im Arbeitsspeicher gehalten (nie auf die Festplatte geschrieben, nie an die Server von SimplePDF gesendet) und jede LLM-Anfrage geht direkt von Ihrem Browser an den gewählten Anbieter.",
+      "byokSecurityTitle": "Ihre Zugangsdaten bleiben auf Ihrem Gerät.",
+      "byokSecurityBody": "Zugangsdaten werden nur im Arbeitsspeicher gehalten (nie auf die Festplatte geschrieben, nie an die Server von SimplePDF gesendet) und jede LLM-Anfrage geht direkt von Ihrem Browser an die gewählte KI.",
       "modelSectionTitle": "Modell",
       "recommendedBadge": "Empfohlen",
       "keyInputPlaceholder": "{{provider}} API key einfügen",
@@ -87,7 +87,7 @@
       "keyInvalid": "Dieser API-Schlüssel wurde vom Anbieter abgelehnt.",
       "keyModelNotFound": "Modell nicht gefunden. Wählen Sie ein anderes Modell oder prüfen Sie, ob es in Ihrem Plan enthalten ist.",
       "keyNetworkError": "Der Anbieter konnte zur Überprüfung des Schlüssels nicht erreicht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-      "applyButton": "Diesen Anbieter verwenden",
+      "applyButton": "Diese KI verwenden",
       "validatingButton": "Schlüssel wird überprüft…",
       "cancelButton": "Abbrechen",
       "comingSoon": "Demnächst verfügbar",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Unterhaltung fortsetzen",
     "errorByokActivatedResumeMessage": "Weiter geht’s",
     "errorGenericTitle": "Fehlerdetails",
-    "welcomeTitle": "Testen Sie Form Copilot mit Ihrem eigenen API-Schlüssel",
-    "welcomeBody": "Ihr Schlüssel bleibt nur in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",
-    "welcomeCta": "Eigenen API-Schlüssel verwenden",
+    "welcomeTitle": "Testen Sie Form Copilot mit Ihrer eigenen KI",
+    "welcomeBody": "Ihre Zugangsdaten bleiben in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",
+    "welcomeCta": "Eigene KI mitbringen",
     "welcomeInfoLink": "So funktioniert Form Copilot",
     "inputPlaceholderReady": "Mit Form Copilot sprechen…",
     "send": "Senden"
@@ -153,7 +153,7 @@
     "signature": "Unterschrift",
     "picture": "Bild",
     "boxedText": "Kästchentext",
-    "submit": "Herunterladen"
+    "download": "Herunterladen"
   },
   "download": {
     "title": "Laden Sie Ihre ausgefüllte PDF herunter",

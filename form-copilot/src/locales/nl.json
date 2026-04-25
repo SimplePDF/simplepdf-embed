@@ -43,7 +43,7 @@
       "demo": "Voor deze demo",
       "production": "In productie"
     },
-    "architectureDemoDescription": "Deze demo draait op een gedeeld SimplePDF-account. De browser host zowel Form Copilot als de SimplePDF-editor (geladen in een iframe). Veldgegevens blijven in de browser via postMessage client-side toolaanroepen. Chatverkeer loopt via de gehoste server van de demo naar een gehoste AI-provider, of rechtstreeks vanuit de browser wanneer u uw eigen sleutel meebrengt. De SimplePDF-server registreert alleen telemetrie en metadata; hij ziet de inhoud van het document nooit.",
+    "architectureDemoDescription": "Deze demo draait op een gedeeld SimplePDF-account. De browser host zowel Form Copilot als de SimplePDF-editor (geladen in een iframe). Veldgegevens blijven in de browser via postMessage client-side toolaanroepen. Chatverkeer loopt via de gehoste server van de demo naar een gehoste AI-provider, of rechtstreeks vanuit de browser wanneer u uw eigen API-sleutel meebrengt. De SimplePDF-server registreert alleen telemetrie en metadata; hij ziet de inhoud van het document nooit.",
     "architectureDescription": "De browser draait Form Copilot en de SimplePDF-editor binnen een iframe. De twee communiceren via postMessage client-side toolaanroepen, zodat veldgegevens nooit de browser verlaten. Chatberichten worden via uw server doorgegeven aan uw AI-stack (provider, sleutels, RAG, interne data). De SimplePDF-server ontvangt alleen telemetrie en metadata en ziet het document zelf nooit. Het voltooide document wordt direct vanuit de editor geupload naar uw opslag (S3, Azure Blob Storage of SharePoint) en omzeilt de SimplePDF-server. Wanneer een indiening is voltooid, kan een optionele webhook uw server op de hoogte stellen. De webhook bevat alleen metadata, nooit de inhoud van het document.",
     "tryThisForm": "Probeer dit formulier →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Wachten tot de editor is geladen…",
     "subtitleNoDocument": "Laad eerst een document",
-    "subtitleNoModel": "Gebruik uw eigen provider om te chatten",
+    "subtitleNoModel": "Breng uw eigen AI mee om te chatten",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "AI-model wisselen",
     "modelPicker": {
-      "title": "Gebruik uw eigen provider",
+      "title": "Breng uw eigen AI mee",
       "currentlyUsedSectionTitle": "Momenteel in gebruik",
       "demoRateLimitedBadge": "demo · gebruik beperkt",
       "byokIntro": "Kies een provider en plak uw sleutel om via die provider te chatten.",
-      "byokSecurityTitle": "Uw sleutel blijft op uw apparaat.",
-      "byokSecurityBody": "Sleutels worden alleen in het geheugen bewaard (nooit op schijf geschreven, nooit naar SimplePDF-servers verzonden) en elke LLM-aanvraag wordt rechtstreeks vanuit uw browser naar de door u gekozen provider gestuurd.",
+      "byokSecurityTitle": "Uw inloggegevens blijven op uw apparaat.",
+      "byokSecurityBody": "Inloggegevens worden alleen in het geheugen bewaard (nooit op schijf geschreven, nooit naar SimplePDF-servers verzonden) en elke LLM-aanvraag wordt rechtstreeks vanuit uw browser naar de door u gekozen AI gestuurd.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Aanbevolen",
       "keyInputPlaceholder": "Plak uw {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "Deze API-sleutel is door de provider geweigerd.",
       "keyModelNotFound": "Model niet gevonden. Kies een ander model of controleer of het in uw abonnement is inbegrepen.",
       "keyNetworkError": "De provider kon niet worden bereikt om de sleutel te verifiëren. Controleer uw verbinding en probeer het opnieuw.",
-      "applyButton": "Deze provider gebruiken",
+      "applyButton": "Deze AI gebruiken",
       "validatingButton": "Sleutel verifiëren…",
       "cancelButton": "Annuleren",
       "comingSoon": "Binnenkort beschikbaar",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Gesprek hervatten",
     "errorByokActivatedResumeMessage": "Laten we doorgaan",
     "errorGenericTitle": "Volledige fout",
-    "welcomeTitle": "Probeer Form Copilot met uw eigen API-sleutel",
-    "welcomeBody": "Uw sleutel blijft alleen in dit tabblad. Verzoeken worden vanuit uw browser naar de door u gekozen AI-provider verzonden.",
-    "welcomeCta": "Breng uw eigen API-sleutel mee",
+    "welcomeTitle": "Probeer Form Copilot met uw eigen AI",
+    "welcomeBody": "Uw inloggegevens blijven in dit tabblad. Verzoeken worden vanuit uw browser naar de door u gekozen AI-provider verzonden.",
+    "welcomeCta": "Breng uw eigen AI mee",
     "welcomeInfoLink": "Hoe Form Copilot werkt",
     "inputPlaceholderReady": "Praat met Form Copilot…",
     "send": "Verzenden"
@@ -153,7 +153,7 @@
     "signature": "Handtekening",
     "picture": "Afbeelding",
     "boxedText": "Tekst in vakjes",
-    "submit": "Downloaden"
+    "download": "Downloaden"
   },
   "download": {
     "title": "Download uw ingevulde PDF",

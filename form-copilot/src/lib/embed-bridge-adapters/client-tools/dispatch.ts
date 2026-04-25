@@ -73,8 +73,10 @@ export const dispatch = async (
       }
       return bridge.goTo({ page })
     }
-    case 'submit_download':
-      return bridge.submit({ downloadCopy: true })
+    case 'submit':
+      return bridge.submit({ downloadCopy: false })
+    case 'download':
+      return bridge.download()
     default:
       toolName satisfies never
       return {

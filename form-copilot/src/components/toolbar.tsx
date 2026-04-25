@@ -1,7 +1,8 @@
-import { Check, Download, ImageIcon, MousePointer, PenTool, Type } from 'lucide-react'
+import { Check, Download, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { SupportedFieldType } from '../lib/embed-bridge'
+import { IS_DEMO_MODE } from '../lib/mode'
 
 // Equivalent to SupportedFieldType | null. Kept as a named alias so the
 // toolbar's five buttons + cursor state read cleanly at call sites.
@@ -11,11 +12,11 @@ type ToolbarProps = {
   selected: ToolbarTool
   onSelect: (tool: ToolbarTool) => void
   disabled: boolean
-  // Flips the Download button between quiet (white, secondary) and loud
+  // Flips the finalisation button between quiet (white, secondary) and loud
   // (brand-blue, primary). Both variants remain clickable; the variant is a
   // visual nudge, not a gate.
-  downloadPrimary: boolean
-  onDownload: () => void
+  finalisationPrimary: boolean
+  onFinalisation: () => void
 }
 
 const BoxedTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) => (
@@ -50,10 +51,17 @@ export const TOOLBAR_OPTIONS: ToolOption[] = [
   { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: BoxedTextIcon },
 ]
 
-export const Toolbar = ({ selected, onSelect, disabled, downloadPrimary, onDownload }: ToolbarProps) => {
+export const Toolbar = ({
+  selected,
+  onSelect,
+  disabled,
+  finalisationPrimary,
+  onFinalisation,
+}: ToolbarProps) => {
   const { t } = useTranslation()
-  const downloadLabel = t('toolbar.submit')
-  const downloadClass = downloadPrimary
+  const finalisationLabel = IS_DEMO_MODE ? t('toolbar.download') : t('toolbar.submit')
+  const FinalisationIcon = IS_DEMO_MODE ? Download : Send
+  const finalisationClass = finalisationPrimary
     ? 'border-sky-600 bg-sky-600 text-white hover:bg-sky-700 hover:border-sky-700'
     : 'border-slate-200 bg-white text-slate-600 hover:border-sky-600 hover:text-sky-600'
   return (
@@ -84,13 +92,13 @@ export const Toolbar = ({ selected, onSelect, disabled, downloadPrimary, onDownl
       <button
         type="button"
         disabled={disabled}
-        onClick={onDownload}
-        aria-label={downloadLabel}
-        title={downloadLabel}
-        className={`ml-auto inline-flex h-7 items-center gap-1.5 rounded border px-2.5 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 ${downloadClass}`}
+        onClick={onFinalisation}
+        aria-label={finalisationLabel}
+        title={finalisationLabel}
+        className={`ml-auto inline-flex h-7 items-center gap-1.5 rounded border px-2.5 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 ${finalisationClass}`}
       >
-        <Download size={12} strokeWidth={2.2} />
-        {downloadLabel}
+        <FinalisationIcon size={12} strokeWidth={2.2} />
+        {finalisationLabel}
       </button>
     </div>
   )

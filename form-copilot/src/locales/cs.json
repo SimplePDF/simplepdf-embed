@@ -43,7 +43,7 @@
       "demo": "Pro toto demo",
       "production": "V produkci"
     },
-    "architectureDemoDescription": "Toto demo běží na sdíleném účtu SimplePDF. Prohlížeč hostuje jak Form Copilot, tak editor SimplePDF (načtený v iframe). Data polí zůstávají v prohlížeči díky postMessage voláním nástrojů na straně klienta. Provoz chatu prochází hostovaným serverem dema k hostovanému poskytovateli AI, nebo přímo z prohlížeče, když si přinesete vlastní klíč. Server SimplePDF zaznamenává pouze telemetrii a metadata; obsah dokumentu nikdy nevidí.",
+    "architectureDemoDescription": "Toto demo běží na sdíleném účtu SimplePDF. Prohlížeč hostuje jak Form Copilot, tak editor SimplePDF (načtený v iframe). Data polí zůstávají v prohlížeči díky postMessage voláním nástrojů na straně klienta. Provoz chatu prochází hostovaným serverem dema k hostovanému poskytovateli AI, nebo přímo z prohlížeče, když si přinesete vlastní API klíč. Server SimplePDF zaznamenává pouze telemetrii a metadata; obsah dokumentu nikdy nevidí.",
     "architectureDescription": "Prohlížeč spouští Form Copilot a editor SimplePDF uvnitř iframe. Obě části komunikují prostřednictvím postMessage volání nástrojů na straně klienta, takže data polí nikdy neopustí prohlížeč. Zprávy chatu jsou proxy přes váš server do vašeho AI stacku (poskytovatel, klíče, RAG, interní data). Server SimplePDF přijímá pouze telemetrii a metadata a samotný dokument nikdy nevidí. Hotový dokument se nahrává přímo z editoru do vašeho úložiště (S3, Azure Blob Storage nebo SharePoint) mimo server SimplePDF. Po dokončení odeslání může volitelný webhook upozornit váš server. Webhook obsahuje pouze metadata, nikdy obsah dokumentu.",
     "tryThisForm": "Vyzkoušet tento formulář →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Čekání na načtení editoru…",
     "subtitleNoDocument": "Nejprve načtěte dokument",
-    "subtitleNoModel": "Přineste si vlastního poskytovatele pro chat",
+    "subtitleNoModel": "Přineste si vlastní AI a začněte chatovat",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Přepnout AI model",
     "modelPicker": {
-      "title": "Přineste si vlastního poskytovatele",
+      "title": "Přineste si vlastní AI",
       "currentlyUsedSectionTitle": "Aktuálně používaný",
       "demoRateLimitedBadge": "demo · omezené využití",
       "byokIntro": "Vyberte poskytovatele a vložte svůj klíč, abyste chatovali přes něj.",
-      "byokSecurityTitle": "Váš klíč zůstává na vašem zařízení.",
-      "byokSecurityBody": "Klíče jsou drženy pouze v paměti (nikdy se neukládají na disk ani neodesílají na servery SimplePDF) a každý LLM požadavek je odeslán přímo z vašeho prohlížeče k poskytovateli, kterého jste zvolili.",
+      "byokSecurityTitle": "Vaše přihlašovací údaje zůstávají na vašem zařízení.",
+      "byokSecurityBody": "Přihlašovací údaje jsou drženy pouze v paměti (nikdy se neukládají na disk ani neodesílají na servery SimplePDF) a každý LLM požadavek je odeslán přímo z vašeho prohlížeče k AI, kterou jste zvolili.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Doporučeno",
       "keyInputPlaceholder": "Vložte svůj API key pro {{provider}}",
@@ -87,7 +87,7 @@
       "keyInvalid": "Tento API klíč byl poskytovatelem odmítnut.",
       "keyModelNotFound": "Model nebyl nalezen. Vyberte jiný model nebo ověřte, že je součástí vašeho tarifu.",
       "keyNetworkError": "Nepodařilo se kontaktovat poskytovatele pro ověření klíče. Zkontrolujte připojení a zkuste to znovu.",
-      "applyButton": "Použít tohoto poskytovatele",
+      "applyButton": "Použít tuto AI",
       "validatingButton": "Ověřování klíče…",
       "cancelButton": "Zrušit",
       "comingSoon": "Brzy",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Pokračovat v konverzaci",
     "errorByokActivatedResumeMessage": "Pokračujme",
     "errorGenericTitle": "Úplná chyba",
-    "welcomeTitle": "Vyzkoušejte Form Copilot s vlastním API klíčem",
-    "welcomeBody": "Váš klíč zůstává jen v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",
-    "welcomeCta": "Použijte vlastní API klíč",
+    "welcomeTitle": "Vyzkoušejte Form Copilot s vlastní AI",
+    "welcomeBody": "Vaše přihlašovací údaje zůstávají v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",
+    "welcomeCta": "Přineste si vlastní AI",
     "welcomeInfoLink": "Jak Form Copilot funguje",
     "inputPlaceholderReady": "Mluvte s Form Copilot…",
     "send": "Odeslat"
@@ -153,7 +153,7 @@
     "signature": "Podpis",
     "picture": "Obrázek",
     "boxedText": "Text v polích",
-    "submit": "Stáhnout"
+    "download": "Stáhnout"
   },
   "download": {
     "title": "Stáhněte si vyplněné PDF",

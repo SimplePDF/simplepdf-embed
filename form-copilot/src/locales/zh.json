@@ -43,7 +43,7 @@
       "demo": "适用于此演示",
       "production": "在生产环境中"
     },
-    "architectureDemoDescription": "此演示运行在共享的 SimplePDF 账户上。浏览器同时承载 Form Copilot 和 SimplePDF 编辑器（在 iframe 中加载）。字段数据通过 postMessage 客户端工具调用保留在浏览器中。聊天流量经由演示的托管服务器流向托管的 AI 提供商，或在您自带密钥时由浏览器直连。SimplePDF 服务器仅记录遥测数据和元数据；从不查看文档内容。",
+    "architectureDemoDescription": "此演示运行在共享的 SimplePDF 账户上。浏览器同时承载 Form Copilot 和 SimplePDF 编辑器（在 iframe 中加载）。字段数据通过 postMessage 客户端工具调用保留在浏览器中。聊天流量经由演示的托管服务器流向托管的 AI 提供商，或在您自带 API 密钥时由浏览器直连。SimplePDF 服务器仅记录遥测数据和元数据；从不查看文档内容。",
     "architectureDescription": "浏览器在 iframe 内运行 Form Copilot 和 SimplePDF 编辑器。两者通过 postMessage 客户端工具调用进行通信，因此字段数据从不离开浏览器。聊天消息通过您的服务器代理到您的 AI 栈（提供商、密钥、RAG、内部数据）。SimplePDF 服务器仅接收遥测数据和元数据，从不接触文档本身。完成的文档从编辑器直接上传到您的存储（S3、Azure Blob Storage 或 SharePoint），绕过 SimplePDF 服务器。当提交完成时，可选的 webhook 可通知您的服务器。webhook 仅携带元数据，从不携带文档内容。",
     "tryThisForm": "试试这个表单 →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "聊天",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "等待编辑器加载…",
     "subtitleNoDocument": "请先加载一份文档",
-    "subtitleNoModel": "自带提供商开始聊天",
+    "subtitleNoModel": "自带 AI 开始聊天",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "切换 AI 模型",
     "modelPicker": {
-      "title": "自带提供商",
+      "title": "自带 AI",
       "currentlyUsedSectionTitle": "当前使用中",
       "demoRateLimitedBadge": "演示 · 限额使用",
       "byokIntro": "选择提供商并粘贴您的密钥，改用您自己的通道聊天。",
-      "byokSecurityTitle": "您的密钥留在您的设备上。",
-      "byokSecurityBody": "密钥仅保存在内存中（从不写入磁盘，从不发送到 SimplePDF 服务器），每个 LLM 请求都从您的浏览器直接发送到您选择的提供商。",
+      "byokSecurityTitle": "您的凭据留在您的设备上。",
+      "byokSecurityBody": "凭据仅保存在内存中（从不写入磁盘，从不发送到 SimplePDF 服务器），每个 LLM 请求都从您的浏览器直接发送到您选择的 AI。",
       "modelSectionTitle": "模型",
       "recommendedBadge": "推荐",
       "keyInputPlaceholder": "粘贴您的 {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "该 API 密钥已被提供商拒绝。",
       "keyModelNotFound": "未找到模型。请选择其他模型，或确认您的套餐包含该模型。",
       "keyNetworkError": "无法连接到提供商以验证密钥。请检查您的网络连接并重试。",
-      "applyButton": "使用此提供商",
+      "applyButton": "使用此 AI",
       "validatingButton": "正在验证密钥…",
       "cancelButton": "取消",
       "comingSoon": "即将推出",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "恢复对话",
     "errorByokActivatedResumeMessage": "继续吧",
     "errorGenericTitle": "完整错误",
-    "welcomeTitle": "使用您自己的 API 密钥试用 Form Copilot",
-    "welcomeBody": "您的密钥仅保留在本标签页中。请求会从您的浏览器直接发送到您选择的 AI 提供商。",
-    "welcomeCta": "自带 API 密钥",
+    "welcomeTitle": "使用您自己的 AI 试用 Form Copilot",
+    "welcomeBody": "您的凭据仅保留在本标签页中。请求会从您的浏览器直接发送到您选择的 AI 提供商。",
+    "welcomeCta": "自带 AI",
     "welcomeInfoLink": "Form Copilot 如何运作",
     "inputPlaceholderReady": "与 Form Copilot 交谈…",
     "send": "发送"
@@ -153,7 +153,7 @@
     "signature": "签名",
     "picture": "图片",
     "boxedText": "方格文本",
-    "submit": "下载"
+    "download": "下载"
   },
   "download": {
     "title": "下载已填写的 PDF",

@@ -1,19 +1,41 @@
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
-import { SYSTEM_PROMPT } from '../../server/tools'
+import { buildSystemPrompt } from '../../server/tools'
 import {
   DetectFieldsInput,
+  DownloadInput,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
   SelectToolInput,
   SetFieldValueInput,
-  SubmitDownloadInput,
+  SubmitInput,
 } from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
+import { IS_DEMO_MODE } from '../mode'
 import { monitoring, normalizeError } from '../monitoring'
 import { buildBrowserModel } from './model'
 import type { ByokConfig } from './providers'
+
+const FINALISATION_ACTION = IS_DEMO_MODE
+  ? ({ toolName: 'download', verb: 'download' } as const)
+  : ({ toolName: 'submit', verb: 'submit' } as const)
+
+const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
+
+const FINALISATION_TOOL: Record<string, { description: string; inputSchema: typeof SubmitInput | typeof DownloadInput }> = IS_DEMO_MODE
+  ? {
+      download: {
+        description: 'Finalizes the filled PDF and triggers an in-browser download.',
+        inputSchema: DownloadInput,
+      },
+    }
+  : {
+      submit: {
+        description: 'Finalizes the filled PDF and submits it to the host application.',
+        inputSchema: SubmitInput,
+      },
+    }
 
 const MAX_OUTPUT_TOKENS = 500
 
@@ -101,10 +123,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
         description: 'Scrolls the editor to a given 1-based page.',
         inputSchema: GoToPageInput,
       },
-      submit_download: {
-        description: 'Finalizes the filled PDF and triggers a download.',
-        inputSchema: SubmitDownloadInput,
-      },
+      ...FINALISATION_TOOL,
     },
     onError: ({ error }) => {
       monitoring.error('byok.stream_error', { detail: normalizeError(error) })

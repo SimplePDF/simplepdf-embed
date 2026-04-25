@@ -3,14 +3,16 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { DEMO_MODELS } from '../../lib/demo_model'
 import {
   DetectFieldsInput,
+  DownloadInput,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
   SelectToolInput,
   SetFieldValueInput,
-  SubmitDownloadInput,
+  SubmitInput,
 } from '../../lib/embed-bridge-adapters/client-tools'
+import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
@@ -26,7 +28,27 @@ import {
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
 import { serializeStreamError } from '../../server/stream_error'
-import { ChatRequestSchema, SYSTEM_PROMPT } from '../../server/tools'
+import { buildSystemPrompt, ChatRequestSchema } from '../../server/tools'
+
+const FINALISATION_ACTION = IS_DEMO_MODE
+  ? ({ toolName: 'download', verb: 'download' } as const)
+  : ({ toolName: 'submit', verb: 'submit' } as const)
+
+const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
+
+const FINALISATION_TOOL: Record<string, { description: string; inputSchema: typeof SubmitInput | typeof DownloadInput }> = IS_DEMO_MODE
+  ? {
+      download: {
+        description: 'Finalizes the filled PDF and triggers an in-browser download. Use only when the user asks to download.',
+        inputSchema: DownloadInput,
+      },
+    }
+  : {
+      submit: {
+        description: 'Finalizes the filled PDF and submits it to the host application. Use only when the user asks to submit.',
+        inputSchema: SubmitInput,
+      },
+    }
 
 const MAX_DURATION_MS = 60_000
 const MAX_BODY_BYTES = 256 * 1024
@@ -221,11 +243,7 @@ export const Route = createFileRoute('/api/chat')({
               description: 'Scrolls the editor to a given 1-based page.',
               inputSchema: GoToPageInput,
             },
-            submit_download: {
-              description:
-                'Finalizes the filled PDF and triggers a download. Use only when the user asks to submit.',
-              inputSchema: SubmitDownloadInput,
-            },
+            ...FINALISATION_TOOL,
           },
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {

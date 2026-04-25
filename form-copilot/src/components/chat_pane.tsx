@@ -24,9 +24,16 @@ import {
   type ToolMiddleware,
 } from '../lib/embed-bridge-adapters/client-tools'
 import { getLanguageByCode } from '../lib/languages'
+import { IS_DEMO_MODE } from '../lib/mode'
 import { monitoring, normalizeError } from '../lib/monitoring'
 import type { DemoGate } from '../routes/index'
-import { SYSTEM_PROMPT } from '../server/tools'
+import { buildSystemPrompt } from '../server/tools'
+
+const FINALISATION_ACTION = IS_DEMO_MODE
+  ? ({ toolName: 'download', verb: 'download' } as const)
+  : ({ toolName: 'submit', verb: 'submit' } as const)
+
+const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 import { DownloadModal } from './download_modal'
 import { ErrorBanner } from './error_banner'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
@@ -264,14 +271,16 @@ const hasDocumentContentShape = (data: unknown): data is DocumentContentResult =
   return typeof data.name === 'string' && Array.isArray(data.pages)
 }
 
-// Demo-only: intercept submit_download and route it through the host's
-// download-request handler. The handler owns the counter that decides
+// Demo-only: intercept the `download` tool call and route it through the
+// host's download-request handler. The handler owns the counter that decides
 // between firing bridge.download() directly and opening the upsell modal,
-// so LLM-driven and toolbar-driven downloads stay on the same cadence.
+// so LLM-driven and toolbar-driven downloads stay on the same cadence. Pro
+// mode never registers `download` as a tool, so this middleware is wired only
+// when IS_DEMO_MODE is true.
 const createDemoDownloadMiddleware =
   ({ onRequestDownload }: { onRequestDownload: () => void }): ToolMiddleware =>
   async ({ toolName }, next) => {
-    if (toolName !== 'submit_download') {
+    if (toolName !== 'download') {
       return next()
     }
     onRequestDownload()
@@ -396,6 +405,14 @@ export const ChatPane = ({
     void activeBridge.download()
   }, [])
 
+  const fireSubmit = useCallback((): void => {
+    const activeBridge = bridgeRef.current
+    if (activeBridge === null) {
+      return
+    }
+    void activeBridge.submit({ downloadCopy: false })
+  }, [])
+
   const handleDownloadRequested = useCallback((): void => {
     downloadCountRef.current += 1
     const count = downloadCountRef.current
@@ -409,6 +426,11 @@ export const ChatPane = ({
     }
     fireDownload()
   }, [fireDownload, openDownloadModal])
+
+  // Pro mode finalisation: fire the SimplePDF SUBMIT iframe event directly.
+  // No upsell modal (the upsell exists for the demo to nudge customers
+  // toward Pro; a Pro deployment is already past that point).
+  const handleFinalisationRequested = IS_DEMO_MODE ? handleDownloadRequested : fireSubmit
 
   const openInfoModal = useCallback((): void => {
     void navigate({
@@ -486,20 +508,27 @@ export const ChatPane = ({
     if (bridge === null) {
       return null
     }
+    const middleware: ToolMiddleware[] = [
+      createToolbarSyncMiddleware({ onChange: setToolbarTool }),
+      createLlmFieldBaselineMiddleware({
+        // When the LLM creates a field, bump the detection hook's
+        // baseline so the next user-placed-field check does not
+        // attribute it to the user.
+        onLlmCreatedField: () => advanceFieldDetectionBaseline(1),
+      }),
+      createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
+    ]
+    if (IS_DEMO_MODE) {
+      // Prepend so it short-circuits before the toolbar/baseline middleware.
+      // Demo-only: route LLM-driven `download` calls through the same
+      // upsell-aware host handler the toolbar uses. Pro mode never registers
+      // the `download` tool, so this hook is unreachable there.
+      middleware.unshift(createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }))
+    }
     return createClientTools({
       bridge,
       systemPrompt: SYSTEM_PROMPT,
-      middleware: [
-        createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }),
-        createToolbarSyncMiddleware({ onChange: setToolbarTool }),
-        createLlmFieldBaselineMiddleware({
-          // When the LLM creates a field, bump the detection hook's
-          // baseline so the next user-placed-field check does not
-          // attribute it to the user.
-          onLlmCreatedField: () => advanceFieldDetectionBaseline(1),
-        }),
-        createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
-      ],
+      middleware,
     })
   }, [bridge, handleDownloadRequested, advanceFieldDetectionBaseline])
 
@@ -761,8 +790,8 @@ export const ChatPane = ({
         selected={toolbarTool}
         onSelect={handleToolbarSelect}
         disabled={!isReady}
-        downloadPrimary={downloadPrimary}
-        onDownload={handleDownloadRequested}
+        finalisationPrimary={downloadPrimary}
+        onFinalisation={handleFinalisationRequested}
       />
       <PiiWarningBanner visible={hasUserMessage && byokConfig === null} />
       <div ref={scrollRef} className="flex-1 overflow-y-auto">

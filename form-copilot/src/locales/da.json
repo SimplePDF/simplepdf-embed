@@ -43,7 +43,7 @@
       "demo": "Til denne demo",
       "production": "I produktion"
     },
-    "architectureDemoDescription": "Denne demo kører på en delt SimplePDF-konto. Browseren hoster både Form Copilot og SimplePDF-editoren (indlæst i en iframe). Feltdata bliver i browseren via postMessage-klient-sidens værktøjskald. Chattrafik flyder gennem demoens hostede server til en hostet AI-udbyder, eller direkte fra browseren, når du medbringer din egen nøgle. SimplePDF-serveren registrerer kun telemetri og metadata; den ser aldrig dokumentets indhold.",
+    "architectureDemoDescription": "Denne demo kører på en delt SimplePDF-konto. Browseren hoster både Form Copilot og SimplePDF-editoren (indlæst i en iframe). Feltdata bliver i browseren via postMessage-klient-sidens værktøjskald. Chattrafik flyder gennem demoens hostede server til en hostet AI-udbyder, eller direkte fra browseren, når du medbringer din egen API-nøgle. SimplePDF-serveren registrerer kun telemetri og metadata; den ser aldrig dokumentets indhold.",
     "architectureDescription": "Browseren kører Form Copilot og SimplePDF-editoren inde i en iframe. De to kommunikerer gennem postMessage-klient-sidens værktøjskald, så feltdata aldrig forlader browseren. Chatbeskeder proxies gennem din server til din AI-stak (udbyder, nøgler, RAG, interne data). SimplePDF-serveren modtager kun telemetri og metadata og ser aldrig selve dokumentet. Det færdige dokument uploades direkte fra editoren til dit lager (S3, Azure Blob Storage eller SharePoint) uden om SimplePDF-serveren. Når en indsendelse er gennemført, kan en valgfri webhook give besked til din server. Webhooken bærer kun metadata, aldrig dokumentets indhold.",
     "tryThisForm": "Prøv denne formular →",
     "useCases": {
@@ -66,20 +66,20 @@
     }
   },
   "chat": {
-    "heading": "Chat",
+    "heading": "Form Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Venter på, at editoren indlæses…",
     "subtitleNoDocument": "Indlæs et dokument først",
-    "subtitleNoModel": "Medbring din egen udbyder for at chatte",
+    "subtitleNoModel": "Medbring din egen AI for at begynde at chatte",
     "modelNameReady": "Claude Haiku 4.5",
     "switchModel": "Skift AI-model",
     "modelPicker": {
-      "title": "Medbring din egen udbyder",
+      "title": "Medbring din egen AI",
       "currentlyUsedSectionTitle": "Aktuelt i brug",
       "demoRateLimitedBadge": "demo · begrænset brug",
       "byokIntro": "Vælg en udbyder og indsæt din nøgle for at chatte via den i stedet.",
-      "byokSecurityTitle": "Din nøgle bliver på din enhed.",
-      "byokSecurityBody": "Nøgler opbevares kun i hukommelsen (skrives aldrig til disk, sendes aldrig til SimplePDF’s servere), og hver LLM-forespørgsel sendes direkte fra din browser til den valgte udbyder.",
+      "byokSecurityTitle": "Dine legitimationsoplysninger bliver på din enhed.",
+      "byokSecurityBody": "Legitimationsoplysninger opbevares kun i hukommelsen (skrives aldrig til disk, sendes aldrig til SimplePDF’s servere), og hver LLM-forespørgsel sendes direkte fra din browser til den valgte AI.",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Anbefalet",
       "keyInputPlaceholder": "Indsæt din {{provider}} API key",
@@ -87,7 +87,7 @@
       "keyInvalid": "Denne API-nøgle blev afvist af udbyderen.",
       "keyModelNotFound": "Model ikke fundet. Vælg en anden model, eller tjek at den er inkluderet i dit abonnement.",
       "keyNetworkError": "Kunne ikke nå udbyderen for at verificere nøglen. Tjek din forbindelse og prøv igen.",
-      "applyButton": "Brug denne udbyder",
+      "applyButton": "Brug denne AI",
       "validatingButton": "Verificerer nøgle…",
       "cancelButton": "Annuller",
       "comingSoon": "Kommer snart",
@@ -129,9 +129,9 @@
     "errorByokActivatedButton": "Genoptag samtalen",
     "errorByokActivatedResumeMessage": "Vi fortsætter",
     "errorGenericTitle": "Fuld fejl",
-    "welcomeTitle": "Prøv Form Copilot med din egen API-nøgle",
-    "welcomeBody": "Din nøgle bliver kun i denne fane. Forespørgsler sendes fra din browser til den valgte AI-udbyder.",
-    "welcomeCta": "Medbring din egen API-nøgle",
+    "welcomeTitle": "Prøv Form Copilot med din egen AI",
+    "welcomeBody": "Dine legitimationsoplysninger bliver i denne fane. Forespørgsler sendes fra din browser til den valgte AI-udbyder.",
+    "welcomeCta": "Medbring din egen AI",
     "welcomeInfoLink": "Sådan fungerer Form Copilot",
     "inputPlaceholderReady": "Tal med Form Copilot…",
     "send": "Send"
@@ -153,7 +153,7 @@
     "signature": "Underskrift",
     "picture": "Billede",
     "boxedText": "Tekst i felter",
-    "submit": "Download"
+    "download": "Download"
   },
   "download": {
     "title": "Download din udfyldte PDF",

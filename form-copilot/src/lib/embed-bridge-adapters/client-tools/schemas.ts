@@ -52,9 +52,17 @@ export const GoToPageInput = z
   .object({ page: z.number().int().positive().describe('1-based page number') })
   .describe('Scrolls the editor to a given page')
 
-export const SubmitDownloadInput = z
+export const SubmitInput = z
   .object({})
-  .describe('Finalizes the filled PDF and triggers a download for the user')
+  .describe(
+    'Finalizes the filled PDF and submits it to the host application (storage, webhook, etc.). Use only when the user asks to submit or finalize.',
+  )
+
+export const DownloadInput = z
+  .object({})
+  .describe(
+    'Finalizes the filled PDF and triggers an in-browser download for the user. Use only when the user asks to download.',
+  )
 
 export const CLIENT_TOOL_NAMES = [
   'get_fields',
@@ -64,7 +72,8 @@ export const CLIENT_TOOL_NAMES = [
   'set_field_value',
   'focus_field',
   'go_to_page',
-  'submit_download',
+  'submit',
+  'download',
 ] as const
 
 export type ClientToolName = (typeof CLIENT_TOOL_NAMES)[number]
@@ -83,5 +92,6 @@ export const CLIENT_TOOL_SCHEMAS = {
   set_field_value: SetFieldValueInput,
   focus_field: FocusFieldInput,
   go_to_page: GoToPageInput,
-  submit_download: SubmitDownloadInput,
+  submit: SubmitInput,
+  download: DownloadInput,
 } as const
