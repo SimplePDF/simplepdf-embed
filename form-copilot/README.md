@@ -1,4 +1,4 @@
-# PDF Form Copilot
+# Form Copilot
 
 > Form Copilot: AI that helps users fill PDF forms step by step.
 

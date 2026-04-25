@@ -21,7 +21,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'PDF Form Copilot — SimplePDF',
+        title: 'Form Copilot by SimplePDF',
       },
       {
         name: 'description',
