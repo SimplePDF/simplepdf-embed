@@ -100,14 +100,15 @@ const TrimmedOptionalString = z.preprocess((val) => {
 // fail loudly at startup instead of silently pointing at production SimplePDF
 // with the demo's shared identifier (which would either succeed and bill the
 // demo workspace, or fail at iframe-load time with a confusing whitelist
-// error). Base domain defaults to https://simplepdf.com; the DEV override
-// exists for pointing the iframe at a local SimplePDF dev checkout.
+// error). Base domain is optional with a default of https://simplepdf.com;
+// override for staging, alternate prod tenants, or a local SimplePDF dev
+// checkout.
 const ClientEnvSchema = z.object({
   VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
     (val) => (typeof val === 'string' ? val.trim() : val),
     z.string().min(1, 'VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)'),
   ),
-  VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE: TrimmedOptionalString.pipe(z.url().optional()),
+  VITE_SIMPLEPDF_BASE_DOMAIN: TrimmedOptionalString.pipe(z.url().optional()),
 })
 
 const DEFAULT_BASE_DOMAIN = 'https://simplepdf.com'
@@ -115,7 +116,7 @@ const DEFAULT_BASE_DOMAIN = 'https://simplepdf.com'
 const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
   const result = ClientEnvSchema.safeParse({
     VITE_SIMPLEPDF_COMPANY_IDENTIFIER: import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER,
-    VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE: import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE,
+    VITE_SIMPLEPDF_BASE_DOMAIN: import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN,
   })
   if (!result.success) {
     throw new Error(`Client env invalid:\n${z.prettifyError(result.error)}`)
@@ -124,7 +125,7 @@ const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
 })()
 
 const COMPANY_IDENTIFIER = clientEnv.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
-const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE ?? DEFAULT_BASE_DOMAIN)
+const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN ?? DEFAULT_BASE_DOMAIN)
 const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
 
 // Locales the SimplePDF editor can render via i18n path-prefix routing.

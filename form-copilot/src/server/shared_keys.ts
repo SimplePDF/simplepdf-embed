@@ -20,7 +20,17 @@ const ShareConfigSchema = z.object({
   model: DemoModelSchema,
 })
 
-const SharedKeysSchema = z.record(z.string(), ShareConfigSchema)
+// Share IDs are interpolated into Redis keys (`rl:<share>:<hash>`) and into
+// `?share=<id>` URL params. Restricting to alphanumeric + dash + underscore
+// keeps both surfaces predictable: KEYS-glob enumeration works, URLs never
+// need encoding, and log readers can grep by share id without escaping.
+const ShareIdSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-zA-Z0-9_-]+$/, 'share id must match /^[a-zA-Z0-9_-]+$/')
+
+const SharedKeysSchema = z.record(ShareIdSchema, ShareConfigSchema)
 
 type ShareConfig = z.infer<typeof ShareConfigSchema>
 

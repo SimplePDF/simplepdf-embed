@@ -10,6 +10,7 @@ import {
   isSameOrigin,
   looksLikeBrowserFetch,
   rateLimiter,
+  type RateLimitDecision,
 } from '../../server/rate_limit'
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
@@ -90,7 +91,7 @@ export const Route = createFileRoute('/api/summarize')({
             { status: 503 },
           )
         }
-        const decision = await (async () => {
+        const decision = await (async (): Promise<RateLimitDecision> => {
           try {
             return await rateLimiter.check({
               bucket: resolution.bucket,
@@ -100,7 +101,7 @@ export const Route = createFileRoute('/api/summarize')({
           } catch (error) {
             const detail = normalizeError(error)
             monitoring.error('summarize.rate_limit_threw', { ip_hash: ipHash, detail })
-            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` } as const
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
           }
         })()
         if (!decision.allowed) {

@@ -91,8 +91,6 @@ Browser
 > ```env
 > VITE_SIMPLEPDF_COMPANY_IDENTIFIER=form-copilot
 > ```
->
-> The base domain defaults to `https://simplepdf.com`. Override only if you're pointing at a non-production SimplePDF host (`VITE_SIMPLEPDF_BASE_DOMAIN_DEV_OVERRIDE`).
 
 Then:
 

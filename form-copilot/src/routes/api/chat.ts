@@ -21,6 +21,7 @@ import {
   isSameOrigin,
   looksLikeBrowserFetch,
   rateLimiter,
+  type RateLimitDecision,
 } from '../../server/rate_limit'
 import { readShareIdFromUrl } from '../../server/share_query'
 import { resolveApiKey } from '../../server/shared_keys'
@@ -124,7 +125,7 @@ export const Route = createFileRoute('/api/chat')({
         })
         // Fail-closed: any throw from rateLimiter.check surfaces as 503 so we
         // never serve the LLM when the cost control is unreliable.
-        const decision = await (async () => {
+        const decision = await (async (): Promise<RateLimitDecision | null> => {
           if (!charged) {
             return null
           }
@@ -137,7 +138,7 @@ export const Route = createFileRoute('/api/chat')({
           } catch (error) {
             const detail = normalizeError(error)
             monitoring.error('rate_limit.check_threw', { ip_hash: ipHash, detail })
-            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` } as const
+            return { allowed: false, reason: 'system_failure', detail: `threw:${detail}` }
           }
         })()
         if (decision !== null && !decision.allowed) {

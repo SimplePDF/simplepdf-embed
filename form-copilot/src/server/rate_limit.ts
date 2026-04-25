@@ -154,20 +154,34 @@ const createRedisLimiter = (url: string): RateLimiter => {
           detail: `redis_not_ready:${client.status}`,
         }
       }
-      try {
-        const next = await client.incr(buildKey(bucket, ipHash))
-        if (next > lifetime) {
-          // Roll back the overshoot so a rate-limited IP doesn't grow its
-          // counter unbounded on retry. Concurrent overshoots may transiently
-          // settle slightly above lifetime, but the counter doesn't drift.
-          await client.decr(buildKey(bucket, ipHash))
-          return { allowed: false, reason: 'lifetime' }
+      const incrResult = await (async (): Promise<
+        { ok: true; next: number } | { ok: false; detail: string }
+      > => {
+        try {
+          return { ok: true, next: await client.incr(buildKey(bucket, ipHash)) }
+        } catch (error) {
+          return { ok: false, detail: `redis_incr_failed:${normalizeError(error)}` }
         }
-        return { allowed: true, remaining: lifetime - next }
-      } catch (error) {
-        const detail = normalizeError(error)
-        return { allowed: false, reason: 'system_failure', detail: `redis_incr_failed:${detail}` }
+      })()
+      if (!incrResult.ok) {
+        return { allowed: false, reason: 'system_failure', detail: incrResult.detail }
       }
+      if (incrResult.next > lifetime) {
+        // Best-effort DECR rollback so a rate-limited IP doesn't grow its
+        // counter unbounded on retry. If the rollback fails (e.g. transient
+        // disconnect mid-decision), don't downgrade the lifetime decision to
+        // a 503: the user is genuinely over the cap regardless. The counter
+        // will self-heal on the next successful operation.
+        try {
+          await client.decr(buildKey(bucket, ipHash))
+        } catch (error) {
+          monitoring.error('rate_limit.redis_error', {
+            detail: `decr_rollback_failed:${normalizeError(error)}`,
+          })
+        }
+        return { allowed: false, reason: 'lifetime' }
+      }
+      return { allowed: true, remaining: lifetime - incrResult.next }
     },
     isReady: () => client.status === 'ready',
     statusDetail: () => {
