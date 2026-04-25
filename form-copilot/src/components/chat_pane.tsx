@@ -35,7 +35,6 @@ import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
-import { Button } from './ui/button'
 
 const homeRoute = getRouteApi('/')
 
@@ -803,13 +802,13 @@ export const ChatPane = ({
           })()}
         </div>
       </div>
-      <div className="border-t border-slate-200 p-3">
+      <div className="p-3">
         <form
           onSubmit={(event) => {
             event.preventDefault()
             handleSend(draft)
           }}
-          className="flex gap-2"
+          className="flex items-center gap-2"
         >
           <input
             ref={inputRef}
@@ -817,12 +816,29 @@ export const ChatPane = ({
             onChange={(event) => setDraft(event.target.value)}
             disabled={!canSend}
             placeholder={canSend ? t('chat.inputPlaceholderReady') : t('chat.inputPlaceholderWaiting')}
-            className="flex-1 rounded-md border border-solid border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+            className="flex-1 rounded-full border border-solid border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
             style={{ borderWidth: '1px' }}
           />
-          <Button type="submit" disabled={!canSend || draft.trim() === ''}>
-            {t('chat.send')}
-          </Button>
+          <button
+            type="submit"
+            disabled={!canSend || draft.trim() === ''}
+            aria-label={t('chat.send')}
+            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 21L12 3M12 3L20.5 11.5M12 3L3.5 11.5" />
+            </svg>
+          </button>
         </form>
       </div>
       <ModelPickerModal
