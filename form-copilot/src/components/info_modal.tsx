@@ -397,6 +397,10 @@ export const InfoModal = ({
     demo: 'infoModal.architectureDemoDescription',
     production: 'infoModal.architectureDescription',
   }
+  const architectureSubtextKey: Record<ArchitectureTab, string> = {
+    demo: 'infoModal.architectureDemoSubtext',
+    production: 'infoModal.architectureSubtext',
+  }
 
   return (
     <Modal open={open} onClose={onClose} labelledBy="info-modal-title" size="lg">
@@ -562,10 +566,7 @@ export const InfoModal = ({
             <h3 className="text-[17px] font-semibold leading-snug text-slate-900">
               {t('infoModal.architectureTitle')}
             </h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
-              {t('infoModal.architectureSubtext')}
-            </p>
-            <div className="mt-4 inline-flex gap-6">
+            <div className="mt-2 inline-flex gap-6">
               {(['demo', 'production'] as const).map((tab) => {
                 const isActive = activeArchitectureTab === tab
                 return (
@@ -581,6 +582,9 @@ export const InfoModal = ({
                 )
               })}
             </div>
+            <p className="mt-3 text-[14px] leading-relaxed text-slate-600">
+              {t(architectureSubtextKey[activeArchitectureTab])}
+            </p>
             <p className="sr-only">{t(architectureDescriptionKey[activeArchitectureTab])}</p>
             <pre
               aria-hidden="true"

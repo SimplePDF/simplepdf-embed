@@ -38,6 +38,7 @@
     "useCasesFooter": "Select a workflow above to load a different form.",
     "architectureTitle": "Architecture",
     "architectureSubtext": "From chat to submission, the architecture is designed to keep documents and sensitive data under your control, not ours.",
+    "architectureDemoSubtext": "The document you load never leaves your browser. The data you send via chat goes to the selected LLM.",
     "architectureTabs": {
       "demo": "For this demo",
       "production": "In production"
