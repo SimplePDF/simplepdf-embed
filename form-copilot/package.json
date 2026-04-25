@@ -45,6 +45,10 @@
     "use-stick-to-bottom": "^1.1.3",
     "zod": "^4.3.6"
   },
+  "optionalDependencies": {
+    "@emnapi/core": "^1.10.0",
+    "@emnapi/runtime": "^1.10.0"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
     "@tailwindcss/typography": "^0.5.16",
