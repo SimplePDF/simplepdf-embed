@@ -2,40 +2,21 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { buildSystemPrompt } from '../../server/tools'
 import {
   DetectFieldsInput,
-  DownloadInput,
+  FINALISATION_ACTION,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
   SelectToolInput,
   SetFieldValueInput,
-  SubmitInput,
+  withFinalisationTool,
 } from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
-import { IS_DEMO_MODE } from '../mode'
 import { monitoring, normalizeError } from '../monitoring'
 import { buildBrowserModel } from './model'
 import type { ByokConfig } from './providers'
 
-const FINALISATION_ACTION = IS_DEMO_MODE
-  ? ({ toolName: 'download', verb: 'download' } as const)
-  : ({ toolName: 'submit', verb: 'submit' } as const)
-
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
-
-const FINALISATION_TOOL: Record<string, { description: string; inputSchema: typeof SubmitInput | typeof DownloadInput }> = IS_DEMO_MODE
-  ? {
-      download: {
-        description: 'Finalizes the filled PDF and triggers an in-browser download.',
-        inputSchema: DownloadInput,
-      },
-    }
-  : {
-      submit: {
-        description: 'Finalizes the filled PDF and submits it to the host application.',
-        inputSchema: SubmitInput,
-      },
-    }
 
 const MAX_OUTPUT_TOKENS = 500
 
@@ -92,7 +73,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
     abortSignal: init?.signal ?? undefined,
     maxRetries: 0,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
-    tools: {
+    tools: withFinalisationTool({
       get_fields: {
         description: 'Lists every fillable field currently on the document.',
         inputSchema: GetFieldsInput,
@@ -123,8 +104,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
         description: 'Scrolls the editor to a given 1-based page.',
         inputSchema: GoToPageInput,
       },
-      ...FINALISATION_TOOL,
-    },
+    }),
     onError: ({ error }) => {
       monitoring.error('byok.stream_error', { detail: normalizeError(error) })
     },

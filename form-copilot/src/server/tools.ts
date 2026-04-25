@@ -42,10 +42,10 @@ export const SummarizeRequestSchema = z.object({
 })
 
 // The finalisation tool name + verb depend on deployment mode. The demo
-// (companyIdentifier === 'copilot') exposes only `download`; a Pro fork
-// exposes only `submit` and routes through the SimplePDF SUBMIT iframe event.
-// The system prompt is parameterised so the LLM gets the exact tool name in
-// scope, with no stale references to the other path.
+// (companyIdentifier === 'copilot') exposes only `download`; a SimplePDF
+// customer fork exposes only `submit` and routes through the SimplePDF
+// SUBMIT iframe event. The system prompt is parameterised so the LLM gets
+// the exact tool name in scope, with no stale references to the other path.
 export type FinalisationAction = {
   toolName: 'submit' | 'download'
   verb: 'submit' | 'download'

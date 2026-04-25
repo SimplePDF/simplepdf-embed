@@ -3,16 +3,15 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { DEMO_MODELS } from '../../lib/demo_model'
 import {
   DetectFieldsInput,
-  DownloadInput,
+  FINALISATION_ACTION,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
   SelectToolInput,
   SetFieldValueInput,
-  SubmitInput,
+  withFinalisationTool,
 } from '../../lib/embed-bridge-adapters/client-tools'
-import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
@@ -30,25 +29,7 @@ import { resolveApiKey } from '../../server/shared_keys'
 import { serializeStreamError } from '../../server/stream_error'
 import { buildSystemPrompt, ChatRequestSchema } from '../../server/tools'
 
-const FINALISATION_ACTION = IS_DEMO_MODE
-  ? ({ toolName: 'download', verb: 'download' } as const)
-  : ({ toolName: 'submit', verb: 'submit' } as const)
-
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
-
-const FINALISATION_TOOL: Record<string, { description: string; inputSchema: typeof SubmitInput | typeof DownloadInput }> = IS_DEMO_MODE
-  ? {
-      download: {
-        description: 'Finalizes the filled PDF and triggers an in-browser download. Use only when the user asks to download.',
-        inputSchema: DownloadInput,
-      },
-    }
-  : {
-      submit: {
-        description: 'Finalizes the filled PDF and submits it to the host application. Use only when the user asks to submit.',
-        inputSchema: SubmitInput,
-      },
-    }
 
 const MAX_DURATION_MS = 60_000
 const MAX_BODY_BYTES = 256 * 1024
@@ -212,7 +193,7 @@ export const Route = createFileRoute('/api/chat')({
           ],
           maxRetries: 0,
           maxOutputTokens: 500,
-          tools: {
+          tools: withFinalisationTool({
             get_fields: {
               description: 'Lists every fillable field currently on the document.',
               inputSchema: GetFieldsInput,
@@ -243,8 +224,7 @@ export const Route = createFileRoute('/api/chat')({
               description: 'Scrolls the editor to a given 1-based page.',
               inputSchema: GoToPageInput,
             },
-            ...FINALISATION_TOOL,
-          },
+          }),
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {
             monitoring.info('chat.finished', {

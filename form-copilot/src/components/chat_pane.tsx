@@ -19,6 +19,7 @@ import type {
 import {
   type ClientTools,
   createClientTools,
+  FINALISATION_ACTION,
   isClientToolName,
   type ToolInput,
   type ToolMiddleware,
@@ -28,12 +29,6 @@ import { IS_DEMO_MODE } from '../lib/mode'
 import { monitoring, normalizeError } from '../lib/monitoring'
 import type { DemoGate } from '../routes/index'
 import { buildSystemPrompt } from '../server/tools'
-
-const FINALISATION_ACTION = IS_DEMO_MODE
-  ? ({ toolName: 'download', verb: 'download' } as const)
-  : ({ toolName: 'submit', verb: 'submit' } as const)
-
-const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 import { DownloadModal } from './download_modal'
 import { ErrorBanner } from './error_banner'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
@@ -43,6 +38,8 @@ import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
+
+const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 
 const homeRoute = getRouteApi('/')
 
@@ -274,9 +271,9 @@ const hasDocumentContentShape = (data: unknown): data is DocumentContentResult =
 // Demo-only: intercept the `download` tool call and route it through the
 // host's download-request handler. The handler owns the counter that decides
 // between firing bridge.download() directly and opening the upsell modal,
-// so LLM-driven and toolbar-driven downloads stay on the same cadence. Pro
-// mode never registers `download` as a tool, so this middleware is wired only
-// when IS_DEMO_MODE is true.
+// so LLM-driven and toolbar-driven downloads stay on the same cadence.
+// SimplePDF-customer mode never registers `download` as a tool, so this
+// middleware is wired only when IS_DEMO_MODE is true.
 const createDemoDownloadMiddleware =
   ({ onRequestDownload }: { onRequestDownload: () => void }): ToolMiddleware =>
   async ({ toolName }, next) => {
@@ -427,10 +424,14 @@ export const ChatPane = ({
     fireDownload()
   }, [fireDownload, openDownloadModal])
 
-  // Pro mode finalisation: fire the SimplePDF SUBMIT iframe event directly.
-  // No upsell modal (the upsell exists for the demo to nudge customers
-  // toward Pro; a Pro deployment is already past that point).
-  const handleFinalisationRequested = IS_DEMO_MODE ? handleDownloadRequested : fireSubmit
+  // SimplePDF-customer finalisation: fire the SimplePDF SUBMIT iframe event
+  // directly. No upsell modal (the upsell exists for the demo to nudge
+  // visitors toward SimplePDF Pro; a customer deployment is already past
+  // that point).
+  const handleFinalisationRequested = useMemo(
+    () => (IS_DEMO_MODE ? handleDownloadRequested : fireSubmit),
+    [handleDownloadRequested, fireSubmit],
+  )
 
   const openInfoModal = useCallback((): void => {
     void navigate({
@@ -508,7 +509,7 @@ export const ChatPane = ({
     if (bridge === null) {
       return null
     }
-    const middleware: ToolMiddleware[] = [
+    const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
       createLlmFieldBaselineMiddleware({
         // When the LLM creates a field, bump the detection hook's
@@ -518,13 +519,16 @@ export const ChatPane = ({
       }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
     ]
-    if (IS_DEMO_MODE) {
-      // Prepend so it short-circuits before the toolbar/baseline middleware.
-      // Demo-only: route LLM-driven `download` calls through the same
-      // upsell-aware host handler the toolbar uses. Pro mode never registers
-      // the `download` tool, so this hook is unreachable there.
-      middleware.unshift(createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }))
-    }
+    // Demo-only middleware lives at the head of the chain so it
+    // short-circuits before the toolbar/baseline hooks. SimplePDF-customer
+    // mode never registers the `download` tool, so the demo middleware is
+    // unreachable there and we drop it from the chain entirely.
+    const middleware: ToolMiddleware[] = IS_DEMO_MODE
+      ? [
+          createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }),
+          ...sharedMiddleware,
+        ]
+      : sharedMiddleware
     return createClientTools({
       bridge,
       systemPrompt: SYSTEM_PROMPT,
