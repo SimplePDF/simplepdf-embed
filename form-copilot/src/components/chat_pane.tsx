@@ -4,7 +4,6 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type
 import { ArrowUp } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ReactMarkdown from 'react-markdown'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import { type ByokConfig, findProvider, runByokStream } from '../lib/byok'
 import type {
@@ -32,10 +31,11 @@ import { ChatPaneHeader } from './chat_pane_header'
 import { DownloadModal } from './download_modal'
 import { ErrorBanner } from './error_banner'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
+import { LLMChatMessage } from './llm_chat_message'
+import { UserChatMessage } from './user_chat_message'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
-import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
@@ -782,7 +782,10 @@ export const ChatPane = ({
                   if (hintTool !== null) {
                     return <FieldAddedHint key={message.id} tool={hintTool} />
                   }
-                  return <MessageView key={message.id} message={message} />
+                  if (message.role === 'user') {
+                    return <UserChatMessage key={message.id} message={message} />
+                  }
+                  return <LLMChatMessage key={message.id} message={message} />
                 })}
                 {isStreaming ? <ThinkingIndicator /> : null}
                 {error !== undefined && error !== dismissedError ? (
@@ -851,10 +854,6 @@ export const ChatPane = ({
   )
 }
 
-type MessageViewProps = {
-  message: UIMessage
-}
-
 type FieldAddedHintProps = { tool: PlacementTool }
 
 const FieldAddedHint = ({ tool }: FieldAddedHintProps) => {
@@ -910,81 +909,6 @@ const WelcomeBanner = ({ onSwitchModel, onOpenInfo }: WelcomeBannerProps) => {
         >
           {t('chat.welcomeInfoLink')}
         </button>
-      </div>
-    </div>
-  )
-}
-
-type RenderBlock =
-  | { kind: 'text'; key: string; text: string }
-  | { kind: 'tool-group'; key: string; parts: ToolInvocationPart[] }
-
-const toBlocks = (message: UIMessage): RenderBlock[] => {
-  const blocks: RenderBlock[] = []
-  message.parts.forEach((part, index) => {
-    const key = `${message.id}_${index}`
-    if (part.type === 'text') {
-      blocks.push({ kind: 'text', key, text: part.text })
-      return
-    }
-    if (part.type.startsWith('tool-')) {
-      const toolPart = part as {
-        type: `tool-${string}`
-        toolCallId: string
-        state: ToolInvocationPart['state']
-      }
-      const toolName = toolPart.type.slice('tool-'.length)
-      const entry: ToolInvocationPart = {
-        key,
-        toolName,
-        state: toolPart.state,
-      }
-      const last = blocks[blocks.length - 1]
-      if (last !== undefined && last.kind === 'tool-group') {
-        last.parts.push(entry)
-        return
-      }
-      blocks.push({ kind: 'tool-group', key, parts: [entry] })
-    }
-  })
-  return blocks
-}
-
-const MessageView = ({ message }: MessageViewProps) => {
-  const isUser = message.role === 'user'
-  const blocks = toBlocks(message)
-  return (
-    <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
-      <div
-        className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${
-          isUser
-            ? 'max-w-[85%] bg-sky-600 text-white'
-            : 'min-w-[296px] max-w-full bg-slate-100 text-slate-900'
-        }`}
-      >
-        {blocks.map((block) => {
-          if (block.kind === 'text') {
-            return (
-              <div
-                key={block.key}
-                className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
-              >
-                <ReactMarkdown
-                  components={{
-                    strong: ({ children }) => (
-                      <strong className={isUser ? 'font-semibold' : 'font-semibold text-sky-700'}>
-                        {children}
-                      </strong>
-                    ),
-                  }}
-                >
-                  {block.text}
-                </ReactMarkdown>
-              </div>
-            )
-          }
-          return <ToolInvocationGroup key={block.key} parts={block.parts} />
-        })}
       </div>
     </div>
   )
