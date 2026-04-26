@@ -1,0 +1,219 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "Yardımcı olan yapay zeka, kullanıcılar PDF formlarını adım adım doldursun diye",
+    "whatIsThisDemo": "Bu demo nedir?",
+    "useCase": "Yüklenmiş PDF",
+    "poweredBy": "SimplePDF tarafından güçlendirilmiştir"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot en iyi masaüstünde deneyimlenir",
+    "watchDemo": "Demoyu izleyin",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "Döngüde insanla, yapay zeka destekli form doldurma",
+    "close": "Kapat",
+    "availableOn": "Form Copilot, <plan>SimplePDF Pro and above</plan> içinde kullanılabilir.",
+    "sourceCode": "GitHub’da kaynak kod",
+    "githubStarTitle": "GitHub’da SimplePDF/simplepdf-embed’e yıldız verin",
+    "whyItMattersLead": "Otomatik form doldurmanın sınırları vardır.",
+    "whyItMattersBody": "Bir formu tamamlamak için gereken veriler eksik, yanlış veya geçersiz olabilir. Bu demo daha güvenli bir modeli sergiliyor: Yapay zeka formu doldurmaya yardım ederken bir insan inceler, düzeltir ve gerektiği yerde tamamlar.",
+    "humanInTheLoopTitle": "Nasıl çalışır",
+    "humanInTheLoopBullet1": "Form Copilot alanları editörün içinde gerçek zamanlı olarak doldurur.",
+    "humanInTheLoopBullet1Hint": "Form Copilot ile editör arasındaki veri alışverişi tarayıcıda gerçekleşir.",
+    "humanInTheLoopBullet2": "Kullanıcı her değişikliği görebilir, inceleyebilir ve düzeltebilir.",
+    "humanInTheLoopBullet2Hint": "Form Copilot, imza gibi otomatik doldurulmaması gereken alanları kullanıcıya devredebilir.",
+    "humanInTheLoopBullet3": "Kontrol her zaman kullanıcıda kalır.",
+    "humanInTheLoopBullet3Hint": "Form Copilot formda gezinmeye ve doldurmaya yardımcı olur, ancak son söz her zaman kullanıcıya aittir.",
+    "aboutTitle": "Tasarımı gereği gizlilik",
+    "aboutIntro": "SimplePDF, hassas iş akışları için baştan itibaren tasarlanmıştır. Bu üç mimari tercih nedenini açıklar.",
+    "aboutBullet1Title": "Tarayıcıda belge işleme.",
+    "aboutBullet1Body": "PDF’ler cihazınızda yerel olarak düzenlenir. Belge içeriğinin kendisi SimplePDF sunucularına yüklenmez.",
+    "aboutBullet2Title": "Kendi yapay zekanızı getirin.",
+    "aboutBullet2Body": "Üretimde, kendi sağlayıcınızı, anahtarlarınızı, RAG ardışık düzenlerinizi ve dahili verilerinizi bağlayın; trafik sunucunuz ve yapay zeka yığınınız arasında kalır.",
+    "aboutBullet3Title": "Kendi depolamanızı getirin.",
+    "aboutBullet3Body": "Tamamlanan belgeler doğrudan tarayıcıdan depolama alanınıza gönderilir, böylece hassas veriler altyapınızda kalır.",
+    "useCasesTitle": "Örnek iş akışları",
+    "useCasesFooter": "Farklı bir form yüklemek için yukarıdan bir iş akışı seçin.",
+    "architectureTitle": "Mimari",
+    "architectureSubtext": "Sohbetten gönderime kadar mimari, belgelerin ve hassas verilerin bizim değil sizin kontrolünüzde kalmasını sağlayacak şekilde tasarlanmıştır.",
+    "architectureDemoSubtext": "Yüklediğiniz belge tarayıcınızdan asla ayrılmaz. Sohbet üzerinden gönderdiğiniz veriler seçtiğiniz LLM’e gider.",
+    "architectureTabs": {
+      "demo": "Bu demo için",
+      "production": "Üretimde"
+    },
+    "architectureDemoDescription": "Bu demo, paylaşımlı bir SimplePDF hesabı üzerinde çalışır. Tarayıcı, hem Form Copilot’u hem de SimplePDF editörünü (bir iframe içine yüklenmiş) barındırır. Alan verileri postMessage istemci tarafı araç çağrıları aracılığıyla tarayıcıda kalır. Sohbet trafiği, demonun barındırılan sunucusu üzerinden barındırılan bir AI sağlayıcısına akar veya kendi API anahtarınızı getirdiğinizde doğrudan tarayıcıdan gider. SimplePDF sunucusu yalnızca telemetri ve meta verileri kaydeder; belgenin içeriğini asla görmez.",
+    "architectureDescription": "Tarayıcı, Form Copilot ve SimplePDF editörünü bir iframe içinde çalıştırır. İkisi postMessage istemci tarafı araç çağrıları üzerinden iletişim kurar, bu nedenle alan verileri tarayıcıdan asla ayrılmaz. Sohbet mesajları sunucunuz üzerinden yapay zeka yığınınıza (sağlayıcı, anahtarlar, RAG, dahili veriler) yönlendirilir. SimplePDF sunucusu yalnızca telemetri ve meta verileri alır ve belgenin kendisini asla görmez. Tamamlanmış belge, SimplePDF sunucusunu atlayarak editörden doğrudan depolama alanınıza (S3, Azure Blob Storage veya SharePoint) yüklenir. Bir gönderim tamamlandığında, isteğe bağlı bir webhook sunucunuzu bilgilendirebilir. Webhook yalnızca meta veri taşır, asla belge içeriği değil.",
+    "tryThisForm": "Bu formu dene →",
+    "useCases": {
+      "healthcare": {
+        "title": "Sağlık",
+        "body": "Hasta kabul ve tazminat formları genellikle hassas veriler içerir ve inceleme gerektirir. Form Copilot, kuruluşunuzun onayladığı yapay zeka sağlayıcısını kullanarak formu adım adım doldurmanıza yardımcı olur."
+      },
+      "insurance": {
+        "title": "Sigorta",
+        "body": "Başvurular, hasar talepleri ve zeyilnameler sıklıkla yapılandırılmış veriyi poliçeye özgü ayrıntılarla birleştirir. Form Copilot yapabildiğini önceden doldurur, alanları açıklar ve son incelemeyi kullanıcıya bırakır."
+      },
+      "state": {
+        "title": "Devlet bürokrasisi",
+        "body": "Devlet formları genellikle taranmış, karmaşık veya kullanıcının konuşmadığı bir dilde yazılır. Form Copilot, kullanıcı sonucu incelerken formu açıklama, çevirme ve adım adım doldurma konusunda yardımcı olabilir."
+      },
+      "hr": {
+        "title": "İK işe alım",
+        "body": "Teklif mektupları, vergi formları ve işe alım paketleri sıklıkla hem ön doldurma hem de inceleme gerektirir. Form Copilot yapabildiğini doldurur, ardından imzalar ve son kontroller için kullanıcıya devreder."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Form Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Editörün yüklenmesi bekleniyor…",
+    "subtitleNoDocument": "Önce bir belge yükleyin",
+    "subtitleNoModel": "Sohbete başlamak için kendi yapay zekanızı getirin",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Kendi yapay zekanızı getirin",
+      "currentlyUsedSectionTitle": "Şu anda kullanılıyor",
+      "demoRateLimitedBadge": "demo · kullanım sınırlı",
+      "byokIntro": "Bir sağlayıcı seçin ve kendi anahtarınızı yapıştırarak bunun üzerinden sohbet edin.",
+      "byokSecurityTitle": "Kimlik bilgileriniz cihazınızda kalır.",
+      "byokSecurityBody": "Kimlik bilgileri yalnızca bellekte tutulur (asla diske yazılmaz, asla SimplePDF sunucularına gönderilmez) ve her LLM isteği, seçtiğiniz yapay zekaya doğrudan tarayıcınızdan gönderilir.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Önerilen",
+      "keyInputPlaceholder": "{{provider}} API key’inizi yapıştırın",
+      "keyInputHint": "Anahtar tarayıcınızı asla terk etmez. Yalnızca bu sekme için bellekte tutulur.",
+      "keyInvalid": "Bu API anahtarı sağlayıcı tarafından reddedildi.",
+      "keyModelNotFound": "Model bulunamadı. Farklı bir model seçin veya planınızın bu modeli içerdiğini kontrol edin.",
+      "keyNetworkError": "Anahtarı doğrulamak için sağlayıcıya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+      "applyButton": "Bu yapay zekayı kullan",
+      "validatingButton": "Anahtar doğrulanıyor…",
+      "cancelButton": "İptal",
+      "comingSoon": "Yakında",
+      "registerInterest": "İlginizi kaydedin →",
+      "registerInterestMessage": "Merhaba SimplePDF ekibi, Form Copilot’u {{provider}} ile kullanmakla ilgileniyorum. Ne zaman kullanıma sunulacağını ve kurulumun nasıl göründüğünü paylaşabilir misiniz?\n\nİlgilendiğim plan:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Özel uç nokta",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "gizlilik",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "OpenAI uyumlu herhangi bir uç nokta (Ollama, LM Studio, vLLM, kendi barındırılan).",
+      "customModelLabel": "Model adı",
+      "customKeyLabel": "API anahtarı",
+      "customKeyPlaceholder": "API anahtarınız (ya da yerel kurulumlar için herhangi bir dize)",
+      "customKeyHint": "Tarayıcıdan doğrudan yukarıdaki URL’ye karşı çalışır. Her şeyi makinenizde tutmak için localhost URL kullanın.",
+      "customReachFailed": "Uç noktaya ulaşılamadı. URL’yi ve sunucunuzun bu sayfadan CORS’a izin verdiğini kontrol edin.",
+      "customModelNotFound": "Bu sunucuda model bulunamadı. Model adını (ve çekilmiş / yüklenmiş olduğunu) kontrol edin.",
+      "customAuthRejected": "Sunucu API anahtarını reddetti. Anahtarı kontrol edin veya kimlik doğrulama gerektirmeyen yerel kurulumlar için boş bırakın."
+    },
+    "stop": "Durdur",
+    "thinking": "Düşünüyor…",
+    "piiWarning": "Herkese açık demo. Yalnızca örnek veri kullanın. Mesajlar seçilen yapay zeka sağlayıcısı tarafından işlenir.",
+    "newFieldHint": "Kullanıcı tarafından yeni {{field}} alanı eklendi",
+    "errorAuthTitle": "Kimlik doğrulama başarısız oldu.",
+    "errorAuthBody": "Yapay zeka sağlayıcısı API anahtarınızı reddetti. Anahtarı doğrulamak için <switchModel>yapay zeka modelini değiştirin</switchModel> ve tekrar deneyin.",
+    "errorRateLimitedTitle": "Demo sınırına ulaştınız",
+    "errorRateLimitedBodyThanks": "Denediğiniz için teşekkürler. Bu demo barındırılan yapay zeka kullanır, bu nedenle kullanım sınırlıdır.",
+    "errorRateLimitedBodyCta": "Form doldurmaya devam etmek için kendi API anahtarınızı kullanın.",
+    "errorRateLimitedCtaButton": "Kendi API anahtarınızı kullanın",
+    "errorByokActivatedTitle": "Artık {{model}} kullanıyorsunuz.",
+    "shareHero": "Gerçek zamanlı bir PDF'i dolduran yapay zeka, anlatılmaktansa görülmeli.",
+    "shareCtaLabel": "Denemesi gereken birine gönderin:",
+    "shareCopyLink": "Bağlantıyı kopyala",
+    "shareCopied": "Kopyalandı!",
+    "shareTweetText": "SimplePDF'in Form Copilot'unu deniyorum, PDF formlarını adım adım dolduran bir yapay zeka. Bir göz atmaya değer:",
+    "errorByokActivatedButton": "Sohbete devam et",
+    "errorByokActivatedResumeMessage": "Devam edelim",
+    "errorGenericTitle": "Tam hata",
+    "welcomeTitle": "Form Copilot’u kendi yapay zekanızla deneyin",
+    "welcomeBody": "Kimlik bilgileriniz bu sekmede kalır. İstekler tarayıcınızdan seçtiğiniz yapay zeka sağlayıcısına gönderilir.",
+    "welcomeCta": "Kendi yapay zekanızı getirin",
+    "welcomeInfoLink": "Form Copilot nasıl çalışır",
+    "inputPlaceholderReady": "Form Copilot ile konuşun…",
+    "send": "Gönder"
+  },
+  "suggestedPrompts": {
+    "lead": "Şunlardan birini deneyin:",
+    "helpFill": "Bu formu doldurmama yardım edin",
+    "explainFields": "Bu form ne hakkında?"
+  },
+  "languagePicker": {
+    "label": "Dil",
+    "search": "Dil ara…",
+    "noMatches": "Eşleşme yok"
+  },
+  "toolbar": {
+    "cursor": "İmleç",
+    "text": "Metin",
+    "checkbox": "Onay kutusu",
+    "signature": "İmza",
+    "picture": "Resim",
+    "boxedText": "Kutucuklu metin",
+    "download": "İndir",
+    "submit": "Gönder"
+  },
+  "welcomeModal": {
+    "title": "Form Copilot’a hoş geldiniz",
+    "tagline": "<accent>Yardımcı olan yapay zeka</accent>, kullanıcılar PDF formlarını adım adım doldursun diye",
+    "getStarted": "Başla",
+    "howItWorks": "Form Copilot nasıl çalışır",
+    "close": "Karşılamayı kapat"
+  },
+  "download": {
+    "title": "Doldurulmuş PDF’inizi indirin",
+    "intro": "PDF’iniz bu tarayıcı sekmesinde oluşturulur. Hiçbir şey cihazınızdan ayrılmaz ve SimplePDF sunucuları doldurulmuş dosyayı asla görmez.",
+    "cta": "İndir",
+    "upsellHeading": "Form Copilot’u bir adım öteye taşıyın",
+    "upsellStorage": "Ücretli SimplePDF planlarında bu İndirme işlemi bir <b>Gönder</b> akışına dönüşür. Doldurulmuş PDF’ler otomatik olarak kendi depolama alanınıza (S3, Azure Blob Storage veya SharePoint) düşer ve sistemleriniz webhook ya da e-posta ile bilgilendirilir. İndirme isteğe bağlı olarak kalmaya devam eder.",
+    "upsellFields": "PDF formları dağınıktır. Hazır alanlar olmadan taranmış şekilde ya da yapay zekanın işini zorlaştıran kötü alan adlarıyla gelirler. Ücretli SimplePDF planları bunu da düzeltir; zorunlu alanlar, varsayılan değerler ve alan takma adları ile.",
+    "upsellCta": "Bizimle iletişime geçin",
+    "upsellPricing": "Kurumsal planları inceleyin",
+    "upsellContactMessage": "Merhaba SimplePDF ekibi, Form Copilot’u deniyorum ve ücretli planlardaki Gönder (Submit) akışı hakkında daha fazla bilgi almak istiyorum: doldurulmuş PDF’lerin kendi depoma otomatik teslimi, webhook veya e-posta bildirimleriyle birlikte.\n\nİlgilendiğim plan:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Kapat"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "hazırlanıyor",
+      "input-available": "çalışıyor",
+      "output-available": "tamamlandı",
+      "output-error": "hata"
+    },
+    "fallbackName": "{{tool}} çağrılıyor",
+    "groupSummary_one": "{{count}} işlem",
+    "groupSummary_other": "{{count}} işlem",
+    "names": {
+      "get_fields": "Alanlar alınıyor",
+      "get_document_content": "Belge okunuyor",
+      "detect_fields": "Alanlar tespit ediliyor",
+      "focus_field": "Alan vurgulanıyor",
+      "go_to_page": "Sayfaya gidiliyor",
+      "set_field_value": "Alan dolduruluyor",
+      "select_tool": "Araç değiştiriliyor",
+      "create_field": "Alan oluşturuluyor",
+      "remove_fields": "Alanlar kaldırılıyor",
+      "submit_download": "İndirme hazırlanıyor"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Vergi",
+      "healthcare": "Sağlık",
+      "hr": "İK işe alım",
+      "state": "Devlet bürokrasisi",
+      "stateScanned": "Devlet bürokrasisi (taranmış PDF)",
+      "custom": "PDF’iniz"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 talep formu",
+      "mnda": "Karşılıklı NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen taranmış",
+      "custom": "Kendi PDF’inizi seçin"
+    },
+    "customSubtitle": "Herhangi bir PDF çalışır - cihazınızda kalır"
+  }
+}

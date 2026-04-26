@@ -1,0 +1,87 @@
+
+@import "tailwindcss";
+
+@theme {
+  /* SimplePDF brand palette */
+  --color-sky-600: #3665e1;
+  --color-sky-700: #2a52ba;
+  --color-emerald-500: #26c469;
+  --color-emerald-700: #2f955a;
+  --color-rose-500: #ff535a;
+  --color-rose-700: #cc2222;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+@keyframes pdf-copilot-shimmer {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgb(148 163 184) 0%,
+    rgb(148 163 184) 40%,
+    rgb(15 23 42) 50%,
+    rgb(148 163 184) 60%,
+    rgb(148 163 184) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pdf-copilot-shimmer 1.8s linear infinite;
+}
+
+.shimmer-icon {
+  color: rgb(148 163 184);
+  animation: pdf-copilot-shimmer-icon 1.8s ease-in-out infinite;
+}
+
+@keyframes pdf-copilot-shimmer-icon {
+  0%,
+  100% {
+    color: rgb(148 163 184);
+  }
+  50% {
+    color: rgb(15 23 42);
+  }
+}
+
+@keyframes pdf-copilot-hourglass-flip {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+.hourglass-flip {
+  display: inline-flex;
+  transform-origin: center;
+  animation: pdf-copilot-hourglass-flip 2s ease-in-out infinite;
+}
+

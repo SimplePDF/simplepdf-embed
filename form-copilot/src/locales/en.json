@@ -1,0 +1,246 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "AI that helps users fill PDF forms step by step",
+    "whatIsThisDemo": "What is this demo?",
+    "useCase": "Loaded PDF",
+    "poweredBy": "Powered by SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot is best experienced on desktop",
+    "watchDemo": "Watch the demo",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "AI-assisted form filling, with a human in the loop",
+    "close": "Close",
+    "availableOn": "Form Copilot is available on <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Source code on GitHub",
+    "githubStarTitle": "Star SimplePDF/simplepdf-embed on GitHub",
+    "whyItMattersLead": "Automatic form filling has limits.",
+    "whyItMattersBody": "The data needed to complete a form can be missing, incorrect, or invalid. This demo showcases a safer model: AI helps fill the form while a human reviews, corrects, and completes it where needed.",
+    "humanInTheLoopTitle": "How it works",
+    "humanInTheLoopBullet1": "Form Copilot fills fields in real time, inside the editor.",
+    "humanInTheLoopBullet1Hint": "The data exchanged between Form Copilot and the editor happens in the browser.",
+    "humanInTheLoopBullet2": "The user can see each change, review it, and correct it.",
+    "humanInTheLoopBullet2Hint": "Form Copilot can hand off fields that should not be auto-filled, such as signatures.",
+    "humanInTheLoopBullet3": "The user stays in control.",
+    "humanInTheLoopBullet3Hint": "Form Copilot helps navigate the form and fill it, but the user always has the last word.",
+    "aboutTitle": "Privacy by design",
+    "aboutIntro": "SimplePDF is built from the ground up for sensitive workflows. These three architectural choices are why.",
+    "aboutBullet1Title": "In-browser document processing.",
+    "aboutBullet1Body": "PDFs are edited locally on your device. The document content itself is not uploaded to SimplePDF servers.",
+    "aboutBullet2Title": "Bring your own AI.",
+    "aboutBullet2Body": "In production, plug in your own provider, keys, RAG pipelines, and internal data so traffic stays between your server and your AI stack.",
+    "aboutBullet3Title": "Bring your own storage.",
+    "aboutBullet3Body": "Completed documents are sent directly to your storage from the browser, ensuring that sensitive data stays in your infrastructure.",
+    "useCasesTitle": "Example workflows",
+    "useCasesFooter": "Select a workflow above to load a different form.",
+    "architectureTitle": "Architecture",
+    "architectureSubtext": "From chat to submission, the architecture is designed to keep documents and sensitive data under your control, not ours.",
+    "architectureDemoSubtext": "The document you load never leaves your browser. The data you send through the chat goes to the LLM you selected.",
+    "architectureTabs": {
+      "demo": "For this demo",
+      "production": "In production"
+    },
+    "architectureDemoDescription": "This demo runs on a shared SimplePDF account. The browser hosts both Form Copilot and the SimplePDF editor (loaded in an iframe). Field data stays in the browser via postMessage client-side tool calls. Chat traffic flows through the demo's hosted server to a hosted AI provider, or browser-direct when you bring your own API key. The SimplePDF server records only telemetry and metadata; it never sees the document content.",
+    "architectureDescription": "The browser runs Form Copilot and the SimplePDF editor inside an iframe. The two communicate through postMessage client-side tool calls, so field data never leaves the browser. Chat messages are proxied through your server to your AI stack (provider, keys, RAG, internal data). The SimplePDF server only receives telemetry and metadata and never sees the document itself. The completed document is uploaded directly from the editor to your storage (S3, Azure Blob, or SharePoint), bypassing the SimplePDF server. When a submission completes, an optional webhook can notify your server. The webhook carries metadata only, never the document content.",
+    "tryThisForm": "Try this form →",
+    "useCases": {
+      "tax": {
+        "title": "Tax",
+        "body": "Tax forms like the IRS W-9 combine identity fields, classification choices, and a signature. Form Copilot helps fill the identity section, explains each classification option, and leaves the signature to the user."
+      },
+      "hr": {
+        "title": "HR onboarding",
+        "body": "Employment eligibility forms like the USCIS I-9 mix free-text identity fields with attestations and tight formatting rules. Form Copilot fills what it can, flags the sections that need a human review, and hands off for signatures."
+      },
+      "healthcare": {
+        "title": "Healthcare",
+        "body": "Patient intake and claims forms often contain sensitive data and require review. Form Copilot helps complete the form step by step using your organization's approved AI provider."
+      },
+      "insurance": {
+        "title": "Insurance",
+        "body": "Applications, claims, and endorsements often combine structured data with policy-specific details. Form Copilot helps prefill what it can, explain fields, and leaves the final review to the user."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Form Copilot",
+    "subtitleWaiting": "Waiting for the editor to load…",
+    "subtitleNoDocument": "Load a document first",
+    "subtitleNoModel": "Use your own AI to start chatting",
+    "useYourOwnAI": "Use your own AI",
+    "modelPicker": {
+      "title": "Use your own AI",
+      "currentlyUsedSectionTitle": "Currently used",
+      "demoRateLimitedBadge": "demo · capped usage",
+      "byokIntro": "Pick a provider and enter your credentials to chat through it instead.",
+      "byokSecurityTitle": "Stored on this device, encrypted.",
+      "byokSecurityBody": "Your credentials are encrypted with a key that never leaves this browser and are sent straight from your browser to the AI provider, never to SimplePDF. Anyone with access to this device can still use them. Cleared automatically after 30 days of inactivity.",
+      "forgetKey": "Forget configuration",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Recommended",
+      "keyInputPlaceholder": "Paste your {{provider}} API key",
+      "keyInputHint": "Encrypted in this browser. Never sent to SimplePDF.",
+      "keyInvalid": "This API key was rejected by the provider.",
+      "keyModelNotFound": "Model not found. Pick a different model or check that your plan includes it.",
+      "keyNetworkError": "Could not reach the provider to verify the key. Check your connection and try again.",
+      "applyButton": "Use this AI",
+      "updateConfigButton": "Update configuration",
+      "validatingButton": "Verifying key…",
+      "cancelButton": "Cancel",
+      "comingSoon": "Coming soon",
+      "registerInterest": "Register your interest →",
+      "registerInterestMessage": "Hi SimplePDF team, I'm interested in using Form Copilot with {{provider}}. Could you share when it'll be available and what the setup looks like?\n\nPlan I'm interested in:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Custom endpoint",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "privacy",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Any OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, self-hosted). Your server must allow CORS from this page.",
+      "customModelLabel": "Model name",
+      "customKeyLabel": "API key (optional)",
+      "customKeyPlaceholder": "Your API key (or any string for local setups)",
+      "customKeyHint": "Runs browser-direct against the URL above. Use a localhost URL to keep everything on your machine.",
+      "customReachFailed": "Could not reach the endpoint. Check the URL, and that your server allows CORS from this page.",
+      "customModelNotFound": "Model not found on this server. Check the model name (and that it has been pulled / loaded).",
+      "customAuthRejected": "The server rejected the API key. Check the key, or leave it blank for local setups that do not enforce auth.",
+      "customInstructionsToggle": "Advanced: custom instructions",
+      "customInstructionsHide": "Hide advanced",
+      "customInstructionsActiveBadge": "Custom instructions active",
+      "customInstructionsModeAppend": "Append to default",
+      "customInstructionsModeAppendDescription": "Add your own rules on top of the canonical Form Copilot prompt.",
+      "customInstructionsModeReplace": "Replace entirely",
+      "customInstructionsModeReplaceDescription": "Start from a clean sheet. You own the entire prompt; tool calling can break.",
+      "customInstructionsPlaceholderAppend": "e.g. Always reply in formal English. Skip the SSN field by default.",
+      "customInstructionsPlaceholderReplace": "Write your full system prompt here. Click \"View default prompt\" for a starting point.",
+      "customInstructionsViewDefault": "View default prompt",
+      "customInstructionsCharCount": "{{count}} / {{max}} characters",
+      "defaultPromptTitle": "Default Form Copilot prompt",
+      "defaultPromptSubtitle": "Read-only. Copy this if you want a starting point for replace mode.",
+      "defaultPromptCopy": "Copy",
+      "defaultPromptCopied": "Copied",
+      "defaultPromptCopyFailed": "Select all and copy manually"
+    },
+    "stop": "Stop",
+    "thinking": "Thinking…",
+    "piiWarning": "Public demo. Use sample data only. Messages are processed by the selected AI provider.",
+    "newFieldHint": "New {{field}} field added by the user",
+    "errorAuthTitle": "Authentication failed.",
+    "errorAuthBody": "The AI provider rejected your API key. <switchModel>Open the AI model selection</switchModel> to verify the key, and try again.",
+    "errorRateLimitedTitle": "You've reached the demo limit",
+    "errorRateLimitedBodyThanks": "Thanks for trying it. This demo uses hosted AI, so usage is capped.",
+    "errorRateLimitedBodyCta": "Use your own AI to keep filling forms.",
+    "errorRateLimitedCtaButton": "Use your own AI",
+    "errorByokActivatedTitle": "You're now using {{model}}.",
+    "shareHero": "AI filling a PDF in real time is better seen than explained.",
+    "shareCtaLabel": "Send it to someone who should try it:",
+    "shareCopyLink": "Copy link",
+    "shareCopied": "Copied!",
+    "shareTweetText": "I've been trying out Form Copilot by SimplePDF, an AI that fills PDF forms step by step. Worth a look:",
+    "errorByokActivatedButton": "Resume conversation",
+    "errorByokActivatedResumeMessage": "Let's continue",
+    "errorServerTitle": "Something went wrong",
+    "errorGenericTitle": "Full error",
+    "errorServiceUnavailableBody": "The service is temporarily unavailable. Please try again in a few minutes, or <switchModel>bring your own AI</switchModel> to keep going right now.",
+    "welcomeTitle": "Try Form Copilot with your own AI",
+    "welcomeBody": "Your credentials stay in this tab. Requests are sent from your browser to your selected AI provider.",
+    "welcomeCta": "Use your own AI",
+    "welcomeInfoLink": "How Form Copilot works",
+    "inputPlaceholderReady": "Talk to Form Copilot…",
+    "send": "Send"
+  },
+  "suggestedPrompts": {
+    "lead": "Try one of these:",
+    "helpFill": "Help me fill this form",
+    "explainFields": "What's this form about?"
+  },
+  "languagePicker": {
+    "label": "Language",
+    "search": "Search languages…",
+    "noMatches": "No matches"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Text",
+    "checkbox": "Checkbox",
+    "signature": "Signature",
+    "picture": "Picture",
+    "boxedText": "Boxed Text",
+    "download": "Download",
+    "submit": "Submit"
+  },
+  "welcomeModal": {
+    "title": "Welcome to Form Copilot",
+    "tagline": "<accent>AI that helps</accent> users fill PDF forms step by step",
+    "getStarted": "Get started",
+    "howItWorks": "How Form Copilot works",
+    "close": "Close welcome"
+  },
+  "download": {
+    "title": "Download your filled PDF",
+    "intro": "Your PDF is generated in this browser tab. Nothing leaves your device, and SimplePDF's servers never see the filled file.",
+    "cta": "Download",
+    "upsellHeading": "Taking Form Copilot further",
+    "upsellStorage": "On paid SimplePDF plans, this Download becomes a <b>Submit</b> flow. Filled PDFs land automatically in your own storage (S3, Azure Blob Storage, or SharePoint), and your systems get notified via webhook or email. Download stays optional.",
+    "upsellFields": "PDF forms are messy. They arrive scanned without ready-made fields, or with bad field names that make the AI work harder. Paid SimplePDF plans fix that too, with required fields, default values, and field aliasing.",
+    "upsellCta": "Talk to us",
+    "upsellPricing": "Explore business plans",
+    "upsellContactMessage": "Hi SimplePDF team, I'm trying Form Copilot and I'd like to learn more about the Submit flow on paid plans (automatic delivery to my own storage, plus webhook / email notifications).\n\nPlan I'm interested in:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Close"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "preparing",
+      "input-available": "running",
+      "output-available": "done",
+      "output-error": "error"
+    },
+    "fallbackName": "Calling {{tool}}",
+    "groupSummary_one": "{{count}} action",
+    "groupSummary_other": "{{count}} actions",
+    "names": {
+      "get_fields": "Retrieving the fields",
+      "get_document_content": "Reading the document",
+      "detect_fields": "Detecting the fields",
+      "focus_field": "Highlighting the field",
+      "go_to_page": "Going to the page",
+      "set_field_value": "Filling the field",
+      "select_tool": "Switching tool",
+      "create_field": "Creating a field",
+      "remove_fields": "Removing fields",
+      "submit_download": "Preparing the download"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Tax",
+      "healthcare": "Healthcare",
+      "hr": "HR onboarding",
+      "state": "State bureaucracy",
+      "stateScanned": "State bureaucracy (scanned PDF)",
+      "custom": "Your PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "w4": "IRS W-4",
+      "i9": "USCIS I-9",
+      "cms1500": "CMS-1500 claim form",
+      "mnda": "Mutual NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen scanned",
+      "cerfa12485": "CERFA 12485 (médecin traitant)",
+      "cerfa14598": "CERFA 14598 (rupture conventionnelle)",
+      "custom": "Pick your own PDF"
+    },
+    "subtitles": {
+      "mndaScanned": "HR onboarding (scanned document)",
+      "ruptureConventionnelle": "HR (mutual agreement termination)"
+    },
+    "customSubtitle": "Any PDF works - kept on your device"
+  }
+}

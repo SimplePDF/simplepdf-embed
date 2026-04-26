@@ -1,0 +1,220 @@
+{
+  "header": {
+    "brand": "Form Copilot Demo",
+    "tagline": "בינה מלאכותית שמסייעת למשתמשים למלא טפסי PDF צעד אחר צעד",
+    "whatIsThisDemo": "מה זו ההדגמה הזו?",
+    "useCase": "PDF שנטען",
+    "poweredBy": "מופעל על ידי SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "Form Copilot מיטבי לחוויה במחשב שולחני",
+    "watchDemo": "צפו בהדגמה",
+    "videoPlaceholder": "וידאו"
+  },
+  "infoModal": {
+    "title": "מילוי טפסים בסיוע בינה מלאכותית, עם אדם בלולאה",
+    "close": "סגור",
+    "availableOn": "Form Copilot זמין ב־<plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "קוד מקור ב־GitHub",
+    "githubStarTitle": "תנו כוכב ל־SimplePDF/simplepdf-embed ב־GitHub",
+    "whyItMattersLead": "למילוי אוטומטי של טפסים יש מגבלות.",
+    "whyItMattersBody": "הנתונים הדרושים למילוי טופס יכולים להיות חסרים, שגויים או לא תקפים. ההדגמה הזו מציגה מודל בטוח יותר: בינה מלאכותית עוזרת למלא את הטופס בעוד אדם בודק, מתקן ומשלים במידת הצורך.",
+    "humanInTheLoopTitle": "איך זה עובד",
+    "humanInTheLoopBullet1": "Form Copilot ממלא שדות בזמן אמת, בתוך העורך.",
+    "humanInTheLoopBullet1Hint": "חילופי הנתונים בין Form Copilot לעורך מתרחשים בדפדפן.",
+    "humanInTheLoopBullet2": "המשתמש יכול לראות כל שינוי, לבדוק אותו ולתקן.",
+    "humanInTheLoopBullet2Hint": "Form Copilot יכול להעביר שדות שאין למלא אוטומטית, כגון חתימות.",
+    "humanInTheLoopBullet3": "המשתמש נשאר בשליטה.",
+    "humanInTheLoopBullet3Hint": "Form Copilot מסייע לנווט בטופס ולמלא אותו, אך למשתמש תמיד יש את המילה האחרונה.",
+    "aboutTitle": "פרטיות בעיצוב",
+    "aboutIntro": "SimplePDF נבנה מהיסוד עבור תהליכי עבודה רגישים. שלוש ההחלטות הארכיטקטוניות האלה מסבירות מדוע.",
+    "aboutBullet1Title": "עיבוד מסמכים בדפדפן.",
+    "aboutBullet1Body": "קובצי PDF נערכים מקומית במכשיר שלכם. תוכן המסמך עצמו אינו מועלה לשרתי SimplePDF.",
+    "aboutBullet2Title": "הביאו את ה־AI שלכם.",
+    "aboutBullet2Body": "בסביבת הפרודקשן, חברו את הספק, המפתחות, צינורות ה־RAG והנתונים הפנימיים שלכם, כך שהתעבורה נשארת בין השרת שלכם לסטאק ה־AI שלכם.",
+    "aboutBullet3Title": "הביאו את האחסון שלכם.",
+    "aboutBullet3Body": "מסמכים שהושלמו נשלחים ישירות מהדפדפן לאחסון שלכם, כך שהנתונים הרגישים נשארים בתשתית שלכם.",
+    "useCasesTitle": "דוגמאות לתהליכי עבודה",
+    "useCasesFooter": "בחרו תהליך עבודה למעלה כדי לטעון טופס אחר.",
+    "architectureTitle": "ארכיטקטורה",
+    "architectureSubtext": "מהצ׳אט ועד ההגשה, הארכיטקטורה תוכננה כדי שהמסמכים והנתונים הרגישים יישארו בשליטתכם, ולא בשלנו.",
+    "architectureDemoSubtext": "המסמך שאתם טוענים לעולם אינו עוזב את הדפדפן שלכם. הנתונים שאתם שולחים דרך הצ׳אט מגיעים ל־LLM שבחרתם.",
+    "architectureTabs": {
+      "demo": "להדגמה הזו",
+      "production": "בפרודקשן"
+    },
+    "architectureDemoDescription": "הדגמה זו פועלת על חשבון SimplePDF משותף. הדפדפן מארח גם את Form Copilot וגם את עורך SimplePDF (הנטען בתוך iframe). נתוני השדות נשארים בדפדפן באמצעות קריאות כלי צד־לקוח של postMessage. תנועת הצ׳אט עוברת דרך השרת המארח של ההדגמה אל ספק AI מארח, או ישירות מהדפדפן כשאתם מביאים מפתח API משלכם. שרת SimplePDF מתעד רק טלמטריה ומטא־נתונים; הוא לעולם אינו רואה את תוכן המסמך.",
+    "architectureDescription": "הדפדפן מריץ את Form Copilot ואת העורך של SimplePDF בתוך iframe. השניים מתקשרים דרך קריאות כלי צד־לקוח של postMessage, כך שנתוני השדות לעולם אינם יוצאים מהדפדפן. הודעות הצ׳אט מועברות דרך השרת שלכם לסטאק ה־AI שלכם (ספק, מפתחות, RAG, נתונים פנימיים). השרת של SimplePDF מקבל רק טלמטריה ומטא־נתונים, ואינו רואה את המסמך עצמו לעולם. המסמך שהושלם מועלה ישירות מהעורך לאחסון שלכם (S3, Azure Blob Storage או SharePoint), בעקיפה של השרת של SimplePDF. כשההגשה מסתיימת, webhook אופציונלי יכול להודיע לשרת שלכם. ה־webhook מכיל רק מטא־נתונים, לעולם לא את תוכן המסמך.",
+    "tryThisForm": "נסו את הטופס הזה ←",
+    "useCases": {
+      "healthcare": {
+        "title": "בריאות",
+        "body": "טופסי קבלת מטופלים ותביעות מכילים לעתים קרובות נתונים רגישים ודורשים סקירה. Form Copilot עוזר למלא את הטופס שלב אחר שלב באמצעות ספק ה־AI המאושר של הארגון שלכם."
+      },
+      "insurance": {
+        "title": "ביטוח",
+        "body": "בקשות, תביעות והוספות משלבות לעתים קרובות נתונים מובנים עם פרטים ספציפיים לפוליסה. Form Copilot עוזר למלא מראש את מה שהוא יכול, מסביר שדות ומשאיר את הסקירה הסופית למשתמש."
+      },
+      "state": {
+        "title": "בירוקרטיה ממשלתית",
+        "body": "טופסי ממשלה הם לעתים קרובות סרוקים, מורכבים או כתובים בשפה שהמשתמש לא דובר. Form Copilot יכול לעזור להסביר את הטופס, לתרגם אותו ולמלא אותו שלב אחר שלב בזמן שהמשתמש בודק את התוצאה."
+      },
+      "hr": {
+        "title": "קליטת HR",
+        "body": "מכתבי הצעת עבודה, טופסי מס וחבילות קליטה דורשים לעתים קרובות גם מילוי מראש וגם סקירה. Form Copilot ממלא את מה שהוא יכול, ואז מעביר את השליטה למשתמש לצורך חתימות ובדיקות סופיות."
+      }
+    }
+  },
+  "chat": {
+    "heading": "Form Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "ממתין לטעינת העורך…",
+    "subtitleNoDocument": "טענו תחילה מסמך",
+    "subtitleNoModel": "הביאו את הבינה המלאכותית שלכם כדי להתחיל לשוחח",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "הביאו את הבינה המלאכותית שלכם",
+      "currentlyUsedSectionTitle": "בשימוש כעת",
+      "demoRateLimitedBadge": "דמו · שימוש מוגבל",
+      "byokIntro": "בחרו ספק והדביקו את המפתח שלכם כדי לשוחח דרכו במקום.",
+      "byokSecurityTitle": "פרטי ההתחברות שלכם נשארים במכשיר שלכם.",
+      "byokSecurityBody": "פרטי ההתחברות נשמרים בזיכרון בלבד (לעולם לא נכתבים לדיסק, לעולם לא נשלחים לשרתי SimplePDF) וכל בקשת LLM נשלחת ישירות מהדפדפן שלכם לבינה המלאכותית שבחרתם.",
+      "modelSectionTitle": "מודל",
+      "recommendedBadge": "מומלץ",
+      "keyInputPlaceholder": "הדביקו את ה־API key של {{provider}}",
+      "keyInputHint": "המפתח לא עוזב את הדפדפן. נשמר בזיכרון עבור לשונית זו בלבד.",
+      "keyInvalid": "מפתח ה־API הזה נדחה על ידי הספק.",
+      "keyModelNotFound": "הדגם לא נמצא. בחר דגם אחר או ודא שהוא כלול בחבילה שלך.",
+      "keyNetworkError": "לא ניתן היה ליצור קשר עם הספק כדי לאמת את המפתח. בדקו את החיבור ונסו שוב.",
+      "applyButton": "השתמשו בבינה המלאכותית הזו",
+      "validatingButton": "מאמת מפתח…",
+      "cancelButton": "ביטול",
+      "comingSoon": "בקרוב",
+      "registerInterest": "הירשמו לעניין →",
+      "registerInterestMessage": "שלום לצוות SimplePDF, מעניין אותי להשתמש ב־Form Copilot עם {{provider}}. תוכלו לעדכן מתי זה יהיה זמין וכיצד נראית ההגדרה?\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "נקודת קצה מותאמת",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "פרטיות",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "כל נקודת קצה תואמת ל-OpenAI (Ollama, LM Studio, vLLM, אירוח עצמי).",
+      "customModelLabel": "שם המודל",
+      "customKeyLabel": "מפתח API",
+      "customKeyPlaceholder": "מפתח ה-API שלך (או כל מחרוזת להגדרות מקומיות)",
+      "customKeyHint": "רץ ישירות מהדפדפן מול הכתובת שלמעלה. השתמש בכתובת localhost כדי שהכול יישאר במכשיר שלך.",
+      "customReachFailed": "לא ניתן היה להגיע לנקודת הקצה. בדוק את הכתובת, ושהשרת שלך מאפשר CORS מדף זה.",
+      "customModelNotFound": "הדגם לא נמצא בשרת הזה. בדוק את שם הדגם (ושהוא נמשך / נטען).",
+      "customAuthRejected": "השרת דחה את מפתח ה-API. בדוק את המפתח, או השאר אותו ריק עבור הגדרות מקומיות שאינן דורשות אימות."
+    },
+    "stop": "עצור",
+    "thinking": "חושב…",
+    "piiWarning": "הדגמה ציבורית. השתמשו רק בנתוני דוגמה. ההודעות מעובדות על ידי ספק ה־AI שנבחר.",
+    "newFieldHint": "שדה {{field}} חדש נוסף על ידי המשתמש",
+    "errorAuthTitle": "האימות נכשל.",
+    "errorAuthBody": "ספק ה-AI דחה את מפתח ה-API שלך. <switchModel>החלף מודל AI</switchModel> כדי לאמת את המפתח ונסה שוב.",
+    "errorRateLimitedTitle": "הגעתם למגבלת ההדגמה",
+    "errorRateLimitedBodyThanks": "תודה שניסיתם. ההדגמה משתמשת ב־AI מתארח, ולכן השימוש מוגבל.",
+    "errorRateLimitedBodyCta": "השתמשו במפתח ה־API שלכם כדי להמשיך למלא טפסים.",
+    "errorRateLimitedCtaButton": "השתמשו במפתח ה־API שלכם",
+    "errorByokActivatedTitle": "אתם משתמשים כעת ב־{{model}}.",
+    "shareHero": "בינה מלאכותית שממלאת PDF בזמן אמת נראית טוב יותר ממה שהיא מוסברת.",
+    "shareCtaLabel": "שלחו למי שכדאי לו לנסות:",
+    "shareCopyLink": "העתק קישור",
+    "shareCopied": "הועתק!",
+    "shareTweetText": "אני מתנסה ב-Form Copilot של SimplePDF, בינה מלאכותית שממלאת טפסי PDF שלב אחר שלב. שווה מבט:",
+    "errorByokActivatedButton": "חידוש השיחה",
+    "errorByokActivatedResumeMessage": "בואו נמשיך",
+    "errorGenericTitle": "שגיאה מלאה",
+    "welcomeTitle": "נסו את Form Copilot עם הבינה המלאכותית שלכם",
+    "welcomeBody": "פרטי ההתחברות שלכם נשארים בלשונית זו. הבקשות נשלחות מהדפדפן שלכם לספק ה־AI שבחרתם.",
+    "welcomeCta": "הביאו את הבינה המלאכותית שלכם",
+    "welcomeInfoLink": "איך Form Copilot עובד",
+    "inputPlaceholderReady": "דברו עם Form Copilot…",
+    "send": "שלח"
+  },
+  "suggestedPrompts": {
+    "lead": "נסו אחד מאלה:",
+    "helpFill": "עזרו לי למלא את הטופס הזה",
+    "explainFields": "על מה הטופס הזה?"
+  },
+  "languagePicker": {
+    "label": "שפה",
+    "search": "חיפוש שפות…",
+    "noMatches": "לא נמצאו תוצאות"
+  },
+  "toolbar": {
+    "cursor": "סמן",
+    "text": "טקסט",
+    "checkbox": "תיבת סימון",
+    "signature": "חתימה",
+    "picture": "תמונה",
+    "boxedText": "טקסט בתאים",
+    "download": "הורד",
+    "submit": "שלח"
+  },
+  "welcomeModal": {
+    "title": "ברוכים הבאים ל־Form Copilot",
+    "tagline": "<accent>בינה מלאכותית שמסייעת</accent> למשתמשים למלא טפסי PDF צעד אחר צעד",
+    "getStarted": "להתחיל",
+    "howItWorks": "איך Form Copilot עובד",
+    "close": "סגירת ברכת קבלת הפנים"
+  },
+  "download": {
+    "title": "הורד את קובץ ה־PDF הממולא שלך",
+    "intro": "קובץ ה־PDF שלך נוצר בלשונית דפדפן זו. דבר אינו יוצא מהמכשיר שלך, ושרתי SimplePDF אינם רואים לעולם את הקובץ הממולא.",
+    "cta": "הורד",
+    "upsellHeading": "לקחת את Form Copilot צעד קדימה",
+    "upsellStorage": "בתוכניות SimplePDF בתשלום, הורדה זו הופכת לזרימת <b>שליחה</b>. קובצי PDF ממולאים נוחתים אוטומטית באחסון שלך (S3, Azure Blob Storage או SharePoint), והמערכות שלך מקבלות התראה דרך webhook או דואר אלקטרוני. ההורדה נשארת אופציונלית.",
+    "upsellFields": "טפסי PDF לא מסודרים. הם מגיעים סרוקים ללא שדות מוכנים, או עם שמות שדות גרועים שמקשים על הבינה המלאכותית. תוכניות SimplePDF בתשלום פותרות גם את זה, עם שדות חובה, ערכי ברירת מחדל וכינויי שדות.",
+    "upsellCta": "דברו איתנו",
+    "upsellPricing": "הצג תוכניות עסקיות",
+    "upsellContactMessage": "שלום לצוות SimplePDF, אני מתנסה ב־Form Copilot ואשמח לדעת עוד על זרימת השליחה (Submit) בתוכניות בתשלום: שליחה אוטומטית לאחסון שלי, יחד עם התראות webhook או דואר אלקטרוני.\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "סגור"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "בהכנה",
+      "input-available": "פועל",
+      "output-available": "הושלם",
+      "output-error": "שגיאה"
+    },
+    "fallbackName": "קריאה ל־{{tool}}",
+    "groupSummary_one": "פעולה אחת",
+    "groupSummary_two": "שתי פעולות",
+    "groupSummary_other": "{{count}} פעולות",
+    "names": {
+      "get_fields": "אחזור שדות",
+      "get_document_content": "קריאת המסמך",
+      "detect_fields": "זיהוי שדות",
+      "focus_field": "הדגשת שדה",
+      "go_to_page": "מעבר לעמוד",
+      "set_field_value": "מילוי שדה",
+      "select_tool": "החלפת כלי",
+      "create_field": "יצירת שדה",
+      "remove_fields": "הסרת שדות",
+      "submit_download": "הכנה להורדה"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "מס",
+      "healthcare": "בריאות",
+      "hr": "קליטת HR",
+      "state": "בירוקרטיה ממשלתית",
+      "stateScanned": "בירוקרטיה ממשלתית (PDF סרוק)",
+      "custom": "ה־PDF שלכם"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "טופס תביעה CMS-1500",
+      "mnda": "NDA הדדי",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen סרוק",
+      "custom": "בחרו PDF משלכם"
+    },
+    "customSubtitle": "כל PDF עובד - נשאר במכשיר שלכם"
+  }
+}

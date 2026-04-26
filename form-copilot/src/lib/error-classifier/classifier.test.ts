@@ -1,0 +1,217 @@
+import { describe, expect, it } from 'vitest'
+import {
+  classifyError,
+  formatStreamError,
+  getErrorDisplayMessage,
+  parseStreamErrorMessage,
+} from './classifier'
+
+// Real-world APICallError payload emitted by `@ai-sdk/anthropic` when
+// Anthropic returns a 401 `authentication_error` during BYOK streaming.
+// Captured verbatim from the BYOK transport's onError log so the test
+// tracks the actual shape the runtime produces.
+const ANTHROPIC_401_PAYLOAD = {
+  name: 'AI_APICallError',
+  url: 'https://api.anthropic.com/v1/messages',
+  requestBodyValues: {
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 500,
+    stream: true,
+    tool_choice: { type: 'auto' },
+  },
+  statusCode: 401,
+  responseHeaders: {
+    'access-control-allow-origin': '*',
+    'cf-ray': '9f0c8fce1a08fb9d-AMS',
+    'content-length': '130',
+    'content-type': 'application/json',
+    date: 'Thu, 23 Apr 2026 11:34:54 GMT',
+    server: 'cloudflare',
+    'x-envoy-upstream-service-time': '25',
+    'x-should-retry': 'false',
+  },
+  responseBody:
+    '{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"},"request_id":"req_011CaLdeBZ4x5jBKYgHHDjYD"}',
+  isRetryable: false,
+  data: {
+    type: 'error',
+    error: { type: 'authentication_error', message: 'invalid x-api-key' },
+  },
+}
+
+const buildAnthropic401Error = (): Error => {
+  const error = new Error('invalid x-api-key')
+  Object.assign(error, ANTHROPIC_401_PAYLOAD)
+  return error
+}
+
+describe(formatStreamError.name, () => {
+  it('wraps the Anthropic 401 APICallError into a JSON envelope with statusCode', () => {
+    const serialized = formatStreamError(buildAnthropic401Error())
+    const parsed = JSON.parse(serialized)
+    expect(parsed).toEqual({ statusCode: 401, message: 'invalid x-api-key' })
+  })
+
+  it('wraps a 500 error exposed via `status` (not `statusCode`)', () => {
+    const error = Object.assign(new Error('upstream exploded'), { status: 500 })
+    expect(JSON.parse(formatStreamError(error))).toEqual({
+      statusCode: 500,
+      message: 'upstream exploded',
+    })
+  })
+
+  it('walks into `cause` when the status is nested', () => {
+    const inner = Object.assign(new Error('forbidden'), { statusCode: 403 })
+    const outer = new Error('request failed')
+    Object.assign(outer, { cause: inner })
+    expect(JSON.parse(formatStreamError(outer))).toEqual({
+      statusCode: 403,
+      message: 'request failed',
+    })
+  })
+
+  it('returns the bare message when no status can be recovered', () => {
+    expect(formatStreamError(new Error('something else'))).toBe('something else')
+  })
+
+  it('stringifies non-Error values', () => {
+    expect(formatStreamError('boom')).toBe('boom')
+  })
+})
+
+describe(parseStreamErrorMessage.name, () => {
+  it('parses a valid envelope', () => {
+    expect(parseStreamErrorMessage('{"statusCode":401,"message":"invalid x-api-key"}')).toEqual({
+      statusCode: 401,
+      message: 'invalid x-api-key',
+    })
+  })
+
+  it('returns null for non-JSON', () => {
+    expect(parseStreamErrorMessage('boom')).toBeNull()
+  })
+
+  it('returns null when statusCode is not a number', () => {
+    expect(parseStreamErrorMessage('{"statusCode":"401","message":"x"}')).toBeNull()
+  })
+
+  it('returns null when message is missing', () => {
+    expect(parseStreamErrorMessage('{"statusCode":401}')).toBeNull()
+  })
+
+  it('returns null for JSON that is not an object', () => {
+    expect(parseStreamErrorMessage('["statusCode",401]')).toBeNull()
+    expect(parseStreamErrorMessage('42')).toBeNull()
+    expect(parseStreamErrorMessage('null')).toBeNull()
+  })
+})
+
+describe(getErrorDisplayMessage.name, () => {
+  it('unwraps the human-readable message from the envelope', () => {
+    const error = new Error(JSON.stringify({ statusCode: 401, message: 'invalid x-api-key' }))
+    expect(getErrorDisplayMessage(error)).toBe('invalid x-api-key')
+  })
+
+  it('falls back to the raw error message when it is not an envelope', () => {
+    expect(getErrorDisplayMessage(new Error('boom'))).toBe('boom')
+  })
+
+  it('preserves the original message when the error exposes statusCode directly but the message is plain text', () => {
+    expect(getErrorDisplayMessage(buildAnthropic401Error())).toBe('invalid x-api-key')
+  })
+})
+
+describe(classifyError.name, () => {
+  it('classifies the real Anthropic 401 payload as "authentication"', () => {
+    expect(classifyError(buildAnthropic401Error())).toBe('authentication')
+  })
+
+  it('classifies a 401 envelope as "authentication"', () => {
+    const error = new Error(JSON.stringify({ statusCode: 401, message: 'invalid x-api-key' }))
+    expect(classifyError(error)).toBe('authentication')
+  })
+
+  it('classifies any 5xx status as "server"', () => {
+    for (const status of [500, 502, 503, 504, 599]) {
+      const error = Object.assign(new Error('upstream exploded'), { statusCode: status })
+      expect(classifyError(error)).toBe('server')
+    }
+  })
+
+  it('classifies an envelope-wrapped 500 as "server"', () => {
+    const error = new Error(JSON.stringify({ statusCode: 500, message: 'upstream exploded' }))
+    expect(classifyError(error)).toBe('server')
+  })
+
+  // Raw 429 on the APICallError object = BYOK path, the user's own provider
+  // is throttling their own key. Must NOT render the demo rate-limited
+  // banner (which would falsely tell them to "bring their own API key" when
+  // they already did).
+  it('classifies a raw 429 status as null (BYOK provider rate-limited the user) — not demo_rate_limited', () => {
+    const error = Object.assign(new Error('rate limited'), { statusCode: 429 })
+    expect(classifyError(error)).toBeNull()
+  })
+
+  it('classifies a { error: "rate_limited" } body (no statusCode) as "demo_rate_limited"', () => {
+    const error = new Error(
+      JSON.stringify({ error: 'rate_limited', reason: 'lifetime', message: 'Thanks for trying the demo!' }),
+    )
+    expect(classifyError(error)).toBe('demo_rate_limited')
+  })
+
+  // /api/chat's onError translates an upstream provider 4xx (e.g. the shared
+  // Anthropic key gets disabled and the provider returns 401
+  // `authentication_error`) into the same rate_limited envelope used for the
+  // per-share lifetime cap. The classifier must surface it as
+  // demo_rate_limited so the amber banner tells the user to BYOK instead of
+  // the auth-failure copy — the demo user never typed a key.
+  it('classifies the upstream-rejected envelope (demo_key_rejected) as "demo_rate_limited"', () => {
+    const error = new Error(JSON.stringify({ error: 'rate_limited', reason: 'demo_key_rejected' }))
+    expect(classifyError(error)).toBe('demo_rate_limited')
+  })
+
+  it('classifies a { error: "rate_limited" } body with no message or reason as "demo_rate_limited"', () => {
+    const error = new Error(JSON.stringify({ error: 'rate_limited' }))
+    expect(classifyError(error)).toBe('demo_rate_limited')
+  })
+
+  it('classifies a { error: "share_required" } body as "authentication"', () => {
+    const error = new Error(JSON.stringify({ error: 'share_required', message: 'Invite link required' }))
+    expect(classifyError(error)).toBe('authentication')
+  })
+
+  it('returns null for statuses we do not handle explicitly', () => {
+    for (const status of [400, 403, 404]) {
+      const error = Object.assign(new Error('x'), { statusCode: status })
+      expect(classifyError(error)).toBeNull()
+    }
+  })
+
+  it('returns null when no status can be recovered', () => {
+    expect(classifyError(new Error('mysterious failure'))).toBeNull()
+  })
+
+  it('classifies DO App Platform 503 HTML as service_unavailable', () => {
+    const doHtml = `<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body>
+<p class="code">Error code: 503</p>
+<p class="text">Well, This is unexpected. An Error has occurred...</p>
+<div style="display:none;">
+<h1>via_upstream (503 -)</h1>
+<p data-translate="connection_timed_out">App Platform failed to forward this request to the application.</p>
+</div>
+</body>
+</html>`
+    expect(classifyError(new Error(doHtml))).toBe('service_unavailable')
+  })
+
+  it('classifies bare HTML upstream payloads (no DOCTYPE) as service_unavailable', () => {
+    expect(classifyError(new Error('<html><body>503</body></html>'))).toBe('service_unavailable')
+  })
+
+  it('classifies via_upstream signature even without HTML wrapper', () => {
+    expect(classifyError(new Error('via_upstream (503 -) something'))).toBe('service_unavailable')
+  })
+})
