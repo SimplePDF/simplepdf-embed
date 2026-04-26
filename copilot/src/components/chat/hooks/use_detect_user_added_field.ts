@@ -8,10 +8,18 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 // so the chat_pane call site stays readable, and so the workaround can be
 // deleted in one place the day the editor ships a real outbound event.
 //
-// The poll is gated aggressively to minimise iframe round-trips:
+// The polling LOOP is gated aggressively to minimise iframe round-trips:
 //   - bridge ready AND isReady AND toolbarTool is a placement tool AND the
 //     user's cursor is over the editor iframe.
-// When any of those flip off, the effect tears down and polling stops.
+// When any of those flip off, the loop pauses; when they flip back on,
+// it resumes. The BASELINE persists across gate flips — only a bridge
+// change resets it. This is what gives the post-LLM-turn reconciliation
+// for free: while the LLM is streaming, the user's cursor often moves to
+// the chat panel and back. Without baseline persistence, each cursor
+// re-entry would re-seed the baseline at the (now-higher) count and the
+// fields the user dropped during the stream would never surface to the
+// LLM. With persistence, the next post-stream poll sees the accumulated
+// delta and fires once.
 //
 // Stream safety: if the assistant is mid-response, the poll skips the
 // iframe call entirely and `onFieldAdded` is not called. The first tick
@@ -59,6 +67,7 @@ export const useDetectUserAddedField = ({
   onFieldAddedRef,
 }: UseDetectUserAddedFieldArgs): UseDetectUserAddedFieldReturn => {
   const baselineRef = useRef<number | null>(null)
+  const lastBridgeRef = useRef<IframeBridge | null>(null)
 
   const advanceBaseline = useCallback((delta: number): void => {
     if (baselineRef.current !== null) {
@@ -67,15 +76,19 @@ export const useDetectUserAddedField = ({
   }, [])
 
   useEffect(() => {
+    // Bridge swap is the only event that invalidates the baseline; the
+    // count belongs to a different document context. Tool changes, cursor
+    // re-entry, and isReady transitions do NOT reset — see the file header
+    // for why persistence drives the post-stream reconciliation.
+    if (lastBridgeRef.current !== bridge) {
+      baselineRef.current = null
+      lastBridgeRef.current = bridge
+    }
+
     const gatesOpen = bridge !== null && isReady && toolbarTool !== null && isCursorOverEditor
     if (!gatesOpen) {
-      baselineRef.current = null
       return
     }
-    // Reset on every re-entry (tool change, cursor re-entry, bridge swap).
-    // Prevents a stale baseline from a previous session from mis-attributing
-    // a held delta to the current tool.
-    baselineRef.current = null
     let cancelled = false
     let timeoutId: ReturnType<typeof setTimeout> | null = null
     const poll = async (): Promise<void> => {
