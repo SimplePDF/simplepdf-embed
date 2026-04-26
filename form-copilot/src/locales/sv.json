@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Ladda först ett dokument",
     "subtitleNoModel": "Ta med din egen AI för att börja chatta",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Byt AI-modell",
     "modelPicker": {
       "title": "Ta med din egen AI",
       "currentlyUsedSectionTitle": "Används just nu",

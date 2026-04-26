@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Lade zuerst ein Dokument",
     "subtitleNoModel": "Eigene KI mitbringen und chatten",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "KI-Modell wechseln",
     "modelPicker": {
       "title": "Eigene KI mitbringen",
       "currentlyUsedSectionTitle": "Derzeit verwendet",

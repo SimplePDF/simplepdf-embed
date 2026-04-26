@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Najpierw wczytaj dokument",
     "subtitleNoModel": "Przynieś własną AI, aby rozpocząć czat",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Zmień model AI",
     "modelPicker": {
       "title": "Przynieś własną AI",
       "currentlyUsedSectionTitle": "Obecnie używany",

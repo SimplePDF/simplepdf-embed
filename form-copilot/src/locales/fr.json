@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Chargez d’abord un document",
     "subtitleNoModel": "Utilisez votre propre IA pour discuter",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Changer de modèle IA",
     "modelPicker": {
       "title": "Utilisez votre propre IA",
       "currentlyUsedSectionTitle": "Actuellement utilisé",

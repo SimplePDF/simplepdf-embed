@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Спершу завантажте документ",
     "subtitleNoModel": "Принесіть власний ШІ, щоб почати спілкування",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Змінити модель ШІ",
     "modelPicker": {
       "title": "Принесіть власний ШІ",
       "currentlyUsedSectionTitle": "Зараз використовується",

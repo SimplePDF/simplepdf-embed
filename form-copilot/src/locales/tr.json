@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Önce bir belge yükleyin",
     "subtitleNoModel": "Sohbete başlamak için kendi yapay zekanızı getirin",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Yapay zeka modelini değiştir",
     "modelPicker": {
       "title": "Kendi yapay zekanızı getirin",
       "currentlyUsedSectionTitle": "Şu anda kullanılıyor",

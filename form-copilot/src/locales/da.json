@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Indlæs et dokument først",
     "subtitleNoModel": "Medbring din egen AI for at begynde at chatte",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Skift AI-model",
     "modelPicker": {
       "title": "Medbring din egen AI",
       "currentlyUsedSectionTitle": "Aktuelt i brug",

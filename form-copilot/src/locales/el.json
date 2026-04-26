@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Φορτώστε πρώτα ένα έγγραφο",
     "subtitleNoModel": "Φέρτε το δικό σας AI για να ξεκινήσετε τη συνομιλία",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Αλλαγή μοντέλου AI",
     "modelPicker": {
       "title": "Φέρτε το δικό σας AI",
       "currentlyUsedSectionTitle": "Σε χρήση αυτή τη στιγμή",

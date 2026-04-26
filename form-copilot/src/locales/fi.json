@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Lataa ensin asiakirja",
     "subtitleNoModel": "Tuo oma tekoäly keskustelun aloittamiseksi",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Vaihda tekoälymalli",
     "modelPicker": {
       "title": "Tuo oma tekoäly",
       "currentlyUsedSectionTitle": "Parhaillaan käytössä",

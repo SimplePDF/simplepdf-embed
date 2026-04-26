@@ -72,7 +72,6 @@
     "subtitleNoDocument": "Lae esmalt dokument",
     "subtitleNoModel": "Too oma tehisintellekt vestluse alustamiseks",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "Vaheta AI-mudelit",
     "modelPicker": {
       "title": "Too oma tehisintellekt",
       "currentlyUsedSectionTitle": "Praegu kasutusel",

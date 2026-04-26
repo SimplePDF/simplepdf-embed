@@ -70,7 +70,7 @@
     "subtitleWaiting": "Waiting for the editor to load…",
     "subtitleNoDocument": "Load a document first",
     "subtitleNoModel": "Bring your own AI to start chatting",
-    "switchModel": "Switch AI model",
+    "useYourOwnAI": "Use your own AI",
     "modelPicker": {
       "title": "Bring your own AI",
       "currentlyUsedSectionTitle": "Currently used",

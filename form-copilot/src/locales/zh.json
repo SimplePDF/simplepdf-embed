@@ -72,7 +72,6 @@
     "subtitleNoDocument": "请先加载一份文档",
     "subtitleNoModel": "自带 AI 开始聊天",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "切换 AI 模型",
     "modelPicker": {
       "title": "自带 AI",
       "currentlyUsedSectionTitle": "当前使用中",

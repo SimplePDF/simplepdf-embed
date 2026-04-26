@@ -72,7 +72,6 @@
     "subtitleNoDocument": "حمّل مستندًا أولاً",
     "subtitleNoModel": "أحضر الذكاء الاصطناعي الخاص بك لبدء الدردشة",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "تبديل نموذج الذكاء الاصطناعي",
     "modelPicker": {
       "title": "أحضر الذكاء الاصطناعي الخاص بك",
       "currentlyUsedSectionTitle": "قيد الاستخدام حاليًا",

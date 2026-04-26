@@ -72,7 +72,6 @@
     "subtitleNoDocument": "पहले एक दस्तावेज़ लोड करें",
     "subtitleNoModel": "चैट शुरू करने के लिए अपना खुद का AI लाएँ",
     "modelNameReady": "Claude Haiku 4.5",
-    "switchModel": "AI मॉडल बदलें",
     "modelPicker": {
       "title": "अपना खुद का AI लाएँ",
       "currentlyUsedSectionTitle": "अभी उपयोग में",
