@@ -8,7 +8,7 @@ import {
 } from 'ai'
 import type { ReactElement } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { ToolInvocationGroup, type ToolInvocationPart } from '../tool_invocation_group'
+import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
 
 type ChatLLMMessageProps = {
   message: UIMessage

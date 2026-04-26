@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { type FormId, getFormsForLocale } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import { CerfaDorModal } from './cerfa_dor_modal'
+import { CerfaDorModal } from './easter-eggs/cerfa_dor_modal'
 import { FormPicker } from './form_picker'
 import { InfoModal } from './info_modal'
 

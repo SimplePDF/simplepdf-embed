@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Button } from './ui/button'
-import { ExternalLink } from './ui/link'
-import { Modal, ModalHeader } from './ui/modal'
+import { Button } from '../ui/button'
+import { ExternalLink } from '../ui/link'
+import { Modal, ModalHeader } from '../ui/modal'
 
 type CerfaDorModalProps = {
   open: boolean

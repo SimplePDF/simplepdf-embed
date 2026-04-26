@@ -1,8 +1,8 @@
 import { Check, Download, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { SupportedFieldType } from '../lib/embed-bridge'
-import { IS_DEMO_MODE } from '../lib/mode'
+import type { SupportedFieldType } from '../../lib/embed-bridge'
+import { IS_DEMO_MODE } from '../../lib/mode'
 
 // Equivalent to SupportedFieldType | null. Kept as a named alias so the
 // toolbar's five buttons + cursor state read cleanly at call sites.

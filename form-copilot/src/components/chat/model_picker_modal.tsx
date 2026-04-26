@@ -9,12 +9,12 @@ import {
   type ProviderEntry,
   type ValidateFailureKind,
   validateApiKey,
-} from '../lib/byok'
-import { DEMO_MODELS } from '../lib/demo_model'
-import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import type { DemoGate } from '../routes/index'
-import { Modal, ModalCloseButton } from './ui/modal'
-import { TextInput } from './ui/text_input'
+} from '../../lib/byok'
+import { DEMO_MODELS } from '../../lib/demo_model'
+import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
+import type { DemoGate } from '../../routes/index'
+import { Modal, ModalCloseButton } from '../ui/modal'
+import { TextInput } from '../ui/text_input'
 
 type ModelPickerModalProps = {
   open: boolean
