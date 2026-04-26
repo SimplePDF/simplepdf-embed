@@ -215,17 +215,17 @@ The architecture is deliberate:
 What's actually running when you open <https://copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
 
 ```
-  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot ──┐       ┌── Hosted AI ──────┐
-  │                                 │       │                       │       │                   │
-  │   ┌───────────────┐   chat      │       │  LLM proxy            │       │                   │
-  │   │    Copilot    │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
-  │   └───────┬───────┘             │       │                       │       │                   │
-  │           │                     │       └───────────────────────┘       └───────────────────┘
-  │           │                     │
-  │           │ ⇅ postMessage       │
-  │           │   (client-side      │       ┌─── SimplePDF server ────┐
-  │           │    tool calls)      │       │                         │
-  │           ▼                     │       │                         │
+  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot server ──┐       ┌── Hosted AI ──────┐
+  │                                 │       │                              │       │                   │
+  │   ┌───────────────────┐   chat  │       │  LLM proxy                   │       │                   │
+  │   │ SimplePDF Copilot │ ────────┼─────► │  (or BYOK direct)            │ ────► │     Demo LLM      │
+  │   └─────────┬─────────┘         │       │                              │       │                   │
+  │             │                   │       └──────────────────────────────┘       └───────────────────┘
+  │             │                   │
+  │             │ ⇅ postMessage     │
+  │             │   (client-side    │       ┌─── SimplePDF server ────┐
+  │             │    tool calls)    │       │                         │
+  │             ▼                   │       │                         │
   │   ┌───────────────────────┐     │       │  Telemetry and metadata │
   │   │                       │ ────┼─────► │           only          │
   │   │   SimplePDF editor    │     │       │                         │
@@ -245,15 +245,15 @@ What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/
 ```
   ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐
   │                                 │       │                 │       │                   │
-  │   ┌───────────────┐   chat      │       │   LLM proxy     │       │  Provider + keys  │
-  │   │    Copilot    │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
-  │   └───────┬───────┘             │       │                 │       │                   │
-  │           │                     │       └─┬───────────────┘       └───────────────────┘
-  │           │                     │         ▲
-  │           │ ⇅ postMessage       │         │ webhook (optional)
-  │           │   (client-side      │         │
-  │           │    tool calls)      │         │
-  │           ▼                     │       ┌─┴─ SimplePDF server ───┐
+  │   ┌───────────────────┐   chat  │       │   LLM proxy     │       │  Provider + keys  │
+  │   │ SimplePDF Copilot │ ────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
+  │   └─────────┬─────────┘         │       │                 │       │                   │
+  │             │                   │       └─┬───────────────┘       └───────────────────┘
+  │             │                   │         ▲
+  │             │ ⇅ postMessage     │         │ webhook (optional)
+  │             │   (client-side    │         │
+  │             │    tool calls)    │         │
+  │             ▼                   │       ┌─┴─ SimplePDF server ───┐
   │   ┌───────────────────────┐     │       │                        │
   │   │                       │     │       │  Telemetry + metadata  │
   │   │                       │ ────┼─────► │   pre-signed URLs      │

@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "SimplePDF Copilot Demo",
-    "tagline": "Tekoäly, joka auttaa käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
+    "tagline": "Muokkaa, täytä ja ymmärrä PDF-tiedostoja keskustelemalla niiden kanssa.",
     "whatIsThisDemo": "Mikä tämä demo on?",
     "useCase": "Ladattu PDF",
     "poweredBy": "Toteuttaja: SimplePDF"

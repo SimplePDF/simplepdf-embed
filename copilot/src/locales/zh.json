@@ -1,7 +1,7 @@
 {
   "header": {
     "brand": "SimplePDF Copilot Demo",
-    "tagline": "AI 帮助用户逐步填写 PDF 表单",
+    "tagline": "通过与 PDF 对话来编辑、填写并理解它们。",
     "whatIsThisDemo": "这个演示是什么？",
     "useCase": "已加载的 PDF",
     "poweredBy": "由 SimplePDF 提供支持"
