@@ -214,6 +214,8 @@ The architecture is deliberate:
 
 What's actually running when you open <https://copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
 
+<!-- Column invariants (alignment is manual): Browser outer wall at col 37; brand box 21 chars wide with the down-arrow at col 17; demo server box 32 chars wide; Hosted AI box 21 chars wide; SimplePDF server bottom box 27 chars wide. Renaming a label or padding a cell requires re-balancing connector dashes / inner padding. -->
+
 ```
   ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot server ──┐       ┌── Hosted AI ──────┐
   │                                 │       │                              │       │                   │
@@ -241,6 +243,8 @@ Field data stays in the browser via `postMessage` between the chat sidebar and t
 ### Using your own SimplePDF account
 
 What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/pricing) account: your server, your AI stack, your storage, optional webhooks back to your backend.
+
+<!-- Column invariants (alignment is manual): Browser outer wall at col 37; brand box 21 chars wide with the down-arrow at col 17; "Your server" box 19 chars wide; "Your AI stack" box 21 chars wide; "SimplePDF server" box 26 chars wide; "Your storage" box 42 chars wide. Renaming a label or padding a cell requires re-balancing connector dashes / inner padding. -->
 
 ```
   ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐

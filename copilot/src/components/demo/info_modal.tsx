@@ -203,6 +203,17 @@ type ArchitectureSegment = { text: string; blue?: boolean; large?: boolean }
 // only collects telemetry). The second tab shows the production picture
 // a Pro/Premium customer would deploy: their own server, their own AI
 // stack, BYOS for completed documents, optional webhooks.
+//
+// Column invariants (both arrays — touch with care, alignment is manual):
+// - Browser outer wall: column 37
+// - Browser inner brand box: 21 chars wide, ┬/▼ down-arrow at column 17
+// - Demo right server box (DEMO array only): 32 chars wide
+// - Production right server box: 19 chars wide ("Your server")
+// - Hosted AI / AI stack right box: 21 chars wide
+// - SimplePDF server bottom box: 27 chars wide (DEMO) / 26 chars (production)
+// Renaming any label or padding any cell requires re-balancing the
+// connector dashes / inner padding so the Browser wall stays at col 37
+// and the down-arrow stays at col 17.
 
 const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
   [
