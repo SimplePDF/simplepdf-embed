@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { LanguagePicker } from './language_picker'
 
 type ChatPaneHeaderProps = {
-  // Resolved label of whichever model will run the next turn (BYOK model
-  // name, or the demo model name in demo mode). Null means no model in
-  // scope at all, in which case the header shows a status message instead
-  // of the clickable model affordance. `hasActiveModel` derives from this
-  // (label !== null) and lives at the consumer.
+  // Display label for the clickable model affordance. BYOK active surfaces
+  // the actual model name (so the user can see which model will run and
+  // click to swap). The shared-demo path passes the BYOK upsell CTA copy
+  // instead — same affordance, opens the picker — so the demo never reveals
+  // which provider it is paying for. Null means no clickable affordance at
+  // all and the header falls back to a status message.
   activeModelLabel: string | null
   // True when BYOK is active AND the user provided custom system-prompt
   // instructions. Renders a small pill next to the model name.

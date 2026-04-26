@@ -835,6 +835,24 @@ export const ChatPane = ({
   // both are in play.
   const activeModelLabel = resolveActiveModelLabel({ byokConfig, demoGate })
   const hasActiveModel = activeModelLabel !== null
+  // Header subtext: only BYOK surfaces the actual model name (clickable to
+  // swap). On the shared-demo path we hide the model and reuse the welcome
+  // CTA copy so the same clickable affordance opens the picker without
+  // signalling which provider the demo is paying for.
+  const headerModelLabel: string | null = ((): string | null => {
+    if (byokConfig !== null) {
+      return activeModelLabel
+    }
+    switch (demoGate.kind) {
+      case 'demo':
+        return t('chat.welcomeCta')
+      case 'byok':
+        return null
+      default:
+        demoGate satisfies never
+        return null
+    }
+  })()
   // Hold the send button disabled until the vault read settles. Without this
   // guard, a message dispatched during the IDB load window would route to the
   // demo path (because byokConfigRef.current is still null), and the LLM
@@ -917,7 +935,7 @@ export const ChatPane = ({
   return (
     <div className="flex h-full flex-col">
       <ChatPaneHeader
-        activeModelLabel={activeModelLabel}
+        activeModelLabel={headerModelLabel}
         hasCustomInstructions={byokConfig?.customInstructions != null}
         isReady={isReady}
         chatStatusMessage={chatStatusMessage}
