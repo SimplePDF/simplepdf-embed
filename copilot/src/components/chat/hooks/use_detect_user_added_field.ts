@@ -17,10 +17,12 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 // iframe call entirely and `onFieldAdded` is not called. The first tick
 // after streaming ends catches whatever was dropped mid-stream.
 //
-// One-shot: after firing `onFieldAdded` once, the loop cancels; a fresh
-// cycle arms when any of the gates re-enters the "all true" state (e.g.
-// user moves their cursor off the iframe and back on, or flips placement
-// tools).
+// Keep-polling: the loop fires `onFieldAdded` once per detected delta and
+// keeps polling, so a user dropping fields A → B → C in quick succession
+// gets three nudges to the LLM. The baseline advances on each fire, so
+// the same delta can't re-fire on the next tick. LLM-created fields still
+// bypass this nudge via advanceBaseline() called from the create_field
+// middleware.
 //
 // Refs-not-props for the streaming flag and the fire callback let the
 // hook be called BEFORE useChat in the consumer (useChat produces the
@@ -101,9 +103,11 @@ export const useDetectUserAddedField = ({
       }
       const delta = count - baselineRef.current
       baselineRef.current = count
-      // One-shot: the loop cancels after firing. A new cycle arms when a
-      // gate flips (cursor out / in, tool switch, etc.).
-      cancelled = true
+      // Keep polling so rapid multi-field placement (user drops field A,
+      // immediately drops field B, then field C) fires onFieldAdded once
+      // per drop. The baseline now equals `count`, so the same delta
+      // can't re-fire; only a fresh field-count increase will. LLM-driven
+      // additions still bypass this nudge via advanceBaseline().
       onFieldAddedRef.current({ tool: toolbarTool, delta })
     }
     const pollLoop = async (): Promise<void> => {
