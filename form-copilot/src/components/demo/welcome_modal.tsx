@@ -1,7 +1,7 @@
 import { type ReactElement, useEffect } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { Button } from './ui/button'
-import { ModalCloseButton } from './ui/modal'
+import { Button } from '../ui/button'
+import { ModalCloseButton } from '../ui/modal'
 
 type WelcomeModalProps = {
   open: boolean

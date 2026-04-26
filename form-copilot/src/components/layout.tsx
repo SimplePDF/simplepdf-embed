@@ -5,7 +5,7 @@ import { type FormId, getFormsForLocale } from '../lib/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import { CerfaDorModal } from './easter-eggs/cerfa_dor_modal'
 import { FormPicker } from './form_picker'
-import { InfoModal } from './info_modal'
+import { InfoModal } from './demo/info_modal'
 
 const CERFA_DOR_LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
 

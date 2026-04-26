@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { buildSimplepdfUrl } from '../lib/simplepdf_url'
-import { Button } from './ui/button'
-import { Modal, ModalFooter, ModalHeader } from './ui/modal'
+import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
+import { Button } from '../ui/button'
+import { Modal, ModalFooter, ModalHeader } from '../ui/modal'
 
 type DownloadModalProps = {
   open: boolean

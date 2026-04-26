@@ -1,7 +1,7 @@
 import { type ReactElement, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { classifyError, getErrorDisplayMessage, type KnownErrorKind } from '../lib/error-classifier'
-import { SocialShare } from './social_share'
+import { SocialShare } from './demo/social_share'
 
 type ErrorBannerProps = {
   error: Error
