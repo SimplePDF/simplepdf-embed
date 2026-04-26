@@ -114,6 +114,8 @@
     "piiWarning": "Demo pubblica. Usa solo dati di esempio. I messaggi sono elaborati dal provider IA selezionato.",
     "newFieldHint_one": "Nuovo campo di tipo {{field}} aggiunto dall’utente",
     "newFieldHint_other": "{{count}} nuovi campi di tipo {{field}} aggiunti dall’utente",
+    "newFieldsHint_one": "Nuovo campo aggiunto dall’utente",
+    "newFieldsHint_other": "{{count}} nuovi campi aggiunti dall’utente",
     "errorAuthTitle": "Autenticazione non riuscita.",
     "errorAuthBody": "Il provider IA ha rifiutato la tua chiave API. <switchModel>Cambia modello IA</switchModel> per verificarla, poi riprova.",
     "errorRateLimitedTitle": "Hai raggiunto il limite della demo",

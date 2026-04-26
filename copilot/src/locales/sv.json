@@ -114,6 +114,8 @@
     "piiWarning": "Offentlig demo. Använd endast exempeldata. Meddelanden behandlas av den valda AI-leverantören.",
     "newFieldHint_one": "Nytt {{field}}-fält tillagt av användaren",
     "newFieldHint_other": "{{count}} nya {{field}}-fält tillagda av användaren",
+    "newFieldsHint_one": "Nytt fält tillagt av användaren",
+    "newFieldsHint_other": "{{count}} nya fält tillagda av användaren",
     "errorAuthTitle": "Autentiseringen misslyckades.",
     "errorAuthBody": "AI-leverantören avvisade din API-nyckel. <switchModel>Byt AI-modell</switchModel> för att verifiera nyckeln och försök igen.",
     "errorRateLimitedTitle": "Du har nått demogränsen",

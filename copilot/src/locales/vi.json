@@ -113,6 +113,7 @@
     "thinking": "Đang suy nghĩ…",
     "piiWarning": "Bản demo công khai. Chỉ sử dụng dữ liệu mẫu. Tin nhắn được xử lý bởi nhà cung cấp AI đã chọn.",
     "newFieldHint_other": "{{count}} trường {{field}} mới do người dùng thêm",
+    "newFieldsHint_other": "{{count}} trường mới do người dùng thêm",
     "errorAuthTitle": "Xác thực không thành công.",
     "errorAuthBody": "Nhà cung cấp AI đã từ chối khóa API của bạn. <switchModel>Đổi mô hình AI</switchModel> để xác minh khóa, rồi thử lại.",
     "errorRateLimitedTitle": "Bạn đã đạt giới hạn của bản demo",

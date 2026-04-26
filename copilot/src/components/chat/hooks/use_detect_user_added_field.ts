@@ -12,25 +12,28 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 //   - bridge ready AND isReady AND toolbarTool is a placement tool AND the
 //     user's cursor is over the editor iframe.
 // When any of those flip off, the loop pauses; when they flip back on,
-// it resumes. The BASELINE persists across gate flips — only a bridge
-// change resets it. This is what gives the post-LLM-turn reconciliation
-// for free: while the LLM is streaming, the user's cursor often moves to
-// the chat panel and back. Without baseline persistence, each cursor
-// re-entry would re-seed the baseline at the (now-higher) count and the
-// fields the user dropped during the stream would never surface to the
-// LLM. With persistence, the next post-stream poll sees the accumulated
-// delta and fires once.
+// it resumes. The SET OF SEEN FIELD IDS persists across gate flips —
+// only a bridge change resets it. This is what gives the post-LLM-turn
+// reconciliation for free: while the LLM is streaming, the user's cursor
+// often moves to the chat panel and back. Without persistence, each
+// cursor re-entry would re-seed the seen set with the (now-larger) field
+// set and the fields the user dropped during the stream would never
+// surface to the LLM. With persistence, the next post-stream poll diffs
+// the current set against the seen set and fires once.
 //
 // Stream safety: if the assistant is mid-response, the poll skips the
 // iframe call entirely and `onFieldAdded` is not called. The first tick
 // after streaming ends catches whatever was dropped mid-stream.
 //
-// Keep-polling: the loop fires `onFieldAdded` once per detected delta and
-// keeps polling, so a user dropping fields A → B → C in quick succession
-// gets three nudges to the LLM. The baseline advances on each fire, so
-// the same delta can't re-fire on the next tick. LLM-created fields still
-// bypass this nudge via advanceBaseline() called from the create_field
-// middleware.
+// Per-type tracking: the hook diffs by field id, not by count. The fire
+// payload carries the list of tool types of the newly-added fields so
+// the UI can show one icon per unique type when the user mixed (e.g.
+// TEXT + SIGNATURE in the same batch).
+//
+// LLM-created fields bypass this nudge via `markFieldAsKnown(fieldId)`,
+// called from the create_field middleware once the iframe has confirmed
+// the new field id. The id goes straight into the seen set; the next
+// poll's diff sees no user-added fields.
 //
 // Refs-not-props for the streaming flag and the fire callback let the
 // hook be called BEFORE useChat in the consumer (useChat produces the
@@ -39,7 +42,7 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 
 const POLL_INTERVAL_MS = 200
 
-export type FieldAddedEvent = { tool: SupportedFieldType; delta: number }
+export type FieldAddedEvent = { tools: SupportedFieldType[]; delta: number }
 
 type UseDetectUserAddedFieldArgs = {
   bridge: IframeBridge | null
@@ -52,10 +55,10 @@ type UseDetectUserAddedFieldArgs = {
 
 type UseDetectUserAddedFieldReturn = {
   // Consumers call this when they know a field was added by something
-  // other than the user (e.g. the LLM's `create_field` tool). It advances
-  // the baseline so the next poll tick does NOT attribute that field to
-  // the user.
-  advanceBaseline: (delta: number) => void
+  // other than the user (e.g. the LLM's `create_field` tool returned a
+  // field id). The id is added to the seen set so the next poll does
+  // NOT attribute that field to the user.
+  markFieldAsKnown: (fieldId: string) => void
 }
 
 export const useDetectUserAddedField = ({
@@ -66,22 +69,22 @@ export const useDetectUserAddedField = ({
   isStreamingRef,
   onFieldAddedRef,
 }: UseDetectUserAddedFieldArgs): UseDetectUserAddedFieldReturn => {
-  const baselineRef = useRef<number | null>(null)
+  const seenIdsRef = useRef<Set<string> | null>(null)
   const lastBridgeRef = useRef<IframeBridge | null>(null)
 
-  const advanceBaseline = useCallback((delta: number): void => {
-    if (baselineRef.current !== null) {
-      baselineRef.current += delta
+  const markFieldAsKnown = useCallback((fieldId: string): void => {
+    if (seenIdsRef.current !== null) {
+      seenIdsRef.current.add(fieldId)
     }
   }, [])
 
   useEffect(() => {
-    // Bridge swap is the only event that invalidates the baseline; the
-    // count belongs to a different document context. Tool changes, cursor
+    // Bridge swap is the only event that invalidates the seen set; the
+    // ids belong to a different document context. Tool changes, cursor
     // re-entry, and isReady transitions do NOT reset — see the file header
     // for why persistence drives the post-stream reconciliation.
     if (lastBridgeRef.current !== bridge) {
-      baselineRef.current = null
+      seenIdsRef.current = null
       lastBridgeRef.current = bridge
     }
 
@@ -94,34 +97,34 @@ export const useDetectUserAddedField = ({
     const poll = async (): Promise<void> => {
       if (isStreamingRef.current) {
         // No iframe traffic during a stream; the first post-stream tick
-        // will see whatever count is current and re-baseline / fire.
+        // will see whatever's currently in the editor and diff against
+        // the seen set.
         return
       }
       const result = await bridge.getFields()
       if (cancelled || !result.success) {
         return
       }
-      const count = result.data.fields.length
-      if (baselineRef.current === null) {
-        baselineRef.current = count
+      const currentFields = result.data.fields
+      if (seenIdsRef.current === null) {
+        seenIdsRef.current = new Set(currentFields.map((field) => field.field_id))
         return
       }
-      if (count <= baselineRef.current) {
+      const seen = seenIdsRef.current
+      const addedFields = currentFields.filter((field) => !seen.has(field.field_id))
+      if (addedFields.length === 0) {
         return
       }
       if (isStreamingRef.current) {
         // Race-safety: if the stream started between the top of poll and
-        // the getFields resolve, hold the baseline for the next tick.
+        // the getFields resolve, hold the seen set for the next tick.
         return
       }
-      const delta = count - baselineRef.current
-      baselineRef.current = count
-      // Keep polling so rapid multi-field placement (user drops field A,
-      // immediately drops field B, then field C) fires onFieldAdded once
-      // per drop. The baseline now equals `count`, so the same delta
-      // can't re-fire; only a fresh field-count increase will. LLM-driven
-      // additions still bypass this nudge via advanceBaseline().
-      onFieldAddedRef.current({ tool: toolbarTool, delta })
+      for (const field of addedFields) {
+        seen.add(field.field_id)
+      }
+      const tools = addedFields.map((field) => field.type)
+      onFieldAddedRef.current({ tools, delta: tools.length })
     }
     const pollLoop = async (): Promise<void> => {
       await poll()
@@ -141,5 +144,5 @@ export const useDetectUserAddedField = ({
     }
   }, [bridge, isReady, toolbarTool, isCursorOverEditor, isStreamingRef, onFieldAddedRef])
 
-  return { advanceBaseline }
+  return { markFieldAsKnown }
 }

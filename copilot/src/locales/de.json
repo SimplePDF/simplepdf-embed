@@ -114,6 +114,8 @@
     "piiWarning": "Öffentliche Demo. Verwenden Sie nur Beispieldaten. Nachrichten werden vom ausgewählten KI-Anbieter verarbeitet.",
     "newFieldHint_one": "Neues {{field}}-Feld vom Benutzer hinzugefügt",
     "newFieldHint_other": "{{count}} neue {{field}}-Felder vom Benutzer hinzugefügt",
+    "newFieldsHint_one": "Neues Feld vom Benutzer hinzugefügt",
+    "newFieldsHint_other": "{{count}} neue Felder vom Benutzer hinzugefügt",
     "errorAuthTitle": "Authentifizierung fehlgeschlagen.",
     "errorAuthBody": "Der KI-Anbieter hat Ihren API-Schlüssel abgelehnt. <switchModel>KI-Modell wechseln</switchModel>, um den Schlüssel zu überprüfen, und erneut versuchen.",
     "errorRateLimitedTitle": "Sie haben das Demo-Limit erreicht",

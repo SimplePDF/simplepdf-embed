@@ -114,6 +114,8 @@
     "piiWarning": "Offentlig demo. Bruk kun eksempeldata. Meldinger behandles av den valgte AI-leverandøren.",
     "newFieldHint_one": "Nytt {{field}}-felt lagt til av brukeren",
     "newFieldHint_other": "{{count}} nye {{field}}-felt lagt til av brukeren",
+    "newFieldsHint_one": "Nytt felt lagt til av brukeren",
+    "newFieldsHint_other": "{{count}} nye felt lagt til av brukeren",
     "errorAuthTitle": "Autentisering mislyktes.",
     "errorAuthBody": "AI-leverandøren avviste API-nøkkelen din. <switchModel>Bytt AI-modell</switchModel> for å bekrefte nøkkelen, og prøv igjen.",
     "errorRateLimitedTitle": "Du har nådd demogrensen",

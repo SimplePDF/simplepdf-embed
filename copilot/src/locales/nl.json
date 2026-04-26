@@ -114,6 +114,8 @@
     "piiWarning": "Openbare demo. Gebruik alleen voorbeeldgegevens. Berichten worden verwerkt door de geselecteerde AI-provider.",
     "newFieldHint_one": "Nieuw {{field}}-veld toegevoegd door de gebruiker",
     "newFieldHint_other": "{{count}} nieuwe {{field}}-velden toegevoegd door de gebruiker",
+    "newFieldsHint_one": "Nieuw veld toegevoegd door de gebruiker",
+    "newFieldsHint_other": "{{count}} nieuwe velden toegevoegd door de gebruiker",
     "errorAuthTitle": "Verificatie mislukt.",
     "errorAuthBody": "De AI-provider heeft uw API-sleutel geweigerd. <switchModel>Wissel van AI-model</switchModel> om de sleutel te verifiëren en probeer het opnieuw.",
     "errorRateLimitedTitle": "U hebt de demolimiet bereikt",

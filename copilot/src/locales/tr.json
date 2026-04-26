@@ -114,6 +114,8 @@
     "piiWarning": "Herkese açık demo. Yalnızca örnek veri kullanın. Mesajlar seçilen yapay zeka sağlayıcısı tarafından işlenir.",
     "newFieldHint_one": "Kullanıcı tarafından yeni {{field}} alanı eklendi",
     "newFieldHint_other": "Kullanıcı tarafından {{count}} yeni {{field}} alanı eklendi",
+    "newFieldsHint_one": "Kullanıcı tarafından yeni alan eklendi",
+    "newFieldsHint_other": "Kullanıcı tarafından {{count}} yeni alan eklendi",
     "errorAuthTitle": "Kimlik doğrulama başarısız oldu.",
     "errorAuthBody": "Yapay zeka sağlayıcısı API anahtarınızı reddetti. Anahtarı doğrulamak için <switchModel>yapay zeka modelini değiştirin</switchModel> ve tekrar deneyin.",
     "errorRateLimitedTitle": "Demo sınırına ulaştınız",

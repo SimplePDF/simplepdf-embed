@@ -114,6 +114,8 @@
     "piiWarning": "Julkinen demo. Käytä vain esimerkkitietoja. Viestit käsittelee valittu tekoälytarjoaja.",
     "newFieldHint_one": "Käyttäjän lisäämä uusi {{field}}-kenttä",
     "newFieldHint_other": "Käyttäjän lisäämä {{count}} uutta {{field}}-kenttää",
+    "newFieldsHint_one": "Käyttäjän lisäämä uusi kenttä",
+    "newFieldsHint_other": "Käyttäjän lisäämä {{count}} uutta kenttää",
     "errorAuthTitle": "Tunnistautuminen epäonnistui.",
     "errorAuthBody": "Tekoälytarjoaja hylkäsi API-avaimesi. <switchModel>Vaihda tekoälymalli</switchModel> avaimen vahvistamiseksi ja yritä uudelleen.",
     "errorRateLimitedTitle": "Olet saavuttanut demon rajan",

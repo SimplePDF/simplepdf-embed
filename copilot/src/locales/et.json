@@ -114,6 +114,8 @@
     "piiWarning": "Avalik demo. Kasuta ainult näidisandmeid. Teateid töötleb valitud AI-teenusepakkuja.",
     "newFieldHint_one": "Kasutaja lisas uue {{field}}-välja",
     "newFieldHint_other": "Kasutaja lisas {{count}} uut {{field}}-välja",
+    "newFieldsHint_one": "Kasutaja lisas uue välja",
+    "newFieldsHint_other": "Kasutaja lisas {{count}} uut välja",
     "errorAuthTitle": "Autentimine ebaõnnestus.",
     "errorAuthBody": "AI-teenusepakkuja lükkas sinu API-võtme tagasi. <switchModel>Vaheta AI-mudelit</switchModel>, et võtit kontrollida, ja proovi uuesti.",
     "errorRateLimitedTitle": "Oled jõudnud demo piirini",
