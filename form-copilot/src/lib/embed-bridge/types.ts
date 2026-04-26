@@ -107,6 +107,9 @@ export type BridgeRequestType =
   | 'CREATE_FIELD'
   | 'SUBMIT'
   | 'DOWNLOAD'
+  | 'MOVE_PAGE'
+  | 'DELETE_PAGE'
+  | 'ROTATE_PAGE'
 
 export type IframeBridge = {
   getState: () => BridgeState
@@ -126,4 +129,7 @@ export type IframeBridge = {
   createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
+  movePage: (args: { fromPage: number; toPage: number }) => Promise<BridgeResult>
+  deletePage: (args: { page: number }) => Promise<BridgeResult>
+  rotatePage: (args: { page: number }) => Promise<BridgeResult>
 }

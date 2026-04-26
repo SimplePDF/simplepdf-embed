@@ -73,6 +73,37 @@ export const dispatch = async (
       }
       return bridge.goTo({ page })
     }
+    case 'move_page': {
+      const fromPage = typeof input.from_page === 'number' ? input.from_page : null
+      const toPage = typeof input.to_page === 'number' ? input.to_page : null
+      if (fromPage === null || toPage === null) {
+        return {
+          success: false,
+          error: { code: 'bad_input', message: 'from_page and to_page must be numbers' },
+        }
+      }
+      return bridge.movePage({ fromPage, toPage })
+    }
+    case 'delete_page': {
+      const page = typeof input.page === 'number' ? input.page : null
+      if (page === null) {
+        return {
+          success: false,
+          error: { code: 'bad_input', message: 'page must be a number' },
+        }
+      }
+      return bridge.deletePage({ page })
+    }
+    case 'rotate_page': {
+      const page = typeof input.page === 'number' ? input.page : null
+      if (page === null) {
+        return {
+          success: false,
+          error: { code: 'bad_input', message: 'page must be a number' },
+        }
+      }
+      return bridge.rotatePage({ page })
+    }
     case 'submit':
       return bridge.submit({ downloadCopy: false })
     case 'download':

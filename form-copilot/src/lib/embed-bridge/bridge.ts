@@ -35,12 +35,15 @@ const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
     case 'GET_DOCUMENT_CONTENT':
       return HEAVY_REQUEST_TIMEOUT_MS
     case 'CREATE_FIELD':
+    case 'DELETE_PAGE':
     case 'FOCUS_FIELD':
     case 'GET_FIELDS':
     case 'DOWNLOAD':
     case 'GO_TO':
     case 'LOAD_DOCUMENT':
+    case 'MOVE_PAGE':
     case 'REMOVE_FIELDS':
+    case 'ROTATE_PAGE':
     case 'SELECT_TOOL':
     case 'SET_FIELD_VALUE':
     case 'SUBMIT':
@@ -398,6 +401,9 @@ export const createBridge = ({
       }),
     submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
     download: () => sendRequest('DOWNLOAD', {}),
+    movePage: ({ fromPage, toPage }) => sendRequest('MOVE_PAGE', { from_page: fromPage, to_page: toPage }),
+    deletePage: ({ page }) => sendRequest('DELETE_PAGE', { page }),
+    rotatePage: ({ page }) => sendRequest('ROTATE_PAGE', { page }),
   }
 
   const subscribe = (listener: (nextState: BridgeState) => void): (() => void) => {

@@ -52,6 +52,27 @@ export const GoToPageInput = z
   .object({ page: z.number().int().positive().describe('1-based page number') })
   .describe('Scrolls the editor to a given page')
 
+export const MovePageInput = z
+  .object({
+    from_page: z.number().int().positive().describe('Visible page to move (1-indexed)'),
+    to_page: z.number().int().positive().describe('Target visible position (1-indexed)'),
+  })
+  .describe(
+    'Reorders pages in the document. Destructive: only call when the user explicitly asks to reorder a page.',
+  )
+
+export const DeletePageInput = z
+  .object({ page: z.number().int().positive().describe('Visible page to delete (1-indexed)') })
+  .describe(
+    'Permanently removes a page (and any fields on it) from the document. Destructive: only call when the user explicitly asks to delete a page. The last remaining visible page cannot be deleted.',
+  )
+
+export const RotatePageInput = z
+  .object({ page: z.number().int().positive().describe('Visible page to rotate (1-indexed)') })
+  .describe(
+    'Rotates a page 90° clockwise. Destructive: only call when the user explicitly asks to rotate a page. Repeat to reach 180° / 270°.',
+  )
+
 export const SubmitInput = z
   .object({})
   .describe(
@@ -72,6 +93,9 @@ export const CLIENT_TOOL_NAMES = [
   'set_field_value',
   'focus_field',
   'go_to_page',
+  'move_page',
+  'delete_page',
+  'rotate_page',
   'submit',
   'download',
 ] as const
@@ -92,6 +116,9 @@ export const CLIENT_TOOL_SCHEMAS = {
   set_field_value: SetFieldValueInput,
   focus_field: FocusFieldInput,
   go_to_page: GoToPageInput,
+  move_page: MovePageInput,
+  delete_page: DeletePageInput,
+  rotate_page: RotatePageInput,
   submit: SubmitInput,
   download: DownloadInput,
 } as const
