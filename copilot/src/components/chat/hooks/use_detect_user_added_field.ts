@@ -106,22 +106,24 @@ export const useDetectUserAddedField = ({
         return
       }
       const currentFields = result.data.fields
+      const currentIds = new Set(currentFields.map((field) => field.field_id))
       if (seenIdsRef.current === null) {
-        seenIdsRef.current = new Set(currentFields.map((field) => field.field_id))
+        seenIdsRef.current = currentIds
         return
       }
       const seen = seenIdsRef.current
       const addedFields = currentFields.filter((field) => !seen.has(field.field_id))
-      if (addedFields.length === 0) {
-        return
-      }
       if (isStreamingRef.current) {
         // Race-safety: if the stream started between the top of poll and
         // the getFields resolve, hold the seen set for the next tick.
         return
       }
-      for (const field of addedFields) {
-        seen.add(field.field_id)
+      // Always refresh the seen set to the live id set. Adds get reported,
+      // deletes get pruned automatically — no stale ids accumulating over
+      // a long session, no drift from "what's currently in the editor".
+      seenIdsRef.current = currentIds
+      if (addedFields.length === 0) {
+        return
       }
       const tools = addedFields.map((field) => field.type)
       onFieldAddedRef.current({ tools, delta: tools.length })
