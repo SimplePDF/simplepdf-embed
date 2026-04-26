@@ -5,7 +5,7 @@ import { ArrowUp } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
-import { type ByokConfig, findProvider, runByokStream } from '../lib/byok'
+import { type ByokConfig, findProvider, runByokStream } from '../../lib/byok'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -13,7 +13,7 @@ import type {
   FieldRecord,
   IframeBridge,
   SupportedFieldType,
-} from '../lib/embed-bridge'
+} from '../../lib/embed-bridge'
 import {
   type ClientTools,
   createClientTools,
@@ -21,22 +21,22 @@ import {
   isClientToolName,
   type ToolInput,
   type ToolMiddleware,
-} from '../lib/embed-bridge-adapters/client-tools'
-import { getLanguageByCode } from '../lib/languages'
-import { IS_DEMO_MODE } from '../lib/mode'
-import { monitoring, normalizeError } from '../lib/monitoring'
-import type { DemoGate } from '../routes/index'
-import { buildSystemPrompt } from '../server/tools'
+} from '../../lib/embed-bridge-adapters/client-tools'
+import { getLanguageByCode } from '../../lib/languages'
+import { IS_DEMO_MODE } from '../../lib/mode'
+import { monitoring, normalizeError } from '../../lib/monitoring'
+import type { DemoGate } from '../../routes/index'
+import { buildSystemPrompt } from '../../server/tools'
+import { DownloadModal } from '../download_modal'
+import { ErrorBanner } from '../error_banner'
+import { ModelPickerModal } from '../model_picker_modal'
+import { SuggestedPrompts } from '../suggested_prompts'
+import { ThinkingIndicator } from '../thinking_indicator'
+import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from '../toolbar'
+import { ChatLLMMessage } from './chat_llm_message'
 import { ChatPaneHeader } from './chat_pane_header'
-import { DownloadModal } from './download_modal'
-import { ErrorBanner } from './error_banner'
+import { ChatUserMessage } from './chat_user_message'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
-import { LLMChatMessage } from './llm_chat_message'
-import { UserChatMessage } from './user_chat_message'
-import { ModelPickerModal } from './model_picker_modal'
-import { SuggestedPrompts } from './suggested_prompts'
-import { ThinkingIndicator } from './thinking_indicator'
-import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 
@@ -782,10 +782,19 @@ export const ChatPane = ({
                   if (hintTool !== null) {
                     return <FieldAddedHint key={message.id} tool={hintTool} />
                   }
-                  if (message.role === 'user') {
-                    return <UserChatMessage key={message.id} message={message} />
+                  switch (message.role) {
+                    case 'user':
+                      return <ChatUserMessage key={message.id} message={message} />
+                    case 'assistant':
+                      return <ChatLLMMessage key={message.id} message={message} />
+                    case 'system':
+                      // System messages aren't rendered in the chat surface;
+                      // they're applied by the SDK at request time.
+                      return null
+                    default:
+                      message.role satisfies never
+                      return null
                   }
-                  return <LLMChatMessage key={message.id} message={message} />
                 })}
                 {isStreaming ? <ThinkingIndicator /> : null}
                 {error !== undefined && error !== dismissedError ? (

@@ -1,8 +1,8 @@
-import type { UIMessage } from 'ai'
+import { isTextUIPart, type UIMessage } from 'ai'
 import type { ReactElement } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-type UserChatMessageProps = {
+type ChatUserMessageProps = {
   message: UIMessage
 }
 
@@ -10,10 +10,10 @@ type UserChatMessageProps = {
 // text-only by construction (the input field only emits text parts), so
 // this component ignores any other part shape that might arrive on the
 // wire. Tool invocations and tool-group rendering live in
-// LLMChatMessage.
-export const UserChatMessage = ({ message }: UserChatMessageProps): ReactElement | null => {
+// ChatLLMMessage.
+export const ChatUserMessage = ({ message }: ChatUserMessageProps): ReactElement | null => {
   const text = message.parts
-    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .filter(isTextUIPart)
     .map((part) => part.text)
     .join('\n\n')
   if (text === '') {

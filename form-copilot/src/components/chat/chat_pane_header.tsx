@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LanguagePicker } from './language_picker'
+import { LanguagePicker } from '../language_picker'
 
 type ChatPaneHeaderProps = {
   // Non-null when BYOK is active. The caller derives this from its

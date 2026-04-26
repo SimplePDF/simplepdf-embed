@@ -1,10 +1,45 @@
-import type { UIMessage } from 'ai'
+import {
+  type DynamicToolUIPart,
+  getToolName,
+  isTextUIPart,
+  isToolUIPart,
+  type ToolUIPart,
+  type UIMessage,
+} from 'ai'
 import type { ReactElement } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { ToolInvocationGroup, type ToolInvocationPart } from './tool_invocation_group'
+import { ToolInvocationGroup, type ToolInvocationPart } from '../tool_invocation_group'
 
-type LLMChatMessageProps = {
+type ChatLLMMessageProps = {
   message: UIMessage
+}
+
+// The AI SDK's tool-part state union is wider than what
+// ToolInvocationGroup renders today: the SDK adds approval-requested /
+// approval-responded / output-denied for tools that go through the
+// approval flow. Form Copilot doesn't use approvals, so those states
+// never arrive at runtime, but the type system needs us to handle them
+// to compile. Mapping: in-flight approvals fold into "input-available"
+// (still running, waiting for human input), denials fold into
+// "output-error" (the tool didn't produce output for the LLM to consume).
+const toRenderableState = (
+  state: ToolUIPart['state'] | DynamicToolUIPart['state'],
+): ToolInvocationPart['state'] => {
+  switch (state) {
+    case 'input-streaming':
+    case 'input-available':
+    case 'output-available':
+    case 'output-error':
+      return state
+    case 'approval-requested':
+    case 'approval-responded':
+      return 'input-available'
+    case 'output-denied':
+      return 'output-error'
+    default:
+      state satisfies never
+      return 'input-streaming'
+  }
 }
 
 // A single LLM turn is split into render blocks: text segments and
@@ -20,21 +55,15 @@ const toBlocks = (message: UIMessage): RenderBlock[] => {
   const blocks: RenderBlock[] = []
   message.parts.forEach((part, index) => {
     const key = `${message.id}_${index}`
-    if (part.type === 'text') {
+    if (isTextUIPart(part)) {
       blocks.push({ kind: 'text', key, text: part.text })
       return
     }
-    if (part.type.startsWith('tool-')) {
-      const toolPart = part as {
-        type: `tool-${string}`
-        toolCallId: string
-        state: ToolInvocationPart['state']
-      }
-      const toolName = toolPart.type.slice('tool-'.length)
+    if (isToolUIPart(part)) {
       const entry: ToolInvocationPart = {
         key,
-        toolName,
-        state: toolPart.state,
+        toolName: getToolName(part),
+        state: toRenderableState(part.state),
       }
       const last = blocks[blocks.length - 1]
       if (last !== undefined && last.kind === 'tool-group') {
@@ -51,7 +80,7 @@ const toBlocks = (message: UIMessage): RenderBlock[] => {
 // tool-invocation rendering and the per-LLM accent styling (sky-700
 // strong text). Extra right padding (pr-5) so the text doesn't crowd
 // the bubble's rounded edge.
-export const LLMChatMessage = ({ message }: LLMChatMessageProps): ReactElement => {
+export const ChatLLMMessage = ({ message }: ChatLLMMessageProps): ReactElement => {
   const blocks = toBlocks(message)
   return (
     <div className="flex justify-start">

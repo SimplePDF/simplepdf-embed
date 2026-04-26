@@ -1,5 +1,5 @@
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
-import type { IframeBridge, SupportedFieldType } from '../../lib/embed-bridge'
+import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge'
 
 // WORKAROUND: the SimplePDF editor does not currently emit an outbound
 // FIELD_ADDED event when the user drops a field via the toolbar. Until it
