@@ -1,3 +1,4 @@
+import type { ServerErrorBody } from '../../lib/api_envelope'
 import { getClientIp, hashIp, isSameOrigin, looksLikeBrowserFetch } from '../rate_limit'
 import { isMisbehaving, markMisbehavior } from './misbehavior'
 import { readShareIdFromUrl } from './share_query'
@@ -15,7 +16,7 @@ import { resolveApiKey, type SharedKeyResolution } from './shared_keys'
 // route handler picks one path or the other; nothing in the file system
 // outside `server/demo/` references this module.
 
-export type DemoPreflightResult =
+type DemoPreflightResult =
   | { kind: 'response'; response: Response }
   | { kind: 'allowed'; ipHash: string; resolution: Extract<SharedKeyResolution, { kind: 'shared' }> }
 
@@ -25,7 +26,7 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
   if (isMisbehaving(ipHash)) {
     return {
       kind: 'response',
-      response: Response.json({ error: 'forbidden_blocked' }, { status: 403 }),
+      response: Response.json({ error: 'forbidden_blocked' } satisfies ServerErrorBody, { status: 403 }),
     }
   }
   // Same-origin is the happy path; Sec-Fetch-* is the second-chance lane
@@ -36,7 +37,7 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
     markMisbehavior(ipHash, 'non_browser_origin')
     return {
       kind: 'response',
-      response: Response.json({ error: 'forbidden_origin' }, { status: 403 }),
+      response: Response.json({ error: 'forbidden_origin' } satisfies ServerErrorBody, { status: 403 }),
     }
   }
   const shareId = readShareIdFromUrl(request)
@@ -46,7 +47,7 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
       return {
         kind: 'response',
         response: Response.json(
-          { error: 'misconfigured_environment', message: 'Misconfigured environment' },
+          { error: 'misconfigured_environment', message: 'Misconfigured environment' } satisfies ServerErrorBody,
           { status: 500 },
         ),
       }
@@ -55,7 +56,7 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
       // localised chat.errorAuth* strings for the authentication kind.
       return {
         kind: 'response',
-        response: Response.json({ error: 'share_required' }, { status: 401 }),
+        response: Response.json({ error: 'share_required' } satisfies ServerErrorBody, { status: 401 }),
       }
     case 'shared':
       return { kind: 'allowed', ipHash, resolution }

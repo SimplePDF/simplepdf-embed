@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { generateText } from 'ai'
+import type { ServerErrorBody } from '../../lib/api_envelope'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody } from '../../server/http'
@@ -61,7 +62,7 @@ export const Route = createFileRoute('/api/summarize')({
             detail: rateLimiter.statusDetail(),
           })
           return Response.json(
-            { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+            { error: 'service_unavailable', reason: 'rate_limit_unavailable' } satisfies ServerErrorBody,
             { status: 503 },
           )
         }
@@ -89,7 +90,10 @@ export const Route = createFileRoute('/api/summarize')({
               { status: 503 },
             )
           }
-          return Response.json({ error: 'rate_limited', reason: decision.reason }, { status: 429 })
+          return Response.json(
+            { error: 'rate_limited', reason: decision.reason } satisfies ServerErrorBody,
+            { status: 429 },
+          )
         }
 
         const delimiter = generateDelimiter()

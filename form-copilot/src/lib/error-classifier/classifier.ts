@@ -2,6 +2,25 @@
 // codes (recovered from the error object or from a JSON envelope we inject on
 // the server side when the SDK rebuilds stream errors without a status code).
 
+import type { ServerErrorBody } from '../api_envelope'
+
+// Maps every server-side error kind (the discriminator on the shared
+// ServerErrorBody) to the HTTP status the route returned. `satisfies
+// Record<ServerErrorBody['error'], number>` enforces coverage at compile
+// time — adding a new kind to ServerErrorBody fails the build until this
+// map gains the matching entry.
+const SERVER_ERROR_TO_STATUS = {
+  forbidden_blocked: 403,
+  forbidden_origin: 403,
+  misconfigured_environment: 500,
+  share_required: 401,
+  rate_limited: 429,
+  service_unavailable: 503,
+} as const satisfies Record<ServerErrorBody['error'], number>
+
+const isServerErrorKey = (value: string): value is ServerErrorBody['error'] =>
+  Object.hasOwn(SERVER_ERROR_TO_STATUS, value)
+
 export type KnownErrorKind = 'authentication' | 'server' | 'demo_rate_limited' | 'service_unavailable'
 
 // Detects upstream / infra error pages (DO App Platform 503, generic load
@@ -55,17 +74,9 @@ export const parseStreamErrorMessage = (message: string): StreamErrorEnvelope | 
     // response itself; the AI SDK sometimes serializes only the body into the
     // thrown Error. Recognise the known error tokens so classifyError can pick
     // up the right kind even when statusCode is missing from the envelope.
-    if ('error' in parsed && typeof parsed.error === 'string') {
+    if ('error' in parsed && typeof parsed.error === 'string' && isServerErrorKey(parsed.error)) {
       const messageField = 'message' in parsed && typeof parsed.message === 'string' ? parsed.message : ''
-      if (parsed.error === 'rate_limited') {
-        return { statusCode: 429, message: messageField }
-      }
-      if (parsed.error === 'share_required') {
-        return { statusCode: 401, message: messageField }
-      }
-      if (parsed.error === 'misconfigured_environment') {
-        return { statusCode: 500, message: messageField }
-      }
+      return { statusCode: SERVER_ERROR_TO_STATUS[parsed.error], message: messageField }
     }
     return null
   } catch {

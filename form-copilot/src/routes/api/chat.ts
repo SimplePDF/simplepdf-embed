@@ -12,6 +12,7 @@ import {
   SetFieldValueInput,
   withFinalisationTool,
 } from '../../lib/embed-bridge-adapters/client-tools'
+import type { ServerErrorBody } from '../../lib/api_envelope'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
@@ -88,7 +89,7 @@ export const Route = createFileRoute('/api/chat')({
             detail: rateLimiter.statusDetail(),
           })
           return Response.json(
-            { error: 'service_unavailable', reason: 'rate_limit_unavailable' },
+            { error: 'service_unavailable', reason: 'rate_limit_unavailable' } satisfies ServerErrorBody,
             { status: 503 },
           )
         }
@@ -130,7 +131,7 @@ export const Route = createFileRoute('/api/chat')({
             {
               error: 'rate_limited',
               reason: decision.reason,
-            },
+            } satisfies ServerErrorBody,
             { status: 429 },
           )
         }
