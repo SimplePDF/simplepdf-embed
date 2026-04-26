@@ -937,7 +937,13 @@ export const ChatPane = ({
                   <ErrorBanner
                     error={error}
                     onSwitchModel={openModelPicker}
-                    resumeModelLabel={activeModelLabel}
+                    // Resume vs rate-limit panel: the resume affordance
+                    // should fire ONLY when a BYOK credential is wired up.
+                    // Passing activeModelLabel here would also surface the
+                    // demo model name, flipping a "you've hit the demo cap"
+                    // banner into a misleading "you're now using <demo>"
+                    // resume CTA. Force null when no BYOK is active.
+                    resumeModelLabel={byokConfig !== null ? activeModelLabel : null}
                     onResume={() => {
                       // Dismiss the stale banner and kick off a
                       // "Let's continue" turn so the assistant picks up on
