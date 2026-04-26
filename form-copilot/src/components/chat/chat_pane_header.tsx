@@ -1,12 +1,18 @@
+import { Cog } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LanguagePicker } from './language_picker'
 
 type ChatPaneHeaderProps = {
-  // Non-null when BYOK is active. The caller derives this from its
-  // ByokConfig; we only need the label to render, not the full config.
-  byokModelLabel: string | null
-  hasActiveModel: boolean
+  // Resolved label of whichever model will run the next turn (BYOK model
+  // name, or the demo model name in demo mode). Null means no model in
+  // scope at all, in which case the header shows a status message instead
+  // of the clickable model affordance. `hasActiveModel` derives from this
+  // (label !== null) and lives at the consumer.
+  activeModelLabel: string | null
+  // True when BYOK is active AND the user provided custom system-prompt
+  // instructions. Renders a small pill next to the model name.
+  hasCustomInstructions: boolean
   isReady: boolean
   // Status message rendered when the chat is not yet active+ready (e.g.
   // "Load a document first", "Waiting for the editor to load…", "Bring
@@ -26,8 +32,8 @@ type ChatPaneHeaderProps = {
 //   - "Use your own AI" (demo mode active — clickable to open the picker)
 // Right-side controls: language picker + a Stop button while streaming.
 export const ChatPaneHeader = ({
-  byokModelLabel,
-  hasActiveModel,
+  activeModelLabel,
+  hasCustomInstructions,
   isReady,
   chatStatusMessage,
   isStreaming,
@@ -37,6 +43,7 @@ export const ChatPaneHeader = ({
   onLanguageChange,
 }: ChatPaneHeaderProps): ReactElement => {
   const { t } = useTranslation()
+  const hasActiveModel = activeModelLabel !== null
   const showModelAffordance = hasActiveModel && isReady
   return (
     <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
@@ -44,9 +51,7 @@ export const ChatPaneHeader = ({
           intrinsic width so `truncate` can actually ellipsis on narrow
           panes instead of forcing overflow. */}
       <div className="min-w-0">
-        <h2 className="truncate text-sm font-semibold leading-5 text-slate-900">
-          {t('chat.heading')}
-        </h2>
+        <h2 className="truncate text-sm font-semibold leading-5 text-slate-900">{t('chat.heading')}</h2>
         {/* Same leading/height on both branches so the transition from a
             status message to the model affordance doesn't jump the header
             vertically. `block + leading-4 + h-4 + truncate` forces both
@@ -54,17 +59,23 @@ export const ChatPaneHeader = ({
             regardless of user-agent button defaults and prevents long
             translations from wrapping into a second (then clipped) line. */}
         {showModelAffordance ? (
-          <button
-            type="button"
-            onClick={onOpenModelPicker}
-            className="block h-4 truncate text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
-          >
-            {byokModelLabel !== null ? byokModelLabel : t('chat.useYourOwnAI')}
-          </button>
+          <span className="flex h-4 items-center gap-1.5 truncate leading-4">
+            <button
+              type="button"
+              onClick={onOpenModelPicker}
+              className="truncate text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
+            >
+              {activeModelLabel}
+            </button>
+            {hasCustomInstructions ? (
+              <Cog
+                className="h-3.5 w-3.5 flex-none text-sky-600"
+                aria-label={t('chat.modelPicker.customInstructionsActiveBadge')}
+              />
+            ) : null}
+          </span>
         ) : (
-          <p className="block h-4 truncate text-xs leading-4 text-slate-500">
-            {chatStatusMessage}
-          </p>
+          <p className="block h-4 truncate text-xs leading-4 text-slate-500">{chatStatusMessage}</p>
         )}
       </div>
       <div className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import { monitoring, normalizeError } from '../../lib/monitoring'
 import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
-import { rateLimiter, type RateLimitDecision } from '../../server/rate_limit'
+import { type RateLimitDecision, rateLimiter } from '../../server/rate_limit'
 import { type SummarizePage, SummarizeRequestSchema } from '../../server/tools'
 
 const MAX_INPUT_CHARS = 20_000
@@ -90,10 +90,9 @@ export const Route = createFileRoute('/api/summarize')({
               { status: 503 },
             )
           }
-          return Response.json(
-            { error: 'rate_limited', reason: decision.reason } satisfies ServerErrorBody,
-            { status: 429 },
-          )
+          return Response.json({ error: 'rate_limited', reason: decision.reason } satisfies ServerErrorBody, {
+            status: 429,
+          })
         }
 
         const delimiter = generateDelimiter()

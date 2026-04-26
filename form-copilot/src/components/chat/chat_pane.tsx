@@ -5,7 +5,20 @@ import { ArrowUp } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
-import { type ByokConfig, findProvider, runByokStream } from '../../lib/byok'
+import {
+  type ByokConfig,
+  type CredentialKey,
+  credentialKey,
+  EMPTY_VAULT,
+  findProvider,
+  loadVault,
+  removeCredential,
+  runByokStream,
+  saveCredential,
+  touchLastUsed,
+  type Vault,
+} from '../../lib/byok'
+import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -29,14 +42,14 @@ import type { DemoGate } from '../../routes/index'
 import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
 import { ErrorBanner } from '../error_banner'
-import { ModelPickerModal } from './model_picker_modal'
-import { SuggestedPrompts } from './suggested_prompts'
-import { ThinkingIndicator } from './thinking_indicator'
-import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 import { ChatLLMMessage } from './chat_llm_message'
 import { ChatPaneHeader } from './chat_pane_header'
 import { ChatUserMessage } from './chat_user_message'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
+import { ModelPickerModal } from './model_picker_modal'
+import { SuggestedPrompts } from './suggested_prompts'
+import { ThinkingIndicator } from './thinking_indicator'
+import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 
@@ -322,6 +335,37 @@ const toUnexpectedToolResult = (error: unknown): BridgeResult<null> => {
   }
 }
 
+// BYOK lifecycle as a discriminated union. `loading` covers the async vault
+// read so the rest of the UI doesn't briefly render the "no model" CTA on a
+// reload that does have credentials saved. `absent` means the user has not
+// configured BYOK; `present` carries both the active config (currently
+// driving chat) and the full vault (so the modal can pre-fill credentials
+// when the user picks a different provider:model that they have used before).
+type ByokState =
+  | { kind: 'loading' }
+  | { kind: 'absent'; vault: Vault }
+  | { kind: 'present'; active: ByokConfig; vault: Vault }
+
+const resolveActiveModelLabel = ({
+  byokConfig,
+  demoGate,
+}: {
+  byokConfig: ByokConfig | null
+  demoGate: DemoGate
+}): string | null => {
+  if (byokConfig !== null) {
+    const spec = findProvider(byokConfig.provider)
+    if (spec.kind !== 'catalog') {
+      return byokConfig.model
+    }
+    return spec.models.find((m) => m.id === byokConfig.model)?.label ?? byokConfig.model
+  }
+  if (demoGate.kind === 'demo') {
+    return DEMO_MODELS[demoGate.model].label
+  }
+  return null
+}
+
 export const ChatPane = ({
   bridge,
   isReady,
@@ -335,7 +379,6 @@ export const ChatPane = ({
   const { t } = useTranslation()
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
-  const isModelPickerOpen = search.show === 'model'
   const isDownloadModalOpen = search.show === 'download'
   const shareIdRef = useRef<string | null>(search.share ?? null)
   shareIdRef.current = search.share ?? null
@@ -352,9 +395,91 @@ export const ChatPane = ({
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLInputElement>(null)
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
-  const [byokConfig, setByokConfig] = useState<ByokConfig | null>(null)
+  // BYOK state machine. ByokState is hoisted at module scope above; here we
+  // derive the two consumer-facing reads (current active config + full
+  // vault) once. byokConfigRef mirrors the active config so the AI SDK
+  // transport (which is `useMemo([])` per Phase 3.14) can read the latest
+  // value at request time without recreating itself on every byokState
+  // change. The mid-render assignment cannot move into a useEffect: useChat
+  // captures the transport's customFetch closure at first mount, and any
+  // event handler firing between render commit and effect-flush would read
+  // a stale ref.
+  const [byokState, setByokState] = useState<ByokState>({ kind: 'loading' })
+  const byokConfig: ByokConfig | null = byokState.kind === 'present' ? byokState.active : null
+  const byokVault: Vault = byokState.kind === 'loading' ? EMPTY_VAULT : byokState.vault
+  const isVaultLoading = byokState.kind === 'loading'
   const byokConfigRef = useRef<ByokConfig | null>(byokConfig)
   byokConfigRef.current = byokConfig
+  // The picker snapshots activeConfig at modal-body mount; opening it
+  // before the vault read resolves would freeze the body to "no credential"
+  // and force a close-and-reopen to pick up the saved one. Hold the open
+  // until the vault load completes; the cold path is sub-millisecond on
+  // warm IDB.
+  const isModelPickerOpen = search.show === 'model' && !isVaultLoading
+
+  // One-shot vault load on mount. The vault is inherently client-side
+  // (IndexedDB), so a TanStack route loader does not fit (the SSR pass
+  // cannot read IDB and the loader does not re-run on hydration). The
+  // useEffect is the right pattern here. React 18 silently ignores
+  // setState after unmount, so no `cancelled` guard is required.
+  useEffect(() => {
+    void (async () => {
+      const result = await loadVault()
+      if (result.kind !== 'loaded') {
+        // empty / stale / unavailable / error all collapse to "no BYOK active";
+        // load_failed already logged inside the vault layer.
+        setByokState({ kind: 'absent', vault: EMPTY_VAULT })
+        return
+      }
+      const activeKey = result.vault.active
+      const active = activeKey === null ? null : (result.vault.credentials[activeKey] ?? null)
+      setByokState(
+        active === null
+          ? { kind: 'absent', vault: result.vault }
+          : { kind: 'present', active, vault: result.vault },
+      )
+    })()
+  }, [])
+
+  const handleApplyByok = useCallback((next: ByokConfig): void => {
+    const key = credentialKey(next)
+    setByokState((current) => {
+      const baseVault = current.kind === 'loading' ? EMPTY_VAULT : current.vault
+      const vault: Vault = {
+        active: key,
+        credentials: { ...baseVault.credentials, [key]: next },
+      }
+      return { kind: 'present', active: next, vault }
+    })
+    void saveCredential(next)
+  }, [])
+
+  // Removes the credential at the given key (the one currently displayed in
+  // the picker). If it was also active, byok flips to absent; otherwise
+  // active is preserved. Mirrors the vault-level semantics so UI and storage
+  // stay in lockstep.
+  const handleForgetByok = useCallback((key: CredentialKey): void => {
+    setByokState((current) => {
+      const baseVault = current.kind === 'loading' ? EMPTY_VAULT : current.vault
+      if (!(key in baseVault.credentials)) {
+        return current
+      }
+      const remaining = { ...baseVault.credentials }
+      delete remaining[key]
+      const nextActiveKey = baseVault.active === key ? null : baseVault.active
+      const nextActive: ByokConfig | null = nextActiveKey === null ? null : (remaining[nextActiveKey] ?? null)
+      const nextVault: Vault = { active: nextActiveKey, credentials: remaining }
+      return nextActive === null
+        ? { kind: 'absent', vault: nextVault }
+        : { kind: 'present', active: nextActive, vault: nextVault }
+    })
+    void removeCredential(key)
+  }, [])
+
+  // Plain function: identity-stability does not matter for the picker (no
+  // dependency-array consumer), and the body is a one-liner. Per the global
+  // CLAUDE.md "useCallback only when consumer relies on identity" rule.
+  const lookupSavedCredential = (key: CredentialKey): ByokConfig | null => byokVault.credentials[key] ?? null
   // useChat keeps the last turn's error latched until a new turn starts. We
   // need a local dismissed marker so the "You're now using X / Resume" CTA
   // can clear a stale banner without sending a message. We track by error
@@ -534,10 +659,7 @@ export const ChatPane = ({
     // mode never registers the `download` tool, so the demo middleware is
     // unreachable there and we drop it from the chain entirely.
     const middleware: ToolMiddleware[] = IS_DEMO_MODE
-      ? [
-          createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }),
-          ...sharedMiddleware,
-        ]
+      ? [createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }), ...sharedMiddleware]
       : sharedMiddleware
     return createClientTools({
       bridge,
@@ -688,23 +810,21 @@ export const ChatPane = ({
   // the stream entirely in the browser via runByokStream and never hits /api/chat.
   const unblockedByByok = byokConfig !== null
   const serverLocked = demoGate.kind === 'byok' && !unblockedByByok
-  // Is there a model that will run the next turn? When false, the header
-  // reverts to the brand heading instead of rendering "Form Copilot" in the
-  // H2 slot styled like a model name. which misreads as "the model is
-  // called Form Copilot" next to a Switch-AI-model CTA. The Welcome banner
-  // below owns the CTA in that state.
-  const hasActiveModel = byokConfig !== null || demoGate.kind === 'demo'
-  const byokModelLabel = ((): string | null => {
-    if (byokConfig === null) {
-      return null
-    }
-    const spec = findProvider(byokConfig.provider)
-    if (spec.kind !== 'catalog') {
-      return byokConfig.model
-    }
-    return spec.models.find((m) => m.id === byokConfig.model)?.label ?? byokConfig.model
-  })()
-  const canSend = isReady && !isStreaming && !serverLocked
+  // Resolved label of the model that will run the next turn. Null means no
+  // model in scope (no BYOK, no demo); the header reverts to the brand
+  // heading instead of the clickable model affordance and the Welcome
+  // banner below owns the CTA. BYOK takes precedence over the demo when
+  // both are in play.
+  const activeModelLabel = resolveActiveModelLabel({ byokConfig, demoGate })
+  const hasActiveModel = activeModelLabel !== null
+  // Hold the send button disabled until the vault read settles. Without this
+  // guard, a message dispatched during the IDB load window would route to the
+  // demo path (because byokConfigRef.current is still null), and the LLM
+  // would run with the canonical default prompt instead of the user's BYOK +
+  // custom-instructions config. Reuses `isVaultLoading` declared next to
+  // the byokState block above. Race window is sub-millisecond on warm IDB
+  // but the cost of holding is invisible.
+  const canSend = isReady && !isStreaming && !serverLocked && !isVaultLoading
   const hasUserMessage = messages.some((message) => message.role === 'user')
   const chatStatusMessage = useMemo((): string => {
     if (!hasActiveModel) {
@@ -751,6 +871,11 @@ export const ChatPane = ({
         return
       }
       void sendMessage({ text: trimmed })
+      // Genuine activity: refresh the vault's lastUsed so the 30-day idle
+      // expiry only fires for users who actually stop coming back.
+      if (byokConfigRef.current !== null) {
+        void touchLastUsed()
+      }
       setDraft('')
     },
     [sendMessage],
@@ -759,8 +884,8 @@ export const ChatPane = ({
   return (
     <div className="flex h-full flex-col">
       <ChatPaneHeader
-        byokModelLabel={byokModelLabel}
-        hasActiveModel={hasActiveModel}
+        activeModelLabel={activeModelLabel}
+        hasCustomInstructions={byokConfig?.customInstructions != null}
         isReady={isReady}
         chatStatusMessage={chatStatusMessage}
         isStreaming={isStreaming}
@@ -812,7 +937,7 @@ export const ChatPane = ({
                   <ErrorBanner
                     error={error}
                     onSwitchModel={openModelPicker}
-                    resumeModelLabel={byokModelLabel}
+                    resumeModelLabel={activeModelLabel}
                     onResume={() => {
                       // Dismiss the stale banner and kick off a
                       // "Let's continue" turn so the assistant picks up on
@@ -862,7 +987,9 @@ export const ChatPane = ({
         onClose={closeModelPicker}
         activeConfig={byokConfig}
         demoGate={demoGate}
-        onApply={setByokConfig}
+        onApply={handleApplyByok}
+        onForget={handleForgetByok}
+        lookupSavedCredential={lookupSavedCredential}
       />
       <DownloadModal
         open={isDownloadModalOpen}

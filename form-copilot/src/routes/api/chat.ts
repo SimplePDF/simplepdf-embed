@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
+import type { ServerErrorBody } from '../../lib/api_envelope'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import {
   DetectFieldsInput,
@@ -12,12 +13,11 @@ import {
   SetFieldValueInput,
   withFinalisationTool,
 } from '../../lib/embed-bridge-adapters/client-tools'
-import type { ServerErrorBody } from '../../lib/api_envelope'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
-import { rateLimiter, type RateLimitDecision } from '../../server/rate_limit'
+import { type RateLimitDecision, rateLimiter } from '../../server/rate_limit'
 import { serializeStreamError } from '../../server/stream_error'
 import { buildSystemPrompt, ChatRequestSchema } from '../../server/tools'
 

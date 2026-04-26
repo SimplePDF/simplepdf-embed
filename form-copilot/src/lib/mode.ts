@@ -16,7 +16,6 @@ const rawCompanyIdentifier =
 
 export type Mode = 'demo' | 'simplepdf_customer'
 
-export const MODE: Mode =
-  rawCompanyIdentifier === COPILOT_DEMO_IDENTIFIER ? 'demo' : 'simplepdf_customer'
+export const MODE: Mode = rawCompanyIdentifier === COPILOT_DEMO_IDENTIFIER ? 'demo' : 'simplepdf_customer'
 
 export const IS_DEMO_MODE = MODE === 'demo'

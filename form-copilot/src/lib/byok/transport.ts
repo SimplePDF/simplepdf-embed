@@ -16,7 +16,7 @@ import { monitoring, normalizeError } from '../monitoring'
 import { buildBrowserModel } from './model'
 import type { ByokConfig } from './providers'
 
-const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
+const DEFAULT_SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 
 const MAX_OUTPUT_TOKENS = 500
 
@@ -54,14 +54,30 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
       : 'English'
 
   const modelMessages = await convertToModelMessages(parsed.messages)
+  // Default cached for the demo / no-customisation path; a custom prompt
+  // changes per BYOK user so caching it would just churn the breakpoint.
+  const systemContent =
+    config.customInstructions === null
+      ? DEFAULT_SYSTEM_PROMPT
+      : buildSystemPrompt({
+          action: FINALISATION_ACTION,
+          customInstructions: config.customInstructions,
+        })
+  const cacheControl =
+    config.customInstructions === null
+      ? { anthropic: { cacheControl: { type: 'ephemeral' as const } } }
+      : undefined
+  monitoring.info('byok.system_prompt_built', {
+    provider: config.provider,
+    model: config.model,
+    instructions_mode: config.customInstructions?.mode ?? null,
+    instructions_length: config.customInstructions?.text.length ?? 0,
+    system_prompt_length: systemContent.length,
+  })
   const result = streamText({
     model: buildBrowserModel(config),
     messages: [
-      {
-        role: 'system',
-        content: SYSTEM_PROMPT,
-        providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
-      },
+      { role: 'system', content: systemContent, providerOptions: cacheControl },
       { role: 'system', content: buildLanguageInstruction(languageLabel) },
       ...modelMessages,
     ],

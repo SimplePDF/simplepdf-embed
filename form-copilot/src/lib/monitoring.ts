@@ -86,6 +86,42 @@ export type EventPayloads = {
 
   // byok_transport.ts (client)
   'byok.stream_error': { detail: string }
+  'byok.system_prompt_built': {
+    provider: string
+    model: string
+    instructions_mode: 'append' | 'replace' | null
+    instructions_length: number
+    system_prompt_length: number
+  }
+
+  // key_vault.ts (client)
+  'byok_vault.schema_mismatch': { detail: string }
+  'byok_vault.loaded': {
+    credential_count: number
+    active: string | null
+    active_has_custom_instructions: boolean
+    active_instructions_mode: 'append' | 'replace' | null
+    active_instructions_length: number
+  }
+  'byok_vault.credential_saved': {
+    key: string
+    has_custom_instructions: boolean
+    instructions_mode: 'append' | 'replace' | null
+    instructions_length: number
+  }
+  'byok_vault.load_failed': { detail: string }
+  'byok_vault.save_failed': { detail: string }
+  'byok_vault.clear_failed': { detail: string }
+  'byok_vault.touch_failed': { detail: string }
+
+  // chat_pane.tsx (client) — picker apply checkpoints
+  'byok.apply_pending': {
+    provider: string
+    model: string
+    has_custom_instructions: boolean
+    instructions_mode: 'append' | 'replace' | null
+    instructions_length: number
+  }
 
   // iframe_bridge.ts (client)
   'iframe.request_sent': { request_id: string; type: string; timeout_ms: number }

@@ -205,8 +205,16 @@ type ArchitectureSegment = { text: string; blue?: boolean; large?: boolean }
 // stack, BYOS for completed documents, optional webhooks.
 
 const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
-  [{ text: '  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐' }],
-  [{ text: '  │                                 │       │                       │       │                   │' }],
+  [
+    {
+      text: '  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐',
+    },
+  ],
+  [
+    {
+      text: '  │                                 │       │                       │       │                   │',
+    },
+  ],
   [
     { text: '  │   ' },
     { text: '┌───────────────┐', blue: true },
@@ -235,7 +243,12 @@ const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
     { text: '⇅', large: true },
     { text: ' postMessage       │' },
   ],
-  [{ text: '  │           ' }, { text: '│', blue: true }, { text: '   (client-side      │       ' }, { text: '┌─── SimplePDF server ────┐', blue: true }],
+  [
+    { text: '  │           ' },
+    { text: '│', blue: true },
+    { text: '   (client-side      │       ' },
+    { text: '┌─── SimplePDF server ────┐', blue: true },
+  ],
   [
     { text: '  │           ' },
     { text: '│', blue: true },

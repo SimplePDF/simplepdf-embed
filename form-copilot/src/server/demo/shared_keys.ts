@@ -48,9 +48,7 @@ type Config = {
   sharedKeys: ReadonlyMap<string, ShareConfig>
 }
 
-type ParseEnvResult =
-  | { ok: true; data: unknown; source: 'json' | 'base64' }
-  | { ok: false; detail: string }
+type ParseEnvResult = { ok: true; data: unknown; source: 'json' | 'base64' } | { ok: false; detail: string }
 
 // Strip one pair of wrapping quotes (single or double) if present. Operators
 // often paste `'{"dev":...}'` or `"{...}"` from shell history into the env
@@ -159,10 +157,7 @@ const parseSharedKeys = (): ReadonlyMap<string, ShareConfig> | null => {
 
 // Memoised config. Parsed + validated on first call; subsequent calls are
 // free. Misconfiguration is cached too so repeat hits don't re-spam the log.
-type CacheState =
-  | { status: 'uninitialized' }
-  | { status: 'ok'; config: Config }
-  | { status: 'misconfigured' }
+type CacheState = { status: 'uninitialized' } | { status: 'ok'; config: Config } | { status: 'misconfigured' }
 
 let cache: CacheState = { status: 'uninitialized' }
 

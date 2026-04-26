@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export type ByokProviderId = 'openai' | 'anthropic' | 'deepseek' | 'custom'
 type UnsupportedProviderId = 'azure' | 'bedrock'
 
@@ -8,9 +10,52 @@ export type ByokModel = {
   recommended: boolean
 }
 
+export type CustomInstructions = { mode: 'append' | 'replace'; text: string }
+
 export type ByokConfig =
-  | { provider: Exclude<ByokProviderId, 'custom'>; model: string; apiKey: string }
-  | { provider: 'custom'; model: string; apiKey: string; baseUrl: string }
+  | {
+      provider: Exclude<ByokProviderId, 'custom'>
+      model: string
+      apiKey: string
+      customInstructions: CustomInstructions | null
+    }
+  | {
+      provider: 'custom'
+      model: string
+      apiKey: string
+      baseUrl: string
+      customInstructions: CustomInstructions | null
+    }
+
+// Cap kept in sync with the textarea cap in the picker UI. Beyond ~8KB the
+// Anthropic prompt-cache breakpoint thrashes and the LLM starts getting
+// confused; values larger than this would also be a strong signal something
+// pasted a whole document into the prompt by accident.
+export const CUSTOM_INSTRUCTIONS_MAX_CHARS = 8192
+
+const CustomInstructionsSchema: z.ZodType<CustomInstructions> = z.object({
+  mode: z.enum(['append', 'replace']),
+  text: z.string().max(CUSTOM_INSTRUCTIONS_MAX_CHARS),
+})
+
+// Runtime validation for vault round-trip: a disk-read config is untrusted
+// (corrupt blob, tampered profile, version mismatch) until it parses through
+// this schema.
+export const ByokConfigSchema: z.ZodType<ByokConfig> = z.discriminatedUnion('provider', [
+  z.object({
+    provider: z.enum(['openai', 'anthropic', 'deepseek']),
+    model: z.string().min(1),
+    apiKey: z.string(),
+    customInstructions: CustomInstructionsSchema.nullable(),
+  }),
+  z.object({
+    provider: z.literal('custom'),
+    model: z.string().min(1),
+    apiKey: z.string(),
+    baseUrl: z.string().min(1),
+    customInstructions: CustomInstructionsSchema.nullable(),
+  }),
+])
 
 type CatalogProviderSpec = {
   id: Exclude<ByokProviderId, 'custom'>

@@ -47,7 +47,10 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
       return {
         kind: 'response',
         response: Response.json(
-          { error: 'misconfigured_environment', message: 'Misconfigured environment' } satisfies ServerErrorBody,
+          {
+            error: 'misconfigured_environment',
+            message: 'Misconfigured environment',
+          } satisfies ServerErrorBody,
           { status: 500 },
         ),
       }

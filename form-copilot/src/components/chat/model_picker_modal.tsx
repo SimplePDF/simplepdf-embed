@@ -1,9 +1,14 @@
+import { Cog } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   type ByokConfig,
   type ByokProviderId,
+  type CredentialKey,
+  CUSTOM_INSTRUCTIONS_MAX_CHARS,
+  type CustomInstructions,
+  credentialKey,
   findProvider,
   PROVIDER_ENTRIES,
   type ProviderEntry,
@@ -11,10 +16,13 @@ import {
   validateApiKey,
 } from '../../lib/byok'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
+import { FINALISATION_ACTION } from '../../lib/embed-bridge-adapters/client-tools'
 import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
 import type { DemoGate } from '../../routes/index'
+import { getDefaultSystemPrompt } from '../../server/tools'
 import { Modal, ModalCloseButton } from '../ui/modal'
 import { TextInput } from '../ui/text_input'
+import { DefaultPromptModal } from './default_prompt_modal'
 
 type ModelPickerModalProps = {
   open: boolean
@@ -22,6 +30,13 @@ type ModelPickerModalProps = {
   activeConfig: ByokConfig | null
   demoGate: DemoGate
   onApply: (config: ByokConfig) => void
+  // Removes the credential at the given key (the one currently displayed in
+  // the picker). Other saved credentials at different keys stay so the user
+  // can switch back.
+  onForget: (key: CredentialKey) => void
+  // Returns the saved credential at this key, or null. Used to pre-fill the
+  // form when the user picks a provider:model they have already used.
+  lookupSavedCredential: (key: CredentialKey) => ByokConfig | null
 }
 
 export const ModelPickerModal = ({
@@ -30,6 +45,8 @@ export const ModelPickerModal = ({
   activeConfig,
   demoGate,
   onApply,
+  onForget,
+  lookupSavedCredential,
 }: ModelPickerModalProps) => {
   // Conditionally mount the body so state always initializes cleanly from
   // activeConfig on each open. Avoids the "useEffect to sync prop → state"
@@ -43,6 +60,8 @@ export const ModelPickerModal = ({
       activeConfig={activeConfig}
       demoGate={demoGate}
       onApply={onApply}
+      onForget={onForget}
+      lookupSavedCredential={lookupSavedCredential}
     />
   )
 }
@@ -120,7 +139,14 @@ const customErrorKey = (reason: ValidateFailureKind): string => {
   }
 }
 
-const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: ModelPickerBodyProps) => {
+const ModelPickerModalBody = ({
+  onClose,
+  activeConfig,
+  demoGate,
+  onApply,
+  onForget,
+  lookupSavedCredential,
+}: ModelPickerBodyProps) => {
   const { t, i18n } = useTranslation()
   const locale = i18n.language
   const [selectedProvider, setSelectedProvider] = useState<ByokProviderId | null>(
@@ -134,9 +160,59 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
   const [modelNameDraft, setModelNameDraft] = useState(
     activeConfig?.provider === 'custom' ? activeConfig.model : '',
   )
+  // Mode and text are independent slots so the user can flip the radio
+  // before typing anything (otherwise selecting Replace on an empty textarea
+  // would dissolve the draft and snap the radio back to Append).
+  const [customInstructionsMode, setCustomInstructionsMode] = useState<'append' | 'replace'>(
+    activeConfig?.customInstructions?.mode ?? 'append',
+  )
+  const [customInstructionsText, setCustomInstructionsText] = useState<string>(
+    activeConfig?.customInstructions?.text ?? '',
+  )
+  // Default-collapsed unless the user has saved instructions to come back to.
+  const [advancedExpanded, setAdvancedExpanded] = useState(activeConfig?.customInstructions != null)
+  const [defaultPromptOpen, setDefaultPromptOpen] = useState(false)
   const [comingSoonProviderKey, setComingSoonProviderKey] = useState<string | null>(null)
   const [validation, setValidation] = useState<ValidationState>({ kind: 'idle' })
   const validationControllerRef = useRef<AbortController | null>(null)
+
+  // Derived: only persisted as a CustomInstructions when there is text. Empty
+  // text means "no custom instructions" regardless of which mode is selected.
+  const customInstructionsDraft: CustomInstructions | null =
+    customInstructionsText.trim() === ''
+      ? null
+      : { mode: customInstructionsMode, text: customInstructionsText }
+
+  // Whether the current draft (provider, model) would update an existing
+  // saved credential. Drives the Apply button's label so the user knows
+  // upfront whether they're creating a new entry or editing one.
+  const draftCredentialKey: CredentialKey | null = ((): CredentialKey | null => {
+    if (selectedProvider === null) {
+      return null
+    }
+    if (selectedProvider === 'custom') {
+      return 'custom'
+    }
+    return selectedModelId === null ? null : `${selectedProvider}:${selectedModelId}`
+  })()
+  const isUpdatingExisting = draftCredentialKey !== null && lookupSavedCredential(draftCredentialKey) !== null
+
+  const handleInstructionsTextChange = (raw: string): void => {
+    setCustomInstructionsText(raw.slice(0, CUSTOM_INSTRUCTIONS_MAX_CHARS))
+  }
+
+  const handleModeChange = (mode: 'append' | 'replace'): void => {
+    setCustomInstructionsMode(mode)
+  }
+
+  const handleForget = (): void => {
+    if (draftCredentialKey === null) {
+      return
+    }
+    cancelPendingValidation()
+    onForget(draftCredentialKey)
+    onClose()
+  }
 
   // Input only mounts once both provider + model are picked, so a stable ref
   // callback fires once per mount. Stable via useCallback so React does not
@@ -161,21 +237,77 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
     validationControllerRef.current = null
   }
 
-  const handlePickProvider = (providerId: ByokProviderId): void => {
-    cancelPendingValidation()
-    setSelectedProvider(providerId)
-    // For catalog providers, don't pre-select a model. the user has to pick
-    // one. For the custom provider there IS no list, so we prefill with the
-    // spec's defaults so the fields read as an example.
-    const spec = findProvider(providerId)
-    if (spec.kind === 'custom') {
-      setSelectedModelId(spec.defaults.model)
-      setBaseUrlDraft(baseUrlDraft === '' ? spec.defaults.baseUrl : baseUrlDraft)
-      setModelNameDraft(modelNameDraft === '' ? spec.defaults.model : modelNameDraft)
+  // Restores draft state from a previously saved credential so the user
+  // doesn't re-type the same key when they bounce between providers / models
+  // they've already used. Auto-expands the Advanced section when the saved
+  // credential has instructions, so a non-active credential's persisted
+  // prompt is visible immediately on switch (matches the auto-expand
+  // behaviour for the active credential at modal mount).
+  const restoreFromCredential = (saved: ByokConfig): void => {
+    setApiKeyDraft(saved.apiKey)
+    setCustomInstructionsMode(saved.customInstructions?.mode ?? 'append')
+    setCustomInstructionsText(saved.customInstructions?.text ?? '')
+    setAdvancedExpanded(saved.customInstructions != null)
+    if (saved.provider === 'custom') {
+      setBaseUrlDraft(saved.baseUrl)
+      setModelNameDraft(saved.model)
+      setSelectedModelId(saved.model)
+    } else {
+      setSelectedModelId(saved.model)
+    }
+  }
+
+  const resetDraftFields = ({ provider }: { provider: ByokProviderId }): void => {
+    setApiKeyDraft('')
+    setCustomInstructionsMode('append')
+    setCustomInstructionsText('')
+    if (provider === 'custom') {
+      const spec = findProvider('custom')
+      if (spec.kind === 'custom') {
+        setBaseUrlDraft(spec.defaults.baseUrl)
+        setModelNameDraft(spec.defaults.model)
+        setSelectedModelId(spec.defaults.model)
+      }
     } else {
       setSelectedModelId(null)
     }
+  }
+
+  const handlePickProvider = (providerId: ByokProviderId): void => {
+    cancelPendingValidation()
+    setSelectedProvider(providerId)
     setValidation({ kind: 'idle' })
+    const spec = findProvider(providerId)
+    if (spec.kind === 'custom') {
+      // Custom collapses to a single saved slot. Pre-fill if present.
+      const saved = lookupSavedCredential('custom')
+      if (saved !== null && saved.provider === 'custom') {
+        restoreFromCredential(saved)
+        return
+      }
+      resetDraftFields({ provider: 'custom' })
+      return
+    }
+    // Catalog: model picked separately; reset draft fields until then.
+    resetDraftFields({ provider: providerId })
+  }
+
+  const handlePickCatalogModel = (modelId: string): void => {
+    cancelPendingValidation()
+    setValidation({ kind: 'idle' })
+    setSelectedModelId(modelId)
+    if (selectedProvider === null || selectedProvider === 'custom') {
+      return
+    }
+    const key: CredentialKey = `${selectedProvider}:${modelId}`
+    const saved = lookupSavedCredential(key)
+    if (saved !== null && saved.provider === selectedProvider) {
+      restoreFromCredential(saved)
+      return
+    }
+    setApiKeyDraft('')
+    setCustomInstructionsMode('append')
+    setCustomInstructionsText('')
   }
 
   const handleKeyChange = (value: string): void => {
@@ -234,6 +366,7 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
         model: trimmedModelName,
         apiKey: trimmedKey,
         baseUrl: trimmedBaseUrl,
+        customInstructions: customInstructionsDraft,
       }
     }
     if (selectedModelId === null || trimmedKey === '') {
@@ -243,8 +376,36 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
       provider: selectedProvider,
       model: selectedModelId,
       apiKey: trimmedKey,
+      customInstructions: customInstructionsDraft,
     }
   }
+
+  // True when the only difference between the current draft and the active
+  // credential is `customInstructions`. The API key has already been
+  // validated (it is currently driving chat), so re-probing serves no
+  // purpose and a transient probe failure would silently drop the new
+  // instructions. Bypass the probe in that case.
+  //
+  // Identity is checked via `credentialKey(activeConfig)` so switching to a
+  // DIFFERENT saved credential that happens to share an API key string
+  // (e.g. one Anthropic key used for both Haiku and Sonnet) still runs the
+  // probe — otherwise a stale or unavailable model would activate silently.
+  const isInstructionsOnlyUpdate = ((): boolean => {
+    if (activeConfig === null) {
+      return false
+    }
+    if (draftCredentialKey !== credentialKey(activeConfig)) {
+      return false
+    }
+    if (activeConfig.provider === 'custom') {
+      return (
+        modelNameDraft.trim() === activeConfig.model &&
+        baseUrlDraft.trim() === activeConfig.baseUrl &&
+        apiKeyDraft.trim() === activeConfig.apiKey
+      )
+    }
+    return selectedModelId === activeConfig.model && apiKeyDraft.trim() === activeConfig.apiKey
+  })()
 
   const handleApply = async (): Promise<void> => {
     const trimmedKey = apiKeyDraft.trim()
@@ -253,6 +414,15 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
       return
     }
     cancelPendingValidation()
+    if (isInstructionsOnlyUpdate) {
+      // Skip the probe: only customInstructions changed against an already
+      // validated credential. Save synchronously so a probe-time network
+      // blip can't drop the user's edit.
+      setValidation({ kind: 'idle' })
+      onApply(pending)
+      onClose()
+      return
+    }
     const controller = new AbortController()
     validationControllerRef.current = controller
     setValidation({ kind: 'validating' })
@@ -394,7 +564,7 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
                       <button
                         key={model.id}
                         type="button"
-                        onClick={() => setSelectedModelId(model.id)}
+                        onClick={() => handlePickCatalogModel(model.id)}
                         className={`flex w-full items-start justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition ${
                           isSelected ? 'border-sky-600' : 'border-slate-200 hover:border-sky-600'
                         }`}
@@ -506,32 +676,138 @@ const ModelPickerModalBody = ({ onClose, activeConfig, demoGate, onApply }: Mode
             </div>
           ) : null}
 
+          {selectedProvider !== null ? (
+            <div className="mt-4 rounded-md border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setAdvancedExpanded((value) => !value)}
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-medium text-slate-700 hover:text-sky-700"
+              >
+                <span className="flex items-center gap-2">
+                  <Cog
+                    className={`h-3.5 w-3.5 flex-none ${
+                      customInstructionsDraft !== null ? 'text-sky-600' : 'text-slate-500'
+                    }`}
+                    aria-hidden
+                  />
+                  {advancedExpanded
+                    ? t('chat.modelPicker.customInstructionsHide')
+                    : t('chat.modelPicker.customInstructionsToggle')}
+                </span>
+                <span aria-hidden className="text-slate-400">
+                  {advancedExpanded ? '−' : '+'}
+                </span>
+              </button>
+              {advancedExpanded ? (
+                <div className="space-y-3 border-t border-slate-100 px-3 py-3">
+                  <div className="space-y-1.5">
+                    {(['append', 'replace'] as const).map((mode) => (
+                      <label
+                        key={mode}
+                        className="flex cursor-pointer items-start gap-2 rounded-md border border-slate-200 px-2.5 py-2 text-xs hover:border-sky-600"
+                      >
+                        <input
+                          type="radio"
+                          name="custom-instructions-mode"
+                          value={mode}
+                          checked={customInstructionsMode === mode}
+                          onChange={() => handleModeChange(mode)}
+                          className="mt-0.5"
+                        />
+                        <span>
+                          <span className="font-medium text-slate-900">
+                            {t(
+                              `chat.modelPicker.customInstructionsMode${mode === 'append' ? 'Append' : 'Replace'}`,
+                            )}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] text-slate-500">
+                            {t(
+                              `chat.modelPicker.customInstructionsMode${mode === 'append' ? 'Append' : 'Replace'}Description`,
+                            )}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <textarea
+                    value={customInstructionsText}
+                    onChange={(event) => handleInstructionsTextChange(event.target.value)}
+                    placeholder={t(
+                      customInstructionsMode === 'append'
+                        ? 'chat.modelPicker.customInstructionsPlaceholderAppend'
+                        : 'chat.modelPicker.customInstructionsPlaceholderReplace',
+                    )}
+                    rows={customInstructionsMode === 'replace' ? 8 : 5}
+                    className="block w-full resize-y rounded-md border border-slate-200 p-2 text-xs text-slate-700 focus:border-sky-600 focus:outline-none"
+                  />
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <button
+                      type="button"
+                      onClick={() => setDefaultPromptOpen(true)}
+                      className="text-sky-600 hover:text-sky-700"
+                    >
+                      {t('chat.modelPicker.customInstructionsViewDefault')}
+                    </button>
+                    <span>
+                      {t('chat.modelPicker.customInstructionsCharCount', {
+                        count: customInstructionsText.length,
+                        max: CUSTOM_INSTRUCTIONS_MAX_CHARS,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="mt-4 rounded-md border border-sky-100 bg-sky-50 p-3 text-[11px] text-sky-900">
             <div className="font-semibold">{t('chat.modelPicker.byokSecurityTitle')}</div>
             <p className="mt-1 leading-relaxed">{t('chat.modelPicker.byokSecurityBody')}</p>
           </div>
         </section>
 
-        <section className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:border-slate-300"
-          >
-            {t('chat.modelPicker.cancelButton')}
-          </button>
-          <button
-            type="button"
-            disabled={!canApply}
-            onClick={() => {
-              void handleApply()
-            }}
-            className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            {isValidating ? t('chat.modelPicker.validatingButton') : t('chat.modelPicker.applyButton')}
-          </button>
+        <section className="flex items-center justify-between gap-2 border-t border-slate-100 pt-4">
+          {isUpdatingExisting ? (
+            <button
+              type="button"
+              onClick={handleForget}
+              className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-rose-600 hover:border-rose-300 hover:text-rose-700"
+            >
+              {t('chat.modelPicker.forgetKey')}
+            </button>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:border-slate-300"
+            >
+              {t('chat.modelPicker.cancelButton')}
+            </button>
+            <button
+              type="button"
+              disabled={!canApply}
+              onClick={() => {
+                void handleApply()
+              }}
+              className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {isValidating
+                ? t('chat.modelPicker.validatingButton')
+                : isUpdatingExisting
+                  ? t('chat.modelPicker.updateConfigButton')
+                  : t('chat.modelPicker.applyButton')}
+            </button>
+          </div>
         </section>
       </div>
+      <DefaultPromptModal
+        open={defaultPromptOpen}
+        onClose={() => setDefaultPromptOpen(false)}
+        prompt={getDefaultSystemPrompt(FINALISATION_ACTION)}
+      />
     </Modal>
   )
 }
