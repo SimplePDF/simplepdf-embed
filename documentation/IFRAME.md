@@ -204,6 +204,15 @@ console.log("Pages:", content.pages); // [{ page: 1, content: "..." }, ...]
 
 // Submit the document
 await sendEvent("SUBMIT", { download_copy: true });
+
+// Move a visible page (1-indexed) to a new position
+await sendEvent("MOVE_PAGE", { from_page: 2, to_page: 5 });
+
+// Delete a visible page (1-indexed). The last remaining visible page cannot be deleted
+await sendEvent("DELETE_PAGE", { page: 3 });
+
+// Rotate a visible page (1-indexed) 90° clockwise
+await sendEvent("ROTATE_PAGE", { page: 1 });
 ```
 
 ---
@@ -334,6 +343,31 @@ Submit the document for processing.
 | `download_copy` | `boolean` | Yes      | Whether to trigger a download of the filled PDF |
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for server-side storage and webhook integration options.
+
+#### MOVE_PAGE
+
+Reorder a visible page. Both positions are 1-indexed visible-page numbers (matching the `current_page` reported by `PAGE_FOCUSED`).
+
+| Field       | Type     | Required | Description                                  |
+| ----------- | -------- | -------- | -------------------------------------------- |
+| `from_page` | `number` | Yes      | Visible page to move (1-indexed)             |
+| `to_page`   | `number` | Yes      | Target visible position (1-indexed)          |
+
+#### DELETE_PAGE
+
+Delete a visible page and any fields placed on it. The last remaining visible page cannot be deleted; doing so returns `bad_request:event_not_allowed`.
+
+| Field  | Type     | Required | Description                          |
+| ------ | -------- | -------- | ------------------------------------ |
+| `page` | `number` | Yes      | Visible page to delete (1-indexed)   |
+
+#### ROTATE_PAGE
+
+Rotate a visible page 90° clockwise. Call repeatedly to reach 180° / 270°.
+
+| Field  | Type     | Required | Description                          |
+| ------ | -------- | -------- | ------------------------------------ |
+| `page` | `number` | Yes      | Visible page to rotate (1-indexed)   |
 
 ---
 
