@@ -112,7 +112,10 @@
     "stop": "Stoppa",
     "thinking": "Tänker…",
     "piiWarning": "Offentlig demo. Använd endast exempeldata. Meddelanden behandlas av den valda AI-leverantören.",
-    "newFieldHint": "Nytt {{field}}-fält tillagt av användaren",
+    "newFieldHint_one": "Nytt {{field}}-fält tillagt av användaren",
+    "newFieldHint_other": "{{count}} nya {{field}}-fält tillagda av användaren",
+    "newFieldsHint_one": "Nytt fält tillagt av användaren",
+    "newFieldsHint_other": "{{count}} nya fält tillagda av användaren",
     "errorAuthTitle": "Autentiseringen misslyckades.",
     "errorAuthBody": "AI-leverantören avvisade din API-nyckel. <switchModel>Byt AI-modell</switchModel> för att verifiera nyckeln och försök igen.",
     "errorRateLimitedTitle": "Du har nått demogränsen",
@@ -194,7 +197,11 @@
       "select_tool": "Byter verktyg",
       "create_field": "Skapar ett fält",
       "remove_fields": "Tar bort fält",
-      "submit_download": "Förbereder nedladdning"
+      "move_page": "Flyttar sidan",
+      "delete_page": "Tar bort sidan",
+      "rotate_page": "Roterar sidan",
+      "submit": "Skickar in formuläret",
+      "download": "Förbereder nedladdning"
     }
   },
   "forms": {

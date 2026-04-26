@@ -112,7 +112,10 @@
     "stop": "Durdur",
     "thinking": "Düşünüyor…",
     "piiWarning": "Herkese açık demo. Yalnızca örnek veri kullanın. Mesajlar seçilen yapay zeka sağlayıcısı tarafından işlenir.",
-    "newFieldHint": "Kullanıcı tarafından yeni {{field}} alanı eklendi",
+    "newFieldHint_one": "Kullanıcı tarafından yeni {{field}} alanı eklendi",
+    "newFieldHint_other": "Kullanıcı tarafından {{count}} yeni {{field}} alanı eklendi",
+    "newFieldsHint_one": "Kullanıcı tarafından yeni alan eklendi",
+    "newFieldsHint_other": "Kullanıcı tarafından {{count}} yeni alan eklendi",
     "errorAuthTitle": "Kimlik doğrulama başarısız oldu.",
     "errorAuthBody": "Yapay zeka sağlayıcısı API anahtarınızı reddetti. Anahtarı doğrulamak için <switchModel>yapay zeka modelini değiştirin</switchModel> ve tekrar deneyin.",
     "errorRateLimitedTitle": "Demo sınırına ulaştınız",
@@ -194,7 +197,11 @@
       "select_tool": "Araç değiştiriliyor",
       "create_field": "Alan oluşturuluyor",
       "remove_fields": "Alanlar kaldırılıyor",
-      "submit_download": "İndirme hazırlanıyor"
+      "move_page": "Sayfa taşınıyor",
+      "delete_page": "Sayfa siliniyor",
+      "rotate_page": "Sayfa döndürülüyor",
+      "submit": "Form gönderiliyor",
+      "download": "İndirme hazırlanıyor"
     }
   },
   "forms": {

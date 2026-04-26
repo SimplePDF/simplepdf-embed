@@ -112,7 +112,10 @@
     "stop": "Detener",
     "thinking": "Pensando…",
     "piiWarning": "Demo pública. Usa solo datos de ejemplo. Los mensajes los procesa el proveedor de IA seleccionado.",
-    "newFieldHint": "Nuevo campo de tipo {{field}} añadido por el usuario",
+    "newFieldHint_one": "Nuevo campo de tipo {{field}} añadido por el usuario",
+    "newFieldHint_other": "{{count}} nuevos campos de tipo {{field}} añadidos por el usuario",
+    "newFieldsHint_one": "Nuevo campo añadido por el usuario",
+    "newFieldsHint_other": "{{count}} nuevos campos añadidos por el usuario",
     "errorAuthTitle": "Error de autenticación.",
     "errorAuthBody": "El proveedor de IA rechazó tu clave API. <switchModel>Cambia de modelo de IA</switchModel> para verificar la clave e inténtalo de nuevo.",
     "errorRateLimitedTitle": "Has alcanzado el límite de la demo",
@@ -194,7 +197,11 @@
       "select_tool": "Cambiando de herramienta",
       "create_field": "Creando un campo",
       "remove_fields": "Eliminando campos",
-      "submit_download": "Preparando la descarga"
+      "move_page": "Moviendo la página",
+      "delete_page": "Eliminando la página",
+      "rotate_page": "Rotando la página",
+      "submit": "Enviando el formulario",
+      "download": "Preparando la descarga"
     }
   },
   "forms": {

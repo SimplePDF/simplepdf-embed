@@ -112,7 +112,10 @@
     "stop": "Parar",
     "thinking": "A pensar…",
     "piiWarning": "Demonstração pública. Use apenas dados de exemplo. As mensagens são processadas pelo fornecedor de IA selecionado.",
-    "newFieldHint": "Novo campo {{field}} adicionado pelo utilizador",
+    "newFieldHint_one": "Novo campo {{field}} adicionado pelo utilizador",
+    "newFieldHint_other": "{{count}} novos campos {{field}} adicionados pelo utilizador",
+    "newFieldsHint_one": "Novo campo adicionado pelo utilizador",
+    "newFieldsHint_other": "{{count}} novos campos adicionados pelo utilizador",
     "errorAuthTitle": "Autenticação falhou.",
     "errorAuthBody": "O fornecedor de IA rejeitou a sua chave API. <switchModel>Mude de modelo de IA</switchModel> para verificar a chave e tente novamente.",
     "errorRateLimitedTitle": "Atingiu o limite da demonstração",
@@ -194,7 +197,11 @@
       "select_tool": "A mudar de ferramenta",
       "create_field": "A criar um campo",
       "remove_fields": "A remover campos",
-      "submit_download": "A preparar a transferência"
+      "move_page": "A mover a página",
+      "delete_page": "A eliminar a página",
+      "rotate_page": "A rodar a página",
+      "submit": "A submeter o formulário",
+      "download": "A preparar a transferência"
     }
   },
   "forms": {

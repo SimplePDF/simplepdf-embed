@@ -31,6 +31,26 @@ export const dispatch = async (
     }
     case 'detect_fields':
       return bridge.detectFields()
+    case 'remove_fields': {
+      const rawIds = input.field_ids
+      const fieldIds = ((): string[] | null | 'invalid' => {
+        if (rawIds === undefined || rawIds === null) {
+          return null
+        }
+        if (Array.isArray(rawIds) && rawIds.every((id): id is string => typeof id === 'string')) {
+          return rawIds
+        }
+        return 'invalid'
+      })()
+      if (fieldIds === 'invalid') {
+        return {
+          success: false,
+          error: { code: 'bad_input', message: 'field_ids must be an array of strings' },
+        }
+      }
+      const page = typeof input.page === 'number' ? input.page : null
+      return bridge.removeFields({ fieldIds, page })
+    }
     case 'select_tool': {
       const rawTool = input.tool
       if (rawTool !== undefined && !isSelectableTool(rawTool)) {

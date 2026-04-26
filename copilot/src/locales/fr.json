@@ -112,7 +112,10 @@
     "stop": "Arrêter",
     "thinking": "Réflexion en cours…",
     "piiWarning": "Démo publique. Utilisez uniquement des données d’exemple. Les messages sont traités par le fournisseur d’IA sélectionné.",
-    "newFieldHint": "Nouveau champ {{field}} ajouté par l’utilisateur",
+    "newFieldHint_one": "Nouveau champ {{field}} ajouté par l’utilisateur",
+    "newFieldHint_other": "{{count}} nouveaux champs {{field}} ajoutés par l’utilisateur",
+    "newFieldsHint_one": "Nouveau champ ajouté par l’utilisateur",
+    "newFieldsHint_other": "{{count}} nouveaux champs ajoutés par l’utilisateur",
     "errorAuthTitle": "L’authentification a échoué.",
     "errorAuthBody": "Le fournisseur d’IA a refusé votre clé API. <switchModel>Changer de modèle IA</switchModel> pour la vérifier, puis réessayez.",
     "errorRateLimitedTitle": "Vous avez atteint la limite de la démo",
@@ -194,7 +197,11 @@
       "select_tool": "Changement d’outil",
       "create_field": "Création d’un champ",
       "remove_fields": "Suppression des champs",
-      "submit_download": "Préparation du téléchargement"
+      "move_page": "Déplacement de la page",
+      "delete_page": "Suppression de la page",
+      "rotate_page": "Rotation de la page",
+      "submit": "Envoi du formulaire",
+      "download": "Préparation du téléchargement"
     }
   },
   "forms": {

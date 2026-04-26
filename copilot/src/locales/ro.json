@@ -112,7 +112,12 @@
     "stop": "Oprește",
     "thinking": "Gândește…",
     "piiWarning": "Demonstrație publică. Folosiți doar date de exemplu. Mesajele sunt procesate de furnizorul AI selectat.",
-    "newFieldHint": "Câmp nou de tip {{field}} adăugat de utilizator",
+    "newFieldHint_one": "Câmp nou de tip {{field}} adăugat de utilizator",
+    "newFieldHint_few": "{{count}} câmpuri noi de tip {{field}} adăugate de utilizator",
+    "newFieldHint_other": "{{count}} de câmpuri noi de tip {{field}} adăugate de utilizator",
+    "newFieldsHint_one": "Câmp nou adăugat de utilizator",
+    "newFieldsHint_few": "{{count}} câmpuri noi adăugate de utilizator",
+    "newFieldsHint_other": "{{count}} de câmpuri noi adăugate de utilizator",
     "errorAuthTitle": "Autentificarea a eșuat.",
     "errorAuthBody": "Furnizorul AI ți-a respins cheia API. <switchModel>Schimbă modelul AI</switchModel> pentru a verifica cheia și încearcă din nou.",
     "errorRateLimitedTitle": "Ai atins limita demo",
@@ -195,7 +200,11 @@
       "select_tool": "Se schimbă instrumentul",
       "create_field": "Se creează un câmp",
       "remove_fields": "Se elimină câmpurile",
-      "submit_download": "Se pregătește descărcarea"
+      "move_page": "Se mută pagina",
+      "delete_page": "Se șterge pagina",
+      "rotate_page": "Se roteşte pagina",
+      "submit": "Se trimite formularul",
+      "download": "Se pregătește descărcarea"
     }
   },
   "forms": {

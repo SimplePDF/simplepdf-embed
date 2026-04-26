@@ -112,7 +112,10 @@
     "stop": "Stopp",
     "thinking": "Denkt nach…",
     "piiWarning": "Öffentliche Demo. Verwenden Sie nur Beispieldaten. Nachrichten werden vom ausgewählten KI-Anbieter verarbeitet.",
-    "newFieldHint": "Neues {{field}}-Feld vom Benutzer hinzugefügt",
+    "newFieldHint_one": "Neues {{field}}-Feld vom Benutzer hinzugefügt",
+    "newFieldHint_other": "{{count}} neue {{field}}-Felder vom Benutzer hinzugefügt",
+    "newFieldsHint_one": "Neues Feld vom Benutzer hinzugefügt",
+    "newFieldsHint_other": "{{count}} neue Felder vom Benutzer hinzugefügt",
     "errorAuthTitle": "Authentifizierung fehlgeschlagen.",
     "errorAuthBody": "Der KI-Anbieter hat Ihren API-Schlüssel abgelehnt. <switchModel>KI-Modell wechseln</switchModel>, um den Schlüssel zu überprüfen, und erneut versuchen.",
     "errorRateLimitedTitle": "Sie haben das Demo-Limit erreicht",
@@ -194,7 +197,11 @@
       "select_tool": "Werkzeug wird gewechselt",
       "create_field": "Feld wird erstellt",
       "remove_fields": "Felder werden entfernt",
-      "submit_download": "Download wird vorbereitet"
+      "move_page": "Seite wird verschoben",
+      "delete_page": "Seite wird gelöscht",
+      "rotate_page": "Seite wird gedreht",
+      "submit": "Formular wird gesendet",
+      "download": "Download wird vorbereitet"
     }
   },
   "forms": {

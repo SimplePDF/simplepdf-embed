@@ -112,7 +112,10 @@
     "stop": "Peata",
     "thinking": "Mõtleb…",
     "piiWarning": "Avalik demo. Kasuta ainult näidisandmeid. Teateid töötleb valitud AI-teenusepakkuja.",
-    "newFieldHint": "Kasutaja lisas uue {{field}}-välja",
+    "newFieldHint_one": "Kasutaja lisas uue {{field}}-välja",
+    "newFieldHint_other": "Kasutaja lisas {{count}} uut {{field}}-välja",
+    "newFieldsHint_one": "Kasutaja lisas uue välja",
+    "newFieldsHint_other": "Kasutaja lisas {{count}} uut välja",
     "errorAuthTitle": "Autentimine ebaõnnestus.",
     "errorAuthBody": "AI-teenusepakkuja lükkas sinu API-võtme tagasi. <switchModel>Vaheta AI-mudelit</switchModel>, et võtit kontrollida, ja proovi uuesti.",
     "errorRateLimitedTitle": "Oled jõudnud demo piirini",
@@ -194,7 +197,11 @@
       "select_tool": "Tööriista vahetamine",
       "create_field": "Välja loomine",
       "remove_fields": "Väljade eemaldamine",
-      "submit_download": "Allalaadimise ettevalmistamine"
+      "move_page": "Lehe teisaldamine",
+      "delete_page": "Lehe kustutamine",
+      "rotate_page": "Lehe pööramine",
+      "submit": "Vormi esitamine",
+      "download": "Allalaadimise ettevalmistamine"
     }
   },
   "forms": {

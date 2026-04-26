@@ -112,7 +112,10 @@
     "stop": "Stopp",
     "thinking": "Tenker…",
     "piiWarning": "Offentlig demo. Bruk kun eksempeldata. Meldinger behandles av den valgte AI-leverandøren.",
-    "newFieldHint": "Nytt {{field}}-felt lagt til av brukeren",
+    "newFieldHint_one": "Nytt {{field}}-felt lagt til av brukeren",
+    "newFieldHint_other": "{{count}} nye {{field}}-felt lagt til av brukeren",
+    "newFieldsHint_one": "Nytt felt lagt til av brukeren",
+    "newFieldsHint_other": "{{count}} nye felt lagt til av brukeren",
     "errorAuthTitle": "Autentisering mislyktes.",
     "errorAuthBody": "AI-leverandøren avviste API-nøkkelen din. <switchModel>Bytt AI-modell</switchModel> for å bekrefte nøkkelen, og prøv igjen.",
     "errorRateLimitedTitle": "Du har nådd demogrensen",
@@ -194,7 +197,11 @@
       "select_tool": "Bytter verktøy",
       "create_field": "Oppretter et felt",
       "remove_fields": "Fjerner felt",
-      "submit_download": "Forbereder nedlasting"
+      "move_page": "Flytter siden",
+      "delete_page": "Sletter siden",
+      "rotate_page": "Roterer siden",
+      "submit": "Sender inn skjemaet",
+      "download": "Forbereder nedlasting"
     }
   },
   "forms": {

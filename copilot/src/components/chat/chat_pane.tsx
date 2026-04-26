@@ -2,7 +2,7 @@ import { useChat } from '@ai-sdk/react'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp } from 'lucide-react'
-import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import {
@@ -19,6 +19,7 @@ import {
   type Vault,
 } from '../../lib/byok'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
+import type { FormId } from '../../lib/demo/forms'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -61,7 +62,7 @@ type ChatPaneProps = {
   requiresUserUpload: boolean
   language: string
   onLanguageChange: (code: string) => void
-  documentId: string | null
+  form: FormId
   demoGate: DemoGate
   // True while the user's cursor is over the editor iframe. Used as an
   // additional gate on the FieldAddedHint poll so we stop hitting the
@@ -71,36 +72,36 @@ type ChatPaneProps = {
   isCursorOverEditor: boolean
 }
 
-// In-memory chat store keyed by (document_id, language). Survives component
+// In-memory chat store keyed by (form, language). Survives component
 // remounts (e.g. form switches that tear down the ChatPane) but intentionally
 // resets on page reload. Language is part of the key so switching locale
 // starts a fresh thread in the new language and restores the previous one on
 // switch-back. Capped at MAX_TRACKED_ENTRIES with LRU eviction to prevent
-// unbounded growth on power-users who explore many documents / languages.
+// unbounded growth on power-users who explore many forms / languages.
+//
+// Why `form` and not the editor's document_id: a SimplePDF document_id is
+// content-derived (binary hash of the loaded PDF). When the user merges a
+// new page in via the editor's "Add document" button, the underlying
+// document changes and so does its id — the chat would reset mid-session
+// on a routine merge. Keying on the URL-stable `form` slot keeps the chat
+// thread alive across in-editor mutations and only resets when the user
+// explicitly picks a different form from the FormPicker (which is what
+// changes `?form=` in the URL).
 const MAX_TRACKED_ENTRIES = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
-const buildCacheKey = (documentId: string | null, language: string): string | null => {
-  if (documentId === null) {
-    return null
-  }
-  // documentId is a UUID (hex + dashes), language is a fixed ISO code
+const buildCacheKey = (form: FormId, language: string): string => {
+  // FormId is a fixed string-literal union and language is a fixed ISO code
   // (two/three-letter ASCII). Neither can contain ':', so a plain colon is
   // a safe delimiter.
-  return `${documentId}:${language}`
+  return `${form}:${language}`
 }
 
-const readPersistedMessages = (cacheKey: string | null): UIMessage[] => {
-  if (cacheKey === null) {
-    return []
-  }
+const readPersistedMessages = (cacheKey: string): UIMessage[] => {
   return chatHistoryStore.get(cacheKey) ?? []
 }
 
-const writePersistedMessages = (cacheKey: string | null, messages: UIMessage[]): void => {
-  if (cacheKey === null) {
-    return
-  }
+const writePersistedMessages = (cacheKey: string, messages: UIMessage[]): void => {
   // Map iteration order is insertion order, so delete-then-set moves the key
   // to the end, a poor-man's LRU. Evict the oldest when capacity exceeds the
   // cap.
@@ -148,27 +149,38 @@ type PlacementTool = Exclude<ToolbarTool, null>
 // an O(1) metadata check (no prefix string coupling). The text remains
 // human-readable for the LLM's context window; the metadata carries the
 // structured payload for the UI.
-type NewFieldHintMetadata = { kind: 'new_field_hint'; tool: PlacementTool; delta: number }
-
-const buildNewFieldMessage = ({
-  tool,
-  delta,
-}: {
-  tool: PlacementTool
-  delta: number
-}): { text: string; metadata: NewFieldHintMetadata } => {
-  const text =
-    delta === 1
-      ? `A new ${tool} field was just added to the document. Please continue helping me with it.`
-      : `${delta} new ${tool} fields were just added to the document. Please continue helping me with them.`
-  return { text, metadata: { kind: 'new_field_hint', tool, delta } }
-}
+//
+// `tools` is one entry per added field (so length === delta). Same type
+// repeated indicates a same-type batch; mixed types indicate a mixed
+// batch (TEXT + SIGNATURE in one drop window, for instance). The UI
+// dedupes for icon rendering.
+type NewFieldHintMetadata = { kind: 'new_field_hint'; tools: PlacementTool[]; delta: number }
 
 const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
 const isPlacementTool = (value: unknown): value is PlacementTool =>
   typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 
-const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
+const buildNewFieldMessage = ({
+  tools,
+}: {
+  tools: PlacementTool[]
+}): { text: string; metadata: NewFieldHintMetadata } => {
+  const delta = tools.length
+  const uniqueTools = Array.from(new Set(tools))
+  const text = ((): string => {
+    if (delta === 1) {
+      return `A new ${tools[0]} field was just added to the document. Please continue helping me with it.`
+    }
+    if (uniqueTools.length === 1) {
+      return `${delta} new ${uniqueTools[0]} fields were just added to the document. Please continue helping me with them.`
+    }
+    const breakdown = uniqueTools.map((tool) => `${tools.filter((t) => t === tool).length} ${tool}`).join(', ')
+    return `${delta} new fields were just added to the document (${breakdown}). Please continue helping me with them.`
+  })()
+  return { text, metadata: { kind: 'new_field_hint', tools, delta } }
+}
+
+const readFieldHintMetadata = (message: UIMessage): { tools: PlacementTool[]; delta: number } | null => {
   const meta = message.metadata
   if (typeof meta !== 'object' || meta === null) {
     return null
@@ -176,10 +188,14 @@ const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
   if (!('kind' in meta) || meta.kind !== 'new_field_hint') {
     return null
   }
-  if (!('tool' in meta) || !isPlacementTool(meta.tool)) {
+  if (!('tools' in meta) || !Array.isArray(meta.tools)) {
     return null
   }
-  return meta.tool
+  const tools = meta.tools.filter(isPlacementTool)
+  if (tools.length === 0) {
+    return null
+  }
+  return { tools, delta: tools.length }
 }
 
 // Wraps successful tool results in a structural envelope so the LLM can
@@ -309,17 +325,20 @@ const createToolbarSyncMiddleware =
   }
 
 // When the LLM itself creates a field (via `create_field`), the iframe's
-// field count goes up. If we did nothing, the post-stream getFields would
-// count those fields as "user-added" and nudge the LLM about a field it
-// just created itself. This middleware fires `onLlmCreatedField` on every
-// successful `create_field` so the host can advance its baseline and keep
-// the delta user-attributed only.
+// field set grows by one. If we did nothing, the post-stream getFields
+// would diff that field as "user-added" and nudge the LLM about a field
+// it just created itself. This middleware extracts the new field id from
+// the bridge result and forwards it to the host so the field-detection
+// hook can pre-mark it as known.
 const createLlmFieldBaselineMiddleware =
-  ({ onLlmCreatedField }: { onLlmCreatedField: () => void }): ToolMiddleware =>
+  ({ onLlmCreatedField }: { onLlmCreatedField: (fieldId: string) => void }): ToolMiddleware =>
   async ({ toolName }, next) => {
     const result = await next()
     if (toolName === 'create_field' && result.success) {
-      onLlmCreatedField()
+      const data = result.data
+      if (data !== null && typeof data === 'object' && 'field_id' in data && typeof data.field_id === 'string') {
+        onLlmCreatedField(data.field_id)
+      }
     }
     return result
   }
@@ -372,7 +391,7 @@ export const ChatPane = ({
   requiresUserUpload,
   language,
   onLanguageChange,
-  documentId,
+  form,
   demoGate,
   isCursorOverEditor,
 }: ChatPaneProps) => {
@@ -393,7 +412,7 @@ export const ChatPane = ({
   // automatically pauses when the user scrolls up. It resumes once the user
   // scrolls back to the bottom. No manual scrollTo juggling in this file.
   const { scrollRef, contentRef } = useStickToBottom()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
   // BYOK state machine. ByokState is hoisted at module scope above; here we
   // derive the two consumer-facing reads (current active config + full
@@ -610,9 +629,9 @@ export const ChatPane = ({
     })
   }, [])
 
-  const cacheKey = buildCacheKey(documentId, language)
+  const cacheKey = buildCacheKey(form, language)
   const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(cacheKey))
-  const hydratedCacheKeyRef = useRef<string | null>(cacheKey)
+  const hydratedCacheKeyRef = useRef<string>(cacheKey)
 
   const enqueueToolExecution = useCallback((task: () => Promise<void>): Promise<void> => {
     const nextTask = toolExecutionQueueRef.current.catch(() => undefined).then(task)
@@ -621,13 +640,13 @@ export const ChatPane = ({
   }, [])
 
   // Refs-not-props for isStreaming + onFieldAdded: useDetectUserAddedField
-  // must be called BEFORE `tools` useMemo (which needs advanceBaseline),
+  // must be called BEFORE `tools` useMemo (which needs markFieldAsKnown),
   // but both of those pieces of information come from useChat which runs
   // AFTER `tools`. Refs break the cycle; they are synced once useChat's
   // output is in scope (a bit further down in this component).
   const isStreamingRef = useRef(false)
-  const onFieldAddedRef = useRef<(event: { tool: SupportedFieldType; delta: number }) => void>(() => {})
-  const { advanceBaseline: advanceFieldDetectionBaseline } = useDetectUserAddedField({
+  const onFieldAddedRef = useRef<(event: { tools: SupportedFieldType[]; delta: number }) => void>(() => {})
+  const { markFieldAsKnown: markFieldDetectionAsKnown } = useDetectUserAddedField({
     bridge,
     isReady,
     toolbarTool,
@@ -647,10 +666,9 @@ export const ChatPane = ({
     const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
       createLlmFieldBaselineMiddleware({
-        // When the LLM creates a field, bump the detection hook's
-        // baseline so the next user-placed-field check does not
-        // attribute it to the user.
-        onLlmCreatedField: () => advanceFieldDetectionBaseline(1),
+        // When the LLM creates a field, mark its id as known so the next
+        // user-placed-field diff does not attribute it to the user.
+        onLlmCreatedField: (fieldId) => markFieldDetectionAsKnown(fieldId),
       }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
     ]
@@ -666,7 +684,7 @@ export const ChatPane = ({
       systemPrompt: SYSTEM_PROMPT,
       middleware,
     })
-  }, [bridge, handleDownloadRequested, advanceFieldDetectionBaseline])
+  }, [bridge, handleDownloadRequested, markFieldDetectionAsKnown])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
@@ -801,8 +819,8 @@ export const ChatPane = ({
   // useChat because `tools` useMemo references advanceBaseline, but the
   // values these refs carry come from useChat itself).
   isStreamingRef.current = isStreaming
-  onFieldAddedRef.current = ({ tool, delta }) => {
-    const payload = buildNewFieldMessage({ tool, delta })
+  onFieldAddedRef.current = ({ tools }) => {
+    const payload = buildNewFieldMessage({ tools })
     void sendMessage({ text: payload.text, metadata: payload.metadata })
   }
 
@@ -817,6 +835,24 @@ export const ChatPane = ({
   // both are in play.
   const activeModelLabel = resolveActiveModelLabel({ byokConfig, demoGate })
   const hasActiveModel = activeModelLabel !== null
+  // Header subtext: only BYOK surfaces the actual model name (clickable to
+  // swap). On the shared-demo path we hide the model and reuse the welcome
+  // CTA copy so the same clickable affordance opens the picker without
+  // signalling which provider the demo is paying for.
+  const headerModelLabel: string | null = ((): string | null => {
+    if (byokConfig !== null) {
+      return activeModelLabel
+    }
+    switch (demoGate.kind) {
+      case 'demo':
+        return t('chat.welcomeCta')
+      case 'byok':
+        return null
+      default:
+        demoGate satisfies never
+        return null
+    }
+  })()
   // Hold the send button disabled until the vault read settles. Without this
   // guard, a message dispatched during the IDB load window would route to the
   // demo path (because byokConfigRef.current is still null), and the LLM
@@ -842,6 +878,21 @@ export const ChatPane = ({
       inputRef.current?.focus()
     }
   }, [canSend])
+
+  // Auto-resize the chat textarea so it grows upward as the user types past
+  // the visible width. Reset height to 'auto' first so scrollHeight reflects
+  // the wrapped content, then clamp to MAX. The CSS transition on the element
+  // animates the height change.
+  useLayoutEffect(() => {
+    const textarea = inputRef.current
+    if (textarea === null) {
+      return
+    }
+    textarea.style.height = 'auto'
+    const MAX_HEIGHT_PX = 160
+    const next = Math.min(textarea.scrollHeight, MAX_HEIGHT_PX)
+    textarea.style.height = `${next}px`
+  }, [draft])
 
   // Order matters: write runs BEFORE hydrate. When cacheKey flips (form or
   // locale switch), the write effect fires with stale `messages` from the
@@ -884,7 +935,7 @@ export const ChatPane = ({
   return (
     <div className="flex h-full flex-col">
       <ChatPaneHeader
-        activeModelLabel={activeModelLabel}
+        activeModelLabel={headerModelLabel}
         hasCustomInstructions={byokConfig?.customInstructions != null}
         isReady={isReady}
         chatStatusMessage={chatStatusMessage}
@@ -914,9 +965,9 @@ export const ChatPane = ({
             return (
               <div className="space-y-4 p-4">
                 {messages.map((message) => {
-                  const hintTool = readFieldHintTool(message)
-                  if (hintTool !== null) {
-                    return <FieldAddedHint key={message.id} tool={hintTool} />
+                  const hintMetadata = readFieldHintMetadata(message)
+                  if (hintMetadata !== null) {
+                    return <FieldAddedHint key={message.id} tools={hintMetadata.tools} />
                   }
                   switch (message.role) {
                     case 'user':
@@ -967,16 +1018,29 @@ export const ChatPane = ({
             event.preventDefault()
             handleSend(draft)
           }}
-          className="flex items-center gap-2"
+          className="flex items-end gap-2"
         >
-          <input
+          <textarea
             ref={inputRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              // Enter sends; Shift+Enter inserts a newline. Mirrors the
+              // pattern users already know from Slack / iMessage / vercel
+              // AI chatbot.
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                handleSend(draft)
+              }
+            }}
             disabled={!canSend}
             placeholder={inputPlaceholder}
-            className="flex-1 rounded-full border border-solid border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
-            style={{ borderWidth: '1px' }}
+            rows={1}
+            className="block flex-1 resize-none overflow-y-auto rounded-3xl border border-solid border-slate-200 bg-white px-4 py-2 text-sm leading-5 text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+            // Inline `borderWidth` survives Tailwind's reset; height is
+            // managed by the auto-resize useLayoutEffect, with a short
+            // transition so growth feels intentional rather than jumpy.
+            style={{ borderWidth: '1px', transition: 'height 120ms ease-out' }}
           />
           <button
             type="submit"
@@ -1007,26 +1071,39 @@ export const ChatPane = ({
   )
 }
 
-type FieldAddedHintProps = { tool: PlacementTool }
+type FieldAddedHintProps = { tools: PlacementTool[] }
 
-const FieldAddedHint = ({ tool }: FieldAddedHintProps) => {
+const FieldAddedHint = ({ tools }: FieldAddedHintProps) => {
   const { t, i18n } = useTranslation()
-  const option = TOOLBAR_OPTIONS.find((entry) => entry.value === tool)
-  if (option === undefined) {
+  const delta = tools.length
+  // Dedupe so each type renders one icon, even if the user dropped two
+  // of the same. Order matches first-seen order in the batch.
+  const uniqueTools = Array.from(new Set(tools))
+  const options = uniqueTools
+    .map((tool) => TOOLBAR_OPTIONS.find((entry) => entry.value === tool))
+    .filter((option): option is (typeof TOOLBAR_OPTIONS)[number] => option !== undefined)
+  if (options.length === 0) {
     return null
   }
-  const Icon = option.icon
-  // Lowercase the localised label before interpolation so the sentence
-  // reads as "New text field added by the user" rather than the proper-noun
-  // "New Text field ...". `toLocaleLowerCase` with the active locale
-  // handles locale-specific casing (e.g. Turkish dotted/dotless I).
-  const fieldLabel = t(option.labelKey).toLocaleLowerCase(i18n.language)
+  // Single-type batch (the common case): show "N new text fields added".
+  // Mixed batch (text + signature in the same drop window): show
+  // "N new fields added" without naming a type and let the icon row
+  // carry the type information visually.
+  const isSingleType = uniqueTools.length === 1
+  const message = isSingleType
+    ? t('chat.newFieldHint', {
+        count: delta,
+        field: t(options[0].labelKey).toLocaleLowerCase(i18n.language),
+      })
+    : t('chat.newFieldsHint', { count: delta })
   return (
     <div className="flex items-center justify-center gap-1.5 py-1 text-[11px] text-slate-400">
-      <span className="text-slate-400">
-        <Icon size={12} />
+      <span className="flex items-center gap-1 text-slate-400">
+        {options.map(({ value, icon: Icon }) => (
+          <Icon key={value} size={12} />
+        ))}
       </span>
-      <span>{t('chat.newFieldHint', { field: fieldLabel })}</span>
+      <span>{message}</span>
     </div>
   )
 }

@@ -112,7 +112,10 @@
     "stop": "Ferma",
     "thinking": "Sto pensando…",
     "piiWarning": "Demo pubblica. Usa solo dati di esempio. I messaggi sono elaborati dal provider IA selezionato.",
-    "newFieldHint": "Nuovo campo di tipo {{field}} aggiunto dall’utente",
+    "newFieldHint_one": "Nuovo campo di tipo {{field}} aggiunto dall’utente",
+    "newFieldHint_other": "{{count}} nuovi campi di tipo {{field}} aggiunti dall’utente",
+    "newFieldsHint_one": "Nuovo campo aggiunto dall’utente",
+    "newFieldsHint_other": "{{count}} nuovi campi aggiunti dall’utente",
     "errorAuthTitle": "Autenticazione non riuscita.",
     "errorAuthBody": "Il provider IA ha rifiutato la tua chiave API. <switchModel>Cambia modello IA</switchModel> per verificarla, poi riprova.",
     "errorRateLimitedTitle": "Hai raggiunto il limite della demo",
@@ -194,7 +197,11 @@
       "select_tool": "Cambio strumento",
       "create_field": "Creazione di un campo",
       "remove_fields": "Rimozione dei campi",
-      "submit_download": "Preparazione del download"
+      "move_page": "Spostamento della pagina",
+      "delete_page": "Eliminazione della pagina",
+      "rotate_page": "Rotazione della pagina",
+      "submit": "Invio del modulo",
+      "download": "Preparazione del download"
     }
   },
   "forms": {

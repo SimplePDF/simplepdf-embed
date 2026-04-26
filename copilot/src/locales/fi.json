@@ -112,7 +112,10 @@
     "stop": "Pysäytä",
     "thinking": "Ajattelee…",
     "piiWarning": "Julkinen demo. Käytä vain esimerkkitietoja. Viestit käsittelee valittu tekoälytarjoaja.",
-    "newFieldHint": "Käyttäjän lisäämä uusi {{field}}-kenttä",
+    "newFieldHint_one": "Käyttäjän lisäämä uusi {{field}}-kenttä",
+    "newFieldHint_other": "Käyttäjän lisäämä {{count}} uutta {{field}}-kenttää",
+    "newFieldsHint_one": "Käyttäjän lisäämä uusi kenttä",
+    "newFieldsHint_other": "Käyttäjän lisäämä {{count}} uutta kenttää",
     "errorAuthTitle": "Tunnistautuminen epäonnistui.",
     "errorAuthBody": "Tekoälytarjoaja hylkäsi API-avaimesi. <switchModel>Vaihda tekoälymalli</switchModel> avaimen vahvistamiseksi ja yritä uudelleen.",
     "errorRateLimitedTitle": "Olet saavuttanut demon rajan",
@@ -194,7 +197,11 @@
       "select_tool": "Vaihdetaan työkalua",
       "create_field": "Luodaan kenttä",
       "remove_fields": "Poistetaan kenttiä",
-      "submit_download": "Valmistellaan latausta"
+      "move_page": "Siirretään sivua",
+      "delete_page": "Poistetaan sivua",
+      "rotate_page": "Käännetään sivua",
+      "submit": "Lähetetään lomaketta",
+      "download": "Valmistellaan latausta"
     }
   },
   "forms": {

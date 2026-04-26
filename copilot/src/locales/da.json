@@ -112,7 +112,10 @@
     "stop": "Stop",
     "thinking": "Tænker…",
     "piiWarning": "Offentlig demo. Brug kun eksempeldata. Beskeder behandles af den valgte AI-udbyder.",
-    "newFieldHint": "Nyt {{field}}-felt tilføjet af brugeren",
+    "newFieldHint_one": "Nyt {{field}}-felt tilføjet af brugeren",
+    "newFieldHint_other": "{{count}} nye {{field}}-felter tilføjet af brugeren",
+    "newFieldsHint_one": "Nyt felt tilføjet af brugeren",
+    "newFieldsHint_other": "{{count}} nye felter tilføjet af brugeren",
     "errorAuthTitle": "Godkendelse mislykkedes.",
     "errorAuthBody": "AI-udbyderen afviste din API-nøgle. <switchModel>Skift AI-model</switchModel> for at verificere nøglen, og prøv igen.",
     "errorRateLimitedTitle": "Du har nået demo-grænsen",
@@ -194,7 +197,11 @@
       "select_tool": "Skifter værktøj",
       "create_field": "Opretter et felt",
       "remove_fields": "Fjerner felter",
-      "submit_download": "Forbereder download"
+      "move_page": "Flytter siden",
+      "delete_page": "Sletter siden",
+      "rotate_page": "Roterer siden",
+      "submit": "Indsender formularen",
+      "download": "Forbereder download"
     }
   },
   "forms": {

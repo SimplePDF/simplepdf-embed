@@ -112,7 +112,12 @@
     "stop": "Zastavit",
     "thinking": "Přemýšlím…",
     "piiWarning": "Veřejné demo. Používejte pouze ukázková data. Zprávy zpracovává zvolený AI poskytovatel.",
-    "newFieldHint": "Nové pole typu {{field}} přidané uživatelem",
+    "newFieldHint_one": "Nové pole typu {{field}} přidané uživatelem",
+    "newFieldHint_few": "{{count}} nová pole typu {{field}} přidaná uživatelem",
+    "newFieldHint_other": "{{count}} nových polí typu {{field}} přidaných uživatelem",
+    "newFieldsHint_one": "Nové pole přidané uživatelem",
+    "newFieldsHint_few": "{{count}} nová pole přidaná uživatelem",
+    "newFieldsHint_other": "{{count}} nových polí přidaných uživatelem",
     "errorAuthTitle": "Ověření selhalo.",
     "errorAuthBody": "AI poskytovatel odmítl váš API klíč. <switchModel>Přepněte AI model</switchModel>, ověřte klíč a zkuste to znovu.",
     "errorRateLimitedTitle": "Dosáhli jste limitu dema",
@@ -195,7 +200,11 @@
       "select_tool": "Přepínám nástroj",
       "create_field": "Vytvářím pole",
       "remove_fields": "Odstraňuji pole",
-      "submit_download": "Připravuji ke stažení"
+      "move_page": "Přesouvám stránku",
+      "delete_page": "Mažu stránku",
+      "rotate_page": "Otáčím stránku",
+      "submit": "Odesílám formulář",
+      "download": "Připravuji ke stažení"
     }
   },
   "forms": {

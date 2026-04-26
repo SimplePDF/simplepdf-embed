@@ -112,7 +112,12 @@
     "stop": "עצור",
     "thinking": "חושב…",
     "piiWarning": "הדגמה ציבורית. השתמשו רק בנתוני דוגמה. ההודעות מעובדות על ידי ספק ה־AI שנבחר.",
-    "newFieldHint": "שדה {{field}} חדש נוסף על ידי המשתמש",
+    "newFieldHint_one": "שדה {{field}} חדש נוסף על ידי המשתמש",
+    "newFieldHint_two": "שני שדות {{field}} חדשים נוספו על ידי המשתמש",
+    "newFieldHint_other": "{{count}} שדות {{field}} חדשים נוספו על ידי המשתמש",
+    "newFieldsHint_one": "שדה חדש נוסף על ידי המשתמש",
+    "newFieldsHint_two": "שני שדות חדשים נוספו על ידי המשתמש",
+    "newFieldsHint_other": "{{count}} שדות חדשים נוספו על ידי המשתמש",
     "errorAuthTitle": "האימות נכשל.",
     "errorAuthBody": "ספק ה-AI דחה את מפתח ה-API שלך. <switchModel>החלף מודל AI</switchModel> כדי לאמת את המפתח ונסה שוב.",
     "errorRateLimitedTitle": "הגעתם למגבלת ההדגמה",
@@ -195,7 +200,11 @@
       "select_tool": "החלפת כלי",
       "create_field": "יצירת שדה",
       "remove_fields": "הסרת שדות",
-      "submit_download": "הכנה להורדה"
+      "move_page": "העברת העמוד",
+      "delete_page": "מחיקת העמוד",
+      "rotate_page": "סיבוב העמוד",
+      "submit": "שליחת הטופס",
+      "download": "הכנה להורדה"
     }
   },
   "forms": {

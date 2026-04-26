@@ -195,7 +195,6 @@ function Home() {
     logger: bridgeLogger,
   })
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
-  const documentId = bridgeState.kind === 'document_loaded' ? bridgeState.documentId : null
 
   // WORKAROUND: the SimplePDF editor does not currently emit an outbound
   // FIELD_ADDED event when the user drops a field via the toolbar, so the
@@ -284,7 +283,7 @@ function Home() {
             requiresUserUpload={form === 'custom'}
             language={lang}
             onLanguageChange={handleLanguageChange}
-            documentId={documentId}
+            form={form}
             demoGate={demoGate}
             isCursorOverEditor={isCursorOverEditor}
           />

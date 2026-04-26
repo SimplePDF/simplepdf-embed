@@ -129,7 +129,9 @@
     "stop": "Stop",
     "thinking": "Thinking…",
     "piiWarning": "Public demo. Use sample data only. Messages are processed by the selected AI provider.",
-    "newFieldHint": "New {{field}} field added by the user",
+    "newFieldHint_one": "New {{field}} field added by the user",
+    "newFieldHint_other": "{{count}} new {{field}} fields added by the user",
+    "newFieldsHint_other": "{{count}} new fields added by the user",
     "errorAuthTitle": "Authentication failed.",
     "errorAuthBody": "The AI provider rejected your API key. <switchModel>Open the AI model selection</switchModel> to verify the key, and try again.",
     "errorRateLimitedTitle": "You've reached the demo limit",
@@ -213,7 +215,11 @@
       "select_tool": "Switching tool",
       "create_field": "Creating a field",
       "remove_fields": "Removing fields",
-      "submit_download": "Preparing the download"
+      "move_page": "Moving the page",
+      "delete_page": "Deleting the page",
+      "rotate_page": "Rotating the page",
+      "submit": "Submitting the form",
+      "download": "Preparing the download"
     }
   },
   "forms": {

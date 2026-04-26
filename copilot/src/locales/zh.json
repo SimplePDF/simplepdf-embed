@@ -112,7 +112,8 @@
     "stop": "停止",
     "thinking": "思考中…",
     "piiWarning": "公开演示。仅使用示例数据。消息由所选 AI 提供商处理。",
-    "newFieldHint": "用户添加了新的 {{field}} 字段",
+    "newFieldHint_other": "用户添加了 {{count}} 个新的 {{field}} 字段",
+    "newFieldsHint_other": "用户添加了 {{count}} 个新字段",
     "errorAuthTitle": "身份验证失败。",
     "errorAuthBody": "AI 提供商拒绝了您的 API 密钥。<switchModel>切换 AI 模型</switchModel>以验证密钥，然后重试。",
     "errorRateLimitedTitle": "您已达到演示限额",
@@ -194,7 +195,11 @@
       "select_tool": "正在切换工具",
       "create_field": "正在创建字段",
       "remove_fields": "正在删除字段",
-      "submit_download": "正在准备下载"
+      "move_page": "正在移动页面",
+      "delete_page": "正在删除页面",
+      "rotate_page": "正在旋转页面",
+      "submit": "正在提交表单",
+      "download": "正在准备下载"
     }
   },
   "forms": {
