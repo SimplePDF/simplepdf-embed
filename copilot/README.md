@@ -181,11 +181,14 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `detect_fields` | Auto-detect missing fields on scanned PDFs |
 | `focus_field` | Highlight + scroll to a field |
 | `set_field_value` | Write a value into a field |
-| `select_tool` | Switch the editor toolbar (TEXT, CHECKBOX, SIGNATURE, etc.) |
-| `go_to_page` | Navigate pages |
-| `submit_download` | Finalize and download the filled PDF |
+| `select_tool` | Switch the editor toolbar (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
+| `go_to_page` | Navigate to a specific page (1-indexed) |
+| `move_page` | Reorder a visible page (`from_page` → `to_page`, both 1-indexed). Destructive — only fired on explicit user request |
+| `delete_page` | Remove a visible page and its fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |
+| `rotate_page` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
+| `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
-Tool input + output schemas: `src/lib/embed-bridge-adapters/client-tools.ts`. System prompt: `src/server/tools.ts`.
+Tool input + output schemas live under `src/lib/embed-bridge-adapters/client-tools/`. System prompt: `src/server/tools.ts`. The bridge that posts these events into the iframe: `src/lib/embed-bridge/bridge.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
 
 ## Common fork points
 
@@ -212,10 +215,10 @@ The architecture is deliberate:
 What's actually running when you open <https://copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
 
 ```
-  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot demo ──┐       ┌── Hosted AI ──────┐
+  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot ──┐       ┌── Hosted AI ──────┐
   │                                 │       │                       │       │                   │
   │   ┌───────────────┐   chat      │       │  LLM proxy            │       │                   │
-  │   │  SimplePDF Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
+  │   │    Copilot    │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
   │   └───────┬───────┘             │       │                       │       │                   │
   │           │                     │       └───────────────────────┘       └───────────────────┘
   │           │                     │
@@ -243,7 +246,7 @@ What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/
   ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐
   │                                 │       │                 │       │                   │
   │   ┌───────────────┐   chat      │       │   LLM proxy     │       │  Provider + keys  │
-  │   │  SimplePDF Copilot │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
+  │   │    Copilot    │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
   │   └───────┬───────┘             │       │                 │       │                   │
   │           │                     │       └─┬───────────────┘       └───────────────────┘
   │           │                     │         ▲
