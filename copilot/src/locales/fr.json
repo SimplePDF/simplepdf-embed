@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "L’IA qui vous aide à remplir vos formulaires PDF, étape par étape",
     "whatIsThisDemo": "Qu’est-ce que cette démo ?",
     "useCase": "PDF chargé",
     "poweredBy": "Propulsé par SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot se découvre mieux sur ordinateur",
+    "headline": "SimplePDF Copilot se découvre mieux sur ordinateur",
     "watchDemo": "Voir la démo",
     "videoPlaceholder": "Vidéo"
   },
   "infoModal": {
     "title": "Remplissage de formulaires assisté par IA, avec un humain dans la boucle",
     "close": "Fermer",
-    "availableOn": "Form Copilot est disponible sur <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot est disponible sur <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Code source sur GitHub",
     "githubStarTitle": "Mettre une étoile à SimplePDF/simplepdf-embed sur GitHub",
     "whyItMattersLead": "Le remplissage automatique des formulaires a ses limites.",
     "whyItMattersBody": "Les données nécessaires pour remplir un formulaire peuvent être manquantes, incorrectes ou invalides. Cette démo présente un modèle plus sûr : l’IA aide à remplir le formulaire pendant qu’un humain vérifie, corrige et complète si besoin.",
     "humanInTheLoopTitle": "Comment ça marche",
-    "humanInTheLoopBullet1": "Form Copilot remplit les champs en temps réel, directement dans l’éditeur.",
-    "humanInTheLoopBullet1Hint": "Les échanges de données entre Form Copilot et l’éditeur ont lieu dans le navigateur.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot remplit les champs en temps réel, directement dans l’éditeur.",
+    "humanInTheLoopBullet1Hint": "Les échanges de données entre SimplePDF Copilot et l’éditeur ont lieu dans le navigateur.",
     "humanInTheLoopBullet2": "L’utilisateur voit chaque modification, la vérifie et peut la corriger.",
-    "humanInTheLoopBullet2Hint": "Form Copilot peut céder les champs qui ne doivent pas être remplis automatiquement, comme les signatures.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot peut céder les champs qui ne doivent pas être remplis automatiquement, comme les signatures.",
     "humanInTheLoopBullet3": "L'utilisateur garde le contrôle.",
-    "humanInTheLoopBullet3Hint": "Form Copilot aide à parcourir le formulaire et à le remplir, mais l'utilisateur a toujours le dernier mot.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot aide à parcourir le formulaire et à le remplir, mais l'utilisateur a toujours le dernier mot.",
     "aboutTitle": "Confidentialité par conception",
     "aboutIntro": "SimplePDF est conçu dès le départ pour les workflows sensibles. Ces trois choix d’architecture expliquent pourquoi.",
     "aboutBullet1Title": "Traitement des documents dans le navigateur.",
@@ -43,30 +43,30 @@
       "demo": "Pour cette démo",
       "production": "En production"
     },
-    "architectureDemoDescription": "Cette démo s’exécute sur un compte SimplePDF partagé. Le navigateur héberge à la fois Form Copilot et l’éditeur SimplePDF (chargé dans un iframe). Les données des champs restent dans le navigateur grâce aux appels d’outils côté client en postMessage. Le trafic du chat passe par le serveur hébergé de la démo vers un fournisseur d’IA hébergé, ou directement depuis le navigateur lorsque vous apportez votre propre clé API. Le serveur SimplePDF n’enregistre que de la télémétrie et des métadonnées ; il ne voit jamais le contenu du document.",
-    "architectureDescription": "Le navigateur exécute Form Copilot et l’éditeur SimplePDF dans un iframe. Les deux communiquent via des appels d’outils côté client en postMessage, si bien que les données des champs ne quittent jamais le navigateur. Les messages du chat sont relayés par votre serveur vers votre stack IA (fournisseur, clés, RAG, données internes). Le serveur SimplePDF ne reçoit que de la télémétrie et des métadonnées, et ne voit jamais le document lui-même. Le document finalisé est téléversé directement depuis l’éditeur vers votre stockage (S3, Azure Blob Storage ou SharePoint), en contournant le serveur SimplePDF. Lorsqu’une soumission se termine, un webhook optionnel peut avertir votre serveur. Le webhook transporte uniquement des métadonnées, jamais le contenu du document.",
+    "architectureDemoDescription": "Cette démo s’exécute sur un compte SimplePDF partagé. Le navigateur héberge à la fois SimplePDF Copilot et l’éditeur SimplePDF (chargé dans un iframe). Les données des champs restent dans le navigateur grâce aux appels d’outils côté client en postMessage. Le trafic du chat passe par le serveur hébergé de la démo vers un fournisseur d’IA hébergé, ou directement depuis le navigateur lorsque vous apportez votre propre clé API. Le serveur SimplePDF n’enregistre que de la télémétrie et des métadonnées ; il ne voit jamais le contenu du document.",
+    "architectureDescription": "Le navigateur exécute SimplePDF Copilot et l’éditeur SimplePDF dans un iframe. Les deux communiquent via des appels d’outils côté client en postMessage, si bien que les données des champs ne quittent jamais le navigateur. Les messages du chat sont relayés par votre serveur vers votre stack IA (fournisseur, clés, RAG, données internes). Le serveur SimplePDF ne reçoit que de la télémétrie et des métadonnées, et ne voit jamais le document lui-même. Le document finalisé est téléversé directement depuis l’éditeur vers votre stockage (S3, Azure Blob Storage ou SharePoint), en contournant le serveur SimplePDF. Lorsqu’une soumission se termine, un webhook optionnel peut avertir votre serveur. Le webhook transporte uniquement des métadonnées, jamais le contenu du document.",
     "tryThisForm": "Essayer ce formulaire →",
     "useCases": {
       "healthcare": {
         "title": "Santé",
-        "body": "Les formulaires d’admission des patients et de remboursement contiennent souvent des données sensibles et nécessitent un contrôle. Form Copilot aide à remplir le formulaire étape par étape via le fournisseur d’IA approuvé par votre organisation."
+        "body": "Les formulaires d’admission des patients et de remboursement contiennent souvent des données sensibles et nécessitent un contrôle. SimplePDF Copilot aide à remplir le formulaire étape par étape via le fournisseur d’IA approuvé par votre organisation."
       },
       "insurance": {
         "title": "Assurance",
-        "body": "Les demandes, sinistres et avenants combinent souvent des données structurées et des détails propres à la police. Form Copilot aide à préremplir ce qu’il peut, explique les champs et laisse la vérification finale à l’utilisateur."
+        "body": "Les demandes, sinistres et avenants combinent souvent des données structurées et des détails propres à la police. SimplePDF Copilot aide à préremplir ce qu’il peut, explique les champs et laisse la vérification finale à l’utilisateur."
       },
       "state": {
         "title": "Bureaucratie publique",
-        "body": "Les formulaires administratifs sont souvent numérisés, complexes ou rédigés dans une langue que l’utilisateur ne parle pas. Form Copilot peut aider à expliquer le formulaire, à le traduire et à le remplir étape par étape pendant que l’utilisateur vérifie le résultat."
+        "body": "Les formulaires administratifs sont souvent numérisés, complexes ou rédigés dans une langue que l’utilisateur ne parle pas. SimplePDF Copilot peut aider à expliquer le formulaire, à le traduire et à le remplir étape par étape pendant que l’utilisateur vérifie le résultat."
       },
       "hr": {
         "title": "Intégration RH",
-        "body": "Les lettres d’offre, les formulaires fiscaux et les dossiers d’intégration demandent souvent à la fois un préremplissage et une vérification. Form Copilot remplit ce qu’il peut, puis passe la main à l’utilisateur pour les signatures et les vérifications finales."
+        "body": "Les lettres d’offre, les formulaires fiscaux et les dossiers d’intégration demandent souvent à la fois un préremplissage et une vérification. SimplePDF Copilot remplit ce qu’il peut, puis passe la main à l’utilisateur pour les signatures et les vérifications finales."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "En attente du chargement de l’éditeur…",
     "subtitleNoDocument": "Chargez d’abord un document",
@@ -91,7 +91,7 @@
       "cancelButton": "Annuler",
       "comingSoon": "Bientôt disponible",
       "registerInterest": "Manifestez votre intérêt →",
-      "registerInterestMessage": "Bonjour l'équipe SimplePDF, je suis intéressé par Form Copilot avec {{provider}}. Pourriez-vous m'indiquer quand ce sera disponible et à quoi ressemble la configuration ?\n\nPlan qui m'intéresse :\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Bonjour l'équipe SimplePDF, je suis intéressé par SimplePDF Copilot avec {{provider}}. Pourriez-vous m'indiquer quand ce sera disponible et à quoi ressemble la configuration ?\n\nPlan qui m'intéresse :\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Envoyez-le à quelqu’un qui devrait l’essayer :",
     "shareCopyLink": "Copier le lien",
     "shareCopied": "Copié !",
-    "shareTweetText": "Je teste Form Copilot de SimplePDF, une IA qui remplit les formulaires PDF étape par étape. À voir :",
+    "shareTweetText": "Je teste SimplePDF Copilot de SimplePDF, une IA qui remplit les formulaires PDF étape par étape. À voir :",
     "errorByokActivatedButton": "Reprendre la conversation",
     "errorByokActivatedResumeMessage": "Continuons",
     "errorGenericTitle": "Erreur complète",
-    "welcomeTitle": "Essayez Form Copilot avec votre propre IA",
+    "welcomeTitle": "Essayez SimplePDF Copilot avec votre propre IA",
     "welcomeBody": "Vos identifiants restent dans cet onglet. Les requêtes partent de votre navigateur vers le fournisseur d’IA que vous avez choisi.",
     "welcomeCta": "Utiliser votre propre IA",
-    "welcomeInfoLink": "Comment fonctionne Form Copilot",
-    "inputPlaceholderReady": "Discuter avec Form Copilot…",
+    "welcomeInfoLink": "Comment fonctionne SimplePDF Copilot",
+    "inputPlaceholderReady": "Discuter avec SimplePDF Copilot…",
     "send": "Envoyer"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Envoyer"
   },
   "welcomeModal": {
-    "title": "Bienvenue sur Form Copilot",
+    "title": "Bienvenue sur SimplePDF Copilot",
     "tagline": "<accent>L’IA qui vous aide</accent> à remplir vos formulaires PDF, étape par étape",
     "getStarted": "Commencer",
-    "howItWorks": "Comment fonctionne Form Copilot",
+    "howItWorks": "Comment fonctionne SimplePDF Copilot",
     "close": "Fermer le message de bienvenue"
   },
   "download": {
     "title": "Téléchargez votre PDF rempli",
     "intro": "Votre PDF est généré dans cet onglet du navigateur. Rien ne quitte votre appareil, et les serveurs de SimplePDF ne voient jamais le fichier rempli.",
     "cta": "Télécharger",
-    "upsellHeading": "Aller plus loin avec Form Copilot",
+    "upsellHeading": "Aller plus loin avec SimplePDF Copilot",
     "upsellStorage": "Avec les forfaits SimplePDF payants, ce Téléchargement devient un flux <b>Envoyer</b>. Les PDF remplis arrivent automatiquement dans votre propre stockage (S3, Azure Blob Storage ou SharePoint), et vos systèmes sont notifiés via webhook ou e-mail. Le téléchargement reste optionnel.",
     "upsellFields": "Les formulaires PDF sont désordonnés. Ils arrivent scannés sans champs prêts à l’emploi, ou avec de mauvais noms de champs qui compliquent la tâche de l’IA. Les forfaits SimplePDF payants résolvent aussi cela, avec des champs obligatoires, des valeurs par défaut et des alias de champs.",
     "upsellCta": "Contactez-nous",
     "upsellPricing": "Voir les offres entreprise",
-    "upsellContactMessage": "Bonjour l’équipe SimplePDF, je teste Form Copilot et j’aimerais en savoir plus sur le flux d’envoi (Submit) des offres payantes : livraison automatique vers mon propre stockage, ainsi que les notifications par webhook et e-mail.\n\nPlan qui m'intéresse :\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Bonjour l’équipe SimplePDF, je teste SimplePDF Copilot et j’aimerais en savoir plus sur le flux d’envoi (Submit) des offres payantes : livraison automatique vers mon propre stockage, ainsi que les notifications par webhook et e-mail.\n\nPlan qui m'intéresse :\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Fermer"
   },
   "toolInvocation": {
@@ -219,8 +219,8 @@
   "cerfaDor": {
     "buttonAria": "Ouvrir le message pour David Lisnard",
     "buttonTitle": "Cerfa d’Or, un clin d’œil à David Lisnard",
-    "title": "Un Cerfa d’Or pour Form Copilot ?",
-    "bodyLead": "Les <b>Cerfa d’Or</b> de David Lisnard récompensent chaque année les formulaires administratifs français les plus absurdes. Nous, on prend le problème par l’autre bout : <b>Form Copilot remplit les CERFA étape par étape, directement dans le navigateur</b>, sans que le document ne quitte l’appareil.",
+    "title": "Un Cerfa d’Or pour SimplePDF Copilot ?",
+    "bodyLead": "Les <b>Cerfa d’Or</b> de David Lisnard récompensent chaque année les formulaires administratifs français les plus absurdes. Nous, on prend le problème par l’autre bout : <b>SimplePDF Copilot remplit les CERFA étape par étape, directement dans le navigateur</b>, sans que le document ne quitte l’appareil.",
     "bodyFounder": "SimplePDF est fondée par un Français. On aimerait que David Lisnard, ainsi que les équipes de Nouvelle Énergie, voient ce qu’un logiciel peut faire pour alléger la paperasse, en attendant que l’administration s’en charge elle-même.",
     "bodyAsk": "<b>Si vous le connaissez, ou si vous connaissez quelqu’un qui pourrait faire passer le mot</b>, merci de partager. Un simple message, c’est déjà beaucoup.",
     "linkCerfaDor": "En savoir plus sur les Cerfa d’Or (Planet.fr)",

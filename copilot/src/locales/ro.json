@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "AI care ajută utilizatorii să completeze formulare PDF pas cu pas",
     "whatIsThisDemo": "Ce este această demonstrație?",
     "useCase": "PDF încărcat",
     "poweredBy": "Susținut de SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot se bucură cel mai bine pe desktop",
+    "headline": "SimplePDF Copilot se bucură cel mai bine pe desktop",
     "watchDemo": "Vezi demonstrația",
     "videoPlaceholder": "Video"
   },
   "infoModal": {
     "title": "Completarea formularelor asistată de AI, cu un om în buclă",
     "close": "Închide",
-    "availableOn": "Form Copilot este disponibil pe <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot este disponibil pe <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Cod sursă pe GitHub",
     "githubStarTitle": "Acordă o stea lui SimplePDF/simplepdf-embed pe GitHub",
     "whyItMattersLead": "Completarea automată a formularelor are limitele sale.",
     "whyItMattersBody": "Datele necesare pentru a completa un formular pot lipsi, pot fi incorecte sau nevalide. Această demonstrație prezintă un model mai sigur: AI-ul ajută la completarea formularului, în timp ce un om verifică, corectează și completează acolo unde este necesar.",
     "humanInTheLoopTitle": "Cum funcționează",
-    "humanInTheLoopBullet1": "Form Copilot completează câmpurile în timp real, în editor.",
-    "humanInTheLoopBullet1Hint": "Schimbul de date dintre Form Copilot și editor are loc în browser.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot completează câmpurile în timp real, în editor.",
+    "humanInTheLoopBullet1Hint": "Schimbul de date dintre SimplePDF Copilot și editor are loc în browser.",
     "humanInTheLoopBullet2": "Utilizatorul poate vedea fiecare modificare, o poate verifica și corecta.",
-    "humanInTheLoopBullet2Hint": "Form Copilot poate lăsa utilizatorului câmpurile care nu ar trebui completate automat, precum semnăturile.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot poate lăsa utilizatorului câmpurile care nu ar trebui completate automat, precum semnăturile.",
     "humanInTheLoopBullet3": "Utilizatorul păstrează controlul.",
-    "humanInTheLoopBullet3Hint": "Form Copilot ajută la parcurgerea și completarea formularului, însă utilizatorul are întotdeauna ultimul cuvânt.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot ajută la parcurgerea și completarea formularului, însă utilizatorul are întotdeauna ultimul cuvânt.",
     "aboutTitle": "Confidențialitate prin design",
     "aboutIntro": "SimplePDF este construit de la zero pentru fluxuri de lucru sensibile. Aceste trei alegeri arhitecturale explică de ce.",
     "aboutBullet1Title": "Procesarea documentelor în browser.",
@@ -43,30 +43,30 @@
       "demo": "Pentru această demonstrație",
       "production": "În producție"
     },
-    "architectureDemoDescription": "Această demonstrație rulează pe un cont SimplePDF partajat. Browserul găzduiește atât Form Copilot, cât și editorul SimplePDF (încărcat într-un iframe). Datele câmpurilor rămân în browser prin apeluri de instrumente postMessage pe partea clientului. Traficul chat-ului trece prin serverul găzduit al demonstrației către un furnizor AI găzduit, sau direct din browser atunci când vă aduceți propria cheie API. Serverul SimplePDF înregistrează doar telemetrie și metadate; nu vede niciodată conținutul documentului.",
-    "architectureDescription": "Browserul rulează Form Copilot și editorul SimplePDF într-un iframe. Cele două comunică prin apeluri de instrumente pe partea clientului prin postMessage, astfel încât datele câmpurilor nu părăsesc niciodată browserul. Mesajele din chat sunt transmise prin serverul dumneavoastră către stiva dumneavoastră AI (furnizor, chei, RAG, date interne). Serverul SimplePDF primește doar telemetrie și metadate și nu vede niciodată documentul propriu-zis. Documentul finalizat este încărcat direct din editor către spațiul dumneavoastră de stocare (S3, Azure Blob Storage sau SharePoint), ocolind serverul SimplePDF. Când o trimitere se finalizează, un webhook opțional poate notifica serverul dumneavoastră. Webhook-ul transportă doar metadate, niciodată conținutul documentului.",
+    "architectureDemoDescription": "Această demonstrație rulează pe un cont SimplePDF partajat. Browserul găzduiește atât SimplePDF Copilot, cât și editorul SimplePDF (încărcat într-un iframe). Datele câmpurilor rămân în browser prin apeluri de instrumente postMessage pe partea clientului. Traficul chat-ului trece prin serverul găzduit al demonstrației către un furnizor AI găzduit, sau direct din browser atunci când vă aduceți propria cheie API. Serverul SimplePDF înregistrează doar telemetrie și metadate; nu vede niciodată conținutul documentului.",
+    "architectureDescription": "Browserul rulează SimplePDF Copilot și editorul SimplePDF într-un iframe. Cele două comunică prin apeluri de instrumente pe partea clientului prin postMessage, astfel încât datele câmpurilor nu părăsesc niciodată browserul. Mesajele din chat sunt transmise prin serverul dumneavoastră către stiva dumneavoastră AI (furnizor, chei, RAG, date interne). Serverul SimplePDF primește doar telemetrie și metadate și nu vede niciodată documentul propriu-zis. Documentul finalizat este încărcat direct din editor către spațiul dumneavoastră de stocare (S3, Azure Blob Storage sau SharePoint), ocolind serverul SimplePDF. Când o trimitere se finalizează, un webhook opțional poate notifica serverul dumneavoastră. Webhook-ul transportă doar metadate, niciodată conținutul documentului.",
     "tryThisForm": "Încearcă acest formular →",
     "useCases": {
       "healthcare": {
         "title": "Sănătate",
-        "body": "Formularele de admitere a pacienților și de cereri de rambursare conțin adesea date sensibile și necesită verificare. Form Copilot ajută la completarea formularului pas cu pas folosind furnizorul AI aprobat de organizația dumneavoastră."
+        "body": "Formularele de admitere a pacienților și de cereri de rambursare conțin adesea date sensibile și necesită verificare. SimplePDF Copilot ajută la completarea formularului pas cu pas folosind furnizorul AI aprobat de organizația dumneavoastră."
       },
       "insurance": {
         "title": "Asigurări",
-        "body": "Cererile, daunele și actele adiționale combină adesea date structurate cu detalii specifice poliței. Form Copilot ajută la precompletarea a ceea ce poate, explică câmpurile și lasă verificarea finală utilizatorului."
+        "body": "Cererile, daunele și actele adiționale combină adesea date structurate cu detalii specifice poliței. SimplePDF Copilot ajută la precompletarea a ceea ce poate, explică câmpurile și lasă verificarea finală utilizatorului."
       },
       "state": {
         "title": "Birocrație de stat",
-        "body": "Formularele guvernamentale sunt adesea scanate, complexe sau scrise într-o limbă pe care utilizatorul nu o vorbește. Form Copilot poate ajuta la explicarea formularului, la traducerea acestuia și la completarea pas cu pas, în timp ce utilizatorul verifică rezultatul."
+        "body": "Formularele guvernamentale sunt adesea scanate, complexe sau scrise într-o limbă pe care utilizatorul nu o vorbește. SimplePDF Copilot poate ajuta la explicarea formularului, la traducerea acestuia și la completarea pas cu pas, în timp ce utilizatorul verifică rezultatul."
       },
       "hr": {
         "title": "Integrare HR",
-        "body": "Scrisorile de ofertă, formularele fiscale și pachetele de integrare necesită adesea atât precompletare, cât și verificare. Form Copilot completează ce poate, iar apoi predă utilizatorului pentru semnături și verificări finale."
+        "body": "Scrisorile de ofertă, formularele fiscale și pachetele de integrare necesită adesea atât precompletare, cât și verificare. SimplePDF Copilot completează ce poate, iar apoi predă utilizatorului pentru semnături și verificări finale."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Se așteaptă încărcarea editorului…",
     "subtitleNoDocument": "Încarcă mai întâi un document",
@@ -91,7 +91,7 @@
       "cancelButton": "Anulează",
       "comingSoon": "În curând",
       "registerInterest": "Înregistrează-ți interesul →",
-      "registerInterestMessage": "Bună echipă SimplePDF, mă interesează să folosesc Form Copilot cu {{provider}}. Ați putea să îmi spuneți când va fi disponibil și cum arată configurarea?\n\nPlanul care mă interesează:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Bună echipă SimplePDF, mă interesează să folosesc SimplePDF Copilot cu {{provider}}. Ați putea să îmi spuneți când va fi disponibil și cum arată configurarea?\n\nPlanul care mă interesează:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Trimite-l cuiva care ar trebui să încerce:",
     "shareCopyLink": "Copiază linkul",
     "shareCopied": "Copiat!",
-    "shareTweetText": "Încerc Form Copilot de la SimplePDF, un AI care completează formulare PDF pas cu pas. Merită o privire:",
+    "shareTweetText": "Încerc SimplePDF Copilot de la SimplePDF, un AI care completează formulare PDF pas cu pas. Merită o privire:",
     "errorByokActivatedButton": "Reia conversația",
     "errorByokActivatedResumeMessage": "Hai să continuăm",
     "errorGenericTitle": "Eroare completă",
-    "welcomeTitle": "Încearcă Form Copilot cu propriul tău AI",
+    "welcomeTitle": "Încearcă SimplePDF Copilot cu propriul tău AI",
     "welcomeBody": "Datele tale de autentificare rămân în această filă. Solicitările sunt trimise din browserul tău către furnizorul AI ales.",
     "welcomeCta": "Adu-ți propriul AI",
-    "welcomeInfoLink": "Cum funcționează Form Copilot",
-    "inputPlaceholderReady": "Vorbește cu Form Copilot…",
+    "welcomeInfoLink": "Cum funcționează SimplePDF Copilot",
+    "inputPlaceholderReady": "Vorbește cu SimplePDF Copilot…",
     "send": "Trimite"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Trimite"
   },
   "welcomeModal": {
-    "title": "Bun venit în Form Copilot",
+    "title": "Bun venit în SimplePDF Copilot",
     "tagline": "<accent>AI care ajută</accent> utilizatorii să completeze formulare PDF pas cu pas",
     "getStarted": "Începe",
-    "howItWorks": "Cum funcționează Form Copilot",
+    "howItWorks": "Cum funcționează SimplePDF Copilot",
     "close": "Închide salutul"
   },
   "download": {
     "title": "Descarcă PDF-ul completat",
     "intro": "PDF-ul tău este generat în această filă de browser. Nimic nu părăsește dispozitivul tău, iar serverele SimplePDF nu văd niciodată fișierul completat.",
     "cta": "Descarcă",
-    "upsellHeading": "Du Form Copilot mai departe",
+    "upsellHeading": "Du SimplePDF Copilot mai departe",
     "upsellStorage": "În planurile SimplePDF plătite, această Descărcare devine un flux <b>Trimite</b>. PDF-urile completate ajung automat în propriul tău spațiu de stocare (S3, Azure Blob Storage sau SharePoint), iar sistemele tale sunt notificate prin webhook sau e-mail. Descărcarea rămâne opțională.",
     "upsellFields": "Formularele PDF sunt dezordonate. Sosesc scanate fără câmpuri pregătite, sau cu nume de câmpuri proaste care pun AI-ul la treabă în plus. Planurile SimplePDF plătite rezolvă și asta, prin câmpuri obligatorii, valori implicite și aliasuri pentru câmpuri.",
     "upsellCta": "Contactează-ne",
     "upsellPricing": "Vezi planurile business",
-    "upsellContactMessage": "Bună echipă SimplePDF, încerc Form Copilot și aș vrea să aflu mai multe despre fluxul de Trimitere (Submit) din planurile plătite: livrare automată în propriul meu spațiu de stocare, plus notificări prin webhook sau e-mail.\n\nPlanul care mă interesează:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Bună echipă SimplePDF, încerc SimplePDF Copilot și aș vrea să aflu mai multe despre fluxul de Trimitere (Submit) din planurile plătite: livrare automată în propriul meu spațiu de stocare, plus notificări prin webhook sau e-mail.\n\nPlanul care mă interesează:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Închide"
   },
   "toolInvocation": {

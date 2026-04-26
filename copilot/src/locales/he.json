@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "בינה מלאכותית שמסייעת למשתמשים למלא טפסי PDF צעד אחר צעד",
     "whatIsThisDemo": "מה זו ההדגמה הזו?",
     "useCase": "PDF שנטען",
     "poweredBy": "מופעל על ידי SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot מיטבי לחוויה במחשב שולחני",
+    "headline": "SimplePDF Copilot מיטבי לחוויה במחשב שולחני",
     "watchDemo": "צפו בהדגמה",
     "videoPlaceholder": "וידאו"
   },
   "infoModal": {
     "title": "מילוי טפסים בסיוע בינה מלאכותית, עם אדם בלולאה",
     "close": "סגור",
-    "availableOn": "Form Copilot זמין ב־<plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot זמין ב־<plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "קוד מקור ב־GitHub",
     "githubStarTitle": "תנו כוכב ל־SimplePDF/simplepdf-embed ב־GitHub",
     "whyItMattersLead": "למילוי אוטומטי של טפסים יש מגבלות.",
     "whyItMattersBody": "הנתונים הדרושים למילוי טופס יכולים להיות חסרים, שגויים או לא תקפים. ההדגמה הזו מציגה מודל בטוח יותר: בינה מלאכותית עוזרת למלא את הטופס בעוד אדם בודק, מתקן ומשלים במידת הצורך.",
     "humanInTheLoopTitle": "איך זה עובד",
-    "humanInTheLoopBullet1": "Form Copilot ממלא שדות בזמן אמת, בתוך העורך.",
-    "humanInTheLoopBullet1Hint": "חילופי הנתונים בין Form Copilot לעורך מתרחשים בדפדפן.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot ממלא שדות בזמן אמת, בתוך העורך.",
+    "humanInTheLoopBullet1Hint": "חילופי הנתונים בין SimplePDF Copilot לעורך מתרחשים בדפדפן.",
     "humanInTheLoopBullet2": "המשתמש יכול לראות כל שינוי, לבדוק אותו ולתקן.",
-    "humanInTheLoopBullet2Hint": "Form Copilot יכול להעביר שדות שאין למלא אוטומטית, כגון חתימות.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot יכול להעביר שדות שאין למלא אוטומטית, כגון חתימות.",
     "humanInTheLoopBullet3": "המשתמש נשאר בשליטה.",
-    "humanInTheLoopBullet3Hint": "Form Copilot מסייע לנווט בטופס ולמלא אותו, אך למשתמש תמיד יש את המילה האחרונה.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot מסייע לנווט בטופס ולמלא אותו, אך למשתמש תמיד יש את המילה האחרונה.",
     "aboutTitle": "פרטיות בעיצוב",
     "aboutIntro": "SimplePDF נבנה מהיסוד עבור תהליכי עבודה רגישים. שלוש ההחלטות הארכיטקטוניות האלה מסבירות מדוע.",
     "aboutBullet1Title": "עיבוד מסמכים בדפדפן.",
@@ -43,30 +43,30 @@
       "demo": "להדגמה הזו",
       "production": "בפרודקשן"
     },
-    "architectureDemoDescription": "הדגמה זו פועלת על חשבון SimplePDF משותף. הדפדפן מארח גם את Form Copilot וגם את עורך SimplePDF (הנטען בתוך iframe). נתוני השדות נשארים בדפדפן באמצעות קריאות כלי צד־לקוח של postMessage. תנועת הצ׳אט עוברת דרך השרת המארח של ההדגמה אל ספק AI מארח, או ישירות מהדפדפן כשאתם מביאים מפתח API משלכם. שרת SimplePDF מתעד רק טלמטריה ומטא־נתונים; הוא לעולם אינו רואה את תוכן המסמך.",
-    "architectureDescription": "הדפדפן מריץ את Form Copilot ואת העורך של SimplePDF בתוך iframe. השניים מתקשרים דרך קריאות כלי צד־לקוח של postMessage, כך שנתוני השדות לעולם אינם יוצאים מהדפדפן. הודעות הצ׳אט מועברות דרך השרת שלכם לסטאק ה־AI שלכם (ספק, מפתחות, RAG, נתונים פנימיים). השרת של SimplePDF מקבל רק טלמטריה ומטא־נתונים, ואינו רואה את המסמך עצמו לעולם. המסמך שהושלם מועלה ישירות מהעורך לאחסון שלכם (S3, Azure Blob Storage או SharePoint), בעקיפה של השרת של SimplePDF. כשההגשה מסתיימת, webhook אופציונלי יכול להודיע לשרת שלכם. ה־webhook מכיל רק מטא־נתונים, לעולם לא את תוכן המסמך.",
+    "architectureDemoDescription": "הדגמה זו פועלת על חשבון SimplePDF משותף. הדפדפן מארח גם את SimplePDF Copilot וגם את עורך SimplePDF (הנטען בתוך iframe). נתוני השדות נשארים בדפדפן באמצעות קריאות כלי צד־לקוח של postMessage. תנועת הצ׳אט עוברת דרך השרת המארח של ההדגמה אל ספק AI מארח, או ישירות מהדפדפן כשאתם מביאים מפתח API משלכם. שרת SimplePDF מתעד רק טלמטריה ומטא־נתונים; הוא לעולם אינו רואה את תוכן המסמך.",
+    "architectureDescription": "הדפדפן מריץ את SimplePDF Copilot ואת העורך של SimplePDF בתוך iframe. השניים מתקשרים דרך קריאות כלי צד־לקוח של postMessage, כך שנתוני השדות לעולם אינם יוצאים מהדפדפן. הודעות הצ׳אט מועברות דרך השרת שלכם לסטאק ה־AI שלכם (ספק, מפתחות, RAG, נתונים פנימיים). השרת של SimplePDF מקבל רק טלמטריה ומטא־נתונים, ואינו רואה את המסמך עצמו לעולם. המסמך שהושלם מועלה ישירות מהעורך לאחסון שלכם (S3, Azure Blob Storage או SharePoint), בעקיפה של השרת של SimplePDF. כשההגשה מסתיימת, webhook אופציונלי יכול להודיע לשרת שלכם. ה־webhook מכיל רק מטא־נתונים, לעולם לא את תוכן המסמך.",
     "tryThisForm": "נסו את הטופס הזה ←",
     "useCases": {
       "healthcare": {
         "title": "בריאות",
-        "body": "טופסי קבלת מטופלים ותביעות מכילים לעתים קרובות נתונים רגישים ודורשים סקירה. Form Copilot עוזר למלא את הטופס שלב אחר שלב באמצעות ספק ה־AI המאושר של הארגון שלכם."
+        "body": "טופסי קבלת מטופלים ותביעות מכילים לעתים קרובות נתונים רגישים ודורשים סקירה. SimplePDF Copilot עוזר למלא את הטופס שלב אחר שלב באמצעות ספק ה־AI המאושר של הארגון שלכם."
       },
       "insurance": {
         "title": "ביטוח",
-        "body": "בקשות, תביעות והוספות משלבות לעתים קרובות נתונים מובנים עם פרטים ספציפיים לפוליסה. Form Copilot עוזר למלא מראש את מה שהוא יכול, מסביר שדות ומשאיר את הסקירה הסופית למשתמש."
+        "body": "בקשות, תביעות והוספות משלבות לעתים קרובות נתונים מובנים עם פרטים ספציפיים לפוליסה. SimplePDF Copilot עוזר למלא מראש את מה שהוא יכול, מסביר שדות ומשאיר את הסקירה הסופית למשתמש."
       },
       "state": {
         "title": "בירוקרטיה ממשלתית",
-        "body": "טופסי ממשלה הם לעתים קרובות סרוקים, מורכבים או כתובים בשפה שהמשתמש לא דובר. Form Copilot יכול לעזור להסביר את הטופס, לתרגם אותו ולמלא אותו שלב אחר שלב בזמן שהמשתמש בודק את התוצאה."
+        "body": "טופסי ממשלה הם לעתים קרובות סרוקים, מורכבים או כתובים בשפה שהמשתמש לא דובר. SimplePDF Copilot יכול לעזור להסביר את הטופס, לתרגם אותו ולמלא אותו שלב אחר שלב בזמן שהמשתמש בודק את התוצאה."
       },
       "hr": {
         "title": "קליטת HR",
-        "body": "מכתבי הצעת עבודה, טופסי מס וחבילות קליטה דורשים לעתים קרובות גם מילוי מראש וגם סקירה. Form Copilot ממלא את מה שהוא יכול, ואז מעביר את השליטה למשתמש לצורך חתימות ובדיקות סופיות."
+        "body": "מכתבי הצעת עבודה, טופסי מס וחבילות קליטה דורשים לעתים קרובות גם מילוי מראש וגם סקירה. SimplePDF Copilot ממלא את מה שהוא יכול, ואז מעביר את השליטה למשתמש לצורך חתימות ובדיקות סופיות."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "ממתין לטעינת העורך…",
     "subtitleNoDocument": "טענו תחילה מסמך",
@@ -91,7 +91,7 @@
       "cancelButton": "ביטול",
       "comingSoon": "בקרוב",
       "registerInterest": "הירשמו לעניין →",
-      "registerInterestMessage": "שלום לצוות SimplePDF, מעניין אותי להשתמש ב־Form Copilot עם {{provider}}. תוכלו לעדכן מתי זה יהיה זמין וכיצד נראית ההגדרה?\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "שלום לצוות SimplePDF, מעניין אותי להשתמש ב־SimplePDF Copilot עם {{provider}}. תוכלו לעדכן מתי זה יהיה זמין וכיצד נראית ההגדרה?\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "שלחו למי שכדאי לו לנסות:",
     "shareCopyLink": "העתק קישור",
     "shareCopied": "הועתק!",
-    "shareTweetText": "אני מתנסה ב-Form Copilot של SimplePDF, בינה מלאכותית שממלאת טפסי PDF שלב אחר שלב. שווה מבט:",
+    "shareTweetText": "אני מתנסה ב-SimplePDF Copilot של SimplePDF, בינה מלאכותית שממלאת טפסי PDF שלב אחר שלב. שווה מבט:",
     "errorByokActivatedButton": "חידוש השיחה",
     "errorByokActivatedResumeMessage": "בואו נמשיך",
     "errorGenericTitle": "שגיאה מלאה",
-    "welcomeTitle": "נסו את Form Copilot עם הבינה המלאכותית שלכם",
+    "welcomeTitle": "נסו את SimplePDF Copilot עם הבינה המלאכותית שלכם",
     "welcomeBody": "פרטי ההתחברות שלכם נשארים בלשונית זו. הבקשות נשלחות מהדפדפן שלכם לספק ה־AI שבחרתם.",
     "welcomeCta": "הביאו את הבינה המלאכותית שלכם",
-    "welcomeInfoLink": "איך Form Copilot עובד",
-    "inputPlaceholderReady": "דברו עם Form Copilot…",
+    "welcomeInfoLink": "איך SimplePDF Copilot עובד",
+    "inputPlaceholderReady": "דברו עם SimplePDF Copilot…",
     "send": "שלח"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "שלח"
   },
   "welcomeModal": {
-    "title": "ברוכים הבאים ל־Form Copilot",
+    "title": "ברוכים הבאים ל־SimplePDF Copilot",
     "tagline": "<accent>בינה מלאכותית שמסייעת</accent> למשתמשים למלא טפסי PDF צעד אחר צעד",
     "getStarted": "להתחיל",
-    "howItWorks": "איך Form Copilot עובד",
+    "howItWorks": "איך SimplePDF Copilot עובד",
     "close": "סגירת ברכת קבלת הפנים"
   },
   "download": {
     "title": "הורד את קובץ ה־PDF הממולא שלך",
     "intro": "קובץ ה־PDF שלך נוצר בלשונית דפדפן זו. דבר אינו יוצא מהמכשיר שלך, ושרתי SimplePDF אינם רואים לעולם את הקובץ הממולא.",
     "cta": "הורד",
-    "upsellHeading": "לקחת את Form Copilot צעד קדימה",
+    "upsellHeading": "לקחת את SimplePDF Copilot צעד קדימה",
     "upsellStorage": "בתוכניות SimplePDF בתשלום, הורדה זו הופכת לזרימת <b>שליחה</b>. קובצי PDF ממולאים נוחתים אוטומטית באחסון שלך (S3, Azure Blob Storage או SharePoint), והמערכות שלך מקבלות התראה דרך webhook או דואר אלקטרוני. ההורדה נשארת אופציונלית.",
     "upsellFields": "טפסי PDF לא מסודרים. הם מגיעים סרוקים ללא שדות מוכנים, או עם שמות שדות גרועים שמקשים על הבינה המלאכותית. תוכניות SimplePDF בתשלום פותרות גם את זה, עם שדות חובה, ערכי ברירת מחדל וכינויי שדות.",
     "upsellCta": "דברו איתנו",
     "upsellPricing": "הצג תוכניות עסקיות",
-    "upsellContactMessage": "שלום לצוות SimplePDF, אני מתנסה ב־Form Copilot ואשמח לדעת עוד על זרימת השליחה (Submit) בתוכניות בתשלום: שליחה אוטומטית לאחסון שלי, יחד עם התראות webhook או דואר אלקטרוני.\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "שלום לצוות SimplePDF, אני מתנסה ב־SimplePDF Copilot ואשמח לדעת עוד על זרימת השליחה (Submit) בתוכניות בתשלום: שליחה אוטומטית לאחסון שלי, יחד עם התראות webhook או דואר אלקטרוני.\n\nתוכנית שמעניינת אותי:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "סגור"
   },
   "toolInvocation": {

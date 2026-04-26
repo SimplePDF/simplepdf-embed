@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "ذكاء اصطناعي يساعد المستخدمين على تعبئة نماذج PDF خطوة بخطوة",
     "whatIsThisDemo": "ما هذا العرض التوضيحي؟",
     "useCase": "PDF المحمّل",
     "poweredBy": "مدعوم من SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot يُستخدم بأفضل شكل على سطح المكتب",
+    "headline": "SimplePDF Copilot يُستخدم بأفضل شكل على سطح المكتب",
     "watchDemo": "شاهد العرض التوضيحي",
     "videoPlaceholder": "فيديو"
   },
   "infoModal": {
     "title": "تعبئة نماذج بمساعدة الذكاء الاصطناعي، مع إشراف بشري",
     "close": "إغلاق",
-    "availableOn": "Form Copilot متوفر على <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot متوفر على <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "الكود المصدري على GitHub",
     "githubStarTitle": "ضع نجمة لـ SimplePDF/simplepdf-embed على GitHub",
     "whyItMattersLead": "للتعبئة التلقائية للنماذج حدود.",
     "whyItMattersBody": "قد تكون البيانات اللازمة لإكمال النموذج مفقودة أو غير صحيحة أو غير صالحة. يعرض هذا العرض نموذجًا أكثر أمانًا: يساعد الذكاء الاصطناعي في تعبئة النموذج بينما يراجع الإنسان ويصحح ويكمل عند الحاجة.",
     "humanInTheLoopTitle": "كيف يعمل",
-    "humanInTheLoopBullet1": "يملأ Form Copilot الحقول في الوقت الفعلي، داخل المحرر.",
-    "humanInTheLoopBullet1Hint": "تبادل البيانات بين Form Copilot والمحرر يحدث داخل المتصفح.",
+    "humanInTheLoopBullet1": "يملأ SimplePDF Copilot الحقول في الوقت الفعلي، داخل المحرر.",
+    "humanInTheLoopBullet1Hint": "تبادل البيانات بين SimplePDF Copilot والمحرر يحدث داخل المتصفح.",
     "humanInTheLoopBullet2": "يمكن للمستخدم رؤية كل تغيير ومراجعته وتصحيحه.",
-    "humanInTheLoopBullet2Hint": "يمكن لـ Form Copilot تسليم الحقول التي لا ينبغي تعبئتها تلقائيًا، مثل التوقيعات.",
+    "humanInTheLoopBullet2Hint": "يمكن لـ SimplePDF Copilot تسليم الحقول التي لا ينبغي تعبئتها تلقائيًا، مثل التوقيعات.",
     "humanInTheLoopBullet3": "يظل المستخدم هو المتحكم.",
-    "humanInTheLoopBullet3Hint": "يساعد Form Copilot في التنقل داخل النموذج وتعبئته، لكن الكلمة الأخيرة تبقى دائمًا للمستخدم.",
+    "humanInTheLoopBullet3Hint": "يساعد SimplePDF Copilot في التنقل داخل النموذج وتعبئته، لكن الكلمة الأخيرة تبقى دائمًا للمستخدم.",
     "aboutTitle": "الخصوصية بالتصميم",
     "aboutIntro": "تم بناء SimplePDF من الأساس لسير العمل الحساس. هذه الخيارات المعمارية الثلاثة توضح السبب.",
     "aboutBullet1Title": "معالجة المستندات داخل المتصفح.",
@@ -43,30 +43,30 @@
       "demo": "في هذا العرض التوضيحي",
       "production": "في مرحلة الإنتاج"
     },
-    "architectureDemoDescription": "يعمل هذا العرض التوضيحي على حساب SimplePDF مشترك. يستضيف المتصفح كلًا من Form Copilot ومحرر SimplePDF (الذي يُحمَّل داخل iframe). تبقى بيانات الحقول داخل المتصفح عبر استدعاءات أدوات postMessage من جانب العميل. تتدفق حركة الدردشة عبر الخادم المستضاف للعرض التوضيحي إلى مزود ذكاء اصطناعي مستضاف، أو مباشرة من المتصفح عند إحضار مفتاح API الخاص بك. يسجّل خادم SimplePDF فقط القياس عن بُعد والبيانات الوصفية، ولا يرى محتوى المستند أبدًا.",
-    "architectureDescription": "يشغّل المتصفح Form Copilot ومحرر SimplePDF داخل iframe. يتواصل الاثنان عبر استدعاءات أدوات postMessage من جانب العميل، لذا لا تغادر بيانات الحقول المتصفح أبدًا. تُمرّر رسائل الدردشة عبر خادمك إلى منظومة الذكاء الاصطناعي الخاصة بك (المزود، المفاتيح، RAG، البيانات الداخلية). يستلم خادم SimplePDF فقط بيانات القياس عن بُعد والبيانات الوصفية، ولا يرى المستند نفسه أبدًا. يُرفع المستند المكتمل مباشرة من المحرر إلى وحدة التخزين الخاصة بك (S3 أو Azure Blob Storage أو SharePoint)، متجاوزًا خادم SimplePDF. عند اكتمال الإرسال، يمكن لـ webhook اختياري إشعار خادمك. يحمل الـ webhook بيانات وصفية فقط، ولا يحمل محتوى المستند أبدًا.",
+    "architectureDemoDescription": "يعمل هذا العرض التوضيحي على حساب SimplePDF مشترك. يستضيف المتصفح كلًا من SimplePDF Copilot ومحرر SimplePDF (الذي يُحمَّل داخل iframe). تبقى بيانات الحقول داخل المتصفح عبر استدعاءات أدوات postMessage من جانب العميل. تتدفق حركة الدردشة عبر الخادم المستضاف للعرض التوضيحي إلى مزود ذكاء اصطناعي مستضاف، أو مباشرة من المتصفح عند إحضار مفتاح API الخاص بك. يسجّل خادم SimplePDF فقط القياس عن بُعد والبيانات الوصفية، ولا يرى محتوى المستند أبدًا.",
+    "architectureDescription": "يشغّل المتصفح SimplePDF Copilot ومحرر SimplePDF داخل iframe. يتواصل الاثنان عبر استدعاءات أدوات postMessage من جانب العميل، لذا لا تغادر بيانات الحقول المتصفح أبدًا. تُمرّر رسائل الدردشة عبر خادمك إلى منظومة الذكاء الاصطناعي الخاصة بك (المزود، المفاتيح، RAG، البيانات الداخلية). يستلم خادم SimplePDF فقط بيانات القياس عن بُعد والبيانات الوصفية، ولا يرى المستند نفسه أبدًا. يُرفع المستند المكتمل مباشرة من المحرر إلى وحدة التخزين الخاصة بك (S3 أو Azure Blob Storage أو SharePoint)، متجاوزًا خادم SimplePDF. عند اكتمال الإرسال، يمكن لـ webhook اختياري إشعار خادمك. يحمل الـ webhook بيانات وصفية فقط، ولا يحمل محتوى المستند أبدًا.",
     "tryThisForm": "جرّب هذا النموذج ←",
     "useCases": {
       "healthcare": {
         "title": "الرعاية الصحية",
-        "body": "غالبًا ما تحتوي نماذج استقبال المرضى والمطالبات على بيانات حساسة وتتطلب المراجعة. يساعد Form Copilot في إكمال النموذج خطوة بخطوة باستخدام مزود الذكاء الاصطناعي المعتمد من مؤسستك."
+        "body": "غالبًا ما تحتوي نماذج استقبال المرضى والمطالبات على بيانات حساسة وتتطلب المراجعة. يساعد SimplePDF Copilot في إكمال النموذج خطوة بخطوة باستخدام مزود الذكاء الاصطناعي المعتمد من مؤسستك."
       },
       "insurance": {
         "title": "التأمين",
-        "body": "غالبًا ما تجمع الطلبات والمطالبات والملحقات بين بيانات منظمة وتفاصيل خاصة بالبوليصة. يساعد Form Copilot في تعبئة ما يمكنه مسبقًا وشرح الحقول، ويترك المراجعة النهائية للمستخدم."
+        "body": "غالبًا ما تجمع الطلبات والمطالبات والملحقات بين بيانات منظمة وتفاصيل خاصة بالبوليصة. يساعد SimplePDF Copilot في تعبئة ما يمكنه مسبقًا وشرح الحقول، ويترك المراجعة النهائية للمستخدم."
       },
       "state": {
         "title": "البيروقراطية الحكومية",
-        "body": "النماذج الحكومية غالبًا ما تكون ممسوحة ضوئيًا أو معقدة أو مكتوبة بلغة لا يتحدثها المستخدم. يمكن لـ Form Copilot المساعدة في شرح النموذج وترجمته وتعبئته خطوة بخطوة بينما يراجع المستخدم النتيجة."
+        "body": "النماذج الحكومية غالبًا ما تكون ممسوحة ضوئيًا أو معقدة أو مكتوبة بلغة لا يتحدثها المستخدم. يمكن لـ SimplePDF Copilot المساعدة في شرح النموذج وترجمته وتعبئته خطوة بخطوة بينما يراجع المستخدم النتيجة."
       },
       "hr": {
         "title": "تأهيل الموارد البشرية",
-        "body": "غالبًا ما تتطلب خطابات العرض والنماذج الضريبية وحزم التأهيل تعبئة مسبقة ومراجعة. يملأ Form Copilot ما يمكنه، ثم يسلّم للمستخدم للتوقيعات والفحوصات النهائية."
+        "body": "غالبًا ما تتطلب خطابات العرض والنماذج الضريبية وحزم التأهيل تعبئة مسبقة ومراجعة. يملأ SimplePDF Copilot ما يمكنه، ثم يسلّم للمستخدم للتوقيعات والفحوصات النهائية."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "في انتظار تحميل المحرر…",
     "subtitleNoDocument": "حمّل مستندًا أولاً",
@@ -91,7 +91,7 @@
       "cancelButton": "إلغاء",
       "comingSoon": "قريبًا",
       "registerInterest": "سجّل اهتمامك →",
-      "registerInterestMessage": "مرحبًا فريق SimplePDF، أنا مهتم باستخدام Form Copilot مع {{provider}}. هل يمكنكم إخباري متى سيكون متاحًا وكيف يبدو الإعداد؟\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "مرحبًا فريق SimplePDF، أنا مهتم باستخدام SimplePDF Copilot مع {{provider}}. هل يمكنكم إخباري متى سيكون متاحًا وكيف يبدو الإعداد؟\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "أرسِله إلى من يجدر به تجربته:",
     "shareCopyLink": "نسخ الرابط",
     "shareCopied": "تم النسخ!",
-    "shareTweetText": "أجرّب Form Copilot من SimplePDF، ذكاء اصطناعي يملأ نماذج PDF خطوة بخطوة. يستحق الاطلاع:",
+    "shareTweetText": "أجرّب SimplePDF Copilot من SimplePDF، ذكاء اصطناعي يملأ نماذج PDF خطوة بخطوة. يستحق الاطلاع:",
     "errorByokActivatedButton": "استئناف المحادثة",
     "errorByokActivatedResumeMessage": "هيّا نكمل",
     "errorGenericTitle": "الخطأ الكامل",
-    "welcomeTitle": "جرّب Form Copilot بالذكاء الاصطناعي الخاص بك",
+    "welcomeTitle": "جرّب SimplePDF Copilot بالذكاء الاصطناعي الخاص بك",
     "welcomeBody": "تبقى بيانات الاعتماد الخاصة بك في هذه العلامة التبويبية. تُرسل الطلبات من متصفحك إلى مزود الذكاء الاصطناعي الذي اخترته.",
     "welcomeCta": "أحضر الذكاء الاصطناعي الخاص بك",
-    "welcomeInfoLink": "كيف يعمل Form Copilot",
-    "inputPlaceholderReady": "تحدّث مع Form Copilot…",
+    "welcomeInfoLink": "كيف يعمل SimplePDF Copilot",
+    "inputPlaceholderReady": "تحدّث مع SimplePDF Copilot…",
     "send": "إرسال"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "إرسال"
   },
   "welcomeModal": {
-    "title": "مرحبًا بك في Form Copilot",
+    "title": "مرحبًا بك في SimplePDF Copilot",
     "tagline": "<accent>ذكاء اصطناعي يساعد</accent> المستخدمين على تعبئة نماذج PDF خطوة بخطوة",
     "getStarted": "ابدأ الآن",
-    "howItWorks": "كيف يعمل Form Copilot",
+    "howItWorks": "كيف يعمل SimplePDF Copilot",
     "close": "إغلاق الترحيب"
   },
   "download": {
     "title": "تنزيل ملف PDF المعبّأ",
     "intro": "يُنشأ ملف PDF داخل علامة التبويب هذه في المتصفح. لا يغادر شيء جهازك، ولا ترى خوادم SimplePDF أبدًا الملف المعبّأ.",
     "cta": "تنزيل",
-    "upsellHeading": "الارتقاء بـ Form Copilot أبعد من ذلك",
+    "upsellHeading": "الارتقاء بـ SimplePDF Copilot أبعد من ذلك",
     "upsellStorage": "في خطط SimplePDF المدفوعة، يتحول هذا التنزيل إلى تدفق <b>إرسال</b>. تصل ملفات PDF المعبّأة تلقائيًا إلى وحدة التخزين الخاصة بك (S3 أو Azure Blob Storage أو SharePoint)، ويتم إشعار أنظمتك عبر webhook أو البريد الإلكتروني. يبقى التنزيل اختياريًا.",
     "upsellFields": "نماذج PDF فوضوية. تصل ممسوحة ضوئيًا بدون حقول جاهزة، أو بأسماء حقول سيئة تجعل الذكاء الاصطناعي يعمل بجهد أكبر. خطط SimplePDF المدفوعة تحل ذلك أيضًا، بالحقول المطلوبة والقيم الافتراضية وتسمية الحقول البديلة.",
     "upsellCta": "تواصل معنا",
     "upsellPricing": "استعرض خطط الأعمال",
-    "upsellContactMessage": "مرحبًا فريق SimplePDF، أجرب Form Copilot وأود معرفة المزيد عن تدفق الإرسال (Submit) في الخطط المدفوعة: التسليم التلقائي إلى وحدة التخزين الخاصة بي، إلى جانب إشعارات webhook والبريد الإلكتروني.\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "مرحبًا فريق SimplePDF، أجرب SimplePDF Copilot وأود معرفة المزيد عن تدفق الإرسال (Submit) في الخطط المدفوعة: التسليم التلقائي إلى وحدة التخزين الخاصة بي، إلى جانب إشعارات webhook والبريد الإلكتروني.\n\nالخطة التي تهمني:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "إغلاق"
   },
   "toolInvocation": {

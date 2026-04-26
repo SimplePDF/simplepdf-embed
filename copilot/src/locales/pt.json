@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "IA que ajuda os utilizadores a preencher formulários PDF passo a passo",
     "whatIsThisDemo": "O que é esta demonstração?",
     "useCase": "PDF carregado",
     "poweredBy": "Com tecnologia SimplePDF"
   },
   "mobileFallback": {
-    "headline": "O Form Copilot desfruta-se melhor no computador",
+    "headline": "O SimplePDF Copilot desfruta-se melhor no computador",
     "watchDemo": "Ver a demonstração",
     "videoPlaceholder": "Vídeo"
   },
   "infoModal": {
     "title": "Preenchimento de formulários assistido por IA, com um humano no processo",
     "close": "Fechar",
-    "availableOn": "O Form Copilot está disponível no <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "O SimplePDF Copilot está disponível no <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Código-fonte no GitHub",
     "githubStarTitle": "Atribua uma estrela a SimplePDF/simplepdf-embed no GitHub",
     "whyItMattersLead": "O preenchimento automático de formulários tem os seus limites.",
     "whyItMattersBody": "Os dados necessários para preencher um formulário podem estar em falta, incorrectos ou inválidos. Esta demonstração apresenta um modelo mais seguro: a IA ajuda a preencher o formulário enquanto um humano revê, corrige e completa onde é necessário.",
     "humanInTheLoopTitle": "Como funciona",
-    "humanInTheLoopBullet1": "O Form Copilot preenche campos em tempo real, dentro do editor.",
-    "humanInTheLoopBullet1Hint": "A troca de dados entre o Form Copilot e o editor acontece no navegador.",
+    "humanInTheLoopBullet1": "O SimplePDF Copilot preenche campos em tempo real, dentro do editor.",
+    "humanInTheLoopBullet1Hint": "A troca de dados entre o SimplePDF Copilot e o editor acontece no navegador.",
     "humanInTheLoopBullet2": "O utilizador pode ver cada alteração, revê-la e corrigi-la.",
-    "humanInTheLoopBullet2Hint": "O Form Copilot pode entregar campos que não devem ser preenchidos automaticamente, como assinaturas.",
+    "humanInTheLoopBullet2Hint": "O SimplePDF Copilot pode entregar campos que não devem ser preenchidos automaticamente, como assinaturas.",
     "humanInTheLoopBullet3": "O utilizador mantém o controlo.",
-    "humanInTheLoopBullet3Hint": "O Form Copilot ajuda a percorrer e a preencher o formulário, mas o utilizador tem sempre a última palavra.",
+    "humanInTheLoopBullet3Hint": "O SimplePDF Copilot ajuda a percorrer e a preencher o formulário, mas o utilizador tem sempre a última palavra.",
     "aboutTitle": "Privacidade desde o início",
     "aboutIntro": "O SimplePDF foi construído desde o início para fluxos de trabalho sensíveis. Estas três escolhas arquitectónicas explicam porquê.",
     "aboutBullet1Title": "Processamento de documentos no navegador.",
@@ -43,30 +43,30 @@
       "demo": "Para esta demonstração",
       "production": "Em produção"
     },
-    "architectureDemoDescription": "Esta demonstração corre numa conta SimplePDF partilhada. O navegador aloja tanto o Form Copilot como o editor SimplePDF (carregado num iframe). Os dados dos campos permanecem no navegador através de chamadas de ferramentas postMessage do lado do cliente. O tráfego do chat flui pelo servidor alojado da demonstração até a um fornecedor de IA alojado, ou directamente do navegador quando traz a sua própria chave API. O servidor do SimplePDF regista apenas telemetria e metadados; nunca vê o conteúdo do documento.",
-    "architectureDescription": "O navegador executa o Form Copilot e o editor SimplePDF dentro de um iframe. Os dois comunicam através de chamadas de ferramentas do lado do cliente em postMessage, pelo que os dados dos campos nunca saem do navegador. As mensagens do chat são encaminhadas através do seu servidor até à sua stack de IA (fornecedor, chaves, RAG, dados internos). O servidor do SimplePDF só recebe telemetria e metadados e nunca vê o próprio documento. O documento concluído é carregado directamente do editor para o seu armazenamento (S3, Azure Blob Storage ou SharePoint), ignorando o servidor do SimplePDF. Quando uma submissão é concluída, um webhook opcional pode notificar o seu servidor. O webhook transporta apenas metadados, nunca o conteúdo do documento.",
+    "architectureDemoDescription": "Esta demonstração corre numa conta SimplePDF partilhada. O navegador aloja tanto o SimplePDF Copilot como o editor SimplePDF (carregado num iframe). Os dados dos campos permanecem no navegador através de chamadas de ferramentas postMessage do lado do cliente. O tráfego do chat flui pelo servidor alojado da demonstração até a um fornecedor de IA alojado, ou directamente do navegador quando traz a sua própria chave API. O servidor do SimplePDF regista apenas telemetria e metadados; nunca vê o conteúdo do documento.",
+    "architectureDescription": "O navegador executa o SimplePDF Copilot e o editor SimplePDF dentro de um iframe. Os dois comunicam através de chamadas de ferramentas do lado do cliente em postMessage, pelo que os dados dos campos nunca saem do navegador. As mensagens do chat são encaminhadas através do seu servidor até à sua stack de IA (fornecedor, chaves, RAG, dados internos). O servidor do SimplePDF só recebe telemetria e metadados e nunca vê o próprio documento. O documento concluído é carregado directamente do editor para o seu armazenamento (S3, Azure Blob Storage ou SharePoint), ignorando o servidor do SimplePDF. Quando uma submissão é concluída, um webhook opcional pode notificar o seu servidor. O webhook transporta apenas metadados, nunca o conteúdo do documento.",
     "tryThisForm": "Experimentar este formulário →",
     "useCases": {
       "healthcare": {
         "title": "Saúde",
-        "body": "Os formulários de admissão de pacientes e de pedidos de reembolso contêm frequentemente dados sensíveis e requerem revisão. O Form Copilot ajuda a preencher o formulário passo a passo através do fornecedor de IA aprovado pela sua organização."
+        "body": "Os formulários de admissão de pacientes e de pedidos de reembolso contêm frequentemente dados sensíveis e requerem revisão. O SimplePDF Copilot ajuda a preencher o formulário passo a passo através do fornecedor de IA aprovado pela sua organização."
       },
       "insurance": {
         "title": "Seguros",
-        "body": "Pedidos, sinistros e aditamentos combinam frequentemente dados estruturados com pormenores específicos da apólice. O Form Copilot ajuda a pré-preencher o que consegue, explica os campos e deixa a revisão final para o utilizador."
+        "body": "Pedidos, sinistros e aditamentos combinam frequentemente dados estruturados com pormenores específicos da apólice. O SimplePDF Copilot ajuda a pré-preencher o que consegue, explica os campos e deixa a revisão final para o utilizador."
       },
       "state": {
         "title": "Burocracia estatal",
-        "body": "Os formulários governamentais são frequentemente digitalizados, complexos ou escritos numa língua que o utilizador não fala. O Form Copilot pode ajudar a explicar o formulário, traduzi-lo e preenchê-lo passo a passo enquanto o utilizador revê o resultado."
+        "body": "Os formulários governamentais são frequentemente digitalizados, complexos ou escritos numa língua que o utilizador não fala. O SimplePDF Copilot pode ajudar a explicar o formulário, traduzi-lo e preenchê-lo passo a passo enquanto o utilizador revê o resultado."
       },
       "hr": {
         "title": "Integração de RH",
-        "body": "Cartas de oferta, formulários fiscais e pacotes de integração exigem frequentemente tanto pré-preenchimento como revisão. O Form Copilot preenche o que consegue e depois entrega ao utilizador para assinaturas e verificações finais."
+        "body": "Cartas de oferta, formulários fiscais e pacotes de integração exigem frequentemente tanto pré-preenchimento como revisão. O SimplePDF Copilot preenche o que consegue e depois entrega ao utilizador para assinaturas e verificações finais."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "À espera que o editor carregue…",
     "subtitleNoDocument": "Carregue primeiro um documento",
@@ -91,7 +91,7 @@
       "cancelButton": "Cancelar",
       "comingSoon": "Brevemente",
       "registerInterest": "Registe o seu interesse →",
-      "registerInterestMessage": "Olá equipa SimplePDF, tenho interesse em usar o Form Copilot com {{provider}}. Podiam indicar-me quando estará disponível e como é feita a configuração?\n\nPlano que me interessa:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Olá equipa SimplePDF, tenho interesse em usar o SimplePDF Copilot com {{provider}}. Podiam indicar-me quando estará disponível e como é feita a configuração?\n\nPlano que me interessa:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Envie a alguém que o devia experimentar:",
     "shareCopyLink": "Copiar ligação",
     "shareCopied": "Copiado!",
-    "shareTweetText": "Estou a experimentar o Form Copilot da SimplePDF, uma IA que preenche formulários PDF passo a passo. Vale uma vista de olhos:",
+    "shareTweetText": "Estou a experimentar o SimplePDF Copilot da SimplePDF, uma IA que preenche formulários PDF passo a passo. Vale uma vista de olhos:",
     "errorByokActivatedButton": "Retomar conversa",
     "errorByokActivatedResumeMessage": "Vamos continuar",
     "errorGenericTitle": "Erro completo",
-    "welcomeTitle": "Experimente o Form Copilot com a sua própria IA",
+    "welcomeTitle": "Experimente o SimplePDF Copilot com a sua própria IA",
     "welcomeBody": "As suas credenciais permanecem neste separador. Os pedidos são enviados do seu navegador para o fornecedor de IA que escolheu.",
     "welcomeCta": "Traga a sua própria IA",
-    "welcomeInfoLink": "Como funciona o Form Copilot",
-    "inputPlaceholderReady": "Fale com o Form Copilot…",
+    "welcomeInfoLink": "Como funciona o SimplePDF Copilot",
+    "inputPlaceholderReady": "Fale com o SimplePDF Copilot…",
     "send": "Enviar"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Submeter"
   },
   "welcomeModal": {
-    "title": "Bem-vindo ao Form Copilot",
+    "title": "Bem-vindo ao SimplePDF Copilot",
     "tagline": "<accent>IA que ajuda</accent> os utilizadores a preencher formulários PDF passo a passo",
     "getStarted": "Começar",
-    "howItWorks": "Como funciona o Form Copilot",
+    "howItWorks": "Como funciona o SimplePDF Copilot",
     "close": "Fechar boas-vindas"
   },
   "download": {
     "title": "Transfira o seu PDF preenchido",
     "intro": "O seu PDF é gerado neste separador do navegador. Nada sai do seu dispositivo e os servidores do SimplePDF nunca vêem o ficheiro preenchido.",
     "cta": "Transferir",
-    "upsellHeading": "Levar o Form Copilot mais longe",
+    "upsellHeading": "Levar o SimplePDF Copilot mais longe",
     "upsellStorage": "Nos planos pagos do SimplePDF, esta Transferência passa a ser um fluxo <b>Submeter</b>. Os PDF preenchidos chegam automaticamente ao seu próprio armazenamento (S3, Azure Blob Storage ou SharePoint) e os seus sistemas são notificados por webhook ou e-mail. A transferência continua a ser opcional.",
     "upsellFields": "Os formulários PDF são desorganizados. Chegam digitalizados sem campos prontos, ou com nomes de campos que fazem a IA trabalhar mais. Os planos pagos do SimplePDF também resolvem isso, com campos obrigatórios, valores predefinidos e aliases de campos.",
     "upsellCta": "Fale connosco",
     "upsellPricing": "Ver planos empresariais",
-    "upsellContactMessage": "Olá equipa SimplePDF, estou a experimentar o Form Copilot e gostaria de saber mais sobre o fluxo de Submeter (Submit) nos planos pagos: entrega automática no meu próprio armazenamento e notificações por webhook ou e-mail.\n\nPlano que me interessa:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Olá equipa SimplePDF, estou a experimentar o SimplePDF Copilot e gostaria de saber mais sobre o fluxo de Submeter (Submit) nos planos pagos: entrega automática no meu próprio armazenamento e notificações por webhook ou e-mail.\n\nPlano que me interessa:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Fechar"
   },
   "toolInvocation": {

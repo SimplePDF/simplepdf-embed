@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "Tekoäly, joka auttaa käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
     "whatIsThisDemo": "Mikä tämä demo on?",
     "useCase": "Ladattu PDF",
     "poweredBy": "Toteuttaja: SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot toimii parhaiten tietokoneella",
+    "headline": "SimplePDF Copilot toimii parhaiten tietokoneella",
     "watchDemo": "Katso demo",
     "videoPlaceholder": "Video"
   },
   "infoModal": {
     "title": "Tekoälyavusteinen lomakkeiden täyttö, ihminen mukana",
     "close": "Sulje",
-    "availableOn": "Form Copilot on saatavilla paketissa <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot on saatavilla paketissa <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Lähdekoodi GitHubissa",
     "githubStarTitle": "Anna SimplePDF/simplepdf-embed GitHubissa tähti",
     "whyItMattersLead": "Automaattisella lomakkeen täytöllä on rajansa.",
     "whyItMattersBody": "Lomakkeen täyttöön tarvittavat tiedot voivat puuttua, olla vääriä tai virheellisiä. Tämä demo esittelee turvallisempaa mallia: tekoäly auttaa lomakkeen täytössä, kun ihminen tarkistaa, korjaa ja täydentää tarvittaessa.",
     "humanInTheLoopTitle": "Näin se toimii",
-    "humanInTheLoopBullet1": "Form Copilot täyttää kenttä reaaliajassa suoraan editorissa.",
-    "humanInTheLoopBullet1Hint": "Tietojen vaihto Form Copilotin ja editorin välillä tapahtuu selaimessa.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot täyttää kenttä reaaliajassa suoraan editorissa.",
+    "humanInTheLoopBullet1Hint": "Tietojen vaihto SimplePDF Copilotin ja editorin välillä tapahtuu selaimessa.",
     "humanInTheLoopBullet2": "Käyttäjä voi nähdä jokaisen muutoksen, tarkistaa ja korjata sen.",
-    "humanInTheLoopBullet2Hint": "Form Copilot voi antaa kentät, joita ei pitäisi täyttää automaattisesti, kuten allekirjoitukset.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot voi antaa kentät, joita ei pitäisi täyttää automaattisesti, kuten allekirjoitukset.",
     "humanInTheLoopBullet3": "Käyttäjä pysyy ohjaksissa.",
-    "humanInTheLoopBullet3Hint": "Form Copilot auttaa liikkumaan lomakkeessa ja täyttämään sen, mutta viimeinen sana on aina käyttäjällä.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot auttaa liikkumaan lomakkeessa ja täyttämään sen, mutta viimeinen sana on aina käyttäjällä.",
     "aboutTitle": "Yksityisyys perustasta",
     "aboutIntro": "SimplePDF on rakennettu alusta asti arkaluonteisille työnkuluille. Nämä kolme arkkitehtuurista valintaa selittävät miksi.",
     "aboutBullet1Title": "Asiakirjojen käsittely selaimessa.",
@@ -43,30 +43,30 @@
       "demo": "Tätä demoa varten",
       "production": "Tuotannossa"
     },
-    "architectureDemoDescription": "Tämä demo toimii jaetulla SimplePDF-tilillä. Selain isännöi sekä Form Copilotia että SimplePDF-editoria (ladattu iframessa). Kenttätiedot pysyvät selaimessa postMessage-asiakaspuolen työkalukutsuilla. Keskusteluliikenne kulkee demon isännöidyn palvelimen kautta isännöidylle tekoälytarjoajalle, tai suoraan selaimesta, kun tuot oman API-avaimesi. SimplePDF-palvelin tallentaa vain telemetriaa ja metatietoja; se ei näe koskaan asiakirjan sisältöä.",
-    "architectureDescription": "Selain ajaa Form Copilotia ja SimplePDF-editoria iframessa. Ne viestivät postMessage-asiakaspuolen työkalukutsuilla, joten kenttätiedot eivät koskaan poistu selaimesta. Keskusteluviestit välitetään palvelimesi kautta tekoälypinoosi (tarjoaja, avaimet, RAG, sisäiset tiedot). SimplePDF-palvelin saa vain telemetriaa ja metatietoja eikä koskaan näe asiakirjaa itseään. Valmis asiakirja ladataan suoraan editorista tallennustilaasi (S3, Azure Blob Storage tai SharePoint) SimplePDF-palvelimen ohi. Kun lähetys on valmis, valinnainen webhook voi ilmoittaa palvelimellesi. Webhook sisältää vain metatietoja, ei koskaan asiakirjan sisältöä.",
+    "architectureDemoDescription": "Tämä demo toimii jaetulla SimplePDF-tilillä. Selain isännöi sekä SimplePDF Copilotia että SimplePDF-editoria (ladattu iframessa). Kenttätiedot pysyvät selaimessa postMessage-asiakaspuolen työkalukutsuilla. Keskusteluliikenne kulkee demon isännöidyn palvelimen kautta isännöidylle tekoälytarjoajalle, tai suoraan selaimesta, kun tuot oman API-avaimesi. SimplePDF-palvelin tallentaa vain telemetriaa ja metatietoja; se ei näe koskaan asiakirjan sisältöä.",
+    "architectureDescription": "Selain ajaa SimplePDF Copilotia ja SimplePDF-editoria iframessa. Ne viestivät postMessage-asiakaspuolen työkalukutsuilla, joten kenttätiedot eivät koskaan poistu selaimesta. Keskusteluviestit välitetään palvelimesi kautta tekoälypinoosi (tarjoaja, avaimet, RAG, sisäiset tiedot). SimplePDF-palvelin saa vain telemetriaa ja metatietoja eikä koskaan näe asiakirjaa itseään. Valmis asiakirja ladataan suoraan editorista tallennustilaasi (S3, Azure Blob Storage tai SharePoint) SimplePDF-palvelimen ohi. Kun lähetys on valmis, valinnainen webhook voi ilmoittaa palvelimellesi. Webhook sisältää vain metatietoja, ei koskaan asiakirjan sisältöä.",
     "tryThisForm": "Kokeile tätä lomaketta →",
     "useCases": {
       "healthcare": {
         "title": "Terveydenhuolto",
-        "body": "Potilastietolomakkeet ja korvausvaatimuslomakkeet sisältävät usein arkaluonteisia tietoja ja vaativat tarkistuksen. Form Copilot auttaa täyttämään lomakkeen vaihe vaiheelta organisaatiosi hyväksymän tekoälytarjoajan kautta."
+        "body": "Potilastietolomakkeet ja korvausvaatimuslomakkeet sisältävät usein arkaluonteisia tietoja ja vaativat tarkistuksen. SimplePDF Copilot auttaa täyttämään lomakkeen vaihe vaiheelta organisaatiosi hyväksymän tekoälytarjoajan kautta."
       },
       "insurance": {
         "title": "Vakuutus",
-        "body": "Hakemukset, korvausvaatimukset ja lisäykset yhdistävät usein strukturoitua dataa vakuutuskohtaisiin yksityiskohtiin. Form Copilot auttaa esitäyttämään, selittää kenttiä ja jättää lopullisen tarkistuksen käyttäjälle."
+        "body": "Hakemukset, korvausvaatimukset ja lisäykset yhdistävät usein strukturoitua dataa vakuutuskohtaisiin yksityiskohtiin. SimplePDF Copilot auttaa esitäyttämään, selittää kenttiä ja jättää lopullisen tarkistuksen käyttäjälle."
       },
       "state": {
         "title": "Valtion byrokratia",
-        "body": "Viranomaislomakkeet ovat usein skannattuja, monimutkaisia tai kirjoitettu kielellä, jota käyttäjä ei puhu. Form Copilot voi auttaa selittämään, kääntämään ja täyttämään lomakkeen vaihe vaiheelta, kun käyttäjä tarkistaa lopputuloksen."
+        "body": "Viranomaislomakkeet ovat usein skannattuja, monimutkaisia tai kirjoitettu kielellä, jota käyttäjä ei puhu. SimplePDF Copilot voi auttaa selittämään, kääntämään ja täyttämään lomakkeen vaihe vaiheelta, kun käyttäjä tarkistaa lopputuloksen."
       },
       "hr": {
         "title": "HR-perehdytys",
-        "body": "Työtarjouskirjeet, verolomakkeet ja perehdytyspaketit vaativat usein sekä esitäyttöä että tarkistusta. Form Copilot täyttää sen, minkä voi, ja antaa sitten allekirjoitukset ja viimeiset tarkistukset käyttäjälle."
+        "body": "Työtarjouskirjeet, verolomakkeet ja perehdytyspaketit vaativat usein sekä esitäyttöä että tarkistusta. SimplePDF Copilot täyttää sen, minkä voi, ja antaa sitten allekirjoitukset ja viimeiset tarkistukset käyttäjälle."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Odotetaan editorin latautumista…",
     "subtitleNoDocument": "Lataa ensin asiakirja",
@@ -91,7 +91,7 @@
       "cancelButton": "Peruuta",
       "comingSoon": "Tulossa pian",
       "registerInterest": "Ilmoita kiinnostuksesi →",
-      "registerInterestMessage": "Hei SimplePDF-tiimi, olen kiinnostunut käyttämään Form Copilotia {{provider}}-palvelun kanssa. Voisitteko kertoa, milloin se on saatavilla ja miltä määritys näyttää?\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Hei SimplePDF-tiimi, olen kiinnostunut käyttämään SimplePDF Copilotia {{provider}}-palvelun kanssa. Voisitteko kertoa, milloin se on saatavilla ja miltä määritys näyttää?\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Lähetä sille, jonka pitäisi kokeilla:",
     "shareCopyLink": "Kopioi linkki",
     "shareCopied": "Kopioitu!",
-    "shareTweetText": "Kokeilen SimplePDF:n Form Copilotia, tekoälyä joka täyttää PDF-lomakkeet askel askeleelta. Kannattaa katsoa:",
+    "shareTweetText": "Kokeilen SimplePDF:n SimplePDF Copilotia, tekoälyä joka täyttää PDF-lomakkeet askel askeleelta. Kannattaa katsoa:",
     "errorByokActivatedButton": "Jatka keskustelua",
     "errorByokActivatedResumeMessage": "Jatketaan",
     "errorGenericTitle": "Koko virhe",
-    "welcomeTitle": "Kokeile Form Copilotia omalla tekoälylläsi",
+    "welcomeTitle": "Kokeile SimplePDF Copilotia omalla tekoälylläsi",
     "welcomeBody": "Tunnistetietosi pysyvät tällä välilehdellä. Pyynnöt lähetetään selaimestasi valitsemallesi tekoälytarjoajalle.",
     "welcomeCta": "Tuo oma tekoäly",
-    "welcomeInfoLink": "Näin Form Copilot toimii",
-    "inputPlaceholderReady": "Keskustele Form Copilotin kanssa…",
+    "welcomeInfoLink": "Näin SimplePDF Copilot toimii",
+    "inputPlaceholderReady": "Keskustele SimplePDF Copilotin kanssa…",
     "send": "Lähetä"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Lähetä"
   },
   "welcomeModal": {
-    "title": "Tervetuloa Form Copilotiin",
+    "title": "Tervetuloa SimplePDF Copilotiin",
     "tagline": "<accent>Tekoäly, joka auttaa</accent> käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
     "getStarted": "Aloita",
-    "howItWorks": "Näin Form Copilot toimii",
+    "howItWorks": "Näin SimplePDF Copilot toimii",
     "close": "Sulje tervetulo"
   },
   "download": {
     "title": "Lataa täytetty PDF",
     "intro": "PDF:si luodaan tässä selaimen välilehdessä. Mikään ei poistu laitteeltasi, eivätkä SimplePDF:n palvelimet koskaan näe täytettyä tiedostoa.",
     "cta": "Lataa",
-    "upsellHeading": "Vie Form Copilot pidemmälle",
+    "upsellHeading": "Vie SimplePDF Copilot pidemmälle",
     "upsellStorage": "SimplePDF:n maksullisissa sopimuksissa tämä Lataus muuttuu <b>Lähetä</b>-virraksi. Täytetyt PDF-tiedostot päätyvät automaattisesti omaan tallennustilaasi (S3, Azure Blob Storage tai SharePoint), ja järjestelmäsi saavat ilmoituksen webhookilla tai sähköpostilla. Lataaminen on yhä valinnaista.",
     "upsellFields": "PDF-lomakkeet ovat sekavia. Ne saapuvat skannattuina ilman valmiita kenttiä tai huonoilla kenttänimillä, jotka vaativat tekoälyltä enemmän työtä. SimplePDF:n maksulliset sopimukset korjaavat tämänkin pakollisilla kentillä, oletusarvoilla ja kenttien aliaksilla.",
     "upsellCta": "Ota yhteyttä",
     "upsellPricing": "Katso yritysratkaisut",
-    "upsellContactMessage": "Hei SimplePDF-tiimi, kokeilen Form Copilotia ja haluaisin kuulla lisää maksullisten sopimusten Lähetä-virrasta (Submit): täytettyjen PDF:ien automaattinen toimitus omaan tallennustilaani sekä ilmoitukset webhookilla tai sähköpostilla.\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Hei SimplePDF-tiimi, kokeilen SimplePDF Copilotia ja haluaisin kuulla lisää maksullisten sopimusten Lähetä-virrasta (Submit): täytettyjen PDF:ien automaattinen toimitus omaan tallennustilaani sekä ilmoitukset webhookilla tai sähköpostilla.\n\nMinua kiinnostava sopimus:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Sulje"
   },
   "toolInvocation": {

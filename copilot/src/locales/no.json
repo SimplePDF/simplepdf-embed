@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "AI som hjelper brukere å fylle ut PDF-skjemaer steg for steg",
     "whatIsThisDemo": "Hva er denne demoen?",
     "useCase": "Lastet PDF",
     "poweredBy": "Drevet av SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot oppleves best på skrivebordet",
+    "headline": "SimplePDF Copilot oppleves best på skrivebordet",
     "watchDemo": "Se demoen",
     "videoPlaceholder": "Video"
   },
   "infoModal": {
     "title": "AI-assistert skjemautfylling, med et menneske i løkken",
     "close": "Lukk",
-    "availableOn": "Form Copilot er tilgjengelig på <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot er tilgjengelig på <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Kildekode på GitHub",
     "githubStarTitle": "Gi en stjerne til SimplePDF/simplepdf-embed på GitHub",
     "whyItMattersLead": "Automatisk skjemautfylling har sine grenser.",
     "whyItMattersBody": "Dataene som trengs for å fylle ut et skjema kan mangle, være feil eller ugyldige. Denne demoen viser en tryggere modell: AI hjelper med å fylle ut skjemaet mens et menneske gjennomgår, korrigerer og fullfører der det trengs.",
     "humanInTheLoopTitle": "Slik fungerer det",
-    "humanInTheLoopBullet1": "Form Copilot fyller ut felt i sanntid, inne i redigeringsverktøyet.",
-    "humanInTheLoopBullet1Hint": "Datautvekslingen mellom Form Copilot og redigeringsverktøyet skjer i nettleseren.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot fyller ut felt i sanntid, inne i redigeringsverktøyet.",
+    "humanInTheLoopBullet1Hint": "Datautvekslingen mellom SimplePDF Copilot og redigeringsverktøyet skjer i nettleseren.",
     "humanInTheLoopBullet2": "Brukeren kan se hver endring, gjennomgå og korrigere den.",
-    "humanInTheLoopBullet2Hint": "Form Copilot kan overlate felt som ikke bør fylles ut automatisk, for eksempel signaturer.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot kan overlate felt som ikke bør fylles ut automatisk, for eksempel signaturer.",
     "humanInTheLoopBullet3": "Brukeren beholder kontrollen.",
-    "humanInTheLoopBullet3Hint": "Form Copilot hjelper med å navigere og fylle ut skjemaet, men brukeren har alltid det siste ordet.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot hjelper med å navigere og fylle ut skjemaet, men brukeren har alltid det siste ordet.",
     "aboutTitle": "Personvern ved design",
     "aboutIntro": "SimplePDF er bygget fra bunnen av for sensitive arbeidsflyter. Disse tre arkitektoniske valgene forklarer hvorfor.",
     "aboutBullet1Title": "Dokumentbehandling i nettleseren.",
@@ -43,30 +43,30 @@
       "demo": "For denne demoen",
       "production": "I produksjon"
     },
-    "architectureDemoDescription": "Denne demoen kjører på en delt SimplePDF-konto. Nettleseren er vert for både Form Copilot og SimplePDF-redigeringsverktøyet (lastet i en iframe). Feltdata blir værende i nettleseren via postMessage verktøykall på klientsiden. Chattrafikk går gjennom demoens hostede server til en hostet AI-leverandør, eller direkte fra nettleseren når du tar med din egen API-nøkkel. SimplePDF-serveren registrerer bare telemetri og metadata; den ser aldri innholdet i dokumentet.",
-    "architectureDescription": "Nettleseren kjører Form Copilot og SimplePDF-redigeringsverktøyet inne i en iframe. De to kommuniserer gjennom postMessage verktøykall på klientsiden, slik at feltdata aldri forlater nettleseren. Chatmeldinger sendes via din server til din AI-stack (leverandør, nøkler, RAG, interne data). SimplePDF-serveren mottar bare telemetri og metadata og ser aldri selve dokumentet. Det ferdige dokumentet lastes direkte opp fra redigeringsverktøyet til din lagring (S3, Azure Blob Storage eller SharePoint), og omgår SimplePDF-serveren. Når en innsending er ferdig, kan en valgfri webhook varsle din server. Webhooken inneholder kun metadata, aldri dokumentinnholdet.",
+    "architectureDemoDescription": "Denne demoen kjører på en delt SimplePDF-konto. Nettleseren er vert for både SimplePDF Copilot og SimplePDF-redigeringsverktøyet (lastet i en iframe). Feltdata blir værende i nettleseren via postMessage verktøykall på klientsiden. Chattrafikk går gjennom demoens hostede server til en hostet AI-leverandør, eller direkte fra nettleseren når du tar med din egen API-nøkkel. SimplePDF-serveren registrerer bare telemetri og metadata; den ser aldri innholdet i dokumentet.",
+    "architectureDescription": "Nettleseren kjører SimplePDF Copilot og SimplePDF-redigeringsverktøyet inne i en iframe. De to kommuniserer gjennom postMessage verktøykall på klientsiden, slik at feltdata aldri forlater nettleseren. Chatmeldinger sendes via din server til din AI-stack (leverandør, nøkler, RAG, interne data). SimplePDF-serveren mottar bare telemetri og metadata og ser aldri selve dokumentet. Det ferdige dokumentet lastes direkte opp fra redigeringsverktøyet til din lagring (S3, Azure Blob Storage eller SharePoint), og omgår SimplePDF-serveren. Når en innsending er ferdig, kan en valgfri webhook varsle din server. Webhooken inneholder kun metadata, aldri dokumentinnholdet.",
     "tryThisForm": "Prøv dette skjemaet →",
     "useCases": {
       "healthcare": {
         "title": "Helsetjenester",
-        "body": "Pasientinntaks- og kravskjemaer inneholder ofte sensitive data og krever gjennomgang. Form Copilot hjelper med å fylle ut skjemaet steg for steg via organisasjonens godkjente AI-leverandør."
+        "body": "Pasientinntaks- og kravskjemaer inneholder ofte sensitive data og krever gjennomgang. SimplePDF Copilot hjelper med å fylle ut skjemaet steg for steg via organisasjonens godkjente AI-leverandør."
       },
       "insurance": {
         "title": "Forsikring",
-        "body": "Søknader, skader og tilleggsavtaler kombinerer ofte strukturerte data med policy-spesifikke detaljer. Form Copilot bidrar til å forhåndsutfylle det den kan, forklarer felt og lar brukeren ta seg av den endelige gjennomgangen."
+        "body": "Søknader, skader og tilleggsavtaler kombinerer ofte strukturerte data med policy-spesifikke detaljer. SimplePDF Copilot bidrar til å forhåndsutfylle det den kan, forklarer felt og lar brukeren ta seg av den endelige gjennomgangen."
       },
       "state": {
         "title": "Offentlig byråkrati",
-        "body": "Offentlige skjemaer er ofte skannet, komplekse eller skrevet på et språk brukeren ikke snakker. Form Copilot kan hjelpe med å forklare skjemaet, oversette det og fylle det ut steg for steg mens brukeren vurderer resultatet."
+        "body": "Offentlige skjemaer er ofte skannet, komplekse eller skrevet på et språk brukeren ikke snakker. SimplePDF Copilot kan hjelpe med å forklare skjemaet, oversette det og fylle det ut steg for steg mens brukeren vurderer resultatet."
       },
       "hr": {
         "title": "HR-onboarding",
-        "body": "Ansettelsesbrev, skatteskjemaer og onboarding-pakker krever ofte både forhåndsutfylling og gjennomgang. Form Copilot fyller ut det den kan, og overlater deretter signaturer og siste kontroller til brukeren."
+        "body": "Ansettelsesbrev, skatteskjemaer og onboarding-pakker krever ofte både forhåndsutfylling og gjennomgang. SimplePDF Copilot fyller ut det den kan, og overlater deretter signaturer og siste kontroller til brukeren."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Venter på at redigeringsverktøyet skal laste…",
     "subtitleNoDocument": "Last inn et dokument først",
@@ -91,7 +91,7 @@
       "cancelButton": "Avbryt",
       "comingSoon": "Kommer snart",
       "registerInterest": "Meld din interesse →",
-      "registerInterestMessage": "Hei SimplePDF-team, jeg er interessert i å bruke Form Copilot med {{provider}}. Kan dere fortelle når det blir tilgjengelig og hvordan oppsettet ser ut?\n\nAbonnement jeg er interessert i:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Hei SimplePDF-team, jeg er interessert i å bruke SimplePDF Copilot med {{provider}}. Kan dere fortelle når det blir tilgjengelig og hvordan oppsettet ser ut?\n\nAbonnement jeg er interessert i:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Send den til noen som bør prøve:",
     "shareCopyLink": "Kopier lenke",
     "shareCopied": "Kopiert!",
-    "shareTweetText": "Jeg prøver Form Copilot fra SimplePDF, en AI som fyller ut PDF-skjemaer steg for steg. Verdt et blikk:",
+    "shareTweetText": "Jeg prøver SimplePDF Copilot fra SimplePDF, en AI som fyller ut PDF-skjemaer steg for steg. Verdt et blikk:",
     "errorByokActivatedButton": "Gjenoppta samtalen",
     "errorByokActivatedResumeMessage": "Vi fortsetter",
     "errorGenericTitle": "Full feil",
-    "welcomeTitle": "Prøv Form Copilot med din egen AI",
+    "welcomeTitle": "Prøv SimplePDF Copilot med din egen AI",
     "welcomeBody": "Påloggingsdetaljene dine blir i denne fanen. Forespørsler sendes fra nettleseren din til den valgte AI-leverandøren.",
     "welcomeCta": "Ta med din egen AI",
-    "welcomeInfoLink": "Slik fungerer Form Copilot",
-    "inputPlaceholderReady": "Snakk med Form Copilot…",
+    "welcomeInfoLink": "Slik fungerer SimplePDF Copilot",
+    "inputPlaceholderReady": "Snakk med SimplePDF Copilot…",
     "send": "Send"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Send inn"
   },
   "welcomeModal": {
-    "title": "Velkommen til Form Copilot",
+    "title": "Velkommen til SimplePDF Copilot",
     "tagline": "<accent>AI som hjelper</accent> brukere å fylle ut PDF-skjemaer steg for steg",
     "getStarted": "Kom i gang",
-    "howItWorks": "Slik fungerer Form Copilot",
+    "howItWorks": "Slik fungerer SimplePDF Copilot",
     "close": "Lukk velkomst"
   },
   "download": {
     "title": "Last ned den utfylte PDF-en",
     "intro": "PDF-en din genereres i denne nettleserfanen. Ingenting forlater enheten din, og SimplePDFs servere ser aldri den utfylte filen.",
     "cta": "Last ned",
-    "upsellHeading": "Ta Form Copilot videre",
+    "upsellHeading": "Ta SimplePDF Copilot videre",
     "upsellStorage": "På betalte SimplePDF-abonnementer blir denne Nedlastingen til en <b>Send inn</b>-flyt. Utfylte PDF-er havner automatisk i ditt eget lager (S3, Azure Blob Storage eller SharePoint), og systemene dine varsles via webhook eller e-post. Nedlasting forblir valgfritt.",
     "upsellFields": "PDF-skjemaer er rotete. De kommer skannet uten ferdige felt, eller med dårlige feltnavn som gjør at AI-en må jobbe hardere. Betalte SimplePDF-abonnementer fikser også det, med obligatoriske felt, standardverdier og feltaliaser.",
     "upsellCta": "Kontakt oss",
     "upsellPricing": "Se bedriftsabonnementer",
-    "upsellContactMessage": "Hei SimplePDF-team, jeg prøver Form Copilot og vil gjerne vite mer om Send inn-flyten (Submit) i de betalte abonnementene: automatisk levering til mitt eget lager og varsler via webhook eller e-post.\n\nAbonnement jeg er interessert i:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Hei SimplePDF-team, jeg prøver SimplePDF Copilot og vil gjerne vite mer om Send inn-flyten (Submit) i de betalte abonnementene: automatisk levering til mitt eget lager og varsler via webhook eller e-post.\n\nAbonnement jeg er interessert i:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Lukk"
   },
   "toolInvocation": {

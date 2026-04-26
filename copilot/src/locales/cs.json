@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "AI, která pomáhá uživatelům vyplnit PDF formuláře krok za krokem",
     "whatIsThisDemo": "Co je toto demo?",
     "useCase": "Načtené PDF",
     "poweredBy": "Pohoní SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot si nejlépe vychutnáte na počítači",
+    "headline": "SimplePDF Copilot si nejlépe vychutnáte na počítači",
     "watchDemo": "Sledovat ukázku",
     "videoPlaceholder": "Video"
   },
   "infoModal": {
     "title": "Vyplňování formulářů s podporou AI, s člověkem ve smyčce",
     "close": "Zavřít",
-    "availableOn": "Form Copilot je dostupný v <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot je dostupný v <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Zdrojový kód na GitHubu",
     "githubStarTitle": "Dát hvězdičku SimplePDF/simplepdf-embed na GitHubu",
     "whyItMattersLead": "Automatické vyplňování formulářů má své limity.",
     "whyItMattersBody": "Data potřebná k vyplnění formuláře mohou chybět, být chybná nebo neplatná. Toto demo ukazuje bezpečnější model: AI pomáhá formulář vyplnit, zatímco člověk kontroluje, opravuje a v případě potřeby doplňuje.",
     "humanInTheLoopTitle": "Jak to funguje",
-    "humanInTheLoopBullet1": "Form Copilot vyplňuje pole v reálném čase, přímo v editoru.",
-    "humanInTheLoopBullet1Hint": "Výměna dat mezi Form Copilot a editorem probíhá v prohlížeči.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot vyplňuje pole v reálném čase, přímo v editoru.",
+    "humanInTheLoopBullet1Hint": "Výměna dat mezi SimplePDF Copilot a editorem probíhá v prohlížeči.",
     "humanInTheLoopBullet2": "Uživatel může vidět každou změnu, zkontrolovat ji a opravit.",
-    "humanInTheLoopBullet2Hint": "Form Copilot může předat pole, která by se neměla vyplňovat automaticky, například podpisy.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot může předat pole, která by se neměla vyplňovat automaticky, například podpisy.",
     "humanInTheLoopBullet3": "Uživatel má kontrolu.",
-    "humanInTheLoopBullet3Hint": "Form Copilot pomáhá procházet formulář a vyplňovat jej, ale poslední slovo má vždy uživatel.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot pomáhá procházet formulář a vyplňovat jej, ale poslední slovo má vždy uživatel.",
     "aboutTitle": "Soukromí od základu",
     "aboutIntro": "SimplePDF je od základu navržen pro citlivé pracovní postupy. Tyto tři architektonické volby vysvětlují proč.",
     "aboutBullet1Title": "Zpracování dokumentů v prohlížeči.",
@@ -43,30 +43,30 @@
       "demo": "Pro toto demo",
       "production": "V produkci"
     },
-    "architectureDemoDescription": "Toto demo běží na sdíleném účtu SimplePDF. Prohlížeč hostuje jak Form Copilot, tak editor SimplePDF (načtený v iframe). Data polí zůstávají v prohlížeči díky postMessage voláním nástrojů na straně klienta. Provoz chatu prochází hostovaným serverem dema k hostovanému poskytovateli AI, nebo přímo z prohlížeče, když si přinesete vlastní API klíč. Server SimplePDF zaznamenává pouze telemetrii a metadata; obsah dokumentu nikdy nevidí.",
-    "architectureDescription": "Prohlížeč spouští Form Copilot a editor SimplePDF uvnitř iframe. Obě části komunikují prostřednictvím postMessage volání nástrojů na straně klienta, takže data polí nikdy neopustí prohlížeč. Zprávy chatu jsou proxy přes váš server do vašeho AI stacku (poskytovatel, klíče, RAG, interní data). Server SimplePDF přijímá pouze telemetrii a metadata a samotný dokument nikdy nevidí. Hotový dokument se nahrává přímo z editoru do vašeho úložiště (S3, Azure Blob Storage nebo SharePoint) mimo server SimplePDF. Po dokončení odeslání může volitelný webhook upozornit váš server. Webhook obsahuje pouze metadata, nikdy obsah dokumentu.",
+    "architectureDemoDescription": "Toto demo běží na sdíleném účtu SimplePDF. Prohlížeč hostuje jak SimplePDF Copilot, tak editor SimplePDF (načtený v iframe). Data polí zůstávají v prohlížeči díky postMessage voláním nástrojů na straně klienta. Provoz chatu prochází hostovaným serverem dema k hostovanému poskytovateli AI, nebo přímo z prohlížeče, když si přinesete vlastní API klíč. Server SimplePDF zaznamenává pouze telemetrii a metadata; obsah dokumentu nikdy nevidí.",
+    "architectureDescription": "Prohlížeč spouští SimplePDF Copilot a editor SimplePDF uvnitř iframe. Obě části komunikují prostřednictvím postMessage volání nástrojů na straně klienta, takže data polí nikdy neopustí prohlížeč. Zprávy chatu jsou proxy přes váš server do vašeho AI stacku (poskytovatel, klíče, RAG, interní data). Server SimplePDF přijímá pouze telemetrii a metadata a samotný dokument nikdy nevidí. Hotový dokument se nahrává přímo z editoru do vašeho úložiště (S3, Azure Blob Storage nebo SharePoint) mimo server SimplePDF. Po dokončení odeslání může volitelný webhook upozornit váš server. Webhook obsahuje pouze metadata, nikdy obsah dokumentu.",
     "tryThisForm": "Vyzkoušet tento formulář →",
     "useCases": {
       "healthcare": {
         "title": "Zdravotnictví",
-        "body": "Formuláře pro příjem pacientů a zdravotní nároky často obsahují citlivá data a vyžadují kontrolu. Form Copilot pomáhá vyplnit formulář krok za krokem pomocí AI poskytovatele schváleného vaší organizací."
+        "body": "Formuláře pro příjem pacientů a zdravotní nároky často obsahují citlivá data a vyžadují kontrolu. SimplePDF Copilot pomáhá vyplnit formulář krok za krokem pomocí AI poskytovatele schváleného vaší organizací."
       },
       "insurance": {
         "title": "Pojištění",
-        "body": "Žádosti, škodní události a dodatky často kombinují strukturovaná data s detaily dané pojistky. Form Copilot předvyplní, co může, vysvětlí pole a finalní kontrolu nechává na uživateli."
+        "body": "Žádosti, škodní události a dodatky často kombinují strukturovaná data s detaily dané pojistky. SimplePDF Copilot předvyplní, co může, vysvětlí pole a finalní kontrolu nechává na uživateli."
       },
       "state": {
         "title": "Státní byrokracie",
-        "body": "Státní formuláře bývají často naskenované, složité nebo v jazyce, kterým uživatel nemluví. Form Copilot může formulář vysvětlit, přeložit a vyplnit krok za krokem, zatímco uživatel výsledek kontroluje."
+        "body": "Státní formuláře bývají často naskenované, složité nebo v jazyce, kterým uživatel nemluví. SimplePDF Copilot může formulář vysvětlit, přeložit a vyplnit krok za krokem, zatímco uživatel výsledek kontroluje."
       },
       "hr": {
         "title": "HR onboarding",
-        "body": "Nabídkové dopisy, daňové formuláře a onboardingové balíčky často vyžadují předvyplnění i kontrolu. Form Copilot vyplní, co může, a pak předá uživateli k podpisu a závěrečným úpravám."
+        "body": "Nabídkové dopisy, daňové formuláře a onboardingové balíčky často vyžadují předvyplnění i kontrolu. SimplePDF Copilot vyplní, co může, a pak předá uživateli k podpisu a závěrečným úpravám."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Čekání na načtení editoru…",
     "subtitleNoDocument": "Nejprve načtěte dokument",
@@ -91,7 +91,7 @@
       "cancelButton": "Zrušit",
       "comingSoon": "Brzy",
       "registerInterest": "Zaregistrujte svůj zájem →",
-      "registerInterestMessage": "Ahoj týme SimplePDF, mám zájem používat Form Copilot s {{provider}}. Můžete mi napsat, kdy bude k dispozici a jak vypadá nastavení?\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Ahoj týme SimplePDF, mám zájem používat SimplePDF Copilot s {{provider}}. Můžete mi napsat, kdy bude k dispozici a jak vypadá nastavení?\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Pošlete to někomu, kdo by to měl zkusit:",
     "shareCopyLink": "Kopírovat odkaz",
     "shareCopied": "Zkopírováno!",
-    "shareTweetText": "Zkouším Form Copilot od SimplePDF, AI, která vyplňuje PDF formuláře krok za krokem. Stojí za podívání:",
+    "shareTweetText": "Zkouším SimplePDF Copilot od SimplePDF, AI, která vyplňuje PDF formuláře krok za krokem. Stojí za podívání:",
     "errorByokActivatedButton": "Pokračovat v konverzaci",
     "errorByokActivatedResumeMessage": "Pokračujme",
     "errorGenericTitle": "Úplná chyba",
-    "welcomeTitle": "Vyzkoušejte Form Copilot s vlastní AI",
+    "welcomeTitle": "Vyzkoušejte SimplePDF Copilot s vlastní AI",
     "welcomeBody": "Vaše přihlašovací údaje zůstávají v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",
     "welcomeCta": "Přineste si vlastní AI",
-    "welcomeInfoLink": "Jak Form Copilot funguje",
-    "inputPlaceholderReady": "Mluvte s Form Copilot…",
+    "welcomeInfoLink": "Jak SimplePDF Copilot funguje",
+    "inputPlaceholderReady": "Mluvte s SimplePDF Copilot…",
     "send": "Odeslat"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Odeslat"
   },
   "welcomeModal": {
-    "title": "Vítejte ve Form Copilot",
+    "title": "Vítejte ve SimplePDF Copilot",
     "tagline": "<accent>AI, která pomáhá</accent> uživatelům vyplnit PDF formuláře krok za krokem",
     "getStarted": "Začít",
-    "howItWorks": "Jak Form Copilot funguje",
+    "howItWorks": "Jak SimplePDF Copilot funguje",
     "close": "Zavřít uvítání"
   },
   "download": {
     "title": "Stáhněte si vyplněné PDF",
     "intro": "Vaše PDF se generuje v této záložce prohlížeče. Nic neopouští vaše zařízení a servery SimplePDF vyplněný soubor nikdy nevidí.",
     "cta": "Stáhnout",
-    "upsellHeading": "Posuňte Form Copilot dál",
+    "upsellHeading": "Posuňte SimplePDF Copilot dál",
     "upsellStorage": "V placených plánech SimplePDF se toto Stáhnutí promění v <b>Odeslat</b> proces. Vyplněná PDF automaticky putují do vašeho vlastního úložiště (S3, Azure Blob Storage nebo SharePoint) a vaše systémy dostanou oznámení přes webhook nebo e-mail. Stahování zůstává volitelné.",
     "upsellFields": "PDF formuláře bývají nepřehledné. Přicházejí naskenované bez připravených polí, nebo se špatnými názvy polí, které nutí AI víc pracovat. Placené plány SimplePDF tohle řeší také, a to povinnými poli, výchozími hodnotami a aliasy polí.",
     "upsellCta": "Napište nám",
     "upsellPricing": "Prohlédnout firemní plány",
-    "upsellContactMessage": "Ahoj týme SimplePDF, zkouším Form Copilot a rád bych se dozvěděl víc o procesu Odeslat (Submit) v placených plánech: automatické doručení do mého vlastního úložiště a upozornění přes webhook nebo e-mail.\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Ahoj týme SimplePDF, zkouším SimplePDF Copilot a rád bych se dozvěděl víc o procesu Odeslat (Submit) v placených plánech: automatické doručení do mého vlastního úložiště a upozornění přes webhook nebo e-mail.\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Zavřít"
   },
   "toolInvocation": {

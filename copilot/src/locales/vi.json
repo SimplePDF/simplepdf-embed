@@ -1,31 +1,31 @@
 {
   "header": {
-    "brand": "Form Copilot Demo",
+    "brand": "SimplePDF Copilot Demo",
     "tagline": "AI giúp người dùng điền biểu mẫu PDF từng bước",
     "whatIsThisDemo": "Bản demo này là gì?",
     "useCase": "PDF đã tải",
     "poweredBy": "Được cung cấp bởi SimplePDF"
   },
   "mobileFallback": {
-    "headline": "Form Copilot trải nghiệm tốt nhất trên máy tính",
+    "headline": "SimplePDF Copilot trải nghiệm tốt nhất trên máy tính",
     "watchDemo": "Xem bản demo",
     "videoPlaceholder": "Video"
   },
   "infoModal": {
     "title": "Điền biểu mẫu có hỗ trợ AI, với con người trong quy trình",
     "close": "Đóng",
-    "availableOn": "Form Copilot có sẵn trên <plan>SimplePDF Pro and above</plan>.",
+    "availableOn": "SimplePDF Copilot có sẵn trên <plan>SimplePDF Pro and above</plan>.",
     "sourceCode": "Mã nguồn trên GitHub",
     "githubStarTitle": "Gắn sao cho SimplePDF/simplepdf-embed trên GitHub",
     "whyItMattersLead": "Điền biểu mẫu tự động có giới hạn.",
     "whyItMattersBody": "Dữ liệu cần thiết để hoàn thành biểu mẫu có thể bị thiếu, không chính xác hoặc không hợp lệ. Bản demo này trình bày một mô hình an toàn hơn: AI giúp điền biểu mẫu trong khi con người xem xét, chỉnh sửa và hoàn thành nếu cần.",
     "humanInTheLoopTitle": "Cách thức hoạt động",
-    "humanInTheLoopBullet1": "Form Copilot điền các trường theo thời gian thực, ngay trong trình chỉnh sửa.",
-    "humanInTheLoopBullet1Hint": "Trao đổi dữ liệu giữa Form Copilot và trình chỉnh sửa diễn ra trong trình duyệt.",
+    "humanInTheLoopBullet1": "SimplePDF Copilot điền các trường theo thời gian thực, ngay trong trình chỉnh sửa.",
+    "humanInTheLoopBullet1Hint": "Trao đổi dữ liệu giữa SimplePDF Copilot và trình chỉnh sửa diễn ra trong trình duyệt.",
     "humanInTheLoopBullet2": "Người dùng có thể xem từng thay đổi, xem xét và chỉnh sửa nó.",
-    "humanInTheLoopBullet2Hint": "Form Copilot có thể chuyển giao các trường không nên được tự động điền, chẳng hạn như chữ ký.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot có thể chuyển giao các trường không nên được tự động điền, chẳng hạn như chữ ký.",
     "humanInTheLoopBullet3": "Người dùng luôn làm chủ.",
-    "humanInTheLoopBullet3Hint": "Form Copilot giúp điều hướng và điền biểu mẫu, nhưng người dùng luôn có quyết định cuối cùng.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot giúp điều hướng và điền biểu mẫu, nhưng người dùng luôn có quyết định cuối cùng.",
     "aboutTitle": "Quyền riêng tư từ thiết kế",
     "aboutIntro": "SimplePDF được xây dựng từ đầu cho các quy trình nhạy cảm. Ba lựa chọn kiến trúc sau giải thích lý do.",
     "aboutBullet1Title": "Xử lý tài liệu trong trình duyệt.",
@@ -43,30 +43,30 @@
       "demo": "Cho bản demo này",
       "production": "Trong môi trường sản xuất"
     },
-    "architectureDemoDescription": "Bản demo này chạy trên một tài khoản SimplePDF dùng chung. Trình duyệt lưu trữ cả Form Copilot và trình chỉnh sửa SimplePDF (được tải trong một iframe). Dữ liệu trường được giữ trong trình duyệt thông qua các cuộc gọi công cụ phía máy khách bằng postMessage. Lưu lượng trò chuyện đi qua máy chủ được lưu trữ của bản demo đến nhà cung cấp AI được lưu trữ, hoặc trực tiếp từ trình duyệt khi bạn mang khóa API của riêng mình. Máy chủ SimplePDF chỉ ghi lại telemetry và siêu dữ liệu; nó không bao giờ thấy nội dung của tài liệu.",
-    "architectureDescription": "Trình duyệt chạy Form Copilot và trình chỉnh sửa SimplePDF bên trong một iframe. Hai thành phần giao tiếp qua các cuộc gọi công cụ phía máy khách bằng postMessage, nên dữ liệu trường không bao giờ rời trình duyệt. Tin nhắn trò chuyện được chuyển qua máy chủ của bạn đến ngăn xếp AI của bạn (nhà cung cấp, khóa, RAG, dữ liệu nội bộ). Máy chủ SimplePDF chỉ nhận telemetry và siêu dữ liệu và không bao giờ thấy bản thân tài liệu. Tài liệu hoàn chỉnh được tải trực tiếp từ trình chỉnh sửa lên bộ lưu trữ của bạn (S3, Azure Blob Storage hoặc SharePoint), bỏ qua máy chủ SimplePDF. Khi gửi hoàn tất, một webhook tùy chọn có thể thông báo cho máy chủ của bạn. Webhook chỉ mang siêu dữ liệu, không bao giờ mang nội dung tài liệu.",
+    "architectureDemoDescription": "Bản demo này chạy trên một tài khoản SimplePDF dùng chung. Trình duyệt lưu trữ cả SimplePDF Copilot và trình chỉnh sửa SimplePDF (được tải trong một iframe). Dữ liệu trường được giữ trong trình duyệt thông qua các cuộc gọi công cụ phía máy khách bằng postMessage. Lưu lượng trò chuyện đi qua máy chủ được lưu trữ của bản demo đến nhà cung cấp AI được lưu trữ, hoặc trực tiếp từ trình duyệt khi bạn mang khóa API của riêng mình. Máy chủ SimplePDF chỉ ghi lại telemetry và siêu dữ liệu; nó không bao giờ thấy nội dung của tài liệu.",
+    "architectureDescription": "Trình duyệt chạy SimplePDF Copilot và trình chỉnh sửa SimplePDF bên trong một iframe. Hai thành phần giao tiếp qua các cuộc gọi công cụ phía máy khách bằng postMessage, nên dữ liệu trường không bao giờ rời trình duyệt. Tin nhắn trò chuyện được chuyển qua máy chủ của bạn đến ngăn xếp AI của bạn (nhà cung cấp, khóa, RAG, dữ liệu nội bộ). Máy chủ SimplePDF chỉ nhận telemetry và siêu dữ liệu và không bao giờ thấy bản thân tài liệu. Tài liệu hoàn chỉnh được tải trực tiếp từ trình chỉnh sửa lên bộ lưu trữ của bạn (S3, Azure Blob Storage hoặc SharePoint), bỏ qua máy chủ SimplePDF. Khi gửi hoàn tất, một webhook tùy chọn có thể thông báo cho máy chủ của bạn. Webhook chỉ mang siêu dữ liệu, không bao giờ mang nội dung tài liệu.",
     "tryThisForm": "Thử biểu mẫu này →",
     "useCases": {
       "healthcare": {
         "title": "Chăm sóc sức khỏe",
-        "body": "Các biểu mẫu tiếp nhận bệnh nhân và yêu cầu bồi thường thường chứa dữ liệu nhạy cảm và cần được xem xét. Form Copilot giúp hoàn thành biểu mẫu từng bước bằng nhà cung cấp AI được tổ chức của bạn phê duyệt."
+        "body": "Các biểu mẫu tiếp nhận bệnh nhân và yêu cầu bồi thường thường chứa dữ liệu nhạy cảm và cần được xem xét. SimplePDF Copilot giúp hoàn thành biểu mẫu từng bước bằng nhà cung cấp AI được tổ chức của bạn phê duyệt."
       },
       "insurance": {
         "title": "Bảo hiểm",
-        "body": "Đơn đăng ký, yêu cầu bồi thường và phụ lục thường kết hợp dữ liệu có cấu trúc với chi tiết theo từng hợp đồng. Form Copilot giúp điền trước những gì có thể, giải thích các trường và để người dùng thực hiện xem xét cuối cùng."
+        "body": "Đơn đăng ký, yêu cầu bồi thường và phụ lục thường kết hợp dữ liệu có cấu trúc với chi tiết theo từng hợp đồng. SimplePDF Copilot giúp điền trước những gì có thể, giải thích các trường và để người dùng thực hiện xem xét cuối cùng."
       },
       "state": {
         "title": "Hành chính nhà nước",
-        "body": "Biểu mẫu của chính phủ thường được scan, phức tạp hoặc viết bằng ngôn ngữ mà người dùng không nói. Form Copilot có thể giúp giải thích biểu mẫu, dịch và điền từng bước trong khi người dùng xem xét kết quả."
+        "body": "Biểu mẫu của chính phủ thường được scan, phức tạp hoặc viết bằng ngôn ngữ mà người dùng không nói. SimplePDF Copilot có thể giúp giải thích biểu mẫu, dịch và điền từng bước trong khi người dùng xem xét kết quả."
       },
       "hr": {
         "title": "Đón nhận nhân sự",
-        "body": "Thư mời làm việc, biểu mẫu thuế và bộ tài liệu đón nhận thường yêu cầu cả điền trước và xem xét. Form Copilot điền những gì có thể, sau đó chuyển giao cho người dùng để ký và kiểm tra cuối."
+        "body": "Thư mời làm việc, biểu mẫu thuế và bộ tài liệu đón nhận thường yêu cầu cả điền trước và xem xét. SimplePDF Copilot điền những gì có thể, sau đó chuyển giao cho người dùng để ký và kiểm tra cuối."
       }
     }
   },
   "chat": {
-    "heading": "Form Copilot",
+    "heading": "SimplePDF Copilot",
     "subtitleReady": "Claude Haiku 4.5",
     "subtitleWaiting": "Đang chờ trình chỉnh sửa tải…",
     "subtitleNoDocument": "Hãy tải tài liệu trước",
@@ -91,7 +91,7 @@
       "cancelButton": "Hủy",
       "comingSoon": "Sắp ra mắt",
       "registerInterest": "Đăng ký quan tâm →",
-      "registerInterestMessage": "Chào đội ngũ SimplePDF, tôi quan tâm đến việc sử dụng Form Copilot với {{provider}}. Các bạn có thể cho biết khi nào sẽ khả dụng và việc thiết lập trông như thế nào không?\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
+      "registerInterestMessage": "Chào đội ngũ SimplePDF, tôi quan tâm đến việc sử dụng SimplePDF Copilot với {{provider}}. Các bạn có thể cho biết khi nào sẽ khả dụng và việc thiết lập trông như thế nào không?\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
@@ -124,15 +124,15 @@
     "shareCtaLabel": "Gửi cho ai đó nên thử:",
     "shareCopyLink": "Sao chép liên kết",
     "shareCopied": "Đã sao chép!",
-    "shareTweetText": "Tôi đang thử Form Copilot của SimplePDF, một AI điền biểu mẫu PDF từng bước. Đáng xem:",
+    "shareTweetText": "Tôi đang thử SimplePDF Copilot của SimplePDF, một AI điền biểu mẫu PDF từng bước. Đáng xem:",
     "errorByokActivatedButton": "Tiếp tục trò chuyện",
     "errorByokActivatedResumeMessage": "Tiếp tục nào",
     "errorGenericTitle": "Lỗi đầy đủ",
-    "welcomeTitle": "Thử Form Copilot với AI của riêng bạn",
+    "welcomeTitle": "Thử SimplePDF Copilot với AI của riêng bạn",
     "welcomeBody": "Thông tin xác thực của bạn ở lại trong thẻ này. Yêu cầu được gửi từ trình duyệt của bạn đến nhà cung cấp AI mà bạn chọn.",
     "welcomeCta": "Mang AI của riêng bạn",
-    "welcomeInfoLink": "Cách Form Copilot hoạt động",
-    "inputPlaceholderReady": "Trò chuyện với Form Copilot…",
+    "welcomeInfoLink": "Cách SimplePDF Copilot hoạt động",
+    "inputPlaceholderReady": "Trò chuyện với SimplePDF Copilot…",
     "send": "Gửi"
   },
   "suggestedPrompts": {
@@ -156,22 +156,22 @@
     "submit": "Gửi"
   },
   "welcomeModal": {
-    "title": "Chào mừng đến với Form Copilot",
+    "title": "Chào mừng đến với SimplePDF Copilot",
     "tagline": "<accent>AI giúp</accent> người dùng điền biểu mẫu PDF từng bước",
     "getStarted": "Bắt đầu",
-    "howItWorks": "Cách Form Copilot hoạt động",
+    "howItWorks": "Cách SimplePDF Copilot hoạt động",
     "close": "Đóng lời chào"
   },
   "download": {
     "title": "Tải xuống PDF đã điền của bạn",
     "intro": "PDF của bạn được tạo ngay trong tab trình duyệt này. Không có gì rời khỏi thiết bị của bạn, và máy chủ SimplePDF không bao giờ thấy tệp đã điền.",
     "cta": "Tải xuống",
-    "upsellHeading": "Đưa Form Copilot đi xa hơn",
+    "upsellHeading": "Đưa SimplePDF Copilot đi xa hơn",
     "upsellStorage": "Trên các gói trả phí của SimplePDF, nút Tải xuống này trở thành luồng <b>Gửi</b>. Các PDF đã điền tự động được chuyển vào kho lưu trữ của riêng bạn (S3, Azure Blob Storage hoặc SharePoint), và hệ thống của bạn được thông báo qua webhook hoặc email. Tải xuống vẫn là tùy chọn.",
     "upsellFields": "Biểu mẫu PDF thường lộn xộn. Chúng đến dưới dạng bản quét không có trường sẵn, hoặc có tên trường kém khiến AI phải làm việc vất vả hơn. Các gói trả phí của SimplePDF cũng khắc phục điều đó, với trường bắt buộc, giá trị mặc định và bí danh trường.",
     "upsellCta": "Liên hệ với chúng tôi",
     "upsellPricing": "Xem gói doanh nghiệp",
-    "upsellContactMessage": "Chào đội ngũ SimplePDF, tôi đang dùng thử Form Copilot và muốn tìm hiểu thêm về luồng Gửi (Submit) trên các gói trả phí: tự động chuyển vào kho lưu trữ của riêng tôi, cùng với thông báo qua webhook hoặc email.\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
+    "upsellContactMessage": "Chào đội ngũ SimplePDF, tôi đang dùng thử SimplePDF Copilot và muốn tìm hiểu thêm về luồng Gửi (Submit) trên các gói trả phí: tự động chuyển vào kho lưu trữ của riêng tôi, cùng với thông báo qua webhook hoặc email.\n\nGói tôi quan tâm:\n- [ ] PRO\n- [ ] PREMIUM",
     "close": "Đóng"
   },
   "toolInvocation": {
