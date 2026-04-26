@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { type DemoModel, DemoModelSchema } from '../lib/demo_model'
-import { monitoring } from '../lib/monitoring'
+import { type DemoModel, DemoModelSchema } from '../../lib/demo/demo_model'
+import { monitoring } from '../../lib/monitoring'
 
 // Invite-link BYOK is the only server-paid path. SHARED_API_KEYS is a
 // stringified JSON map of share-id -> { api_key, rate_limit_turns_lifetime,

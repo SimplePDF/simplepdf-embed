@@ -1,7 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { type FormId, getFormsForLocale } from '../lib/forms'
+import { type FormId, getFormsForLocale } from '../lib/demo/forms'
 import { buildSimplepdfUrl } from '../lib/simplepdf_url'
 import { CerfaDorModal } from './easter-eggs/cerfa_dor_modal'
 import { FormPicker } from './form_picker'

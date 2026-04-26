@@ -4,16 +4,22 @@ import { getRequestHeader, getRequestUrl } from '@tanstack/react-start/server'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { ChatPane } from '../components/chat/chat_pane'
+import { WelcomeModal } from '../components/demo/welcome_modal'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
-import { WelcomeModal } from '../components/demo/welcome_modal'
-import type { DemoModel } from '../lib/demo_model'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
-import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/forms'
+import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/demo/forms'
 import { i18n, i18nReady, matchLocaleFromAcceptLanguage } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger } from '../lib/monitoring'
-import { resolveShareModel } from '../server/shared_keys'
+import {
+  type DemoGate,
+  readDemoGate,
+  readWelcomeDismissed,
+  WELCOME_DISMISSED_COOKIE,
+} from '../server/demo/loader_helpers'
+
+export type { DemoGate }
 
 export type ShowParam = 'info' | 'model' | 'download' | 'cerfa_dor'
 
@@ -26,71 +32,6 @@ type HomeSearch = {
   show?: ShowParam
   share?: string
 }
-
-// Two-state gate: either the invite is valid and the chat runs against the
-// per-share demo model, or the visitor has to bring their own key via the
-// Model Picker. The UI reads this to label the active model and to decide
-// whether to show the Welcome banner.
-export type DemoGate = { kind: 'byok' } | { kind: 'demo'; model: DemoModel }
-
-// The share id lives directly in `?share=<id>` on the page URL — no cookie
-// round-trip, no URL stripping — so an invite link can be copy-pasted and
-// reused verbatim. The loader forwards the id to this server fn, which
-// treats a blank / missing id as "no invite".
-//
-// No same-origin gate here: a direct address-bar navigation doesn't send
-// Origin or Referer, so a strict check would collapse every paste of an
-// invite link into the 'byok' branch. Cross-origin JS fetches to this
-// server-fn endpoint can't read the response under the browser's default
-// CORS policy (we don't serve Access-Control-Allow-Origin), so an attacker
-// already can't enumerate shares from another site.
-const readDemoGate = createServerFn({ method: 'GET' })
-  .inputValidator((raw: unknown): { shareId: string | null } => {
-    if (typeof raw !== 'object' || raw === null || !('shareId' in raw)) {
-      return { shareId: null }
-    }
-    const value = (raw as { shareId: unknown }).shareId
-    if (typeof value !== 'string' || value === '') {
-      return { shareId: null }
-    }
-    return { shareId: value }
-  })
-  .handler(async ({ data }): Promise<DemoGate> => {
-    const model = resolveShareModel(data.shareId)
-    if (model === null) {
-      return { kind: 'byok' }
-    }
-    return { kind: 'demo', model }
-  })
-
-// Cookie that records the user dismissing the first-load splash. Read
-// server-side so the modal HTML is included (or omitted) directly in the
-// SSR response — no localStorage round-trip, no hydration mismatch, no
-// flash of the modal on subsequent visits. Lightweight string parse:
-// avoids pulling in a cookie-parsing dependency for one entry.
-const WELCOME_DISMISSED_COOKIE = 'form-copilot-welcome-dismissed'
-
-const cookieIsTruthy = (header: string | undefined, name: string): boolean => {
-  if (header === undefined || header === '') {
-    return false
-  }
-  for (const segment of header.split(';')) {
-    const trimmed = segment.trim()
-    const equalsIndex = trimmed.indexOf('=')
-    if (equalsIndex === -1) {
-      continue
-    }
-    const key = trimmed.slice(0, equalsIndex)
-    if (key === name) {
-      return trimmed.slice(equalsIndex + 1) === '1'
-    }
-  }
-  return false
-}
-
-const readWelcomeDismissed = createServerFn({ method: 'GET' }).handler(async (): Promise<boolean> =>
-  cookieIsTruthy(getRequestHeader('cookie'), WELCOME_DISMISSED_COOKIE),
-)
 
 // Server-side: detect the visitor's preferred locale when the URL doesn't
 // carry an explicit `?lang=`. Returns null when the URL DID have a

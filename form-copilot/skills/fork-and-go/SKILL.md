@@ -145,9 +145,15 @@ Use `AskUserQuestion`:
 - **Question:** Keep all the demo features, or trim down?
 - **Header:** `Customize`
 - **Options:**
-  - `Keep everything` (Recommended): _"BYOK Model Picker, sample forms, info modal, all of it. Easiest to start; trim later once you know what you want."_
-  - `Minimal: drop demo bits`: _"Remove the sample forms, info modal, and demo-flavored copy. You'll wire up your own document loader."_
+  - `Keep everything` (Recommended): _"BYOK Model Picker, sample forms, welcome splash, info modal, all of it. Easiest to start; trim later once you know what you want."_
+  - `Strip the demo`: _"Delete the entire `demo/` tree (welcome modal, info modal, download modal upsell, social-share, sample forms, share-link / shared-key gating, misbehavior detector). Roughly 4 folder deletes + 5 small import edits. You keep the chat surface, BYOK Model Picker, iframe bridge, locale system."_
   - `Custom: walk me through each`: _"We'll go through each demo feature one at a time."_
+
+Demo code is grouped under `demo/` directories specifically so the strip is mechanical:
+- `src/components/demo/` — welcome modal, info modal, download modal, social share
+- `src/components/easter-eggs/` — Cerfa d'Or French easter egg
+- `src/lib/demo/` — sample-form catalogue, demo model registry
+- `src/server/demo/` — preflight gate, share-key resolution, misbehavior detector, loader server fns
 
 ---
 
@@ -238,11 +244,121 @@ Wait for them to confirm.
 
 If `Keep everything` in Q6, skip this step entirely.
 
-If `Minimal: drop demo bits`:
+If `Strip the demo`, walk the user through these mechanical steps. They run in order; each one is a single command or a single small edit. Pause after each so the user can run it.
 
-- **Sample forms**: `src/lib/forms.ts` defines `ALL_FORMS`. Replace the entries with your own document URLs (or delete the static map and wire a runtime loader from your storage).
-- **Info modal**: `src/components/info_modal.tsx`. Delete the `<InfoModal>` import in `src/components/header.tsx` (or wherever it's mounted) and the file itself.
-- **Demo-flavored copy**: search `src/locales/en.json` for `"Form Copilot Demo"`, `"chat.shareTweetText"`, `"infoModal.*"`, and replace with your branded copy. Mirror the changes to the other 22 locales (`src/locales/<locale>.json`) or use the project's `translator` agent.
+**6a — Delete the demo folders**
+
+```sh
+rm -rf src/components/demo src/components/easter-eggs src/lib/demo src/server/demo
+```
+
+That removes: welcome modal, info modal, download modal (with the Pro upsell), social-share component, Cerfa d'Or easter egg, sample-form catalogue, demo model registry, share-key resolver, misbehavior detector, preflight gate, demo-only loader server fns.
+
+**6b — Replace the sample-form catalogue**
+
+Form Copilot needs a single PDF URL to load on first paint. Create `src/lib/forms.ts` with the customer's own:
+
+```ts
+export type FormId = 'default'
+export const DEFAULT_FORM_ID: FormId = 'default'
+export const isFormId = (value: unknown): value is FormId => value === 'default'
+
+const FORM = {
+  id: 'default' as const,
+  pdfUrl: 'https://your-cdn.example.com/your-form.pdf',
+  // labelKey + useCaseKey + subtitleKey are i18n keys; point them at any
+  // string you already have, or hardcode short labels.
+  labelKey: 'forms.labels.default',
+  useCaseKey: 'forms.useCases.default',
+}
+
+export const getFormsForLocale = (_locale: string) => ({
+  forms: { default: FORM },
+  order: ['default'] as const,
+})
+```
+
+Or wire a runtime loader (your own storage) — but the static one is fine for most forks.
+
+**6c — Replace the demo gates with a single static resolution**
+
+Two callers (`src/routes/api/chat.ts` and `src/routes/api/summarize.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env:
+
+```ts
+// at the top of chat.ts / summarize.ts, replace the demo import with:
+import { hashIp, getClientIp } from '../../server/rate_limit'
+
+// inside the POST handler, replace the preflight block with:
+const ip = getClientIp(request)
+const ipHash = await hashIp(ip)
+const resolution = {
+  apiKey: process.env.AI_API_KEY ?? '',
+  // The rate-limit bucket name is per-customer convention; "global"
+  // collapses every IP into one bucket. Use whatever you want.
+  bucket: 'global',
+  lifetime: 1000,  // very high cap; tighten if you want IP-rate-limiting
+  model: 'claude-haiku-4-5-20251001' as const,  // your model id
+}
+```
+
+If you don't want any IP-rate-limiting at all, you can also delete the `rateLimiter.check` block that follows in `chat.ts`. The limiter primitive in `src/server/rate_limit.ts` itself is generic and can stay (it gets a no-op fallback when `REDIS_URL` is unset).
+
+**6d — Drop the demo references in `routes/index.tsx`**
+
+The file imports `DemoGate`, `readDemoGate`, `readWelcomeDismissed`, `WELCOME_DISMISSED_COOKIE` from `src/server/demo/loader_helpers.ts` (now deleted). Replace the import block with:
+
+```ts
+type DemoGate = { kind: 'byok' }  // there's only one path now
+export type { DemoGate }
+```
+
+Then in the route's `loader`, replace the `Promise.all([readDemoGate(...), readWelcomeDismissed()])` call with:
+
+```ts
+loader: async () => ({ demoGate: { kind: 'byok' as const }, welcomeDismissed: true }),
+```
+
+`welcomeDismissed: true` keeps the welcome modal off forever — but since `WelcomeModal` is also deleted in step 6a, the field becomes unused. Delete the prop and references too.
+
+Also remove the `WelcomeModal` import + JSX (`<WelcomeModal ... />`), the `dismissWelcome` callback, the `WELCOME_DISMISSED_COOKIE` reference, and the `?share=` validation in `validateSearch` (the share param has nothing to gate against now).
+
+**6e — Drop demo references in `src/components/layout.tsx`**
+
+Layout currently imports the (deleted) `InfoModal` from `./demo/info_modal` and `CerfaDorModal` from `./easter-eggs/cerfa_dor_modal`. Delete both imports + the JSX + the URL-search reading that opens them (`?show=info`, `?show=cerfa_dor`).
+
+**6f — Drop the rate-limit panel + social share from the error banner**
+
+`src/components/error_banner.tsx` references `SocialShare` from `./demo/social_share` (deleted). Delete the import and the `RateLimitPanel` definition (it's only useful when the demo's per-share cap fires, which can't happen without the gate).
+
+**6g — Strip demo-flavoured locale keys**
+
+Run a sweep across `src/locales/*.json` removing these keys (they're now unreferenced):
+
+```
+chat.shareHero, chat.shareCtaLabel, chat.shareCopyLink, chat.shareCopied, chat.shareTweetText
+chat.errorRateLimitedTitle, chat.errorRateLimitedBodyThanks, chat.errorRateLimitedBodyCta, chat.errorRateLimitedCtaButton
+chat.welcomeTitle, chat.welcomeBody, chat.welcomeCta, chat.welcomeInfoLink
+welcomeModal.* (whole tree)
+infoModal.* (whole tree)
+download.* (whole tree)
+cerfaDor.* (whole tree)
+forms.* (whole tree, unless your replacement in 6b uses these keys)
+```
+
+Use the project's `/translator` agent for the multi-locale removal, or write a tiny `python -c "import json, sys; ..."` one-liner.
+
+Replace `header.brand` ("Form Copilot Demo") with the customer's brand name in en.json + every other locale.
+
+**6h — Verify**
+
+```sh
+yarn --cwd form-copilot test:types  # or npm run test:types if you migrated
+npm run dev
+```
+
+Open `http://localhost:3001`. Expected: the chat sidebar shows the BYOK Model Picker (or sends straight to your server's `chat.ts` if you wired a static API key in step 6c), the editor loads your replacement PDF from step 6b, no welcome modal, no info modal trigger, no Cerfa easter egg.
+
+If `tsc` or runtime fails: the most common cause is a stale import to a deleted file. Search for `from '.*demo'` and `from '.*easter-eggs'` across `src/` — any remaining hit is something missed in 6c-6f.
 
 If `Custom: walk me through each`: ask them which feature they want to address first (sample forms / info modal / BYOK Model Picker / share-link UI / sample documents). Walk through ONE at a time, pausing after each.
 

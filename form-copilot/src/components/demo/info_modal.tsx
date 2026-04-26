@@ -1,6 +1,6 @@
 import { type ReactElement, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import type { FormId } from '../../lib/forms'
+import type { FormId } from '../../lib/demo/forms'
 import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
 import { Modal, ModalCloseButton, ModalFooter } from '../ui/modal'
 

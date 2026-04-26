@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
-import { DEMO_MODELS } from '../../lib/demo_model'
+import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import {
   DetectFieldsInput,
   FINALISATION_ACTION,
@@ -13,19 +13,10 @@ import {
   withFinalisationTool,
 } from '../../lib/embed-bridge-adapters/client-tools'
 import { monitoring, normalizeError } from '../../lib/monitoring'
+import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
-import { isMisbehaving, markMisbehavior } from '../../server/misbehavior'
-import {
-  getClientIp,
-  hashIp,
-  isSameOrigin,
-  looksLikeBrowserFetch,
-  rateLimiter,
-  type RateLimitDecision,
-} from '../../server/rate_limit'
-import { readShareIdFromUrl } from '../../server/share_query'
-import { resolveApiKey } from '../../server/shared_keys'
+import { rateLimiter, type RateLimitDecision } from '../../server/rate_limit'
 import { serializeStreamError } from '../../server/stream_error'
 import { buildSystemPrompt, ChatRequestSchema } from '../../server/tools'
 
@@ -69,32 +60,11 @@ export const Route = createFileRoute('/api/chat')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const ip = getClientIp(request)
-        const ipHash = await hashIp(ip)
-        if (isMisbehaving(ipHash)) {
-          return Response.json({ error: 'forbidden_blocked' }, { status: 403 })
+        const preflight = await applyDemoPreflight(request)
+        if (preflight.kind === 'response') {
+          return preflight.response
         }
-        // Same-origin is the happy path; Sec-Fetch-* is the second-chance
-        // lane for privacy-hardened browsers that strip Origin/Referer.
-        // If neither passes, the caller is almost certainly not a browser
-        // (curl, bot, non-browser script) — flag + 403.
-        if (!isSameOrigin(request) && !looksLikeBrowserFetch(request)) {
-          markMisbehavior(ipHash, 'non_browser_origin')
-          return Response.json({ error: 'forbidden_origin' }, { status: 403 })
-        }
-        const shareId = readShareIdFromUrl(request)
-        const resolution = resolveApiKey(shareId)
-        if (resolution.kind === 'misconfigured') {
-          return Response.json(
-            { error: 'misconfigured_environment', message: 'Misconfigured environment' },
-            { status: 500 },
-          )
-        }
-        if (resolution.kind === 'share_required') {
-          // Message omitted on purpose — the client's ErrorBanner renders
-          // localised chat.errorAuth* strings for the authentication kind.
-          return Response.json({ error: 'share_required' }, { status: 401 })
-        }
+        const { ipHash, resolution } = preflight
 
         const body = await parseJsonBody({
           request,

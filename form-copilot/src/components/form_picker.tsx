@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import type { FormConfig, FormId, LocaleForms } from '../lib/forms'
+import type { FormConfig, FormId, LocaleForms } from '../lib/demo/forms'
 import { Dropdown } from './ui/dropdown'
 
 type FormPickerProps = {

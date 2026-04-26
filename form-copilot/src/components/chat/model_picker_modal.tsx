@@ -10,7 +10,7 @@ import {
   type ValidateFailureKind,
   validateApiKey,
 } from '../../lib/byok'
-import { DEMO_MODELS } from '../../lib/demo_model'
+import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
 import type { DemoGate } from '../../routes/index'
 import { Modal, ModalCloseButton } from '../ui/modal'

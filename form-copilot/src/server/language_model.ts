@@ -1,7 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import type { LanguageModel } from 'ai'
-import { DEMO_MODELS, type DemoModel } from '../lib/demo_model'
+import { DEMO_MODELS, type DemoModel } from '../lib/demo/demo_model'
 
 // Lives in src/server/ (not src/lib/) so the provider SDK imports stay out
 // of the client bundle. Both /api/chat and /api/summarize dispatch through

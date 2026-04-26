@@ -1,4 +1,4 @@
-import { monitoring } from '../lib/monitoring'
+import { monitoring } from '../../lib/monitoring'
 
 // In-memory set of IP hashes that tripped a server-side heuristic flagging
 // the caller as non-browser (raw curl, bot, crawler). Once flagged, every
