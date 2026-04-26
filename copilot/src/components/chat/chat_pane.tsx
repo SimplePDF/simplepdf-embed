@@ -19,6 +19,7 @@ import {
   type Vault,
 } from '../../lib/byok'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
+import type { FormId } from '../../lib/demo/forms'
 import type {
   BridgeResult,
   DocumentContentPage,
@@ -61,7 +62,7 @@ type ChatPaneProps = {
   requiresUserUpload: boolean
   language: string
   onLanguageChange: (code: string) => void
-  documentId: string | null
+  form: FormId
   demoGate: DemoGate
   // True while the user's cursor is over the editor iframe. Used as an
   // additional gate on the FieldAddedHint poll so we stop hitting the
@@ -71,36 +72,36 @@ type ChatPaneProps = {
   isCursorOverEditor: boolean
 }
 
-// In-memory chat store keyed by (document_id, language). Survives component
+// In-memory chat store keyed by (form, language). Survives component
 // remounts (e.g. form switches that tear down the ChatPane) but intentionally
 // resets on page reload. Language is part of the key so switching locale
 // starts a fresh thread in the new language and restores the previous one on
 // switch-back. Capped at MAX_TRACKED_ENTRIES with LRU eviction to prevent
-// unbounded growth on power-users who explore many documents / languages.
+// unbounded growth on power-users who explore many forms / languages.
+//
+// Why `form` and not the editor's document_id: a SimplePDF document_id is
+// content-derived (binary hash of the loaded PDF). When the user merges a
+// new page in via the editor's "Add document" button, the underlying
+// document changes and so does its id — the chat would reset mid-session
+// on a routine merge. Keying on the URL-stable `form` slot keeps the chat
+// thread alive across in-editor mutations and only resets when the user
+// explicitly picks a different form from the FormPicker (which is what
+// changes `?form=` in the URL).
 const MAX_TRACKED_ENTRIES = 50
 const chatHistoryStore = new Map<string, UIMessage[]>()
 
-const buildCacheKey = (documentId: string | null, language: string): string | null => {
-  if (documentId === null) {
-    return null
-  }
-  // documentId is a UUID (hex + dashes), language is a fixed ISO code
+const buildCacheKey = (form: FormId, language: string): string => {
+  // FormId is a fixed string-literal union and language is a fixed ISO code
   // (two/three-letter ASCII). Neither can contain ':', so a plain colon is
   // a safe delimiter.
-  return `${documentId}:${language}`
+  return `${form}:${language}`
 }
 
-const readPersistedMessages = (cacheKey: string | null): UIMessage[] => {
-  if (cacheKey === null) {
-    return []
-  }
+const readPersistedMessages = (cacheKey: string): UIMessage[] => {
   return chatHistoryStore.get(cacheKey) ?? []
 }
 
-const writePersistedMessages = (cacheKey: string | null, messages: UIMessage[]): void => {
-  if (cacheKey === null) {
-    return
-  }
+const writePersistedMessages = (cacheKey: string, messages: UIMessage[]): void => {
   // Map iteration order is insertion order, so delete-then-set moves the key
   // to the end, a poor-man's LRU. Evict the oldest when capacity exceeds the
   // cap.
@@ -390,7 +391,7 @@ export const ChatPane = ({
   requiresUserUpload,
   language,
   onLanguageChange,
-  documentId,
+  form,
   demoGate,
   isCursorOverEditor,
 }: ChatPaneProps) => {
@@ -628,9 +629,9 @@ export const ChatPane = ({
     })
   }, [])
 
-  const cacheKey = buildCacheKey(documentId, language)
+  const cacheKey = buildCacheKey(form, language)
   const [initialMessages] = useState<UIMessage[]>(() => readPersistedMessages(cacheKey))
-  const hydratedCacheKeyRef = useRef<string | null>(cacheKey)
+  const hydratedCacheKeyRef = useRef<string>(cacheKey)
 
   const enqueueToolExecution = useCallback((task: () => Promise<void>): Promise<void> => {
     const nextTask = toolExecutionQueueRef.current.catch(() => undefined).then(task)
