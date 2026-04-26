@@ -1,0 +1,219 @@
+{
+  "header": {
+    "brand": "SimplePDF Copilot Demo",
+    "tagline": "PDFs bearbeiten, ausfüllen und verstehen, indem Sie mit ihnen chatten.",
+    "whatIsThisDemo": "Was ist diese Demo?",
+    "useCase": "Geladene PDF",
+    "poweredBy": "Unterstützt von SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "SimplePDF Copilot erleben Sie am besten auf dem Desktop",
+    "watchDemo": "Demo ansehen",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "KI-gestütztes Ausfüllen von Formularen, mit einem Menschen in der Schleife",
+    "close": "Schließen",
+    "availableOn": "SimplePDF Copilot ist verfügbar ab <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Quellcode auf GitHub",
+    "githubStarTitle": "SimplePDF/simplepdf-embed auf GitHub mit einem Stern versehen",
+    "whyItMattersLead": "Automatisches Ausfüllen von Formularen hat seine Grenzen.",
+    "whyItMattersBody": "Die für das Ausfüllen eines Formulars benötigten Daten können fehlen, falsch oder ungültig sein. Diese Demo zeigt ein sichereres Modell: Die KI hilft beim Ausfüllen, während ein Mensch prüft, korrigiert und bei Bedarf ergänzt.",
+    "humanInTheLoopTitle": "So funktioniert es",
+    "humanInTheLoopBullet1": "SimplePDF Copilot füllt Felder in Echtzeit direkt im Editor aus.",
+    "humanInTheLoopBullet1Hint": "Der Datenaustausch zwischen SimplePDF Copilot und dem Editor findet im Browser statt.",
+    "humanInTheLoopBullet2": "Der Benutzer kann jede Änderung sehen, prüfen und korrigieren.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot kann Felder abgeben, die nicht automatisch ausgefüllt werden sollten, etwa Unterschriften.",
+    "humanInTheLoopBullet3": "Die Nutzerin behält die Kontrolle.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot hilft beim Durchlaufen und Ausfüllen des Formulars, aber die Nutzerin hat immer das letzte Wort.",
+    "aboutTitle": "Datenschutz von Anfang an",
+    "aboutIntro": "SimplePDF wurde von Grund auf für sensible Workflows entwickelt. Diese drei Architekturentscheidungen erklären warum.",
+    "aboutBullet1Title": "Dokumentenverarbeitung im Browser.",
+    "aboutBullet1Body": "PDFs werden lokal auf Ihrem Gerät bearbeitet. Der Dokumenteninhalt selbst wird nicht auf SimplePDF-Server hochgeladen.",
+    "aboutBullet2Title": "Nutzen Sie Ihre eigene KI.",
+    "aboutBullet2Body": "In der Produktion binden Sie Ihren eigenen Anbieter, Ihre Schlüssel, RAG-Pipelines und internen Daten ein, sodass der Datenverkehr zwischen Ihrem Server und Ihrem KI-Stack bleibt.",
+    "aboutBullet3Title": "Nutzen Sie Ihren eigenen Speicher.",
+    "aboutBullet3Body": "Fertige Dokumente werden direkt vom Browser an Ihren Speicher gesendet, sodass sensible Daten in Ihrer Infrastruktur bleiben.",
+    "useCasesTitle": "Beispielworkflows",
+    "useCasesFooter": "Wählen Sie oben einen Workflow aus, um ein anderes Formular zu laden.",
+    "architectureTitle": "Architektur",
+    "architectureSubtext": "Vom Chat bis zur Einreichung ist die Architektur darauf ausgelegt, Dokumente und sensible Daten unter Ihrer Kontrolle zu halten, nicht unter unserer.",
+    "architectureDemoSubtext": "Das von Ihnen geladene Dokument verlässt Ihren Browser nie. Die Daten, die Sie über den Chat senden, gehen an das von Ihnen gewählte LLM.",
+    "architectureTabs": {
+      "demo": "Für diese Demo",
+      "production": "In der Produktion"
+    },
+    "architectureDemoDescription": "Diese Demo läuft auf einem gemeinsam genutzten SimplePDF-Konto. Der Browser hostet sowohl SimplePDF Copilot als auch den SimplePDF-Editor (geladen in einem iframe). Felddaten bleiben dank postMessage-clientseitiger Tool-Aufrufe im Browser. Der Chat-Verkehr läuft über den gehosteten Server der Demo zu einem gehosteten KI-Anbieter, oder direkt aus dem Browser, wenn Sie Ihren eigenen API-Schlüssel mitbringen. Der SimplePDF-Server zeichnet nur Telemetrie und Metadaten auf; den Dokumentinhalt sieht er nie.",
+    "architectureDescription": "Der Browser führt SimplePDF Copilot und den SimplePDF-Editor in einem iframe aus. Beide kommunizieren über postMessage-clientseitige Tool-Aufrufe, sodass Felddaten den Browser nie verlassen. Chat-Nachrichten werden über Ihren Server an Ihren KI-Stack weitergeleitet (Anbieter, Schlüssel, RAG, interne Daten). Der SimplePDF-Server erhält nur Telemetrie und Metadaten und sieht das Dokument selbst nie. Das fertige Dokument wird direkt vom Editor an Ihren Speicher (S3, Azure Blob Storage oder SharePoint) hochgeladen, am SimplePDF-Server vorbei. Nach Abschluss einer Einreichung kann ein optionaler Webhook Ihren Server benachrichtigen. Der Webhook überträgt nur Metadaten, niemals den Dokumentinhalt.",
+    "tryThisForm": "Dieses Formular ausprobieren →",
+    "useCases": {
+      "healthcare": {
+        "title": "Gesundheitswesen",
+        "body": "Patientenaufnahme- und Abrechnungsformulare enthalten oft sensible Daten und erfordern eine Prüfung. SimplePDF Copilot hilft, das Formular Schritt für Schritt mit dem von Ihrer Organisation genehmigten KI-Anbieter auszufüllen."
+      },
+      "insurance": {
+        "title": "Versicherung",
+        "body": "Anträge, Schadensmeldungen und Zusätze kombinieren häufig strukturierte Daten mit policenspezifischen Details. SimplePDF Copilot hilft dabei vorauszufüllen, was möglich ist, erklärt Felder und überlässt die endgültige Prüfung dem Benutzer."
+      },
+      "state": {
+        "title": "Behördenbürokratie",
+        "body": "Behördenformulare sind oft gescannt, komplex oder in einer Sprache verfasst, die der Benutzer nicht spricht. SimplePDF Copilot kann helfen, das Formular zu erklären, zu übersetzen und Schritt für Schritt auszufüllen, während der Benutzer das Ergebnis prüft."
+      },
+      "hr": {
+        "title": "HR-Onboarding",
+        "body": "Vertragsangebote, Steuerformulare und Onboarding-Unterlagen erfordern oft sowohl Vorausfüllen als auch Prüfung. SimplePDF Copilot füllt aus, was möglich ist, und übergibt dann an den Benutzer für Unterschriften und letzte Prüfungen."
+      }
+    }
+  },
+  "chat": {
+    "heading": "SimplePDF Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Warten, bis der Editor geladen ist…",
+    "subtitleNoDocument": "Lade zuerst ein Dokument",
+    "subtitleNoModel": "Eigene KI mitbringen und chatten",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Eigene KI mitbringen",
+      "currentlyUsedSectionTitle": "Derzeit verwendet",
+      "demoRateLimitedBadge": "Demo · Nutzung gedeckelt",
+      "byokIntro": "Wählen Sie einen Anbieter und fügen Sie Ihren Schlüssel ein, um stattdessen darüber zu chatten.",
+      "byokSecurityTitle": "Ihre Zugangsdaten bleiben auf Ihrem Gerät.",
+      "byokSecurityBody": "Zugangsdaten werden nur im Arbeitsspeicher gehalten (nie auf die Festplatte geschrieben, nie an die Server von SimplePDF gesendet) und jede LLM-Anfrage geht direkt von Ihrem Browser an die gewählte KI.",
+      "modelSectionTitle": "Modell",
+      "recommendedBadge": "Empfohlen",
+      "keyInputPlaceholder": "{{provider}} API key einfügen",
+      "keyInputHint": "Der Schlüssel verlässt Ihren Browser nicht. Er wird nur für diesen Tab im Arbeitsspeicher gehalten.",
+      "keyInvalid": "Dieser API-Schlüssel wurde vom Anbieter abgelehnt.",
+      "keyModelNotFound": "Modell nicht gefunden. Wählen Sie ein anderes Modell oder prüfen Sie, ob es in Ihrem Plan enthalten ist.",
+      "keyNetworkError": "Der Anbieter konnte zur Überprüfung des Schlüssels nicht erreicht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "applyButton": "Diese KI verwenden",
+      "validatingButton": "Schlüssel wird überprüft…",
+      "cancelButton": "Abbrechen",
+      "comingSoon": "Demnächst verfügbar",
+      "registerInterest": "Interesse bekunden →",
+      "registerInterestMessage": "Hallo SimplePDF-Team, ich interessiere mich für SimplePDF Copilot mit {{provider}}. Könnten Sie mir mitteilen, wann es verfügbar sein wird und wie die Einrichtung aussieht?\n\nPlan, der mich interessiert:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Benutzerdefinierter Endpunkt",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "Datenschutz",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Jeder OpenAI-kompatible Endpunkt (Ollama, LM Studio, vLLM, selbst gehostet).",
+      "customModelLabel": "Modellname",
+      "customKeyLabel": "API-Schlüssel",
+      "customKeyPlaceholder": "Ihr API-Schlüssel (oder eine beliebige Zeichenkette für lokale Setups)",
+      "customKeyHint": "Läuft direkt vom Browser gegen die obige URL. Verwenden Sie eine localhost-URL, damit alles auf Ihrem Gerät bleibt.",
+      "customReachFailed": "Der Endpunkt konnte nicht erreicht werden. Prüfen Sie die URL und ob Ihr Server CORS von dieser Seite zulässt.",
+      "customModelNotFound": "Modell auf diesem Server nicht gefunden. Prüfen Sie den Modellnamen (und ob es gepullt / geladen wurde).",
+      "customAuthRejected": "Der Server hat den API-Schlüssel abgelehnt. Prüfen Sie den Schlüssel oder lassen Sie ihn leer bei lokalen Setups ohne Authentifizierung."
+    },
+    "stop": "Stopp",
+    "thinking": "Denkt nach…",
+    "piiWarning": "Öffentliche Demo. Verwenden Sie nur Beispieldaten. Nachrichten werden vom ausgewählten KI-Anbieter verarbeitet.",
+    "newFieldHint": "Neues {{field}}-Feld vom Benutzer hinzugefügt",
+    "errorAuthTitle": "Authentifizierung fehlgeschlagen.",
+    "errorAuthBody": "Der KI-Anbieter hat Ihren API-Schlüssel abgelehnt. <switchModel>KI-Modell wechseln</switchModel>, um den Schlüssel zu überprüfen, und erneut versuchen.",
+    "errorRateLimitedTitle": "Sie haben das Demo-Limit erreicht",
+    "errorRateLimitedBodyThanks": "Danke fürs Ausprobieren. Diese Demo nutzt eine gehostete KI, daher ist die Nutzung begrenzt.",
+    "errorRateLimitedBodyCta": "Verwenden Sie Ihren eigenen API-Schlüssel, um weiter Formulare auszufüllen.",
+    "errorRateLimitedCtaButton": "Eigenen API-Schlüssel verwenden",
+    "errorByokActivatedTitle": "Sie verwenden jetzt {{model}}.",
+    "shareHero": "Eine KI, die ein PDF in Echtzeit ausfüllt, sieht man besser, als man sie erklärt.",
+    "shareCtaLabel": "Schicken Sie es jemandem, der es ausprobieren sollte:",
+    "shareCopyLink": "Link kopieren",
+    "shareCopied": "Kopiert!",
+    "shareTweetText": "Ich teste gerade SimplePDF Copilot von SimplePDF, eine KI, die PDF-Formulare Schritt für Schritt ausfüllt. Ein Blick lohnt sich:",
+    "errorByokActivatedButton": "Unterhaltung fortsetzen",
+    "errorByokActivatedResumeMessage": "Weiter geht’s",
+    "errorGenericTitle": "Fehlerdetails",
+    "welcomeTitle": "Testen Sie SimplePDF Copilot mit Ihrer eigenen KI",
+    "welcomeBody": "Ihre Zugangsdaten bleiben in diesem Tab. Anfragen werden von Ihrem Browser direkt an den gewählten KI-Anbieter gesendet.",
+    "welcomeCta": "Eigene KI mitbringen",
+    "welcomeInfoLink": "So funktioniert SimplePDF Copilot",
+    "inputPlaceholderReady": "Mit SimplePDF Copilot sprechen…",
+    "send": "Senden"
+  },
+  "suggestedPrompts": {
+    "lead": "Probieren Sie eines davon:",
+    "helpFill": "Helfen Sie mir, dieses Formular auszufüllen",
+    "explainFields": "Worum geht es in diesem Formular?"
+  },
+  "languagePicker": {
+    "label": "Sprache",
+    "search": "Sprachen suchen…",
+    "noMatches": "Keine Treffer"
+  },
+  "toolbar": {
+    "cursor": "Zeiger",
+    "text": "Text",
+    "checkbox": "Kontrollkästchen",
+    "signature": "Unterschrift",
+    "picture": "Bild",
+    "boxedText": "Kästchentext",
+    "download": "Herunterladen",
+    "submit": "Senden"
+  },
+  "welcomeModal": {
+    "title": "Willkommen bei SimplePDF Copilot",
+    "tagline": "<accent>KI, die hilft</accent>, PDF-Formulare Schritt für Schritt auszufüllen",
+    "getStarted": "Loslegen",
+    "howItWorks": "So funktioniert SimplePDF Copilot",
+    "close": "Begrüßung schließen"
+  },
+  "download": {
+    "title": "Laden Sie Ihre ausgefüllte PDF herunter",
+    "intro": "Ihre PDF wird in diesem Browser-Tab erzeugt. Nichts verlässt Ihr Gerät, und die Server von SimplePDF sehen die ausgefüllte Datei nie.",
+    "cta": "Herunterladen",
+    "upsellHeading": "SimplePDF Copilot weiterbringen",
+    "upsellStorage": "In bezahlten SimplePDF-Plänen wird aus diesem Herunterladen ein <b>Senden</b>-Ablauf. Ausgefüllte PDFs landen automatisch in Ihrem eigenen Speicher (S3, Azure Blob Storage oder SharePoint), und Ihre Systeme werden per Webhook oder E-Mail benachrichtigt. Herunterladen bleibt optional.",
+    "upsellFields": "PDF-Formulare sind oft unordentlich. Sie kommen gescannt ohne fertige Felder oder mit schlechten Feldnamen, die der KI die Arbeit erschweren. Bezahlte SimplePDF-Pläne lösen auch das, mit Pflichtfeldern, Standardwerten und Feld-Aliasen.",
+    "upsellCta": "Sprechen Sie mit uns",
+    "upsellPricing": "Business-Tarife ansehen",
+    "upsellContactMessage": "Hallo SimplePDF-Team, ich teste SimplePDF Copilot und möchte mehr über den Senden-Ablauf (Submit) in den bezahlten Tarifen erfahren: automatische Zustellung in meinen eigenen Speicher sowie Webhook- und E-Mail-Benachrichtigungen.\n\nPlan, der mich interessiert:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Schließen"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "Vorbereitung",
+      "input-available": "läuft",
+      "output-available": "fertig",
+      "output-error": "Fehler"
+    },
+    "fallbackName": "{{tool}} wird aufgerufen",
+    "groupSummary_one": "{{count}} Aktion",
+    "groupSummary_other": "{{count}} Aktionen",
+    "names": {
+      "get_fields": "Felder werden abgerufen",
+      "get_document_content": "Dokument wird gelesen",
+      "detect_fields": "Felder werden erkannt",
+      "focus_field": "Feld wird hervorgehoben",
+      "go_to_page": "Wechsel zur Seite",
+      "set_field_value": "Feld wird ausgefüllt",
+      "select_tool": "Werkzeug wird gewechselt",
+      "create_field": "Feld wird erstellt",
+      "remove_fields": "Felder werden entfernt",
+      "submit_download": "Download wird vorbereitet"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Steuern",
+      "healthcare": "Gesundheitswesen",
+      "hr": "HR-Onboarding",
+      "state": "Behördenbürokratie",
+      "stateScanned": "Behördenbürokratie (gescannte PDF)",
+      "custom": "Ihre PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 Abrechnungsformular",
+      "mnda": "Gegenseitiges NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen gescannt",
+      "custom": "Eigene PDF auswählen"
+    },
+    "customSubtitle": "Jede PDF funktioniert - bleibt auf deinem Gerät"
+  }
+}

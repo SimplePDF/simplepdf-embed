@@ -1,0 +1,219 @@
+{
+  "header": {
+    "brand": "SimplePDF Copilot Demo",
+    "tagline": "Redigeeri, täida ja mõista PDF-e, vesteldes nendega.",
+    "whatIsThisDemo": "Mis demo see on?",
+    "useCase": "Laetud PDF",
+    "poweredBy": "Jooksutab SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "SimplePDF Copilot töötab kõige paremini arvutis",
+    "watchDemo": "Vaata demo",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "Tehisintellekti abil vormide täitmine, inimene silmusesse",
+    "close": "Sulge",
+    "availableOn": "SimplePDF Copilot on saadaval paketis <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Lähtekood GitHubis",
+    "githubStarTitle": "Anna SimplePDF/simplepdf-embed GitHubis täht",
+    "whyItMattersLead": "Automaatsel vormide täitmisel on piirid.",
+    "whyItMattersBody": "Vormi täitmiseks vajalikud andmed võivad puududa, olla valed või kehtetud. See demo näitab turvalisemat mudelit: tehisintellekt aitab vormi täita, samal ajal kui inimene vaatab üle, parandab ja vajadusel täiendab.",
+    "humanInTheLoopTitle": "Kuidas see töötab",
+    "humanInTheLoopBullet1": "SimplePDF Copilot täidab välju reaalajas, otse redaktoris.",
+    "humanInTheLoopBullet1Hint": "Andmevahetus SimplePDF Copiloti ja redaktori vahel toimub brauseris.",
+    "humanInTheLoopBullet2": "Kasutaja näeb iga muudatust, saab selle üle vaadata ja parandada.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot saab üle anda väljad, mida ei tohiks automaatselt täita, näiteks allkirju.",
+    "humanInTheLoopBullet3": "Kasutaja jääb juhtima.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot aitab vormis liikuda ja seda täita, kuid viimane sõna jääb alati kasutajale.",
+    "aboutTitle": "Privaatsus algusest peale",
+    "aboutIntro": "SimplePDF on üles ehitatud algusest peale tundlike töövoogude jaoks. Need kolm arhitektuurset valikut selgitavad, miks.",
+    "aboutBullet1Title": "Dokumenditoimingud brauseris.",
+    "aboutBullet1Body": "PDF-faile muudetakse teie seadmes kohapeal. Dokumendi sisu ennast SimplePDF serveritesse ei laeta.",
+    "aboutBullet2Title": "Kasuta oma tehisintellekti.",
+    "aboutBullet2Body": "Tootmises ühenda oma teenusepakkuja, võtmed, RAG-torud ja sisemised andmed, nii et liiklus jääb teie serveri ja teie AI-virna vahele.",
+    "aboutBullet3Title": "Kasuta oma salvestusruumi.",
+    "aboutBullet3Body": "Valmistehtud dokumendid saadetakse brauserist otse teie salvestusruumi, nii et tundlikud andmed jäävad teie taristusse.",
+    "useCasesTitle": "Näited töövoogudest",
+    "useCasesFooter": "Vali üleval töövoog, et laadida teine vorm.",
+    "architectureTitle": "Arhitektuur",
+    "architectureSubtext": "Vestlusest kuni esitamiseni on arhitektuur loodud hoidma dokumente ja tundlikke andmeid teie kontrolli all, mitte meie.",
+    "architectureDemoSubtext": "Dokument, mille laadite, ei lahku kunagi teie brauserist. Andmed, mille saadate vestluse kaudu, lähevad teie valitud LLM-i.",
+    "architectureTabs": {
+      "demo": "Selle demo jaoks",
+      "production": "Tootmises"
+    },
+    "architectureDemoDescription": "See demo töötab jagatud SimplePDF kontol. Brauser hostib nii SimplePDF Copiloti kui ka SimplePDF redaktorit (mis laaditakse iframe’i). Välja andmed jäävad brauserisse postMessage kliendipoolsete tööriistakutsete kaudu. Vestlusliiklus voolab läbi demo hostitud serveri hostitud AI teenusepakkujani või otse brauserist, kui toote kaasa oma API-võtme. SimplePDF server salvestab ainult telemeetriat ja metaandmeid; ta ei näe kunagi dokumendi sisu.",
+    "architectureDescription": "Brauser käitab SimplePDF Copiloti ja SimplePDF redaktorit iframe’i sees. Need kaks suhtlevad postMessage kliendipoolsete tööriistakutsetega, nii et välja andmed ei lahku kunagi brauserist. Vestlusteated saadetakse teie serveri kaudu teie AI-virna (teenusepakkuja, võtmed, RAG, sisemised andmed). SimplePDF server saab ainult telemeetriat ja metaandmeid ega näe kunagi dokumenti ennast. Valminud dokument laaditakse otse redaktorist teie salvestusruumi (S3, Azure Blob Storage või SharePoint), mööda SimplePDF serverit. Kui esitamine on valmis, saab valikuline webhook teie serverile teada anda. Webhook sisaldab ainult metaandmeid, mitte kunagi dokumendi sisu.",
+    "tryThisForm": "Proovi seda vormi →",
+    "useCases": {
+      "healthcare": {
+        "title": "Tervishoid",
+        "body": "Patsientide vastuvõtuvormid ja kindlustusnõuded sisaldavad sageli tundlikke andmeid ja vajavad ülevaatamist. SimplePDF Copilot aitab vormi samm-sammult täita teie organisatsiooni heakskiidetud tehisintellekti teenusepakkujaga."
+      },
+      "insurance": {
+        "title": "Kindlustus",
+        "body": "Taotlused, kahjud ja muudatused ühendavad sageli struktureeritud andmeid polissi erisustega. SimplePDF Copilot aitab eeltäita, mida saab, selgitada välju ning jätab lõpliku ülevaatamise kasutajale."
+      },
+      "state": {
+        "title": "Riigi bürokraatia",
+        "body": "Riigiasutuste vormid on sageli skaneeritud, keerulised või kirjutatud kasutajale võõras keeles. SimplePDF Copilot saab aidata vormi selgitada, tõlkida ja samm-sammult täita, samal ajal kui kasutaja tulemust üle vaatab."
+      },
+      "hr": {
+        "title": "Personalitöö sissejuhatus",
+        "body": "Tööpakkumise kirjad, maksuvormid ja sissejuhatuskomplektid nõuavad sageli nii eeltäitmist kui ka ülevaatamist. SimplePDF Copilot täidab seda, mida saab, ning annab seejärel allkirjad ja lõplikud kontrollid kasutajale."
+      }
+    }
+  },
+  "chat": {
+    "heading": "SimplePDF Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Ootan redaktori laadimist…",
+    "subtitleNoDocument": "Lae esmalt dokument",
+    "subtitleNoModel": "Too oma tehisintellekt vestluse alustamiseks",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Too oma tehisintellekt",
+      "currentlyUsedSectionTitle": "Praegu kasutusel",
+      "demoRateLimitedBadge": "demo · piiratud kasutus",
+      "byokIntro": "Vali teenusepakkuja ja kleebi oma võti, et vestelda selle kaudu.",
+      "byokSecurityTitle": "Sinu mandaadid jäävad sinu seadmesse.",
+      "byokSecurityBody": "Mandaadid hoitakse ainult mälus (neid ei kirjutata kunagi kettale ega saadeta SimplePDF serveritesse) ja iga LLM päring saadetakse otse sinu brauserist valitud tehisintellektile.",
+      "modelSectionTitle": "Mudel",
+      "recommendedBadge": "Soovitatud",
+      "keyInputPlaceholder": "Kleebi oma {{provider}} API key",
+      "keyInputHint": "Võti ei lahku sinu brauserist. Salvestatud mälus ainult selle vahekaardi jaoks.",
+      "keyInvalid": "Teenusepakkuja lükkas selle API võtme tagasi.",
+      "keyModelNotFound": "Mudelit ei leitud. Vali muu mudel või kontrolli, et see kuulub sinu plaani.",
+      "keyNetworkError": "Võtme kinnitamiseks ei õnnestunud teenusepakkujaga ühendust saada. Kontrolli ühendust ja proovi uuesti.",
+      "applyButton": "Kasuta seda tehisintellekti",
+      "validatingButton": "Võtme kinnitamine…",
+      "cancelButton": "Tühista",
+      "comingSoon": "Tulekul",
+      "registerInterest": "Registreeri oma huvi →",
+      "registerInterestMessage": "Tere SimplePDF-i tiim, olen huvitatud SimplePDF Copiloti kasutamisest koos {{provider}}-iga. Kas saaksite öelda, millal see kättesaadavaks muutub ja milline näeb välja seadistus?\n\nPakett, mis mind huvitab:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Kohandatud lõpp-punkt",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "privaatne",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Suvaline OpenAI-ga ühilduv lõpp-punkt (Ollama, LM Studio, vLLM, iseseisvalt hostitud).",
+      "customModelLabel": "Mudeli nimi",
+      "customKeyLabel": "API-võti",
+      "customKeyPlaceholder": "Teie API-võti (või suvaline string kohalike seadistuste jaoks)",
+      "customKeyHint": "Töötab otse brauserist ülaltoodud URLi vastu. Kasutage localhost URLi, et kõik jääks teie seadmesse.",
+      "customReachFailed": "Lõpp-punktiga ei saanud ühendust. Kontrollige URLi ja seda, et teie server lubab CORSi sellelt lehelt.",
+      "customModelNotFound": "Mudelit ei leitud sellest serverist. Kontrollige mudeli nime (ja et see oleks alla tõmmatud / laaditud).",
+      "customAuthRejected": "Server lükkas API võtme tagasi. Kontrollige võtit või jätke see tühjaks kohalike seadistuste puhul, mis autentimist ei nõua."
+    },
+    "stop": "Peata",
+    "thinking": "Mõtleb…",
+    "piiWarning": "Avalik demo. Kasuta ainult näidisandmeid. Teateid töötleb valitud AI-teenusepakkuja.",
+    "newFieldHint": "Kasutaja lisas uue {{field}}-välja",
+    "errorAuthTitle": "Autentimine ebaõnnestus.",
+    "errorAuthBody": "AI-teenusepakkuja lükkas sinu API-võtme tagasi. <switchModel>Vaheta AI-mudelit</switchModel>, et võtit kontrollida, ja proovi uuesti.",
+    "errorRateLimitedTitle": "Oled jõudnud demo piirini",
+    "errorRateLimitedBodyThanks": "Aitäh, et proovisid. See demo kasutab majutatud tehisintellekti, seega on kasutus piiratud.",
+    "errorRateLimitedBodyCta": "Kasuta oma API-võtit, et vorme edasi täita.",
+    "errorRateLimitedCtaButton": "Kasuta oma API-võtit",
+    "errorByokActivatedTitle": "Kasutate nüüd mudelit {{model}}.",
+    "shareHero": "Reaalajas PDF-i täitev tehisintellekt on parem vaadata kui seletada.",
+    "shareCtaLabel": "Saada see kellelegi, kes peaks proovima:",
+    "shareCopyLink": "Kopeeri link",
+    "shareCopied": "Kopeeritud!",
+    "shareTweetText": "Katsetan SimplePDF Copilotit SimplePDF-ilt, tehisintellekti, mis täidab PDF-vorme samm-sammult. Tasub pilku heita:",
+    "errorByokActivatedButton": "Jätka vestlust",
+    "errorByokActivatedResumeMessage": "Jätkame",
+    "errorGenericTitle": "Täielik viga",
+    "welcomeTitle": "Proovi SimplePDF Copilotit oma tehisintellektiga",
+    "welcomeBody": "Sinu mandaadid jäävad sellesse vahekaarti. Päringud saadetakse sinu brauserist valitud AI-teenusepakkujale.",
+    "welcomeCta": "Too oma tehisintellekt",
+    "welcomeInfoLink": "Kuidas SimplePDF Copilot töötab",
+    "inputPlaceholderReady": "Vestle SimplePDF Copilotiga…",
+    "send": "Saada"
+  },
+  "suggestedPrompts": {
+    "lead": "Proovi ühte neist:",
+    "helpFill": "Aita mul see vorm täita",
+    "explainFields": "Millest see vorm on?"
+  },
+  "languagePicker": {
+    "label": "Keel",
+    "search": "Otsi keeli…",
+    "noMatches": "Tulemusi ei leitud"
+  },
+  "toolbar": {
+    "cursor": "Kursor",
+    "text": "Tekst",
+    "checkbox": "Märkeruut",
+    "signature": "Allkiri",
+    "picture": "Pilt",
+    "boxedText": "Tekst lahtrites",
+    "download": "Laadi alla",
+    "submit": "Esita"
+  },
+  "welcomeModal": {
+    "title": "Tere tulemast SimplePDF Copilotisse",
+    "tagline": "<accent>Tehisintellekt, mis aitab</accent> kasutajatel samm-sammult PDF-vorme täita",
+    "getStarted": "Alusta",
+    "howItWorks": "Kuidas SimplePDF Copilot töötab",
+    "close": "Sulge tervitus"
+  },
+  "download": {
+    "title": "Laadi täidetud PDF alla",
+    "intro": "Sinu PDF genereeritakse selles brauseri vahelehel. Miski ei lahku sinu seadmest ning SimplePDF-i serverid ei näe kunagi täidetud faili.",
+    "cta": "Laadi alla",
+    "upsellHeading": "SimplePDF Copiloti kaugemale viimine",
+    "upsellStorage": "SimplePDF-i tasulistes pakettides muutub see Allalaadimine <b>Esita</b>-vooks. Täidetud PDF-id jõuavad automaatselt sinu enda salvestusruumi (S3, Azure Blob Storage või SharePoint) ja sinu süsteemid saavad teate webhookiga või e-postiga. Allalaadimine jääb valikuliseks.",
+    "upsellFields": "PDF-vormid on segased. Need saabuvad skannitud kujul ilma valmisväljadeta või kehvade välja nimedega, mis panevad tehisintellekti rohkem tööd tegema. SimplePDF-i tasulised paketid lahendavad ka selle, kohustuslike väljade, vaikeväärtuste ja välja aliastega.",
+    "upsellCta": "Võta meiega ühendust",
+    "upsellPricing": "Vaata ärilahendusi",
+    "upsellContactMessage": "Tere SimplePDF-i tiim, proovin SimplePDF Copiloti ja sooviksin rohkem teada tasuliste pakettide Esita-voo (Submit) kohta: täidetud PDF-ide automaatne saatmine minu enda salvestusruumi ning teavitused webhooki või e-postiga.\n\nPakett, mis mind huvitab:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Sulge"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "ettevalmistamine",
+      "input-available": "käib",
+      "output-available": "valmis",
+      "output-error": "viga"
+    },
+    "fallbackName": "{{tool}} väljakutsumine",
+    "groupSummary_one": "{{count}} toiming",
+    "groupSummary_other": "{{count}} toimingut",
+    "names": {
+      "get_fields": "Väljade toomine",
+      "get_document_content": "Dokumendi lugemine",
+      "detect_fields": "Väljade tuvastamine",
+      "focus_field": "Välja esiletoomine",
+      "go_to_page": "Lehele minemine",
+      "set_field_value": "Välja täitmine",
+      "select_tool": "Tööriista vahetamine",
+      "create_field": "Välja loomine",
+      "remove_fields": "Väljade eemaldamine",
+      "submit_download": "Allalaadimise ettevalmistamine"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Maksud",
+      "healthcare": "Tervishoid",
+      "hr": "Personalitöö sissejuhatus",
+      "state": "Riigi bürokraatia",
+      "stateScanned": "Riigi bürokraatia (skaneeritud PDF)",
+      "custom": "Sinu PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 nõudevorm",
+      "mnda": "Vastastikune NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen skaneeritud",
+      "custom": "Vali oma PDF"
+    },
+    "customSubtitle": "Iga PDF sobib - jääb sinu seadmesse"
+  }
+}

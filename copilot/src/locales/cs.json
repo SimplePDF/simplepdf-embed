@@ -1,0 +1,220 @@
+{
+  "header": {
+    "brand": "SimplePDF Copilot Demo",
+    "tagline": "Upravujte, vyplňujte a rozumějte PDF tím, že si s nimi povídáte.",
+    "whatIsThisDemo": "Co je toto demo?",
+    "useCase": "Načtené PDF",
+    "poweredBy": "Pohoní SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "SimplePDF Copilot si nejlépe vychutnáte na počítači",
+    "watchDemo": "Sledovat ukázku",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "Vyplňování formulářů s podporou AI, s člověkem ve smyčce",
+    "close": "Zavřít",
+    "availableOn": "SimplePDF Copilot je dostupný v <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Zdrojový kód na GitHubu",
+    "githubStarTitle": "Dát hvězdičku SimplePDF/simplepdf-embed na GitHubu",
+    "whyItMattersLead": "Automatické vyplňování formulářů má své limity.",
+    "whyItMattersBody": "Data potřebná k vyplnění formuláře mohou chybět, být chybná nebo neplatná. Toto demo ukazuje bezpečnější model: AI pomáhá formulář vyplnit, zatímco člověk kontroluje, opravuje a v případě potřeby doplňuje.",
+    "humanInTheLoopTitle": "Jak to funguje",
+    "humanInTheLoopBullet1": "SimplePDF Copilot vyplňuje pole v reálném čase, přímo v editoru.",
+    "humanInTheLoopBullet1Hint": "Výměna dat mezi SimplePDF Copilot a editorem probíhá v prohlížeči.",
+    "humanInTheLoopBullet2": "Uživatel může vidět každou změnu, zkontrolovat ji a opravit.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot může předat pole, která by se neměla vyplňovat automaticky, například podpisy.",
+    "humanInTheLoopBullet3": "Uživatel má kontrolu.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot pomáhá procházet formulář a vyplňovat jej, ale poslední slovo má vždy uživatel.",
+    "aboutTitle": "Soukromí od základu",
+    "aboutIntro": "SimplePDF je od základu navržen pro citlivé pracovní postupy. Tyto tři architektonické volby vysvětlují proč.",
+    "aboutBullet1Title": "Zpracování dokumentů v prohlížeči.",
+    "aboutBullet1Body": "PDF se upravují lokálně ve vašem zařízení. Samotný obsah dokumentu se na servery SimplePDF nenahrává.",
+    "aboutBullet2Title": "Použijte vlastní AI.",
+    "aboutBullet2Body": "V produkci zapojte vlastního poskytovatele, klíče, RAG pipeline a interní data, aby provoz zůstával mezi vaším serverem a vaším AI stackem.",
+    "aboutBullet3Title": "Použijte vlastní úložiště.",
+    "aboutBullet3Body": "Hotové dokumenty se z prohlížeče posílají přímo do vašeho úložiště, čímž se zajistí, že citlivá data zůstanou ve vaší infrastruktuře.",
+    "useCasesTitle": "Příklady pracovních postupů",
+    "useCasesFooter": "Vyberte výše pracovní postup a načtěte jiný formulář.",
+    "architectureTitle": "Architektura",
+    "architectureSubtext": "Od chatu po odeslání je architektura navržena tak, aby dokumenty a citlivá data zůstávala pod vaší kontrolou, ne pod naší.",
+    "architectureDemoSubtext": "Dokument, který načtete, nikdy neopustí váš prohlížeč. Data, která posíláte přes chat, jdou do LLM, který jste vybrali.",
+    "architectureTabs": {
+      "demo": "Pro toto demo",
+      "production": "V produkci"
+    },
+    "architectureDemoDescription": "Toto demo běží na sdíleném účtu SimplePDF. Prohlížeč hostuje jak SimplePDF Copilot, tak editor SimplePDF (načtený v iframe). Data polí zůstávají v prohlížeči díky postMessage voláním nástrojů na straně klienta. Provoz chatu prochází hostovaným serverem dema k hostovanému poskytovateli AI, nebo přímo z prohlížeče, když si přinesete vlastní API klíč. Server SimplePDF zaznamenává pouze telemetrii a metadata; obsah dokumentu nikdy nevidí.",
+    "architectureDescription": "Prohlížeč spouští SimplePDF Copilot a editor SimplePDF uvnitř iframe. Obě části komunikují prostřednictvím postMessage volání nástrojů na straně klienta, takže data polí nikdy neopustí prohlížeč. Zprávy chatu jsou proxy přes váš server do vašeho AI stacku (poskytovatel, klíče, RAG, interní data). Server SimplePDF přijímá pouze telemetrii a metadata a samotný dokument nikdy nevidí. Hotový dokument se nahrává přímo z editoru do vašeho úložiště (S3, Azure Blob Storage nebo SharePoint) mimo server SimplePDF. Po dokončení odeslání může volitelný webhook upozornit váš server. Webhook obsahuje pouze metadata, nikdy obsah dokumentu.",
+    "tryThisForm": "Vyzkoušet tento formulář →",
+    "useCases": {
+      "healthcare": {
+        "title": "Zdravotnictví",
+        "body": "Formuláře pro příjem pacientů a zdravotní nároky často obsahují citlivá data a vyžadují kontrolu. SimplePDF Copilot pomáhá vyplnit formulář krok za krokem pomocí AI poskytovatele schváleného vaší organizací."
+      },
+      "insurance": {
+        "title": "Pojištění",
+        "body": "Žádosti, škodní události a dodatky často kombinují strukturovaná data s detaily dané pojistky. SimplePDF Copilot předvyplní, co může, vysvětlí pole a finalní kontrolu nechává na uživateli."
+      },
+      "state": {
+        "title": "Státní byrokracie",
+        "body": "Státní formuláře bývají často naskenované, složité nebo v jazyce, kterým uživatel nemluví. SimplePDF Copilot může formulář vysvětlit, přeložit a vyplnit krok za krokem, zatímco uživatel výsledek kontroluje."
+      },
+      "hr": {
+        "title": "HR onboarding",
+        "body": "Nabídkové dopisy, daňové formuláře a onboardingové balíčky často vyžadují předvyplnění i kontrolu. SimplePDF Copilot vyplní, co může, a pak předá uživateli k podpisu a závěrečným úpravám."
+      }
+    }
+  },
+  "chat": {
+    "heading": "SimplePDF Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Čekání na načtení editoru…",
+    "subtitleNoDocument": "Nejprve načtěte dokument",
+    "subtitleNoModel": "Přineste si vlastní AI a začněte chatovat",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Přineste si vlastní AI",
+      "currentlyUsedSectionTitle": "Aktuálně používaný",
+      "demoRateLimitedBadge": "demo · omezené využití",
+      "byokIntro": "Vyberte poskytovatele a vložte svůj klíč, abyste chatovali přes něj.",
+      "byokSecurityTitle": "Vaše přihlašovací údaje zůstávají na vašem zařízení.",
+      "byokSecurityBody": "Přihlašovací údaje jsou drženy pouze v paměti (nikdy se neukládají na disk ani neodesílají na servery SimplePDF) a každý LLM požadavek je odeslán přímo z vašeho prohlížeče k AI, kterou jste zvolili.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Doporučeno",
+      "keyInputPlaceholder": "Vložte svůj API key pro {{provider}}",
+      "keyInputHint": "Klíč neopustí váš prohlížeč. Je uložen v paměti pouze pro tuto záložku.",
+      "keyInvalid": "Tento API klíč byl poskytovatelem odmítnut.",
+      "keyModelNotFound": "Model nebyl nalezen. Vyberte jiný model nebo ověřte, že je součástí vašeho tarifu.",
+      "keyNetworkError": "Nepodařilo se kontaktovat poskytovatele pro ověření klíče. Zkontrolujte připojení a zkuste to znovu.",
+      "applyButton": "Použít tuto AI",
+      "validatingButton": "Ověřování klíče…",
+      "cancelButton": "Zrušit",
+      "comingSoon": "Brzy",
+      "registerInterest": "Zaregistrujte svůj zájem →",
+      "registerInterestMessage": "Ahoj týme SimplePDF, mám zájem používat SimplePDF Copilot s {{provider}}. Můžete mi napsat, kdy bude k dispozici a jak vypadá nastavení?\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Vlastní endpoint",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "soukromí",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Jakýkoli endpoint kompatibilní s OpenAI (Ollama, LM Studio, vLLM, vlastní hosting).",
+      "customModelLabel": "Název modelu",
+      "customKeyLabel": "API klíč",
+      "customKeyPlaceholder": "Váš API klíč (nebo jakýkoli řetězec pro lokální nastavení)",
+      "customKeyHint": "Běží přímo z prohlížeče proti výše uvedené URL. Použijte localhost URL, aby vše zůstalo na vašem zařízení.",
+      "customReachFailed": "Endpoint nebyl dostupný. Zkontrolujte URL a zda váš server povoluje CORS z této stránky.",
+      "customModelNotFound": "Model nebyl na tomto serveru nalezen. Zkontrolujte název modelu (a zda byl stažen / načten).",
+      "customAuthRejected": "Server odmítl API klíč. Zkontrolujte klíč, nebo jej nechte prázdný pro lokální nastavení, která autentizaci nevyžadují."
+    },
+    "stop": "Zastavit",
+    "thinking": "Přemýšlím…",
+    "piiWarning": "Veřejné demo. Používejte pouze ukázková data. Zprávy zpracovává zvolený AI poskytovatel.",
+    "newFieldHint": "Nové pole typu {{field}} přidané uživatelem",
+    "errorAuthTitle": "Ověření selhalo.",
+    "errorAuthBody": "AI poskytovatel odmítl váš API klíč. <switchModel>Přepněte AI model</switchModel>, ověřte klíč a zkuste to znovu.",
+    "errorRateLimitedTitle": "Dosáhli jste limitu dema",
+    "errorRateLimitedBodyThanks": "Díky, že jste ho vyzkoušeli. Toto demo používá hostovanou AI, takže využití je omezené.",
+    "errorRateLimitedBodyCta": "Použijte vlastní API klíč a pokračujte ve vyplňování formulářů.",
+    "errorRateLimitedCtaButton": "Použít vlastní API klíč",
+    "errorByokActivatedTitle": "Nyní používáte {{model}}.",
+    "shareHero": "AI, která vyplňuje PDF v reálném čase, se lépe ukazuje, než vysvětluje.",
+    "shareCtaLabel": "Pošlete to někomu, kdo by to měl zkusit:",
+    "shareCopyLink": "Kopírovat odkaz",
+    "shareCopied": "Zkopírováno!",
+    "shareTweetText": "Zkouším SimplePDF Copilot od SimplePDF, AI, která vyplňuje PDF formuláře krok za krokem. Stojí za podívání:",
+    "errorByokActivatedButton": "Pokračovat v konverzaci",
+    "errorByokActivatedResumeMessage": "Pokračujme",
+    "errorGenericTitle": "Úplná chyba",
+    "welcomeTitle": "Vyzkoušejte SimplePDF Copilot s vlastní AI",
+    "welcomeBody": "Vaše přihlašovací údaje zůstávají v této záložce. Požadavky odcházejí z vašeho prohlížeče k vybranému AI poskytovateli.",
+    "welcomeCta": "Přineste si vlastní AI",
+    "welcomeInfoLink": "Jak SimplePDF Copilot funguje",
+    "inputPlaceholderReady": "Mluvte s SimplePDF Copilot…",
+    "send": "Odeslat"
+  },
+  "suggestedPrompts": {
+    "lead": "Zkuste něco z toho:",
+    "helpFill": "Pomozte mi vyplnit tento formulář",
+    "explainFields": "O čem je tento formulář?"
+  },
+  "languagePicker": {
+    "label": "Jazyk",
+    "search": "Hledat jazyky…",
+    "noMatches": "Žádné shody"
+  },
+  "toolbar": {
+    "cursor": "Kurzor",
+    "text": "Text",
+    "checkbox": "Zaškrtávací políčko",
+    "signature": "Podpis",
+    "picture": "Obrázek",
+    "boxedText": "Text v polích",
+    "download": "Stáhnout",
+    "submit": "Odeslat"
+  },
+  "welcomeModal": {
+    "title": "Vítejte ve SimplePDF Copilot",
+    "tagline": "<accent>AI, která pomáhá</accent> uživatelům vyplnit PDF formuláře krok za krokem",
+    "getStarted": "Začít",
+    "howItWorks": "Jak SimplePDF Copilot funguje",
+    "close": "Zavřít uvítání"
+  },
+  "download": {
+    "title": "Stáhněte si vyplněné PDF",
+    "intro": "Vaše PDF se generuje v této záložce prohlížeče. Nic neopouští vaše zařízení a servery SimplePDF vyplněný soubor nikdy nevidí.",
+    "cta": "Stáhnout",
+    "upsellHeading": "Posuňte SimplePDF Copilot dál",
+    "upsellStorage": "V placených plánech SimplePDF se toto Stáhnutí promění v <b>Odeslat</b> proces. Vyplněná PDF automaticky putují do vašeho vlastního úložiště (S3, Azure Blob Storage nebo SharePoint) a vaše systémy dostanou oznámení přes webhook nebo e-mail. Stahování zůstává volitelné.",
+    "upsellFields": "PDF formuláře bývají nepřehledné. Přicházejí naskenované bez připravených polí, nebo se špatnými názvy polí, které nutí AI víc pracovat. Placené plány SimplePDF tohle řeší také, a to povinnými poli, výchozími hodnotami a aliasy polí.",
+    "upsellCta": "Napište nám",
+    "upsellPricing": "Prohlédnout firemní plány",
+    "upsellContactMessage": "Ahoj týme SimplePDF, zkouším SimplePDF Copilot a rád bych se dozvěděl víc o procesu Odeslat (Submit) v placených plánech: automatické doručení do mého vlastního úložiště a upozornění přes webhook nebo e-mail.\n\nPlán, který mě zajímá:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Zavřít"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "příprava",
+      "input-available": "běží",
+      "output-available": "hotovo",
+      "output-error": "chyba"
+    },
+    "fallbackName": "Volání {{tool}}",
+    "groupSummary_one": "{{count}} akce",
+    "groupSummary_few": "{{count}} akce",
+    "groupSummary_other": "{{count}} akcí",
+    "names": {
+      "get_fields": "Načítám pole",
+      "get_document_content": "Čtu dokument",
+      "detect_fields": "Detekuji pole",
+      "focus_field": "Zvýrazňuji pole",
+      "go_to_page": "Přecházím na stránku",
+      "set_field_value": "Vyplňuji pole",
+      "select_tool": "Přepínám nástroj",
+      "create_field": "Vytvářím pole",
+      "remove_fields": "Odstraňuji pole",
+      "submit_download": "Připravuji ke stažení"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Daně",
+      "healthcare": "Zdravotnictví",
+      "hr": "HR onboarding",
+      "state": "Státní byrokracie",
+      "stateScanned": "Státní byrokracie (naskenované PDF)",
+      "custom": "Vaše PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "Formulář škody CMS-1500",
+      "mnda": "Vzájemné NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen naskenovaný",
+      "custom": "Vyberte si vlastní PDF"
+    },
+    "customSubtitle": "Funguje jakékoli PDF - zůstane ve vašem zařízení"
+  }
+}

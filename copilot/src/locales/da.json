@@ -1,0 +1,219 @@
+{
+  "header": {
+    "brand": "SimplePDF Copilot Demo",
+    "tagline": "Rediger, udfyld og forstå PDF-filer ved at chatte med dem.",
+    "whatIsThisDemo": "Hvad er denne demo?",
+    "useCase": "Indlæst PDF",
+    "poweredBy": "Drevet af SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "SimplePDF Copilot opleves bedst på skrivebordet",
+    "watchDemo": "Se demoen",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "AI-assisteret udfyldning af formularer, med et menneske i løkken",
+    "close": "Luk",
+    "availableOn": "SimplePDF Copilot er tilgængelig på <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Kildekode på GitHub",
+    "githubStarTitle": "Giv en stjerne til SimplePDF/simplepdf-embed på GitHub",
+    "whyItMattersLead": "Automatisk udfyldning af formularer har sine grænser.",
+    "whyItMattersBody": "De data, der skal bruges til at udfylde en formular, kan mangle, være forkerte eller ugyldige. Denne demo viser en mere sikker model: AI hjælper med at udfylde formularen, mens et menneske gennemgår, retter og udfylder det sidste.",
+    "humanInTheLoopTitle": "Sådan fungerer det",
+    "humanInTheLoopBullet1": "SimplePDF Copilot udfylder felter i realtid inde i editoren.",
+    "humanInTheLoopBullet1Hint": "Dataudvekslingen mellem SimplePDF Copilot og editoren sker i browseren.",
+    "humanInTheLoopBullet2": "Brugeren kan se hver ændring, gennemgå den og rette den.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot kan overlade felter, der ikke bør udfyldes automatisk, f.eks. underskrifter.",
+    "humanInTheLoopBullet3": "Brugeren bevarer kontrollen.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot hjælper med at navigere i og udfylde formularen, men brugeren har altid det sidste ord.",
+    "aboutTitle": "Privatliv by design",
+    "aboutIntro": "SimplePDF er bygget fra bunden til følsomme arbejdsgange. Disse tre arkitektoniske valg forklarer hvorfor.",
+    "aboutBullet1Title": "Dokumentbehandling i browseren.",
+    "aboutBullet1Body": "PDF’er redigeres lokalt på din enhed. Selve dokumentets indhold uploades ikke til SimplePDF-serverne.",
+    "aboutBullet2Title": "Medbring din egen AI.",
+    "aboutBullet2Body": "I produktion kan du tilslutte din egen udbyder, nøgler, RAG-pipelines og interne data, så trafikken forbliver mellem din server og din AI-stak.",
+    "aboutBullet3Title": "Medbring dit eget lager.",
+    "aboutBullet3Body": "Færdige dokumenter sendes direkte fra browseren til dit lager, så følsomme data forbliver i din infrastruktur.",
+    "useCasesTitle": "Eksempler på arbejdsgange",
+    "useCasesFooter": "Vælg en arbejdsgang ovenfor for at indlæse en anden formular.",
+    "architectureTitle": "Arkitektur",
+    "architectureSubtext": "Fra chat til indsendelse er arkitekturen designet, så dokumenter og følsomme data forbliver under din kontrol, ikke vores.",
+    "architectureDemoSubtext": "Det dokument, du indlæser, forlader aldrig din browser. De data, du sender via chatten, går til den LLM, du har valgt.",
+    "architectureTabs": {
+      "demo": "Til denne demo",
+      "production": "I produktion"
+    },
+    "architectureDemoDescription": "Denne demo kører på en delt SimplePDF-konto. Browseren hoster både SimplePDF Copilot og SimplePDF-editoren (indlæst i en iframe). Feltdata bliver i browseren via postMessage-klient-sidens værktøjskald. Chattrafik flyder gennem demoens hostede server til en hostet AI-udbyder, eller direkte fra browseren, når du medbringer din egen API-nøgle. SimplePDF-serveren registrerer kun telemetri og metadata; den ser aldrig dokumentets indhold.",
+    "architectureDescription": "Browseren kører SimplePDF Copilot og SimplePDF-editoren inde i en iframe. De to kommunikerer gennem postMessage-klient-sidens værktøjskald, så feltdata aldrig forlader browseren. Chatbeskeder proxies gennem din server til din AI-stak (udbyder, nøgler, RAG, interne data). SimplePDF-serveren modtager kun telemetri og metadata og ser aldrig selve dokumentet. Det færdige dokument uploades direkte fra editoren til dit lager (S3, Azure Blob Storage eller SharePoint) uden om SimplePDF-serveren. Når en indsendelse er gennemført, kan en valgfri webhook give besked til din server. Webhooken bærer kun metadata, aldrig dokumentets indhold.",
+    "tryThisForm": "Prøv denne formular →",
+    "useCases": {
+      "healthcare": {
+        "title": "Sundhedsvæsen",
+        "body": "Patientindtag og skadesformularer indeholder ofte følsomme data og kræver gennemgang. SimplePDF Copilot hjælper med at udfylde formularen trin for trin via din organisations godkendte AI-udbyder."
+      },
+      "insurance": {
+        "title": "Forsikring",
+        "body": "Ansøgninger, skader og tilføjelser kombinerer ofte strukturerede data med policespecifikke detaljer. SimplePDF Copilot hjælper med at forududfylde det, den kan, forklarer felter og overlader den endelige gennemgang til brugeren."
+      },
+      "state": {
+        "title": "Offentligt bureaukrati",
+        "body": "Myndighedsformularer er ofte scannede, komplekse eller skrevet på et sprog, brugeren ikke taler. SimplePDF Copilot kan hjælpe med at forklare formularen, oversætte den og udfylde den trin for trin, mens brugeren gennemgår resultatet."
+      },
+      "hr": {
+        "title": "HR-onboarding",
+        "body": "Ansættelsesbreve, skatteformularer og onboardingpakker kræver ofte både forududfyldning og gennemgang. SimplePDF Copilot udfylder det, den kan, og overlader derefter underskrifter og sidste tjek til brugeren."
+      }
+    }
+  },
+  "chat": {
+    "heading": "SimplePDF Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Venter på, at editoren indlæses…",
+    "subtitleNoDocument": "Indlæs et dokument først",
+    "subtitleNoModel": "Medbring din egen AI for at begynde at chatte",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Medbring din egen AI",
+      "currentlyUsedSectionTitle": "Aktuelt i brug",
+      "demoRateLimitedBadge": "demo · begrænset brug",
+      "byokIntro": "Vælg en udbyder og indsæt din nøgle for at chatte via den i stedet.",
+      "byokSecurityTitle": "Dine legitimationsoplysninger bliver på din enhed.",
+      "byokSecurityBody": "Legitimationsoplysninger opbevares kun i hukommelsen (skrives aldrig til disk, sendes aldrig til SimplePDF’s servere), og hver LLM-forespørgsel sendes direkte fra din browser til den valgte AI.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Anbefalet",
+      "keyInputPlaceholder": "Indsæt din {{provider}} API key",
+      "keyInputHint": "Nøglen forlader aldrig din browser. Den gemmes i hukommelsen kun for denne fane.",
+      "keyInvalid": "Denne API-nøgle blev afvist af udbyderen.",
+      "keyModelNotFound": "Model ikke fundet. Vælg en anden model, eller tjek at den er inkluderet i dit abonnement.",
+      "keyNetworkError": "Kunne ikke nå udbyderen for at verificere nøglen. Tjek din forbindelse og prøv igen.",
+      "applyButton": "Brug denne AI",
+      "validatingButton": "Verificerer nøgle…",
+      "cancelButton": "Annuller",
+      "comingSoon": "Kommer snart",
+      "registerInterest": "Tilmeld din interesse →",
+      "registerInterestMessage": "Hej SimplePDF-team, jeg er interesseret i at bruge SimplePDF Copilot med {{provider}}. Kan I fortælle, hvornår det bliver tilgængeligt, og hvordan opsætningen ser ud?\n\nAbonnement jeg er interesseret i:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Brugerdefineret endpoint",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "privat",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Et hvilket som helst OpenAI-kompatibelt endpoint (Ollama, LM Studio, vLLM, selvhostet).",
+      "customModelLabel": "Modelnavn",
+      "customKeyLabel": "API-nøgle",
+      "customKeyPlaceholder": "Din API-nøgle (eller en tilfældig streng til lokale opsætninger)",
+      "customKeyHint": "Kører direkte fra browseren mod URL’en ovenfor. Brug en localhost-URL for at beholde alt på din maskine.",
+      "customReachFailed": "Kunne ikke nå endpointet. Tjek URL’en, og at din server tillader CORS fra denne side.",
+      "customModelNotFound": "Model ikke fundet på denne server. Tjek modelnavnet (og at den er trukket / indlæst).",
+      "customAuthRejected": "Serveren afviste API-nøglen. Tjek nøglen, eller lad den stå tom ved lokale opsætninger, der ikke kræver godkendelse."
+    },
+    "stop": "Stop",
+    "thinking": "Tænker…",
+    "piiWarning": "Offentlig demo. Brug kun eksempeldata. Beskeder behandles af den valgte AI-udbyder.",
+    "newFieldHint": "Nyt {{field}}-felt tilføjet af brugeren",
+    "errorAuthTitle": "Godkendelse mislykkedes.",
+    "errorAuthBody": "AI-udbyderen afviste din API-nøgle. <switchModel>Skift AI-model</switchModel> for at verificere nøglen, og prøv igen.",
+    "errorRateLimitedTitle": "Du har nået demo-grænsen",
+    "errorRateLimitedBodyThanks": "Tak fordi du prøvede. Denne demo bruger hostet AI, så brugen er begrænset.",
+    "errorRateLimitedBodyCta": "Brug din egen API-nøgle for at fortsætte med at udfylde formularer.",
+    "errorRateLimitedCtaButton": "Brug din egen API-nøgle",
+    "errorByokActivatedTitle": "Du bruger nu {{model}}.",
+    "shareHero": "En AI der udfylder en PDF i realtid ses bedre end den forklares.",
+    "shareCtaLabel": "Send det til nogen, der burde prøve det:",
+    "shareCopyLink": "Kopiér link",
+    "shareCopied": "Kopieret!",
+    "shareTweetText": "Jeg prøver SimplePDF Copilot fra SimplePDF, en AI der udfylder PDF-formularer trin for trin. Værd at kigge på:",
+    "errorByokActivatedButton": "Genoptag samtalen",
+    "errorByokActivatedResumeMessage": "Vi fortsætter",
+    "errorGenericTitle": "Fuld fejl",
+    "welcomeTitle": "Prøv SimplePDF Copilot med din egen AI",
+    "welcomeBody": "Dine legitimationsoplysninger bliver i denne fane. Forespørgsler sendes fra din browser til den valgte AI-udbyder.",
+    "welcomeCta": "Medbring din egen AI",
+    "welcomeInfoLink": "Sådan fungerer SimplePDF Copilot",
+    "inputPlaceholderReady": "Tal med SimplePDF Copilot…",
+    "send": "Send"
+  },
+  "suggestedPrompts": {
+    "lead": "Prøv en af disse:",
+    "helpFill": "Hjælp mig med at udfylde denne formular",
+    "explainFields": "Hvad handler denne formular om?"
+  },
+  "languagePicker": {
+    "label": "Sprog",
+    "search": "Søg efter sprog…",
+    "noMatches": "Ingen resultater"
+  },
+  "toolbar": {
+    "cursor": "Markør",
+    "text": "Tekst",
+    "checkbox": "Afkrydsningsfelt",
+    "signature": "Underskrift",
+    "picture": "Billede",
+    "boxedText": "Tekst i felter",
+    "download": "Download",
+    "submit": "Indsend"
+  },
+  "welcomeModal": {
+    "title": "Velkommen til SimplePDF Copilot",
+    "tagline": "<accent>AI, der hjælper</accent> brugere med at udfylde PDF-formularer trin for trin",
+    "getStarted": "Kom i gang",
+    "howItWorks": "Sådan fungerer SimplePDF Copilot",
+    "close": "Luk velkomst"
+  },
+  "download": {
+    "title": "Download din udfyldte PDF",
+    "intro": "Din PDF genereres i denne browserfane. Intet forlader din enhed, og SimplePDFs servere ser aldrig den udfyldte fil.",
+    "cta": "Download",
+    "upsellHeading": "Tag SimplePDF Copilot længere",
+    "upsellStorage": "På betalte SimplePDF-abonnementer bliver denne Download til et <b>Indsend</b>-flow. Udfyldte PDF-filer lander automatisk i dit eget lager (S3, Azure Blob Storage eller SharePoint), og dine systemer får besked via webhook eller e-mail. Download er fortsat valgfri.",
+    "upsellFields": "PDF-formularer er rodede. De ankommer scannede uden klar-til-brug felter eller med dårlige feltnavne, der får AI til at arbejde hårdere. Betalte SimplePDF-abonnementer løser også det, med obligatoriske felter, standardværdier og feltaliasser.",
+    "upsellCta": "Kontakt os",
+    "upsellPricing": "Se erhvervsabonnementer",
+    "upsellContactMessage": "Hej SimplePDF-team, jeg prøver SimplePDF Copilot og vil gerne vide mere om Indsend-flowet (Submit) i de betalte abonnementer: automatisk levering til mit eget lager og notifikationer via webhook eller e-mail.\n\nAbonnement jeg er interesseret i:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Luk"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "forbereder",
+      "input-available": "kører",
+      "output-available": "færdig",
+      "output-error": "fejl"
+    },
+    "fallbackName": "Kalder {{tool}}",
+    "groupSummary_one": "{{count}} handling",
+    "groupSummary_other": "{{count}} handlinger",
+    "names": {
+      "get_fields": "Henter felter",
+      "get_document_content": "Læser dokumentet",
+      "detect_fields": "Registrerer felter",
+      "focus_field": "Fremhæver feltet",
+      "go_to_page": "Går til siden",
+      "set_field_value": "Udfylder feltet",
+      "select_tool": "Skifter værktøj",
+      "create_field": "Opretter et felt",
+      "remove_fields": "Fjerner felter",
+      "submit_download": "Forbereder download"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Skat",
+      "healthcare": "Sundhedsvæsen",
+      "hr": "HR-onboarding",
+      "state": "Offentligt bureaukrati",
+      "stateScanned": "Offentligt bureaukrati (scannet PDF)",
+      "custom": "Din PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 skadesformular",
+      "mnda": "Gensidig NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen scannet",
+      "custom": "Vælg din egen PDF"
+    },
+    "customSubtitle": "Enhver PDF fungerer - bliver på din enhed"
+  }
+}

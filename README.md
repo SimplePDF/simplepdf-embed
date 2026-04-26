@@ -277,19 +277,29 @@ See: [Customize the PDF Editor and Add Branding](https://simplepdf.com/help/how-
 
 ## Programmatic Page Control
 
-Currently, page manipulation (add/remove/re-arrange/rotate) is only available through the UI. There are no programmatic APIs for these operations. If you need this feature, [file an issue on the repository](https://github.com/SimplePDF/simplepdf-embed/issues).
+Page manipulation is available programmatically through the iframe `postMessage` API. Each event takes 1-indexed visible-page positions (matching the `current_page` that `PAGE_FOCUSED` reports).
 
 **Available programmatic actions:**
 
-| Action                 | Description                                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `goTo`                 | Navigate to a specific page                                                                                |
-| `selectTool`           | Select a tool (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `PICTURE`, `SIGNATURE`) or `null` for cursor              |
-| `detectFields`         | Automatically detect form fields in the document                                                           |
-| `removeFields`         | Remove fields by ID, by page, or all fields                                                                |
-| `getDocumentContent`   | Extract text content from the document                                                                     |
-| `submit`               | Submit the document (with optional device download)                                                        |
-| `loadDocument` (Iframe)| Load a document programmatically (Iframe API only)                                                         |
+| Action                  | Description                                                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `loadDocument` / `LOAD_DOCUMENT` | Load a document by URL or data URL                                                                           |
+| `goTo` / `GO_TO`        | Navigate to a specific page                                                                                           |
+| `selectTool` / `SELECT_TOOL` | Select a tool (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `PICTURE`, `SIGNATURE`) or `null` for cursor                    |
+| `detectFields` / `DETECT_FIELDS` | Auto-detect form fields in the document                                                                      |
+| `removeFields` / `REMOVE_FIELDS` | Remove fields by ID, by page, or all fields                                                                  |
+| `getFields` / `GET_FIELDS` | List every fillable field on the loaded document                                                                  |
+| `setFieldValue` / `SET_FIELD_VALUE` | Write a value into a single field                                                                         |
+| `focusField` / `FOCUS_FIELD` | Highlight + scroll to a field                                                                                    |
+| `createField` / `CREATE_FIELD` | Place a field at given coordinates                                                                             |
+| `getDocumentContent` / `GET_DOCUMENT_CONTENT` | Extract text content per page                                                                   |
+| `MOVE_PAGE`             | Reorder a visible page (`from_page`, `to_page`)                                                                       |
+| `DELETE_PAGE`           | Delete a visible page (rejects deletion of the last remaining page)                                                   |
+| `ROTATE_PAGE`           | Rotate a visible page 90° clockwise (call repeatedly for 180° / 270°)                                                |
+| `submit` / `SUBMIT`     | Submit the document (with optional device download)                                                                   |
+| `DOWNLOAD`              | Trigger an in-browser download without firing the submission flow                                                     |
+
+Some events are exposed by the React component (`@simplepdf/react-embed-pdf`) and some are iframe-only — see the linked docs for which surface supports each.
 
 See full documentation: [React](./react/README.md#programmatic-control) | [Iframe](./documentation/IFRAME.md#incoming-events-sent-to-the-iframe)
 

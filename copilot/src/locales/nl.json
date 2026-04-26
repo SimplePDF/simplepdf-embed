@@ -1,0 +1,219 @@
+{
+  "header": {
+    "brand": "SimplePDF Copilot Demo",
+    "tagline": "Bewerk, vul in en begrijp PDF’s door ermee te chatten.",
+    "whatIsThisDemo": "Wat is deze demo?",
+    "useCase": "Geladen PDF",
+    "poweredBy": "Mogelijk gemaakt door SimplePDF"
+  },
+  "mobileFallback": {
+    "headline": "SimplePDF Copilot komt het best tot zijn recht op desktop",
+    "watchDemo": "Bekijk de demo",
+    "videoPlaceholder": "Video"
+  },
+  "infoModal": {
+    "title": "AI-ondersteund formulieren invullen, met een mens in de loop",
+    "close": "Sluiten",
+    "availableOn": "SimplePDF Copilot is beschikbaar in <plan>SimplePDF Pro and above</plan>.",
+    "sourceCode": "Broncode op GitHub",
+    "githubStarTitle": "Geef SimplePDF/simplepdf-embed een ster op GitHub",
+    "whyItMattersLead": "Automatisch formulieren invullen heeft zijn grenzen.",
+    "whyItMattersBody": "De gegevens die nodig zijn om een formulier in te vullen, kunnen ontbreken, onjuist of ongeldig zijn. Deze demo toont een veiliger model: AI helpt het formulier in te vullen terwijl een mens controleert, corrigeert en waar nodig aanvult.",
+    "humanInTheLoopTitle": "Hoe het werkt",
+    "humanInTheLoopBullet1": "SimplePDF Copilot vult velden in realtime in, binnen de editor.",
+    "humanInTheLoopBullet1Hint": "De uitwisseling van gegevens tussen SimplePDF Copilot en de editor vindt plaats in de browser.",
+    "humanInTheLoopBullet2": "De gebruiker kan elke wijziging zien, controleren en corrigeren.",
+    "humanInTheLoopBullet2Hint": "SimplePDF Copilot kan velden overdragen die niet automatisch ingevuld mogen worden, zoals handtekeningen.",
+    "humanInTheLoopBullet3": "De gebruiker houdt de controle.",
+    "humanInTheLoopBullet3Hint": "SimplePDF Copilot helpt bij het doorlopen en invullen van het formulier, maar de gebruiker heeft altijd het laatste woord.",
+    "aboutTitle": "Privacy by design",
+    "aboutIntro": "SimplePDF is vanaf de basis gebouwd voor gevoelige workflows. Deze drie architecturale keuzes leggen uit waarom.",
+    "aboutBullet1Title": "Documentverwerking in de browser.",
+    "aboutBullet1Body": "PDF’s worden lokaal op uw apparaat bewerkt. De inhoud van het document zelf wordt niet geüpload naar SimplePDF-servers.",
+    "aboutBullet2Title": "Uw eigen AI meebrengen.",
+    "aboutBullet2Body": "In productie sluit u uw eigen provider, sleutels, RAG-pipelines en interne data aan, zodat het verkeer tussen uw server en uw AI-stack blijft.",
+    "aboutBullet3Title": "Uw eigen opslag meebrengen.",
+    "aboutBullet3Body": "Voltooide documenten worden direct vanuit de browser naar uw opslag verzonden, zodat gevoelige gegevens binnen uw infrastructuur blijven.",
+    "useCasesTitle": "Voorbeeldworkflows",
+    "useCasesFooter": "Selecteer hierboven een workflow om een ander formulier te laden.",
+    "architectureTitle": "Architectuur",
+    "architectureSubtext": "Van chat tot indiening, de architectuur is ontworpen om documenten en gevoelige data onder uw controle te houden, niet die van ons.",
+    "architectureDemoSubtext": "Het document dat u laadt verlaat nooit uw browser. De gegevens die u via de chat verstuurt gaan naar de LLM die u hebt geselecteerd.",
+    "architectureTabs": {
+      "demo": "Voor deze demo",
+      "production": "In productie"
+    },
+    "architectureDemoDescription": "Deze demo draait op een gedeeld SimplePDF-account. De browser host zowel SimplePDF Copilot als de SimplePDF-editor (geladen in een iframe). Veldgegevens blijven in de browser via postMessage client-side toolaanroepen. Chatverkeer loopt via de gehoste server van de demo naar een gehoste AI-provider, of rechtstreeks vanuit de browser wanneer u uw eigen API-sleutel meebrengt. De SimplePDF-server registreert alleen telemetrie en metadata; hij ziet de inhoud van het document nooit.",
+    "architectureDescription": "De browser draait SimplePDF Copilot en de SimplePDF-editor binnen een iframe. De twee communiceren via postMessage client-side toolaanroepen, zodat veldgegevens nooit de browser verlaten. Chatberichten worden via uw server doorgegeven aan uw AI-stack (provider, sleutels, RAG, interne data). De SimplePDF-server ontvangt alleen telemetrie en metadata en ziet het document zelf nooit. Het voltooide document wordt direct vanuit de editor geupload naar uw opslag (S3, Azure Blob Storage of SharePoint) en omzeilt de SimplePDF-server. Wanneer een indiening is voltooid, kan een optionele webhook uw server op de hoogte stellen. De webhook bevat alleen metadata, nooit de inhoud van het document.",
+    "tryThisForm": "Probeer dit formulier →",
+    "useCases": {
+      "healthcare": {
+        "title": "Gezondheidszorg",
+        "body": "Intake- en claimformulieren voor patiënten bevatten vaak gevoelige gegevens en vereisen controle. SimplePDF Copilot helpt het formulier stap voor stap in te vullen met de door uw organisatie goedgekeurde AI-provider."
+      },
+      "insurance": {
+        "title": "Verzekering",
+        "body": "Aanvragen, claims en bijvoegsels combineren vaak gestructureerde data met polisgebonden details. SimplePDF Copilot helpt met vooraf invullen waar mogelijk, legt velden uit en laat de uiteindelijke controle aan de gebruiker."
+      },
+      "state": {
+        "title": "Overheidsbureaucratie",
+        "body": "Overheidsformulieren zijn vaak gescand, complex of geschreven in een taal die de gebruiker niet spreekt. SimplePDF Copilot kan helpen het formulier uit te leggen, te vertalen en stap voor stap in te vullen terwijl de gebruiker het resultaat controleert."
+      },
+      "hr": {
+        "title": "HR-onboarding",
+        "body": "Arbeidscontracten, belastingformulieren en onboardingpakketten vereisen vaak zowel vooraf invullen als controle. SimplePDF Copilot vult in wat het kan en laat daarna handtekeningen en de laatste controles aan de gebruiker."
+      }
+    }
+  },
+  "chat": {
+    "heading": "SimplePDF Copilot",
+    "subtitleReady": "Claude Haiku 4.5",
+    "subtitleWaiting": "Wachten tot de editor is geladen…",
+    "subtitleNoDocument": "Laad eerst een document",
+    "subtitleNoModel": "Breng uw eigen AI mee om te chatten",
+    "modelNameReady": "Claude Haiku 4.5",
+    "modelPicker": {
+      "title": "Breng uw eigen AI mee",
+      "currentlyUsedSectionTitle": "Momenteel in gebruik",
+      "demoRateLimitedBadge": "demo · gebruik beperkt",
+      "byokIntro": "Kies een provider en plak uw sleutel om via die provider te chatten.",
+      "byokSecurityTitle": "Uw inloggegevens blijven op uw apparaat.",
+      "byokSecurityBody": "Inloggegevens worden alleen in het geheugen bewaard (nooit op schijf geschreven, nooit naar SimplePDF-servers verzonden) en elke LLM-aanvraag wordt rechtstreeks vanuit uw browser naar de door u gekozen AI gestuurd.",
+      "modelSectionTitle": "Model",
+      "recommendedBadge": "Aanbevolen",
+      "keyInputPlaceholder": "Plak uw {{provider}} API key",
+      "keyInputHint": "De sleutel verlaat uw browser niet. Alleen in het geheugen opgeslagen voor dit tabblad.",
+      "keyInvalid": "Deze API-sleutel is door de provider geweigerd.",
+      "keyModelNotFound": "Model niet gevonden. Kies een ander model of controleer of het in uw abonnement is inbegrepen.",
+      "keyNetworkError": "De provider kon niet worden bereikt om de sleutel te verifiëren. Controleer uw verbinding en probeer het opnieuw.",
+      "applyButton": "Deze AI gebruiken",
+      "validatingButton": "Sleutel verifiëren…",
+      "cancelButton": "Annuleren",
+      "comingSoon": "Binnenkort beschikbaar",
+      "registerInterest": "Meld uw interesse aan →",
+      "registerInterestMessage": "Hallo SimplePDF-team, ik heb interesse om SimplePDF Copilot met {{provider}} te gebruiken. Kunt u laten weten wanneer het beschikbaar komt en hoe de setup eruitziet?\n\nAbonnement waarin ik geïnteresseerd ben:\n- [ ] PRO\n- [ ] PREMIUM",
+      "providerOpenai": "OpenAI",
+      "providerAnthropic": "Anthropic",
+      "providerDeepseek": "DeepSeek",
+      "providerCustom": "Aangepast endpoint",
+      "providerAzure": "Azure OpenAI",
+      "providerBedrock": "AWS Bedrock",
+      "privacyBadge": "privé",
+      "customBaseUrlLabel": "Base URL",
+      "customBaseUrlHint": "Elk OpenAI-compatibel endpoint (Ollama, LM Studio, vLLM, zelf gehost).",
+      "customModelLabel": "Modelnaam",
+      "customKeyLabel": "API-sleutel",
+      "customKeyPlaceholder": "Uw API-sleutel (of een willekeurige tekenreeks voor lokale setups)",
+      "customKeyHint": "Draait direct vanuit de browser naar de bovenstaande URL. Gebruik een localhost-URL om alles op uw apparaat te houden.",
+      "customReachFailed": "Het endpoint kon niet worden bereikt. Controleer de URL en of uw server CORS vanaf deze pagina toestaat.",
+      "customModelNotFound": "Model niet gevonden op deze server. Controleer de modelnaam (en of het is opgehaald / geladen).",
+      "customAuthRejected": "De server heeft de API-sleutel geweigerd. Controleer de sleutel of laat deze leeg voor lokale setups zonder authenticatie."
+    },
+    "stop": "Stoppen",
+    "thinking": "Denkt na…",
+    "piiWarning": "Openbare demo. Gebruik alleen voorbeeldgegevens. Berichten worden verwerkt door de geselecteerde AI-provider.",
+    "newFieldHint": "Nieuw {{field}}-veld toegevoegd door de gebruiker",
+    "errorAuthTitle": "Verificatie mislukt.",
+    "errorAuthBody": "De AI-provider heeft uw API-sleutel geweigerd. <switchModel>Wissel van AI-model</switchModel> om de sleutel te verifiëren en probeer het opnieuw.",
+    "errorRateLimitedTitle": "U hebt de demolimiet bereikt",
+    "errorRateLimitedBodyThanks": "Bedankt voor het uitproberen. Deze demo gebruikt gehoste AI, dus het gebruik is gelimiteerd.",
+    "errorRateLimitedBodyCta": "Gebruik uw eigen API-sleutel om formulieren te blijven invullen.",
+    "errorRateLimitedCtaButton": "Uw API-sleutel gebruiken",
+    "errorByokActivatedTitle": "U gebruikt nu {{model}}.",
+    "shareHero": "Een AI die een PDF in realtime invult, zie je beter dan dat je het uitlegt.",
+    "shareCtaLabel": "Stuur het naar iemand die het zou moeten proberen:",
+    "shareCopyLink": "Link kopiëren",
+    "shareCopied": "Gekopieerd!",
+    "shareTweetText": "Ik probeer SimplePDF Copilot van SimplePDF, een AI die PDF-formulieren stap voor stap invult. De moeite waard:",
+    "errorByokActivatedButton": "Gesprek hervatten",
+    "errorByokActivatedResumeMessage": "Laten we doorgaan",
+    "errorGenericTitle": "Volledige fout",
+    "welcomeTitle": "Probeer SimplePDF Copilot met uw eigen AI",
+    "welcomeBody": "Uw inloggegevens blijven in dit tabblad. Verzoeken worden vanuit uw browser naar de door u gekozen AI-provider verzonden.",
+    "welcomeCta": "Breng uw eigen AI mee",
+    "welcomeInfoLink": "Hoe SimplePDF Copilot werkt",
+    "inputPlaceholderReady": "Praat met SimplePDF Copilot…",
+    "send": "Verzenden"
+  },
+  "suggestedPrompts": {
+    "lead": "Probeer een van deze:",
+    "helpFill": "Help me dit formulier in te vullen",
+    "explainFields": "Waar gaat dit formulier over?"
+  },
+  "languagePicker": {
+    "label": "Taal",
+    "search": "Zoek talen…",
+    "noMatches": "Geen resultaten"
+  },
+  "toolbar": {
+    "cursor": "Cursor",
+    "text": "Tekst",
+    "checkbox": "Selectievakje",
+    "signature": "Handtekening",
+    "picture": "Afbeelding",
+    "boxedText": "Tekst in vakjes",
+    "download": "Downloaden",
+    "submit": "Verzenden"
+  },
+  "welcomeModal": {
+    "title": "Welkom bij SimplePDF Copilot",
+    "tagline": "<accent>AI die helpt</accent> gebruikers PDF-formulieren stap voor stap in te vullen",
+    "getStarted": "Aan de slag",
+    "howItWorks": "Hoe SimplePDF Copilot werkt",
+    "close": "Welkom sluiten"
+  },
+  "download": {
+    "title": "Download uw ingevulde PDF",
+    "intro": "Uw PDF wordt in dit browsertabblad gegenereerd. Niets verlaat uw apparaat en de servers van SimplePDF zien het ingevulde bestand nooit.",
+    "cta": "Downloaden",
+    "upsellHeading": "SimplePDF Copilot verder brengen",
+    "upsellStorage": "Bij betaalde SimplePDF-abonnementen wordt deze Download een <b>Verzenden</b>-flow. Ingevulde PDF’s komen automatisch in uw eigen opslag (S3, Azure Blob Storage of SharePoint), en uw systemen krijgen een melding via webhook of e-mail. Downloaden blijft optioneel.",
+    "upsellFields": "PDF-formulieren zijn rommelig. Ze komen gescand binnen zonder kant-en-klare velden, of met slechte veldnamen waardoor de AI harder moet werken. Betaalde SimplePDF-abonnementen lossen dat ook op, met verplichte velden, standaardwaarden en veldaliasen.",
+    "upsellCta": "Neem contact op",
+    "upsellPricing": "Bekijk zakelijke plannen",
+    "upsellContactMessage": "Hallo SimplePDF-team, ik probeer SimplePDF Copilot uit en wil graag meer weten over de Verzenden-flow (Submit) in de betaalde abonnementen: automatische levering naar mijn eigen opslag en meldingen via webhook of e-mail.\n\nAbonnement waarin ik geïnteresseerd ben:\n- [ ] PRO\n- [ ] PREMIUM",
+    "close": "Sluiten"
+  },
+  "toolInvocation": {
+    "states": {
+      "input-streaming": "voorbereiden",
+      "input-available": "bezig",
+      "output-available": "klaar",
+      "output-error": "fout"
+    },
+    "fallbackName": "{{tool}} aanroepen",
+    "groupSummary_one": "{{count}} actie",
+    "groupSummary_other": "{{count}} acties",
+    "names": {
+      "get_fields": "Velden ophalen",
+      "get_document_content": "Document lezen",
+      "detect_fields": "Velden detecteren",
+      "focus_field": "Veld markeren",
+      "go_to_page": "Naar de pagina gaan",
+      "set_field_value": "Veld invullen",
+      "select_tool": "Tool wisselen",
+      "create_field": "Een veld aanmaken",
+      "remove_fields": "Velden verwijderen",
+      "submit_download": "Download voorbereiden"
+    }
+  },
+  "forms": {
+    "useCases": {
+      "tax": "Belasting",
+      "healthcare": "Gezondheidszorg",
+      "hr": "HR-onboarding",
+      "state": "Overheidsbureaucratie",
+      "stateScanned": "Overheidsbureaucratie (gescande PDF)",
+      "custom": "Uw PDF"
+    },
+    "labels": {
+      "w9": "IRS W-9",
+      "cms1500": "CMS-1500 claimformulier",
+      "mnda": "Wederzijdse NDA",
+      "loonheffingen": "Loonheffingen (NL)",
+      "loonheffingenScanned": "Loonheffingen gescand",
+      "custom": "Kies uw eigen PDF"
+    },
+    "customSubtitle": "Elke PDF werkt - blijft op je apparaat"
+  }
+}
