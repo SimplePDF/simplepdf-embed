@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { ByokConfig } from '../lib/byok'
 import { LanguagePicker } from './language_picker'
 
 type ChatPaneHeaderProps = {
-  byokConfig: ByokConfig | null
+  // Non-null when BYOK is active. The caller derives this from its
+  // ByokConfig; we only need the label to render, not the full config.
   byokModelLabel: string | null
   hasActiveModel: boolean
   isReady: boolean
@@ -26,7 +26,6 @@ type ChatPaneHeaderProps = {
 //   - "Use your own AI" (demo mode active — clickable to open the picker)
 // Right-side controls: language picker + a Stop button while streaming.
 export const ChatPaneHeader = ({
-  byokConfig,
   byokModelLabel,
   hasActiveModel,
   isReady,
@@ -60,9 +59,7 @@ export const ChatPaneHeader = ({
             onClick={onOpenModelPicker}
             className="block h-4 truncate text-left text-xs font-medium leading-4 text-sky-600 hover:text-sky-700"
           >
-            {byokConfig !== null && byokModelLabel !== null
-              ? byokModelLabel
-              : t('chat.useYourOwnAI')}
+            {byokModelLabel !== null ? byokModelLabel : t('chat.useYourOwnAI')}
           </button>
         ) : (
           <p className="block h-4 truncate text-xs leading-4 text-slate-500">

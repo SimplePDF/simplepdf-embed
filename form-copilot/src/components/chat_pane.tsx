@@ -748,7 +748,6 @@ export const ChatPane = ({
   return (
     <div className="flex h-full flex-col">
       <ChatPaneHeader
-        byokConfig={byokConfig}
         byokModelLabel={byokModelLabel}
         hasActiveModel={hasActiveModel}
         isReady={isReady}
