@@ -27,7 +27,7 @@ const COMPACT_TAGLINE_LOCALES = ['en', 'vi', 'zh'] as const
 //
 // Mobile gating happens in CSS (`hidden lg:flex`): the modal HTML ships to
 // every visitor but is invisible below 1024px, where Layout's mobile
-// fallback ("Form Copilot is best experienced on desktop") takes over.
+// fallback ("SimplePDF Copilot is best experienced on desktop") takes over.
 export const WelcomeModal = ({ open, onClose, onOpenInfo }: WelcomeModalProps): ReactElement | null => {
   const { t, i18n } = useTranslation()
   const activeLocale = i18n.language.toLowerCase()
@@ -83,7 +83,7 @@ export const WelcomeModal = ({ open, onClose, onOpenInfo }: WelcomeModalProps): 
               id={TITLE_ID}
               className="mt-10 text-7xl font-extrabold leading-[1.05] tracking-tight text-slate-900"
             >
-              Form Copilot
+              SimplePDF Copilot
             </h2>
             <p className={`max-w-[406px] ${taglineFontClass} font-bold leading-[1.1] text-slate-900`}>
               <Trans

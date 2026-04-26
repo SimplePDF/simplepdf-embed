@@ -100,7 +100,7 @@ const Header = ({ locale, currentFormId }: HeaderProps) => {
     })
   }
 
-  const brandHref = buildSimplepdfUrl({ locale, query: { s: 'form-copilot' } })
+  const brandHref = buildSimplepdfUrl({ locale, query: { s: 'copilot' } })
   return (
     <header className="flex items-center justify-between gap-3 bg-sky-700 px-4 py-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2 md:gap-3">

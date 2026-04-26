@@ -16,7 +16,7 @@ AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
 <br/>
 <p align="center">
 <br/>
-<a href="https://form-copilot.simplepdf.com" rel="dofollow"><strong>Try the live demo »</strong></a>
+<a href="https://copilot.simplepdf.com" rel="dofollow"><strong>Try the live demo »</strong></a>
 <br/>
 <br/>
 <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main"><img src="https://www.deploytodo.com/do-btn-blue.svg" alt="Deploy to DigitalOcean" /></a>
@@ -40,13 +40,13 @@ AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
 
 ## About
 
-Form Copilot is a turn-key, MIT-licensed reference implementation that pairs the SimplePDF editor with an AI chat sidebar. The assistant reads the document, fills fields, navigates pages, and submits the PDF, all through the SimplePDF iframe `postMessage` bridge.
+SimplePDF Copilot is a turn-key, MIT-licensed reference implementation that pairs the SimplePDF editor with an AI chat sidebar. The assistant reads the document, fills fields, navigates pages, and submits the PDF, all through the SimplePDF iframe `postMessage` bridge.
 
-Fork it, drop in your own `companyIdentifier`, wire up your AI provider, and ship Form Copilot inside your product without writing the iframe bridge, tool plumbing, or streaming chat from scratch.
+Fork it, drop in your own `companyIdentifier`, wire up your AI provider, and ship SimplePDF Copilot inside your product without writing the iframe bridge, tool plumbing, or streaming chat from scratch.
 
 ## See it live
 
-The hosted demo at **<https://form-copilot.simplepdf.com>** runs on SimplePDF [**Pro**](https://simplepdf.com/pricing). It relies on two capabilities available on the Pro plan and above:
+The hosted demo at **<https://copilot.simplepdf.com>** runs on SimplePDF [**Pro**](https://simplepdf.com/pricing). It relies on two capabilities available on the Pro plan and above:
 
 - **White-labelling**: embed the editor with your own chrome (no SimplePDF branding)
 - **Programmatic control**: drive the editor over the iframe `postMessage` API (load documents, fill fields, switch tools, submit)
@@ -57,7 +57,7 @@ To run this code on your own domain, you need a SimplePDF account that includes 
 
 ```
 Browser
-  ┌─ Chat sidebar (Form Copilot)
+  ┌─ Chat sidebar (SimplePDF Copilot)
   │     │
   │     └─ postMessage ──> SimplePDF editor iframe
   │
@@ -66,7 +66,7 @@ Browser
 ```
 
 - The PDF editor renders inside the SimplePDF iframe. **PDF data never leaves the browser.**
-- Form Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
+- SimplePDF Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
 - Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
 
@@ -87,12 +87,12 @@ Browser
 ### Run the demo locally (no SimplePDF account needed)
 
 > [!TIP]
-> The demo runs **as-is** against the SimplePDF workspace that powers <https://form-copilot.simplepdf.com>. That workspace whitelists exactly one local origin: **`http://localhost:3001`** (the default dev-server port).
+> The demo runs **as-is** against the SimplePDF workspace that powers <https://copilot.simplepdf.com>. That workspace whitelists exactly one local origin: **`http://localhost:3001`** (the default dev-server port).
 >
 > Drop this into your `.env`:
 >
 > ```env
-> VITE_SIMPLEPDF_COMPANY_IDENTIFIER=form-copilot
+> VITE_SIMPLEPDF_COMPANY_IDENTIFIER=spdf-copilot
 > ```
 
 Then:
@@ -121,7 +121,7 @@ See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limi
 
 ### Ship it on your own domain
 
-Running Form Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Pro](https://simplepdf.com/pricing) account (or higher) so that:
+Running SimplePDF Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Pro](https://simplepdf.com/pricing) account (or higher) so that:
 
 1. You get your own `companyIdentifier`
 2. You can whitelist your serving origin in the SimplePDF dashboard
@@ -137,13 +137,13 @@ For multi-container deployments (or any deploy where you want per-IP rate-limit 
 
 > **DO App Platform gotcha — wire the database from the App side.** If you're using DO Managed Caching, **don't** start by adding a Trusted Source on the cluster. Open your App Platform app → **Settings** → **App Spec** → **+ Create or Attach Database** → pick the existing cluster (or provision a new one). DO then auto-handles trusted sources, VPC routing, and injects the connection string into the app's env. Wiring from the cluster side leaves the App on a public-egress IP that can't be matched to a Trusted Source, and you'll get `ETIMEDOUT` even with the source allowlisted. Same shape as adding a custom domain: it has to be done from the App, not from the resource.
 >
-> Once attached, DO injects the connection string as `DATABASE_URL` (the bind variable's default name) — **rename it** to `REDIS_URL` in the App's env vars, OR add a separate `REDIS_URL` entry whose value is `${cluster-name.DATABASE_URL}` to alias it. The form-copilot server only reads `REDIS_URL`.
+> Once attached, DO injects the connection string as `DATABASE_URL` (the bind variable's default name) — **rename it** to `REDIS_URL` in the App's env vars, OR add a separate `REDIS_URL` entry whose value is `${cluster-name.DATABASE_URL}` to alias it. The copilot server only reads `REDIS_URL`.
 
 #### One-click deploy to DigitalOcean
 
 [![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main)
 
-The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/form-copilot`. DigitalOcean prompts you for the env vars at setup time:
+The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/copilot`. DigitalOcean prompts you for the env vars at setup time:
 
 - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF company subdomain (Pro plan or higher)
 - `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
@@ -158,7 +158,7 @@ The stack runs unmodified anywhere a Node 24 server can. Tested + documented tar
 
 - **DigitalOcean App Platform** (one-click button above)
 - **Cloudflare Containers** (GA since April 2026, Workers Paid plan): wrap the build in a small Dockerfile and `npx wrangler containers deploy`. Cloudflare's edge sits in front for free, with WAF rate-limiting and global caching. See <https://developers.cloudflare.com/containers/>.
-- **Vercel**: the nitro `node-server` preset works on Vercel's Node runtime. `vercel deploy` from the `form-copilot/` folder.
+- **Vercel**: the nitro `node-server` preset works on Vercel's Node runtime. `vercel deploy` from the `copilot/` folder.
 - **Render**, **fly.io**, **Railway**: point at the repo, set build = `npm run build`, start = `npm start`, configure env vars in the dashboard. fly.io expects a Dockerfile.
 - **Self-hosted Docker**: `npm run build` produces `.output/`. `node .output/server/index.mjs`, expose port 3000.
 
@@ -209,13 +209,13 @@ The architecture is deliberate:
 
 ### Using the demo account
 
-What's actually running when you open <https://form-copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
+What's actually running when you open <https://copilot.simplepdf.com> or `npm run dev` against the demo's shared `companyIdentifier`:
 
 ```
-  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐
+  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot demo ──┐       ┌── Hosted AI ──────┐
   │                                 │       │                       │       │                   │
   │   ┌───────────────┐   chat      │       │  LLM proxy            │       │                   │
-  │   │  Form Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
+  │   │  SimplePDF Copilot │ ────────────┼─────► │  (or BYOK direct)     │ ────► │     Demo LLM      │
   │   └───────┬───────┘             │       │                       │       │                   │
   │           │                     │       └───────────────────────┘       └───────────────────┘
   │           │                     │
@@ -243,7 +243,7 @@ What you ship when you fork this repo onto your own [Pro](https://simplepdf.com/
   ┌──────────── Browser ────────────┐       ┌── Your server ──┐       ┌── Your AI stack ──┐
   │                                 │       │                 │       │                   │
   │   ┌───────────────┐   chat      │       │   LLM proxy     │       │  Provider + keys  │
-  │   │  Form Copilot │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
+  │   │  SimplePDF Copilot │ ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │
   │   └───────┬───────┘             │       │                 │       │                   │
   │           │                     │       └─┬───────────────┘       └───────────────────┘
   │           │                     │         ▲

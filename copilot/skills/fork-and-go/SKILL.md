@@ -1,20 +1,20 @@
 # Fork and Go
 
-A guided walkthrough for SimplePDF Pro customers forking and deploying their own Form Copilot.
+A guided walkthrough for SimplePDF Pro customers forking and deploying their own SimplePDF Copilot.
 
 ## Purpose
 
-Walk a developer through forking the Form Copilot reference implementation into their own product. Covers hosting choice, Pro-account confirmation, AI-provider wiring, demo customization, deploy, and the SimplePDF whitelist step. End state: a running Form Copilot at their chosen URL, talking to their AI provider, whitelisted on their account.
+Walk a developer through forking the SimplePDF Copilot reference implementation into their own product. Covers hosting choice, Pro-account confirmation, AI-provider wiring, demo customization, deploy, and the SimplePDF whitelist step. End state: a running SimplePDF Copilot at their chosen URL, talking to their AI provider, whitelisted on their account.
 
 ## Triggers
 
 Invoke when the user types `/fork-and-go` or any natural-language equivalent:
 
-- "Help me fork Form Copilot"
-- "How do I deploy Form Copilot?"
-- "I want to ship Form Copilot inside my app"
-- "Set up Form Copilot for me"
-- "Walk me through deploying Form Copilot"
+- "Help me fork SimplePDF Copilot"
+- "How do I deploy SimplePDF Copilot?"
+- "I want to ship SimplePDF Copilot inside my app"
+- "Set up SimplePDF Copilot for me"
+- "Walk me through deploying SimplePDF Copilot"
 
 ---
 
@@ -22,11 +22,11 @@ Invoke when the user types `/fork-and-go` or any natural-language equivalent:
 
 Before any question, greet the user in one or two friendly sentences:
 
-- Say what you're about to help them with: getting Form Copilot running in their setup.
+- Say what you're about to help them with: getting SimplePDF Copilot running in their setup.
 - Set expectations: you'll ask a couple of quick questions, then walk them through wiring it.
 - Be warm but concise. No bullet lists, no headers, no markdown formatting in the greeting itself.
 
-Example shape: _"Let me help you get Form Copilot running in your setup. I'll ask a few quick questions to figure out the right path, then we'll wire it together step by step."_
+Example shape: _"Let me help you get SimplePDF Copilot running in your setup. I'll ask a few quick questions to figure out the right path, then we'll wire it together step by step."_
 
 After the greeting, ask the FIRST question (Q1 below).
 
@@ -79,12 +79,12 @@ The goal: feel like a calm, focused colleague, not a manual.
 
 Use `AskUserQuestion`:
 
-- **Question:** Where do you want Form Copilot to run?
+- **Question:** Where do you want SimplePDF Copilot to run?
 - **Header:** `Host`
 - **Options:**
   - `Local only` (Recommended): _"Just `npm run dev` on your dev machine, served at `http://localhost:3001`. The demo's SimplePDF workspace whitelists that exact origin, so no Pro account is needed. The port has to stay 3001."_
   - `DigitalOcean App Platform`: _"One-click deploy via the bundled `.do/deploy.template.yaml`. Cheapest hosted option (~$12-24/mo)."_
-  - `Cloudflare Containers`: _"GA since April 2026. Workers Paid plan ($5/mo) required. The form-copilot Node + nitro stack runs as-is in a Linux container. Needs a small Dockerfile and a `wrangler containers` deploy."_
+  - `Cloudflare Containers`: _"GA since April 2026. Workers Paid plan ($5/mo) required. The copilot Node + nitro stack runs as-is in a Linux container. Needs a small Dockerfile and a `wrangler containers` deploy."_
   - `Vercel / Render / fly.io`: _"Other PaaS hosts. The Vercel AI SDK + nitro `node-server` stack works on all of them; we'll set up env vars + build commands."_
   - `Custom (Docker, my own server)`: _"Run the production build (`npm start`) wherever you want."_
 
@@ -94,7 +94,7 @@ DO NOT proceed until they answer.
 
 After Q1, use `AskUserQuestion`:
 
-- **Question:** Form Copilot is available on the SimplePDF Pro plan and above (white-labelling and programmatic control are gated there). Do you have a Pro account or higher?
+- **Question:** SimplePDF Copilot is available on the SimplePDF Pro plan and above (white-labelling and programmatic control are gated there). Do you have a Pro account or higher?
 - **Header:** `Plan`
 - **Options:**
   - `Yes, I have Pro or higher`: _"Great, we'll wire it up with your companyIdentifier next."_
@@ -105,7 +105,7 @@ If they pick `No, but I'll get one`, send them this exact guidance and pause unt
 
 > _"Sign up at https://simplepdf.com/auth/signup. The welcome flow will ask whether you want to **embed SimplePDF in your app** or **collect submissions**. Pick **'collect submissions'**: that path is short and gets you straight to plan selection, which is what you actually need here. The 'embed in my app' welcome takes you through an integration walkthrough (React / iframe / WordPress / etc.) that you don't need for fork-and-go, since you're already wiring up the embed yourself via this skill. After completing the short onboarding, choose the **Pro** plan (or higher). Your `companyIdentifier` is visible in the dashboard sidebar, right under your company name (a small monospaced chip)."_
 
-If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `form-copilot` companyIdentifier as a placeholder).
+If `Just exploring`: set the expectation clearly that local-only works but hosted requires Pro, then proceed (use the demo's `spdf-copilot` companyIdentifier as a placeholder).
 
 ### Q3: companyIdentifier
 
@@ -113,13 +113,13 @@ If they have or will have Pro (or higher), ask in plain text (no `AskUserQuestio
 
 _"What's your SimplePDF companyIdentifier? It's the subdomain piece of `<companyIdentifier>.simplepdf.com`. Open your SimplePDF dashboard and look at the sidebar: the identifier is the small chip right under your company name."_
 
-If `Just exploring`, skip this and use `form-copilot` as the placeholder; remind them once near deploy time.
+If `Just exploring`, skip this and use `spdf-copilot` as the placeholder; remind them once near deploy time.
 
 ### Q4: AI provider
 
 Use `AskUserQuestion`:
 
-- **Question:** Which AI provider should Form Copilot use server-side?
+- **Question:** Which AI provider should SimplePDF Copilot use server-side?
 - **Header:** `Provider`
 - **Options:**
   - `Anthropic Claude` (Recommended): _"Default in the demo (Haiku 4.5). Mature tool-calling, broad ecosystem support, predictable pricing."_
@@ -175,11 +175,11 @@ After all the questions are answered, walk through these steps. ONE step per tur
 
 ### Step 1: verify the clone
 
-If the user already has the form-copilot directory open (their cwd looks like `…/form-copilot/`), skip to Step 2. Otherwise:
+If the user already has the copilot directory open (their cwd looks like `…/copilot/`), skip to Step 2. Otherwise:
 
 ```sh
 git clone https://github.com/SimplePDF/simplepdf-embed.git
-cd simplepdf-embed/form-copilot
+cd simplepdf-embed/copilot
 ```
 
 Wait for them to confirm they're inside the folder.
@@ -200,7 +200,7 @@ cp .env.example .env
 
 Then edit `.env`:
 
-- Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `form-copilot`.
+- Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `spdf-copilot`.
 - If they answered `Yes, set up SHARED_API_KEYS` in Q5, paste a JSON map per the format in `.env.example`. The base64 fallback works if their host mangles JSON quotes.
 - For multi-container hosted deploys (DO App Platform with auto-scaling), recommend setting `REDIS_URL` (any Redis-compatible URL: DO Managed Caching for Valkey works) and `IP_HASH_SALT` (generate with `openssl rand -hex 32`). Required pair when `REDIS_URL` is set; the server refuses to boot otherwise.
 
@@ -222,7 +222,7 @@ The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the 
 If the iframe fails to load:
 
 1. The dev server is not on port 3001. Re-run `npm run dev` without overrides.
-2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `form-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves. Easiest path: just load `http://localhost:3001` in the browser once (the iframe will refuse to render, but the editor records the attempted origin), then open `https://<companyIdentifier>.simplepdf.com/account/embed`, scroll to **Security**, and the auto-detected origin will be there ready to one-click approve. Refresh the local page; the iframe now loads.
+2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `spdf-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves. Easiest path: just load `http://localhost:3001` in the browser once (the iframe will refuse to render, but the editor records the attempted origin), then open `https://<companyIdentifier>.simplepdf.com/account/embed`, scroll to **Security**, and the auto-detected origin will be there ready to one-click approve. Refresh the local page; the iframe now loads.
 
 Wait for them to confirm the editor renders.
 
@@ -256,7 +256,7 @@ That removes: welcome modal, info modal, download modal (with the Pro upsell), s
 
 **6b — Replace the sample-form catalogue**
 
-Form Copilot needs a single PDF URL to load on first paint. Create `src/lib/forms.ts` with the customer's own:
+SimplePDF Copilot needs a single PDF URL to load on first paint. Create `src/lib/forms.ts` with the customer's own:
 
 ```ts
 export type FormId = 'default'
@@ -347,11 +347,11 @@ forms.* (whole tree, unless your replacement in 6b uses these keys)
 
 Use the project's `/translator` agent for the multi-locale removal, or write a tiny `python -c "import json, sys; ..."` one-liner.
 
-Replace `header.brand` ("Form Copilot Demo") with the customer's brand name in en.json + every other locale.
+Replace `header.brand` ("SimplePDF Copilot Demo") with the customer's brand name in en.json + every other locale.
 
 **6h — Verify**
 
-From inside the `form-copilot/` directory:
+From inside the `copilot/` directory:
 
 ```sh
 npx tsc --noEmit
@@ -370,7 +370,7 @@ Per their Q1 choice:
 
 - **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) `SHARED_API_KEYS` / `REDIS_URL` / `IP_HASH_SALT`.
 - **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put SHARED_API_KEYS` etc. Cloudflare's edge sits in front for free WAF + caching.
-- **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the form-copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
+- **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
 - **Render / fly.io:** point the service at this repo, set build command `npm run build`, start command `npm start`, and configure env vars in the host's dashboard. fly.io needs a `Dockerfile` (build the production output, run `node .output/server/index.mjs`).
 - **Custom Docker:** `npm run build` produces `.output/`. Bundle it in your Dockerfile, expose port 3000, run `node .output/server/index.mjs`.
 
@@ -408,7 +408,7 @@ Once that's confirmed, you're done.
 
 ## Done
 
-Wrap with: _"You're set. Form Copilot is running on your domain, talking to your AI provider, whitelisted on your account. The README at `form-copilot/README.md` has more on customization. Reach engineering@simplepdf.com if you hit anything weird."_
+Wrap with: _"You're set. SimplePDF Copilot is running on your domain, talking to your AI provider, whitelisted on your account. The README at `copilot/README.md` has more on customization. Reach engineering@simplepdf.com if you hit anything weird."_
 
 Do NOT add a recap, a checklist, or a "what's next" section unless the user asks.
 
@@ -416,7 +416,7 @@ Do NOT add a recap, a checklist, or a "what's next" section unless the user asks
 
 ## Fallback
 
-If the user asks anything outside the scope of this fork-and-go journey (pricing, plan comparison, embedding the editor without Form Copilot, debugging an unrelated SimplePDF feature), point them at:
+If the user asks anything outside the scope of this fork-and-go journey (pricing, plan comparison, embedding the editor without SimplePDF Copilot, debugging an unrelated SimplePDF feature), point them at:
 
 - Pricing / plans: https://simplepdf.com/pricing
 - General docs: https://simplepdf.com/help

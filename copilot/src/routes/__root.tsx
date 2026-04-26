@@ -21,11 +21,11 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Form Copilot by SimplePDF',
+        title: 'SimplePDF Copilot',
       },
       {
         name: 'description',
-        content: 'Form Copilot: AI that helps users fill PDF forms step by step.',
+        content: 'SimplePDF Copilot: AI that helps users fill PDF forms step by step.',
       },
       // Meta image lives on the SimplePDF CDN (DO Spaces, aliased to
       // cdn.simplepdf.com) so a fork doesn't have to host the asset
@@ -44,7 +44,7 @@ export const Route = createRootRoute({
       },
       {
         property: 'og:title',
-        content: 'Form Copilot by SimplePDF',
+        content: 'SimplePDF Copilot',
       },
       {
         property: 'og:description',

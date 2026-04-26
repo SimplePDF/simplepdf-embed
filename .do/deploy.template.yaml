@@ -1,12 +1,12 @@
 spec:
-  name: form-copilot
+  name: simplepdf-copilot
   services:
     - name: web
       github:
         repo: SimplePDF/simplepdf-embed
         branch: main
         deploy_on_push: false
-      source_dir: /form-copilot
+      source_dir: /copilot
       environment_slug: node-js
       build_command: npm run build
       run_command: npm start

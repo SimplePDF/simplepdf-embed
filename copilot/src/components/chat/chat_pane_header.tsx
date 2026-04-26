@@ -25,7 +25,7 @@ type ChatPaneHeaderProps = {
   onLanguageChange: (code: string) => void
 }
 
-// Top bar of the chat aside. Title is always "Form Copilot"; the subtext
+// Top bar of the chat aside. Title is always "SimplePDF Copilot"; the subtext
 // switches between three modes:
 //   - status message  (chat not yet ready — load doc, loading, no model, …)
 //   - model name      (BYOK active — clickable to swap)

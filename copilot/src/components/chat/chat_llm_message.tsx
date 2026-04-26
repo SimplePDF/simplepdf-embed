@@ -17,7 +17,7 @@ type ChatLLMMessageProps = {
 // The AI SDK's tool-part state union is wider than what
 // ToolInvocationGroup renders today: the SDK adds approval-requested /
 // approval-responded / output-denied for tools that go through the
-// approval flow. Form Copilot doesn't use approvals, so those states
+// approval flow. SimplePDF Copilot doesn't use approvals, so those states
 // never arrive at runtime, but the type system needs us to handle them
 // to compile. Mapping: in-flight approvals fold into "input-available"
 // (still running, waiting for human input), denials fold into

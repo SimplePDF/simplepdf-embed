@@ -20,7 +20,7 @@ const buildShareUrl = (): string => {
   // Cerfa d'Or is French-only; surface the FR-locale marketing URL in the
   // tweet so the click-through lands on localized content.
   const text =
-    '@davidlisnard, @simple_pdf Form Copilot utilise l’IA pour remplir les CERFA directement dans le navigateur. Un outil dans l’esprit de votre combat contre la paperasse. https://simplepdf.com/fr?s=cerfa-dor'
+    '@davidlisnard, @simple_pdf SimplePDF Copilot utilise l’IA pour remplir les CERFA directement dans le navigateur. Un outil dans l’esprit de votre combat contre la paperasse. https://simplepdf.com/fr?s=cerfa-dor'
   return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
 }
 

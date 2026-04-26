@@ -25,7 +25,7 @@ export const DownloadModal = ({
     path: '/contact',
     query: { message: t('download.upsellContactMessage') },
   })
-  const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'form-copilot' } })
+  const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'copilot' } })
   return (
     <Modal open={open} onClose={onClose} labelledBy="download-modal-title" size="sm">
       <ModalHeader

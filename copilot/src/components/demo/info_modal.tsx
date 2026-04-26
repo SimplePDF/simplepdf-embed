@@ -207,7 +207,7 @@ type ArchitectureSegment = { text: string; blue?: boolean; large?: boolean }
 const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
   [
     {
-      text: '  ┌──────────── Browser ────────────┐       ┌── Form Copilot demo ──┐       ┌── Hosted AI ──────┐',
+      text: '  ┌──────────── Browser ────────────┐       ┌── SimplePDF Copilot ──┐       ┌── Hosted AI ──────┐',
     },
   ],
   [
@@ -222,7 +222,7 @@ const ARCHITECTURE_LINES_DEMO: ArchitectureSegment[][] = [
   ],
   [
     { text: '  │   ' },
-    { text: '│  Form Copilot │', blue: true },
+    { text: '│    Copilot    │', blue: true },
     { text: ' ────────────┼─────► │   (or BYOK direct)    │ ────► │     Demo LLM      │' },
   ],
   [
@@ -301,7 +301,7 @@ const ARCHITECTURE_LINES: ArchitectureSegment[][] = [
   ],
   [
     { text: '  │   ' },
-    { text: '│  Form Copilot │', blue: true },
+    { text: '│    Copilot    │', blue: true },
     { text: ' ────────────┼─────► │   (streaming)   │ ────► │  RAG + data       │' },
   ],
   [
@@ -390,7 +390,7 @@ export const InfoModal = ({
   onSelectUseCaseForm,
   locale,
 }: InfoModalProps): ReactElement | null => {
-  const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'form-copilot' } })
+  const pricingHref = buildSimplepdfUrl({ locale, path: '/pricing', query: { s: 'copilot' } })
   const { t } = useTranslation()
   // Default to the demo tab: that's the architecture the visitor is
   // actually looking at right now. The production tab shows what they'd
@@ -421,7 +421,7 @@ export const InfoModal = ({
           </h2>
           <div className="flex flex-wrap items-center gap-2.5">
             <a
-              href="https://github.com/SimplePDF/simplepdf-embed/tree/main/form-copilot"
+              href="https://github.com/SimplePDF/simplepdf-embed/tree/main/copilot"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-slate-700 transition hover:border-sky-600 hover:text-sky-700"

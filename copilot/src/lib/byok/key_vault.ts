@@ -7,7 +7,7 @@
 // Threat model honestly stated: the AES-GCM key is non-extractable, so the
 // raw key bits never leave the browser sandbox in any plaintext form. This
 // hardens against an attacker who exfiltrates the IndexedDB blob (browser
-// profile dump on a stolen / shared device). XSS on the form-copilot origin
+// profile dump on a stolen / shared device). XSS on the copilot origin
 // is NOT mitigated. an XSS payload can still call crypto.subtle.decrypt and
 // recover the cleartext at runtime. Modal copy reflects this honestly.
 //
@@ -18,6 +18,8 @@ import { z } from 'zod'
 import { monitoring, normalizeError } from '../monitoring'
 import { type ByokConfig, ByokConfigSchema } from './providers'
 
+// Kept as `form-copilot-vault` after the rename so existing users don't lose
+// their stored BYOK credentials on first reload.
 const DB_NAME = 'form-copilot-vault'
 const DB_VERSION = 1
 const STORE_NAME = 'records'

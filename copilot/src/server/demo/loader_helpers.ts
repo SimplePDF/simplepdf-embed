@@ -48,6 +48,8 @@ export const readDemoGate = createServerFn({ method: 'GET' })
 // avoids pulling in a cookie-parsing dependency for one entry. Read and
 // write helpers live in this file so the two sides cannot drift on
 // cookie name, max-age, SameSite, or Secure flag.
+// Kept as `form-copilot-welcome-dismissed` after the rename so returning
+// visitors don't see the welcome modal again.
 const WELCOME_DISMISSED_COOKIE = 'form-copilot-welcome-dismissed'
 
 const cookieIsTruthy = (header: string | undefined, name: string): boolean => {
