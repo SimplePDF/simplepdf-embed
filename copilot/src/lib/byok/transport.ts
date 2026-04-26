@@ -1,12 +1,15 @@
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { buildSystemPrompt } from '../../server/tools'
 import {
+  DeletePageInput,
   DetectFieldsInput,
   FINALISATION_ACTION,
   FocusFieldInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToPageInput,
+  MovePageInput,
+  RotatePageInput,
   SelectToolInput,
   SetFieldValueInput,
   withFinalisationTool,
@@ -119,6 +122,21 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
       go_to_page: {
         description: 'Scrolls the editor to a given 1-based page.',
         inputSchema: GoToPageInput,
+      },
+      move_page: {
+        description:
+          'Reorders pages: from_page and to_page are 1-indexed visible page positions. Destructive — only call when the user explicitly asks to reorder a page.',
+        inputSchema: MovePageInput,
+      },
+      delete_page: {
+        description:
+          'Permanently removes a visible page (1-indexed) and any fields placed on it. The last remaining page cannot be deleted. Destructive — only call when the user explicitly asks to delete a page.',
+        inputSchema: DeletePageInput,
+      },
+      rotate_page: {
+        description:
+          'Rotates a visible page (1-indexed) 90° clockwise per call (repeat for 180° / 270°). Destructive — only call when the user explicitly asks to rotate a page.',
+        inputSchema: RotatePageInput,
       },
     }),
     onError: ({ error }) => {
