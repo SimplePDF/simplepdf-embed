@@ -1,10 +1,21 @@
-import type { ZodError, ZodType, z } from 'zod'
+import type { ZodType, z } from 'zod'
+import type { ServerErrorBody } from '../lib/api_envelope'
+
+// The exact ServerErrorBody variants this module can produce. Extracting
+// them by `error` keeps each variant's full shape (including `message`),
+// so a route handler can pass `failure.body` straight to `Response.json`
+// and the result is `satisfies ServerErrorBody`-checkable end to end.
+// Adding a new failure here forces a matching variant in ServerErrorBody
+// and a status entry in the classifier map.
+type BodyReadErrorBody = Extract<
+  ServerErrorBody,
+  { error: 'bad_request' | 'payload_too_large' | 'unsupported_media_type' }
+>
 
 export type BodyReadFailure = {
   success: false
   status: number
-  error: string
-  message: string
+  body: BodyReadErrorBody
 }
 
 export type BodyReadSuccess = { success: true; text: string }
@@ -36,8 +47,7 @@ export const readBodyText = async ({
 const tooLarge = (maxBytes: number): BodyReadFailure => ({
   success: false,
   status: 413,
-  error: 'payload_too_large',
-  message: `Request body exceeds ${maxBytes} bytes`,
+  body: { error: 'payload_too_large', message: `Request body exceeds ${maxBytes} bytes` },
 })
 
 export const isJsonRequest = (request: Request): boolean =>
@@ -53,17 +63,12 @@ export const parseJsonBody = async <TSchema extends ZodType>({
   maxBytes: number
   schema: TSchema
   schemaErrorMessage: string
-}): Promise<
-  | { success: true; data: z.infer<TSchema> }
-  | BodyReadFailure
-  | { success: false; status: number; error: string; message: string; issues?: ZodError['issues'] }
-> => {
+}): Promise<{ success: true; data: z.infer<TSchema> } | BodyReadFailure> => {
   if (!isJsonRequest(request)) {
     return {
       success: false,
       status: 415,
-      error: 'unsupported_media_type',
-      message: 'Expected application/json',
+      body: { error: 'unsupported_media_type', message: 'Expected application/json' },
     }
   }
   const bodyRead = await readBodyText({ request, maxBytes })
@@ -71,7 +76,7 @@ export const parseJsonBody = async <TSchema extends ZodType>({
     return bodyRead
   }
   if (bodyRead.text === '') {
-    return { success: false, status: 400, error: 'bad_request', message: 'Empty request body' }
+    return { success: false, status: 400, body: { error: 'bad_request', message: 'Empty request body' } }
   }
   const jsonParsed = ((): unknown => {
     try {
@@ -81,16 +86,14 @@ export const parseJsonBody = async <TSchema extends ZodType>({
     }
   })()
   if (jsonParsed === null) {
-    return { success: false, status: 400, error: 'bad_request', message: 'Invalid JSON body' }
+    return { success: false, status: 400, body: { error: 'bad_request', message: 'Invalid JSON body' } }
   }
   const schemaParsed = schema.safeParse(jsonParsed)
   if (!schemaParsed.success) {
     return {
       success: false,
       status: 400,
-      error: 'bad_request',
-      message: schemaErrorMessage,
-      issues: schemaParsed.error.issues,
+      body: { error: 'bad_request', message: schemaErrorMessage },
     }
   }
   return { success: true, data: schemaParsed.data }

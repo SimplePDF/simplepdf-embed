@@ -18,3 +18,6 @@ export type ServerErrorBody =
   | { error: 'share_required' }
   | { error: 'rate_limited'; reason: string }
   | { error: 'service_unavailable'; reason: string }
+  | { error: 'bad_request'; message: string }
+  | { error: 'payload_too_large'; message: string }
+  | { error: 'unsupported_media_type'; message: string }

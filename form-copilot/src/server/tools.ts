@@ -28,6 +28,7 @@ export const ChatRequestSchema = z.object({
   messages: UIMessageArraySchema,
   language_label: LanguageLabelSchema.optional(),
 })
+export type ChatRequest = z.infer<typeof ChatRequestSchema>
 
 export const SummarizePageSchema = z.object({
   page: z.number(),

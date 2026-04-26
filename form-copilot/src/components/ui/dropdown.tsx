@@ -52,9 +52,15 @@ export const Dropdown = <T,>({
       return
     }
     const handleClickOutside = (event: MouseEvent): void => {
-      if (containerRef.current !== null && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+      const container = containerRef.current
+      if (container === null) {
+        return
       }
+      const target = event.target
+      if (target instanceof Node && container.contains(target)) {
+        return
+      }
+      setIsOpen(false)
     }
     window.addEventListener('mousedown', handleClickOutside)
     return () => {

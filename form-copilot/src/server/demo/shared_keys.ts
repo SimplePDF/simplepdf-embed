@@ -72,7 +72,10 @@ const tryJsonParse = (input: string): { ok: true; data: unknown } | { ok: false;
   try {
     return { ok: true, data: JSON.parse(input) }
   } catch (e) {
-    return { ok: false, error: e as Error }
+    if (e instanceof Error) {
+      return { ok: false, error: e }
+    }
+    return { ok: false, error: new Error(String(e)) }
   }
 }
 

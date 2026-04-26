@@ -26,7 +26,7 @@ import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import type { DemoGate } from '../../routes/index'
-import { buildSystemPrompt } from '../../server/tools'
+import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
 import { ErrorBanner } from '../error_banner'
 import { ModelPickerModal } from './model_picker_modal'
@@ -153,7 +153,7 @@ const buildNewFieldMessage = ({
 
 const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
 const isPlacementTool = (value: unknown): value is PlacementTool =>
-  typeof value === 'string' && (PLACEMENT_TOOLS as readonly string[]).includes(value)
+  typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 
 const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
   const meta = message.metadata
@@ -439,7 +439,10 @@ export const ChatPane = ({
   }, [navigate])
 
   const transport = useMemo(() => {
-    const bodyFn = () => {
+    // Typed against the server schema so a rename of `language_label`
+    // breaks compile here. `messages` is omitted because DefaultChatTransport
+    // injects it itself; bodyFn supplies the rest of the request envelope.
+    const bodyFn = (): Omit<ChatRequest, 'messages'> => {
       const languageEntry = getLanguageByCode(languageRef.current)
       return { language_label: languageEntry !== null ? languageEntry.label : 'English' }
     }
@@ -449,7 +452,7 @@ export const ChatPane = ({
     return new DefaultChatTransport({
       api: '/api/chat',
       body: bodyFn,
-      fetch: (async (input: unknown, init: RequestInit | undefined) => {
+      fetch: async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         const activeConfig = byokConfigRef.current
         if (activeConfig !== null) {
           return runByokStream({ config: activeConfig, init })
@@ -460,7 +463,15 @@ export const ChatPane = ({
         // rebuild it through URL to handle both and to keep an existing
         // query string intact.
         const activeShare = shareIdRef.current
-        const rawUrl = typeof input === 'string' ? input : (input as Request).url
+        const rawUrl = ((): string => {
+          if (typeof input === 'string') {
+            return input
+          }
+          if (input instanceof URL) {
+            return input.toString()
+          }
+          return input.url
+        })()
         const target = ((): string => {
           if (activeShare === null) {
             return rawUrl
@@ -470,7 +481,7 @@ export const ChatPane = ({
           return url.toString()
         })()
         return window.fetch(target, init)
-      }) as typeof fetch,
+      },
     })
   }, [])
 

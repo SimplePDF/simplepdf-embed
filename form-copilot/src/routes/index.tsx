@@ -16,15 +16,19 @@ import {
   type DemoGate,
   readDemoGate,
   readWelcomeDismissed,
-  WELCOME_DISMISSED_COOKIE,
+  writeWelcomeDismissedCookie,
 } from '../server/demo/loader_helpers'
 
 export type { DemoGate }
 
-export type ShowParam = 'info' | 'model' | 'download' | 'cerfa_dor'
+// Tuple-derived union so adding / removing a value updates the type, the
+// runtime check, and the URL contract in lockstep. No `as` casts needed at
+// the membership check (the predicate uses `.some` over the typed tuple).
+const SHOW_PARAMS = ['info', 'model', 'download', 'cerfa_dor'] as const
+export type ShowParam = (typeof SHOW_PARAMS)[number]
 
 const isShowParam = (value: unknown): value is ShowParam =>
-  value === 'info' || value === 'model' || value === 'download' || value === 'cerfa_dor'
+  typeof value === 'string' && SHOW_PARAMS.some((candidate) => candidate === value)
 
 type HomeSearch = {
   form: FormId
@@ -244,14 +248,7 @@ function Home() {
   const [welcomeOpen, setWelcomeOpen] = useState<boolean>(!welcomeDismissed)
 
   const dismissWelcome = useCallback((): void => {
-    if (typeof document !== 'undefined') {
-      // 1-year persistence, restricted to first-party context. `Secure` is
-      // added on HTTPS so production deploys default safe; localhost dev
-      // over HTTP would silently drop a Secure cookie, so we only set it
-      // when the protocol allows.
-      const secureFlag = typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : ''
-      document.cookie = `${WELCOME_DISMISSED_COOKIE}=1; path=/; max-age=31536000; SameSite=Lax${secureFlag}`
-    }
+    writeWelcomeDismissedCookie()
     setWelcomeOpen(false)
   }, [])
 

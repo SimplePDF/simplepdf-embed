@@ -16,6 +16,9 @@ const SERVER_ERROR_TO_STATUS = {
   share_required: 401,
   rate_limited: 429,
   service_unavailable: 503,
+  bad_request: 400,
+  payload_too_large: 413,
+  unsupported_media_type: 415,
 } as const satisfies Record<ServerErrorBody['error'], number>
 
 const isServerErrorKey = (value: string): value is ServerErrorBody['error'] =>

@@ -74,7 +74,7 @@ export const Route = createFileRoute('/api/chat')({
           schemaErrorMessage: 'Body does not match { messages: UIMessage[], language_label?: string }',
         })
         if (!body.success) {
-          return Response.json({ error: body.error, message: body.message }, { status: body.status })
+          return Response.json(body.body satisfies ServerErrorBody, { status: body.status })
         }
         const messages = body.data.messages
         const languageLabel = body.data.language_label ?? 'English'

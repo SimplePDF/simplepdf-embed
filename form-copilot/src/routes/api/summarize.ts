@@ -53,7 +53,7 @@ export const Route = createFileRoute('/api/summarize')({
           schemaErrorMessage: 'Body does not match { name?, pages: [{ page, content }], language_label? }',
         })
         if (!body.success) {
-          return Response.json({ error: body.error, message: body.message }, { status: body.status })
+          return Response.json(body.body satisfies ServerErrorBody, { status: body.status })
         }
 
         if (!rateLimiter.isReady()) {
