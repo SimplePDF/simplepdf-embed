@@ -11,6 +11,7 @@ import {
   GetFieldsInput,
   GoToPageInput,
   MovePageInput,
+  RemoveFieldsInput,
   RotatePageInput,
   SelectToolInput,
   SetFieldValueInput,
@@ -180,6 +181,11 @@ export const Route = createFileRoute('/api/chat')({
               description:
                 'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
               inputSchema: DetectFieldsInput,
+            },
+            remove_fields: {
+              description:
+                'Removes fields from the document. field_ids targets specific fields by id; page targets a single page (1-indexed); both omitted clears all fields. Destructive — only call when the user explicitly asks to remove fields.',
+              inputSchema: RemoveFieldsInput,
             },
             select_tool: {
               description:

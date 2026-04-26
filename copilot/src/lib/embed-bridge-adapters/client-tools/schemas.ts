@@ -18,6 +18,15 @@ export const DetectFieldsInput = z
     'Asks the editor to auto-detect and create fields on the document. Use when get_fields returned 0 fields before asking the user to add fields manually.',
   )
 
+export const RemoveFieldsInput = z
+  .object({
+    field_ids: z.array(z.string()).optional().describe('Specific field identifiers to remove (omit to target by page or all)'),
+    page: z.number().int().positive().optional().describe('1-indexed visible page to clear (omit to target specific ids or all)'),
+  })
+  .describe(
+    'Removes fields from the document. Pass field_ids to remove specific fields, page to clear a single page, or both omitted to remove every field. Destructive: only call when the user explicitly asks.',
+  )
+
 // Aligned with the bridge's SupportedFieldType. The LLM may pick any of
 // the five tool variants + null (cursor); the host UI mirrors the same
 // five in its toolbar.
@@ -89,6 +98,7 @@ export const CLIENT_TOOL_NAMES = [
   'get_fields',
   'get_document_content',
   'detect_fields',
+  'remove_fields',
   'select_tool',
   'set_field_value',
   'focus_field',
@@ -112,6 +122,7 @@ export const CLIENT_TOOL_SCHEMAS = {
   get_fields: GetFieldsInput,
   get_document_content: GetDocumentContentInput,
   detect_fields: DetectFieldsInput,
+  remove_fields: RemoveFieldsInput,
   select_tool: SelectToolInput,
   set_field_value: SetFieldValueInput,
   focus_field: FocusFieldInput,

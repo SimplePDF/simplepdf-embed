@@ -31,6 +31,12 @@ export const dispatch = async (
     }
     case 'detect_fields':
       return bridge.detectFields()
+    case 'remove_fields': {
+      const rawIds = input.field_ids
+      const fieldIds = Array.isArray(rawIds) && rawIds.every((id): id is string => typeof id === 'string') ? rawIds : null
+      const page = typeof input.page === 'number' ? input.page : null
+      return bridge.removeFields({ fieldIds, page })
+    }
     case 'select_tool': {
       const rawTool = input.tool
       if (rawTool !== undefined && !isSelectableTool(rawTool)) {

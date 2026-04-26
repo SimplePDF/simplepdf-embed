@@ -18,6 +18,7 @@ export {
   GoToPageInput,
   isClientToolName,
   MovePageInput,
+  RemoveFieldsInput,
   RotatePageInput,
   SelectToolInput,
   SetFieldValueInput,
