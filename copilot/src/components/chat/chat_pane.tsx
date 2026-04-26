@@ -168,7 +168,7 @@ const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'BOXED_TEXT', 'CHECKB
 const isPlacementTool = (value: unknown): value is PlacementTool =>
   typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 
-const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
+const readFieldHintMetadata = (message: UIMessage): { tool: PlacementTool; delta: number } | null => {
   const meta = message.metadata
   if (typeof meta !== 'object' || meta === null) {
     return null
@@ -179,7 +179,8 @@ const readFieldHintTool = (message: UIMessage): PlacementTool | null => {
   if (!('tool' in meta) || !isPlacementTool(meta.tool)) {
     return null
   }
-  return meta.tool
+  const delta = 'delta' in meta && typeof meta.delta === 'number' && meta.delta >= 1 ? meta.delta : 1
+  return { tool: meta.tool, delta }
 }
 
 // Wraps successful tool results in a structural envelope so the LLM can
@@ -914,9 +915,9 @@ export const ChatPane = ({
             return (
               <div className="space-y-4 p-4">
                 {messages.map((message) => {
-                  const hintTool = readFieldHintTool(message)
-                  if (hintTool !== null) {
-                    return <FieldAddedHint key={message.id} tool={hintTool} />
+                  const hintMetadata = readFieldHintMetadata(message)
+                  if (hintMetadata !== null) {
+                    return <FieldAddedHint key={message.id} tool={hintMetadata.tool} delta={hintMetadata.delta} />
                   }
                   switch (message.role) {
                     case 'user':
@@ -1007,9 +1008,9 @@ export const ChatPane = ({
   )
 }
 
-type FieldAddedHintProps = { tool: PlacementTool }
+type FieldAddedHintProps = { tool: PlacementTool; delta: number }
 
-const FieldAddedHint = ({ tool }: FieldAddedHintProps) => {
+const FieldAddedHint = ({ tool, delta }: FieldAddedHintProps) => {
   const { t, i18n } = useTranslation()
   const option = TOOLBAR_OPTIONS.find((entry) => entry.value === tool)
   if (option === undefined) {
@@ -1021,12 +1022,14 @@ const FieldAddedHint = ({ tool }: FieldAddedHintProps) => {
   // "New Text field ...". `toLocaleLowerCase` with the active locale
   // handles locale-specific casing (e.g. Turkish dotted/dotless I).
   const fieldLabel = t(option.labelKey).toLocaleLowerCase(i18n.language)
+  // i18next picks `chat.newFieldHint_one` for delta === 1 and
+  // `chat.newFieldHint_other` for delta > 1 from the count argument.
   return (
     <div className="flex items-center justify-center gap-1.5 py-1 text-[11px] text-slate-400">
       <span className="text-slate-400">
         <Icon size={12} />
       </span>
-      <span>{t('chat.newFieldHint', { field: fieldLabel })}</span>
+      <span>{t('chat.newFieldHint', { count: delta, field: fieldLabel })}</span>
     </div>
   )
 }
