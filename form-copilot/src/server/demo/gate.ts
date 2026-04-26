@@ -41,22 +41,26 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
   }
   const shareId = readShareIdFromUrl(request)
   const resolution = resolveApiKey(shareId)
-  if (resolution.kind === 'misconfigured') {
-    return {
-      kind: 'response',
-      response: Response.json(
-        { error: 'misconfigured_environment', message: 'Misconfigured environment' },
-        { status: 500 },
-      ),
-    }
+  switch (resolution.kind) {
+    case 'misconfigured':
+      return {
+        kind: 'response',
+        response: Response.json(
+          { error: 'misconfigured_environment', message: 'Misconfigured environment' },
+          { status: 500 },
+        ),
+      }
+    case 'share_required':
+      // Message omitted on purpose — the client's ErrorBanner renders
+      // localised chat.errorAuth* strings for the authentication kind.
+      return {
+        kind: 'response',
+        response: Response.json({ error: 'share_required' }, { status: 401 }),
+      }
+    case 'shared':
+      return { kind: 'allowed', ipHash, resolution }
+    default:
+      resolution satisfies never
+      throw new Error('unreachable: unhandled SharedKeyResolution kind')
   }
-  if (resolution.kind === 'share_required') {
-    // Message omitted on purpose — the client's ErrorBanner renders
-    // localised chat.errorAuth* strings for the authentication kind.
-    return {
-      kind: 'response',
-      response: Response.json({ error: 'share_required' }, { status: 401 }),
-    }
-  }
-  return { kind: 'allowed', ipHash, resolution }
 }

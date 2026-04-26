@@ -351,8 +351,10 @@ Replace `header.brand` ("Form Copilot Demo") with the customer's brand name in e
 
 **6h — Verify**
 
+From inside the `form-copilot/` directory:
+
 ```sh
-yarn --cwd form-copilot test:types  # or npm run test:types if you migrated
+npx tsc --noEmit
 npm run dev
 ```
 

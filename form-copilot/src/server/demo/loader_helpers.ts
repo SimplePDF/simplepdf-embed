@@ -27,7 +27,7 @@ export const readDemoGate = createServerFn({ method: 'GET' })
     if (typeof raw !== 'object' || raw === null || !('shareId' in raw)) {
       return { shareId: null }
     }
-    const value = (raw as { shareId: unknown }).shareId
+    const value: unknown = raw.shareId
     if (typeof value !== 'string' || value === '') {
       return { shareId: null }
     }
