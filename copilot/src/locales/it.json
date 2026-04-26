@@ -194,7 +194,11 @@
       "select_tool": "Cambio strumento",
       "create_field": "Creazione di un campo",
       "remove_fields": "Rimozione dei campi",
-      "submit_download": "Preparazione del download"
+      "move_page": "Spostamento della pagina",
+      "delete_page": "Eliminazione della pagina",
+      "rotate_page": "Rotazione della pagina",
+      "submit": "Invio del modulo",
+      "download": "Preparazione del download"
     }
   },
   "forms": {

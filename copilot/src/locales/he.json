@@ -195,7 +195,11 @@
       "select_tool": "החלפת כלי",
       "create_field": "יצירת שדה",
       "remove_fields": "הסרת שדות",
-      "submit_download": "הכנה להורדה"
+      "move_page": "העברת העמוד",
+      "delete_page": "מחיקת העמוד",
+      "rotate_page": "סיבוב העמוד",
+      "submit": "שליחת הטופס",
+      "download": "הכנה להורדה"
     }
   },
   "forms": {

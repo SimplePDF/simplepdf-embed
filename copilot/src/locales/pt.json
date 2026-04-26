@@ -194,7 +194,11 @@
       "select_tool": "A mudar de ferramenta",
       "create_field": "A criar um campo",
       "remove_fields": "A remover campos",
-      "submit_download": "A preparar a transferência"
+      "move_page": "A mover a página",
+      "delete_page": "A eliminar a página",
+      "rotate_page": "A rodar a página",
+      "submit": "A submeter o formulário",
+      "download": "A preparar a transferência"
     }
   },
   "forms": {

@@ -194,7 +194,11 @@
       "select_tool": "正在切换工具",
       "create_field": "正在创建字段",
       "remove_fields": "正在删除字段",
-      "submit_download": "正在准备下载"
+      "move_page": "正在移动页面",
+      "delete_page": "正在删除页面",
+      "rotate_page": "正在旋转页面",
+      "submit": "正在提交表单",
+      "download": "正在准备下载"
     }
   },
   "forms": {

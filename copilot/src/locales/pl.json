@@ -196,7 +196,11 @@
       "select_tool": "Zmiana narzędzia",
       "create_field": "Tworzenie pola",
       "remove_fields": "Usuwanie pól",
-      "submit_download": "Przygotowywanie pobrania"
+      "move_page": "Przenoszenie strony",
+      "delete_page": "Usuwanie strony",
+      "rotate_page": "Obracanie strony",
+      "submit": "Wysyłanie formularza",
+      "download": "Przygotowywanie pobrania"
     }
   },
   "forms": {

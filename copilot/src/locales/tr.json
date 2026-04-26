@@ -194,7 +194,11 @@
       "select_tool": "Araç değiştiriliyor",
       "create_field": "Alan oluşturuluyor",
       "remove_fields": "Alanlar kaldırılıyor",
-      "submit_download": "İndirme hazırlanıyor"
+      "move_page": "Sayfa taşınıyor",
+      "delete_page": "Sayfa siliniyor",
+      "rotate_page": "Sayfa döndürülüyor",
+      "submit": "Form gönderiliyor",
+      "download": "İndirme hazırlanıyor"
     }
   },
   "forms": {

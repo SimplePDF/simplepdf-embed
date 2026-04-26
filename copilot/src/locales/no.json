@@ -194,7 +194,11 @@
       "select_tool": "Bytter verktøy",
       "create_field": "Oppretter et felt",
       "remove_fields": "Fjerner felt",
-      "submit_download": "Forbereder nedlasting"
+      "move_page": "Flytter siden",
+      "delete_page": "Sletter siden",
+      "rotate_page": "Roterer siden",
+      "submit": "Sender inn skjemaet",
+      "download": "Forbereder nedlasting"
     }
   },
   "forms": {

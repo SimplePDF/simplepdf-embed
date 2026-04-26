@@ -194,7 +194,11 @@
       "select_tool": "Skifter værktøj",
       "create_field": "Opretter et felt",
       "remove_fields": "Fjerner felter",
-      "submit_download": "Forbereder download"
+      "move_page": "Flytter siden",
+      "delete_page": "Sletter siden",
+      "rotate_page": "Roterer siden",
+      "submit": "Indsender formularen",
+      "download": "Forbereder download"
     }
   },
   "forms": {

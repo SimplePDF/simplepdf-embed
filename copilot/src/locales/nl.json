@@ -194,7 +194,11 @@
       "select_tool": "Tool wisselen",
       "create_field": "Een veld aanmaken",
       "remove_fields": "Velden verwijderen",
-      "submit_download": "Download voorbereiden"
+      "move_page": "Pagina verplaatsen",
+      "delete_page": "Pagina verwijderen",
+      "rotate_page": "Pagina draaien",
+      "submit": "Formulier verzenden",
+      "download": "Download voorbereiden"
     }
   },
   "forms": {

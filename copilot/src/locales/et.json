@@ -194,7 +194,11 @@
       "select_tool": "Tööriista vahetamine",
       "create_field": "Välja loomine",
       "remove_fields": "Väljade eemaldamine",
-      "submit_download": "Allalaadimise ettevalmistamine"
+      "move_page": "Lehe teisaldamine",
+      "delete_page": "Lehe kustutamine",
+      "rotate_page": "Lehe pööramine",
+      "submit": "Vormi esitamine",
+      "download": "Allalaadimise ettevalmistamine"
     }
   },
   "forms": {

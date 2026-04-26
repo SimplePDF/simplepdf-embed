@@ -194,7 +194,11 @@
       "select_tool": "Vaihdetaan työkalua",
       "create_field": "Luodaan kenttä",
       "remove_fields": "Poistetaan kenttiä",
-      "submit_download": "Valmistellaan latausta"
+      "move_page": "Siirretään sivua",
+      "delete_page": "Poistetaan sivua",
+      "rotate_page": "Käännetään sivua",
+      "submit": "Lähetetään lomaketta",
+      "download": "Valmistellaan latausta"
     }
   },
   "forms": {

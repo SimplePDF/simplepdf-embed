@@ -213,7 +213,11 @@
       "select_tool": "Switching tool",
       "create_field": "Creating a field",
       "remove_fields": "Removing fields",
-      "submit_download": "Preparing the download"
+      "move_page": "Moving the page",
+      "delete_page": "Deleting the page",
+      "rotate_page": "Rotating the page",
+      "submit": "Submitting the form",
+      "download": "Preparing the download"
     }
   },
   "forms": {

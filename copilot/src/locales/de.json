@@ -194,7 +194,11 @@
       "select_tool": "Werkzeug wird gewechselt",
       "create_field": "Feld wird erstellt",
       "remove_fields": "Felder werden entfernt",
-      "submit_download": "Download wird vorbereitet"
+      "move_page": "Seite wird verschoben",
+      "delete_page": "Seite wird gelöscht",
+      "rotate_page": "Seite wird gedreht",
+      "submit": "Formular wird gesendet",
+      "download": "Download wird vorbereitet"
     }
   },
   "forms": {

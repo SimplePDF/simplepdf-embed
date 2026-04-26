@@ -195,7 +195,11 @@
       "select_tool": "Přepínám nástroj",
       "create_field": "Vytvářím pole",
       "remove_fields": "Odstraňuji pole",
-      "submit_download": "Připravuji ke stažení"
+      "move_page": "Přesouvám stránku",
+      "delete_page": "Mažu stránku",
+      "rotate_page": "Otáčím stránku",
+      "submit": "Odesílám formulář",
+      "download": "Připravuji ke stažení"
     }
   },
   "forms": {

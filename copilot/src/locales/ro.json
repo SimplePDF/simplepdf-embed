@@ -195,7 +195,11 @@
       "select_tool": "Se schimbă instrumentul",
       "create_field": "Se creează un câmp",
       "remove_fields": "Se elimină câmpurile",
-      "submit_download": "Se pregătește descărcarea"
+      "move_page": "Se mută pagina",
+      "delete_page": "Se șterge pagina",
+      "rotate_page": "Se roteşte pagina",
+      "submit": "Se trimite formularul",
+      "download": "Se pregătește descărcarea"
     }
   },
   "forms": {

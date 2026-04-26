@@ -194,7 +194,11 @@
       "select_tool": "Byter verktyg",
       "create_field": "Skapar ett fält",
       "remove_fields": "Tar bort fält",
-      "submit_download": "Förbereder nedladdning"
+      "move_page": "Flyttar sidan",
+      "delete_page": "Tar bort sidan",
+      "rotate_page": "Roterar sidan",
+      "submit": "Skickar in formuläret",
+      "download": "Förbereder nedladdning"
     }
   },
   "forms": {
