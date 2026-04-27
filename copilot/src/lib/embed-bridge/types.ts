@@ -79,8 +79,8 @@ export type CreateFieldArgs = {
 }
 
 export type DeleteFieldsArgs = {
-  fieldIds?: string[] | null
-  page?: number | null
+  fieldIds?: unknown
+  page?: unknown
 }
 
 // State machine. Transitions are strictly forward (booting -> editor_ready ->
@@ -111,10 +111,15 @@ export type BridgeRequestType =
   | 'DELETE_PAGES'
   | 'ROTATE_PAGE'
 
+// LLM-driven bridge methods accept `unknown` for raw LLM-supplied values.
+// The iframe handler in `client/lib/iframe/handlers.ts` is the canonical
+// validator (it owns visiblePageCount + per-field shape rules), so the
+// dispatcher routes the LLM input through unmodified rather than rebuilding
+// a parallel validation layer that would drift from the iframe's rules.
 export type IframeBridge = {
   getState: () => BridgeState
   loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
-  goTo: (args: { page: number }) => Promise<BridgeResult>
+  goTo: (args: { page: unknown }) => Promise<BridgeResult>
   selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
   detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
   deleteFields: (args?: DeleteFieldsArgs) => Promise<BridgeResult<{ deleted_count: number }>>
@@ -122,14 +127,14 @@ export type IframeBridge = {
     extractionMode: 'auto' | 'ocr'
   }) => Promise<BridgeResult<DocumentContentResult>>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
-  setFieldValue: (args: { fieldId: string; value: string | null }) => Promise<BridgeResult>
+  setFieldValue: (args: { fieldId: unknown; value: unknown }) => Promise<BridgeResult>
   focusField: (args: {
-    fieldId: string
+    fieldId: unknown
   }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
   createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
-  movePage: (args: { fromPage: number; toPage: number }) => Promise<BridgeResult>
-  deletePages: (args: { pages: number[] }) => Promise<BridgeResult>
-  rotatePage: (args: { page: number }) => Promise<BridgeResult>
+  movePage: (args: { fromPage: unknown; toPage: unknown }) => Promise<BridgeResult>
+  deletePages: (args: { pages: unknown }) => Promise<BridgeResult>
+  rotatePage: (args: { page: unknown }) => Promise<BridgeResult>
 }
