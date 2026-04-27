@@ -28,8 +28,8 @@ type DocumentContentResult = {
   pages: DocumentContentPage[];
 };
 
-type RemoveFieldsResult = {
-  removed_count: number;
+type DeleteFieldsResult = {
+  deleted_count: number;
 };
 
 export type EmbedActions = {
@@ -39,7 +39,7 @@ export type EmbedActions = {
 
   detectFields: () => Promise<ActionResult>;
 
-  removeFields: (options?: { fieldIds?: string[]; page?: number }) => Promise<ActionResult<RemoveFieldsResult>>;
+  deleteFields: (options?: { fieldIds?: string[]; page?: number }) => Promise<ActionResult<DeleteFieldsResult>>;
 
   getDocumentContent: (options: { extractionMode: ExtractionMode }) => Promise<ActionResult<DocumentContentResult>>;
 
@@ -150,9 +150,9 @@ export const useEmbed = (): { embedRef: React.RefObject<EmbedActions | null>; ac
     [],
   );
 
-  const handleRemoveFields = React.useCallback(
-    createAction<[{ fieldIds?: string[]; page?: number }?], RemoveFieldsResult>(async (ref, options) => {
-      return ref.removeFields(options);
+  const handleDeleteFields = React.useCallback(
+    createAction<[{ fieldIds?: string[]; page?: number }?], DeleteFieldsResult>(async (ref, options) => {
+      return ref.deleteFields(options);
     }),
     [],
   );
@@ -177,7 +177,7 @@ export const useEmbed = (): { embedRef: React.RefObject<EmbedActions | null>; ac
       goTo: handleGoTo,
       selectTool: handleSelectTool,
       detectFields: handleDetectFields,
-      removeFields: handleRemoveFields,
+      deleteFields: handleDeleteFields,
       getDocumentContent: handleGetDocumentContent,
       submit: handleSubmit,
     },

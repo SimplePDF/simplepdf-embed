@@ -31,7 +31,7 @@ export const dispatch = async (
     }
     case 'detect_fields':
       return bridge.detectFields()
-    case 'remove_fields': {
+    case 'delete_fields': {
       const rawIds = input.field_ids
       const fieldIds = ((): string[] | null | 'invalid' => {
         if (rawIds === undefined || rawIds === null) {
@@ -49,7 +49,7 @@ export const dispatch = async (
         }
       }
       const page = typeof input.page === 'number' ? input.page : null
-      return bridge.removeFields({ fieldIds, page })
+      return bridge.deleteFields({ fieldIds, page })
     }
     case 'select_tool': {
       const rawTool = input.tool
@@ -104,15 +104,19 @@ export const dispatch = async (
       }
       return bridge.movePage({ fromPage, toPage })
     }
-    case 'delete_page': {
-      const page = typeof input.page === 'number' ? input.page : null
-      if (page === null) {
+    case 'delete_pages': {
+      const rawPages = input.pages
+      if (
+        !Array.isArray(rawPages) ||
+        rawPages.length === 0 ||
+        !rawPages.every((page): page is number => typeof page === 'number' && Number.isInteger(page) && page > 0)
+      ) {
         return {
           success: false,
-          error: { code: 'bad_input', message: 'page must be a number' },
+          error: { code: 'bad_input', message: 'pages must be a non-empty array of positive integers' },
         }
       }
-      return bridge.deletePage({ page })
+      return bridge.deletePages({ pages: rawPages })
     }
     case 'rotate_page': {
       const page = typeof input.page === 'number' ? input.page : null

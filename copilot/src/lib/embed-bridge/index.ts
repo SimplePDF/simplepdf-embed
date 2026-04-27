@@ -7,12 +7,12 @@ export type {
   BridgeResult,
   BridgeState,
   CreateFieldArgs,
+  DeleteFieldsArgs,
   DocumentContentPage,
   DocumentContentResult,
   FieldRecord,
   IframeBridge,
   LoadDocumentArgs,
-  RemoveFieldsArgs,
   SupportedFieldType,
 } from './types'
 export { isBridgeResultLike } from './types'

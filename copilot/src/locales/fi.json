@@ -195,10 +195,9 @@
       "go_to_page": "Siirrytään sivulle",
       "set_field_value": "Täytetään kenttää",
       "select_tool": "Vaihdetaan työkalua",
-      "create_field": "Luodaan kenttä",
-      "remove_fields": "Poistetaan kenttiä",
+      "delete_fields": "Poistetaan kenttiä",
       "move_page": "Siirretään sivua",
-      "delete_page": "Poistetaan sivua",
+      "delete_pages": "Poistetaan sivuja",
       "rotate_page": "Käännetään sivua",
       "submit": "Lähetetään lomaketta",
       "download": "Valmistellaan latausta"

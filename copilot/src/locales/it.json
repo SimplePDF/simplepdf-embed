@@ -195,10 +195,9 @@
       "go_to_page": "Passaggio alla pagina",
       "set_field_value": "Compilazione del campo",
       "select_tool": "Cambio strumento",
-      "create_field": "Creazione di un campo",
-      "remove_fields": "Rimozione dei campi",
+      "delete_fields": "Eliminazione dei campi",
       "move_page": "Spostamento della pagina",
-      "delete_page": "Eliminazione della pagina",
+      "delete_pages": "Eliminazione delle pagine",
       "rotate_page": "Rotazione della pagina",
       "submit": "Invio del modulo",
       "download": "Preparazione del download"

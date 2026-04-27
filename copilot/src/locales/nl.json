@@ -195,10 +195,9 @@
       "go_to_page": "Naar de pagina gaan",
       "set_field_value": "Veld invullen",
       "select_tool": "Tool wisselen",
-      "create_field": "Een veld aanmaken",
-      "remove_fields": "Velden verwijderen",
+      "delete_fields": "Velden verwijderen",
       "move_page": "Pagina verplaatsen",
-      "delete_page": "Pagina verwijderen",
+      "delete_pages": "Pagina's verwijderen",
       "rotate_page": "Pagina draaien",
       "submit": "Formulier verzenden",
       "download": "Download voorbereiden"

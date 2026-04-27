@@ -78,7 +78,7 @@ export type CreateFieldArgs = {
   value?: string | null
 }
 
-export type RemoveFieldsArgs = {
+export type DeleteFieldsArgs = {
   fieldIds?: string[] | null
   page?: number | null
 }
@@ -99,7 +99,7 @@ export type BridgeRequestType =
   | 'GO_TO'
   | 'SELECT_TOOL'
   | 'DETECT_FIELDS'
-  | 'REMOVE_FIELDS'
+  | 'DELETE_FIELDS'
   | 'GET_DOCUMENT_CONTENT'
   | 'GET_FIELDS'
   | 'SET_FIELD_VALUE'
@@ -108,7 +108,7 @@ export type BridgeRequestType =
   | 'SUBMIT'
   | 'DOWNLOAD'
   | 'MOVE_PAGE'
-  | 'DELETE_PAGE'
+  | 'DELETE_PAGES'
   | 'ROTATE_PAGE'
 
 export type IframeBridge = {
@@ -117,7 +117,7 @@ export type IframeBridge = {
   goTo: (args: { page: number }) => Promise<BridgeResult>
   selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
   detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
-  removeFields: (args?: RemoveFieldsArgs) => Promise<BridgeResult<{ removed_count: number }>>
+  deleteFields: (args?: DeleteFieldsArgs) => Promise<BridgeResult<{ deleted_count: number }>>
   getDocumentContent: (args: {
     extractionMode: 'auto' | 'ocr'
   }) => Promise<BridgeResult<DocumentContentResult>>
@@ -130,6 +130,6 @@ export type IframeBridge = {
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
   movePage: (args: { fromPage: number; toPage: number }) => Promise<BridgeResult>
-  deletePage: (args: { page: number }) => Promise<BridgeResult>
+  deletePages: (args: { pages: number[] }) => Promise<BridgeResult>
   rotatePage: (args: { page: number }) => Promise<BridgeResult>
 }

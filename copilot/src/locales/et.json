@@ -195,10 +195,9 @@
       "go_to_page": "Lehele minemine",
       "set_field_value": "Välja täitmine",
       "select_tool": "Tööriista vahetamine",
-      "create_field": "Välja loomine",
-      "remove_fields": "Väljade eemaldamine",
+      "delete_fields": "Väljade kustutamine",
       "move_page": "Lehe teisaldamine",
-      "delete_page": "Lehe kustutamine",
+      "delete_pages": "Lehtede kustutamine",
       "rotate_page": "Lehe pööramine",
       "submit": "Vormi esitamine",
       "download": "Allalaadimise ettevalmistamine"

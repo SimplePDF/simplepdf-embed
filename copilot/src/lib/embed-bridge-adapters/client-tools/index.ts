@@ -9,7 +9,8 @@ export { composeMiddleware } from './middleware'
 export type { ClientToolName } from './schemas'
 export {
   CLIENT_TOOL_SCHEMAS,
-  DeletePageInput,
+  DeleteFieldsInput,
+  DeletePagesInput,
   DetectFieldsInput,
   DownloadInput,
   FocusFieldInput,
@@ -18,7 +19,6 @@ export {
   GoToPageInput,
   isClientToolName,
   MovePageInput,
-  RemoveFieldsInput,
   RotatePageInput,
   SelectToolInput,
   SetFieldValueInput,

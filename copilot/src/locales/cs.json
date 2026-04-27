@@ -198,10 +198,9 @@
       "go_to_page": "Přecházím na stránku",
       "set_field_value": "Vyplňuji pole",
       "select_tool": "Přepínám nástroj",
-      "create_field": "Vytvářím pole",
-      "remove_fields": "Odstraňuji pole",
+      "delete_fields": "Mažu pole",
       "move_page": "Přesouvám stránku",
-      "delete_page": "Mažu stránku",
+      "delete_pages": "Mažu stránky",
       "rotate_page": "Otáčím stránku",
       "submit": "Odesílám formulář",
       "download": "Připravuji ke stažení"

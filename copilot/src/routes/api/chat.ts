@@ -3,7 +3,8 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import type { ServerErrorBody } from '../../lib/api_envelope'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import {
-  DeletePageInput,
+  DeleteFieldsInput,
+  DeletePagesInput,
   DetectFieldsInput,
   FINALISATION_ACTION,
   FocusFieldInput,
@@ -11,7 +12,6 @@ import {
   GetFieldsInput,
   GoToPageInput,
   MovePageInput,
-  RemoveFieldsInput,
   RotatePageInput,
   SelectToolInput,
   SetFieldValueInput,
@@ -182,10 +182,10 @@ export const Route = createFileRoute('/api/chat')({
                 'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
               inputSchema: DetectFieldsInput,
             },
-            remove_fields: {
+            delete_fields: {
               description:
-                'Removes fields from the document. field_ids targets specific fields by id; page targets a single page (1-indexed); both omitted clears all fields. Destructive — only call when the user explicitly asks to remove fields.',
-              inputSchema: RemoveFieldsInput,
+                'Deletes fields from the document. field_ids targets specific fields by id; page targets a single page (1-indexed); both omitted clears all fields. Destructive — only call when the user explicitly asks to delete fields.',
+              inputSchema: DeleteFieldsInput,
             },
             select_tool: {
               description:
@@ -209,10 +209,10 @@ export const Route = createFileRoute('/api/chat')({
                 'Reorders pages: from_page and to_page are 1-indexed visible page positions. Destructive — only call when the user explicitly asks to reorder a page.',
               inputSchema: MovePageInput,
             },
-            delete_page: {
+            delete_pages: {
               description:
-                'Permanently removes a visible page (1-indexed) and any fields placed on it. The last remaining page cannot be deleted. Destructive — only call when the user explicitly asks to delete a page.',
-              inputSchema: DeletePageInput,
+                'Permanently removes one or more visible pages (1-indexed) and any fields placed on them. Pass pages as a non-empty array. At least one visible page must remain — passing every visible page returns event_not_allowed. Destructive — only call when the user explicitly asks to delete pages.',
+              inputSchema: DeletePagesInput,
             },
             rotate_page: {
               description:

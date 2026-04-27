@@ -193,10 +193,9 @@
       "go_to_page": "正在跳转页面",
       "set_field_value": "正在填写字段",
       "select_tool": "正在切换工具",
-      "create_field": "正在创建字段",
-      "remove_fields": "正在删除字段",
+      "delete_fields": "正在删除字段",
       "move_page": "正在移动页面",
-      "delete_page": "正在删除页面",
+      "delete_pages": "正在删除页面",
       "rotate_page": "正在旋转页面",
       "submit": "正在提交表单",
       "download": "正在准备下载"

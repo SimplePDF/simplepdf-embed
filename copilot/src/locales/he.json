@@ -198,10 +198,9 @@
       "go_to_page": "מעבר לעמוד",
       "set_field_value": "מילוי שדה",
       "select_tool": "החלפת כלי",
-      "create_field": "יצירת שדה",
-      "remove_fields": "הסרת שדות",
+      "delete_fields": "מחיקת שדות",
       "move_page": "העברת העמוד",
-      "delete_page": "מחיקת העמוד",
+      "delete_pages": "מחיקת עמודים",
       "rotate_page": "סיבוב העמוד",
       "submit": "שליחת הטופס",
       "download": "הכנה להורדה"

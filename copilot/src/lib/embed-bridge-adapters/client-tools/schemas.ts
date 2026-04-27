@@ -18,13 +18,13 @@ export const DetectFieldsInput = z
     'Asks the editor to auto-detect and create fields on the document. Use when get_fields returned 0 fields before asking the user to add fields manually.',
   )
 
-export const RemoveFieldsInput = z
+export const DeleteFieldsInput = z
   .object({
-    field_ids: z.array(z.string()).optional().describe('Specific field identifiers to remove (omit to target by page or all)'),
+    field_ids: z.array(z.string()).optional().describe('Specific field identifiers to delete (omit to target by page or all)'),
     page: z.number().int().positive().optional().describe('1-indexed visible page to clear (omit to target specific ids or all)'),
   })
   .describe(
-    'Removes fields from the document. Pass field_ids to remove specific fields, page to clear a single page, or both omitted to remove every field. Destructive: only call when the user explicitly asks.',
+    'Deletes fields from the document. Pass field_ids to delete specific fields, page to clear a single page, or both omitted to delete every field. Destructive: only call when the user explicitly asks.',
   )
 
 // Aligned with the bridge's SupportedFieldType. The LLM may pick any of
@@ -70,10 +70,15 @@ export const MovePageInput = z
     'Reorders pages in the document. Destructive: only call when the user explicitly asks to reorder a page.',
   )
 
-export const DeletePageInput = z
-  .object({ page: z.number().int().positive().describe('Visible page to delete (1-indexed)') })
+export const DeletePagesInput = z
+  .object({
+    pages: z
+      .array(z.number().int().positive())
+      .nonempty()
+      .describe('Visible pages to delete (1-indexed). Must be a non-empty array.'),
+  })
   .describe(
-    'Permanently removes a page (and any fields on it) from the document. Destructive: only call when the user explicitly asks to delete a page. The last remaining visible page cannot be deleted.',
+    'Permanently removes one or more pages (and any fields on them) from the document. Destructive: only call when the user explicitly asks to delete pages. At least one visible page must remain — passing every visible page returns event_not_allowed.',
   )
 
 export const RotatePageInput = z
@@ -98,13 +103,13 @@ export const CLIENT_TOOL_NAMES = [
   'get_fields',
   'get_document_content',
   'detect_fields',
-  'remove_fields',
+  'delete_fields',
   'select_tool',
   'set_field_value',
   'focus_field',
   'go_to_page',
   'move_page',
-  'delete_page',
+  'delete_pages',
   'rotate_page',
   'submit',
   'download',
@@ -122,13 +127,13 @@ export const CLIENT_TOOL_SCHEMAS = {
   get_fields: GetFieldsInput,
   get_document_content: GetDocumentContentInput,
   detect_fields: DetectFieldsInput,
-  remove_fields: RemoveFieldsInput,
+  delete_fields: DeleteFieldsInput,
   select_tool: SelectToolInput,
   set_field_value: SetFieldValueInput,
   focus_field: FocusFieldInput,
   go_to_page: GoToPageInput,
   move_page: MovePageInput,
-  delete_page: DeletePageInput,
+  delete_pages: DeletePagesInput,
   rotate_page: RotatePageInput,
   submit: SubmitInput,
   download: DownloadInput,

@@ -137,9 +137,9 @@ Handling tool errors:
   - For a failed ${action.toolName}: ask the user to try again in a moment, or to press the editor's save button directly.
 - Never expose raw error codes, stack traces, or schema details to the user — surface only the human-level alternative.
 
-Page actions (move_page, delete_page, rotate_page) — NEVER unsolicited:
-- These tools mutate the document structure. Only call them when the user explicitly asks ("delete page 3", "rotate page 2", "move page 1 to the end", "swap these two pages").
-- delete_page is irreversible: any fields on the deleted page disappear with it. The last remaining visible page cannot be deleted; the editor will refuse and return event_not_allowed.
+Page actions (move_page, delete_pages, rotate_page) — NEVER unsolicited:
+- These tools mutate the document structure. Only call them when the user explicitly asks ("delete page 3", "delete pages 2 and 4", "rotate page 2", "move page 1 to the end", "swap these two pages").
+- delete_pages is irreversible: any fields on the deleted pages disappear with them. Pass pages as a non-empty array of 1-indexed visible positions. At least one visible page must remain — passing every visible page returns event_not_allowed. Batch a single multi-page delete into one call ("delete pages 2 and 4" → delete_pages with pages=[2, 4]) rather than calling the tool per page.
 - rotate_page rotates 90° clockwise per call; if the user asks for 180° or 270°, repeat the call.
 - move_page accepts visible page positions (1-indexed). "Move page 1 to position 4" → from_page=1, to_page=4.
 - If you are unsure whether the user is asking for a page mutation or a navigation, ask one short clarifying question — do NOT mutate to be helpful.
