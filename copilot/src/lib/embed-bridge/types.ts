@@ -74,7 +74,6 @@ export type BridgeState =
 // Request type union. Every postMessage the bridge sends carries one of these
 // as its `type` field. The editor honours each.
 export type BridgeRequestType =
-  | 'LOAD_DOCUMENT'
   | 'GO_TO'
   | 'SELECT_TOOL'
   | 'DETECT_FIELDS'
@@ -92,14 +91,13 @@ export type BridgeRequestType =
 export type FocusFieldResult = { hint: { type: 'user_action_expected'; message: string } } | null
 
 // The bridge owns the contract. Each method takes `unknown` (raw, from any
-// caller — the LLM dispatcher, direct UI code, etc.) and validates it
-// internally against the matching Zod schema in schemas.ts before posting
-// to the iframe. Bad input surfaces as `{ success: false, error: { code:
-// 'bad_input', ... } }` without a postMessage round-trip. Adapters do not
+// caller) and validates it internally against the matching Zod schema in
+// schemas.ts before posting to the iframe. Bad input surfaces as
+// `{ success: false, error: { code: 'bad_input', ... } }` without a
+// postMessage round-trip. Adapters (LLM tool registry, etc.) do not
 // re-validate.
 export type IframeBridge = {
   getState: () => BridgeState
-  loadDocument: (args: unknown) => Promise<BridgeResult>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
   getDocumentContent: (args: unknown) => Promise<BridgeResult<DocumentContentResult>>
   detectFields: () => Promise<BridgeResult<{ detected_count: number }>>

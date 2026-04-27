@@ -19,10 +19,9 @@ import {
 // name, and pulls each description verbatim from the bridge schema's
 // `.describe()` — no duplicated text.
 //
-// Adding a new LLM tool: add an entry to LLM_STATIC_TOOLS, add the snake
-// name to CLIENT_TOOL_NAMES, add a switch arm in factory.ts. The switch
-// is exhaustive over ClientToolName, so any addition forces a matching
-// arm at compile time.
+// Adding an LLM tool: add an entry to LLM_STATIC_TOOLS, add a switch arm
+// in factory.ts. The switch is exhaustive over ClientToolName, so any
+// addition forces a matching arm at compile time.
 
 const tool = <TSchema extends z.ZodType>(inputSchema: TSchema): { description: string; inputSchema: TSchema } => ({
   description: inputSchema.description ?? '',
@@ -43,23 +42,17 @@ export const LLM_STATIC_TOOLS = {
   rotate_page: tool(RotatePageInput),
 } as const
 
-export const CLIENT_TOOL_NAMES = [
-  'get_fields',
-  'get_document_content',
-  'detect_fields',
-  'delete_fields',
-  'select_tool',
-  'set_field_value',
-  'focus_field',
-  'go_to_page',
-  'move_page',
-  'delete_pages',
-  'rotate_page',
+// Finalisation tools (submit / download) are mode-gated and merged in via
+// `withFinalisationTool` rather than living in LLM_STATIC_TOOLS, so the
+// type union covers both.
+type FinalisationToolName = 'submit' | 'download'
+export type ClientToolName = keyof typeof LLM_STATIC_TOOLS | FinalisationToolName
+
+const ALL_CLIENT_TOOL_NAMES: ReadonlySet<string> = new Set<ClientToolName>([
+  ...(Object.keys(LLM_STATIC_TOOLS) as Array<keyof typeof LLM_STATIC_TOOLS>),
   'submit',
   'download',
-] as const
-
-export type ClientToolName = (typeof CLIENT_TOOL_NAMES)[number]
+])
 
 export const isClientToolName = (value: unknown): value is ClientToolName =>
-  typeof value === 'string' && CLIENT_TOOL_NAMES.some((candidate) => candidate === value)
+  typeof value === 'string' && ALL_CLIENT_TOOL_NAMES.has(value)

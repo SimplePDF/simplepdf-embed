@@ -28,8 +28,8 @@ export type ClientTools = {
   // the consumer boundary; the Vercel AI SDK guarantees the LLM only fires
   // registered tools.
   execute: (toolName: ClientToolName, input: ToolInput) => Promise<BridgeResult<unknown>>
-  // Type guard re-export so the consumer can branch on tool names without
-  // importing `tools.ts` separately.
+  // Type guard re-export so the consumer can branch on LLM tool names
+  // without importing `tools.ts` separately.
   isClientToolName: typeof isClientToolName
 }
 

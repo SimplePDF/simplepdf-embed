@@ -98,11 +98,3 @@ export const SubmitInput = z
 export const DownloadInput = NoInput.describe(
   'Finalizes the filled PDF and triggers an in-browser download for the user. Use only when the user asks to download.',
 )
-
-export const LoadDocumentInput = z
-  .object({
-    data_url: z.string(),
-    name: z.string().optional(),
-    page: z.number().int().positive().optional(),
-  })
-  .describe('Loads a PDF document into the editor by URL or data-URL.')

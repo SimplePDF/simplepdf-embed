@@ -11,7 +11,6 @@ export {
   GetDocumentContentInput,
   GetFieldsInput,
   GoToInput,
-  LoadDocumentInput,
   MovePageInput,
   NoInput,
   RotatePageInput,

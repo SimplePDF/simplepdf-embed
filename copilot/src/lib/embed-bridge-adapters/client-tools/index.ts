@@ -5,4 +5,4 @@ export { FINALISATION_ACTION, FINALISATION_TOOL, withFinalisationTool } from './
 export type { MiddlewareContext, ToolMiddleware } from './middleware'
 export { composeMiddleware } from './middleware'
 export type { ClientToolName } from './tools'
-export { CLIENT_TOOL_NAMES, isClientToolName, LLM_STATIC_TOOLS } from './tools'
+export { isClientToolName, LLM_STATIC_TOOLS } from './tools'
