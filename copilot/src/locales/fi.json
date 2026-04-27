@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Tervetuloa SimplePDF Copilotiin",
-    "tagline": "<accent>Tekoäly, joka auttaa</accent> käyttäjiä täyttämään PDF-lomakkeita vaihe vaiheelta",
+    "tagline": "Muokkaa, täytä ja ymmärrä PDF-tiedostoja <accent>keskustelemalla niiden kanssa</accent>",
     "getStarted": "Aloita",
     "howItWorks": "Näin SimplePDF Copilot toimii",
     "close": "Sulje tervetulo"

@@ -13,11 +13,11 @@ const TITLE_ID = 'welcome-modal-title'
 const ILLUSTRATION_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/common/form-copilot-illustration.png'
 const LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/common/logo-white.png'
 
-// Locales whose `welcomeModal.tagline` translation is short enough to fit
-// in the right pane at the default 48px font size. Everything else
-// (long-tail romance / slavic / nordic / fi / tr / hi / ar / he) renders
-// at 42px so the line count stays roughly the same as EN. CSS `:lang()`
-// could do this without JS, but the locale list reads cleanly as code.
+// Locales whose `welcomeModal.tagline` translation fits at 42px in the
+// right pane. Everything else (longer-form romance / slavic / nordic /
+// fi / tr / hi / ar / he) renders at 38px so the line count stays
+// roughly comparable. CSS `:lang()` could do this without JS, but the
+// locale list reads cleanly as code.
 const COMPACT_TAGLINE_LOCALES = ['en', 'vi', 'zh'] as const
 
 // First-load splash. Rendered inline (NOT through createPortal) so the
@@ -32,7 +32,7 @@ export const WelcomeModal = ({ open, onClose, onOpenInfo }: WelcomeModalProps): 
   const { t, i18n } = useTranslation()
   const activeLocale = i18n.language.toLowerCase()
   const isCompactLocale = COMPACT_TAGLINE_LOCALES.some((locale) => activeLocale.startsWith(locale))
-  const taglineFontClass = isCompactLocale ? 'text-[48px]' : 'text-[42px]'
+  const taglineFontClass = isCompactLocale ? 'text-[42px]' : 'text-[38px]'
 
   useEffect(() => {
     if (!open) {

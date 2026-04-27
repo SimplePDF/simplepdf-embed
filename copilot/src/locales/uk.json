@@ -164,7 +164,7 @@
   },
   "welcomeModal": {
     "title": "Ласкаво просимо до SimplePDF Copilot",
-    "tagline": "<accent>ШІ, який допомагає</accent> користувачам крок за кроком заповнювати PDF-форми",
+    "tagline": "Редагуйте, заповнюйте та розумійте PDF <accent>спілкуючись з ними</accent>",
     "getStarted": "Почати",
     "howItWorks": "Як працює SimplePDF Copilot",
     "close": "Закрити привітання"

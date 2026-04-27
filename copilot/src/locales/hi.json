@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "SimplePDF Copilot में आपका स्वागत है",
-    "tagline": "<accent>AI जो मदद करता है</accent> उपयोगकर्ताओं को चरण-दर-चरण PDF फ़ॉर्म भरने में",
+    "tagline": "PDF संपादित करें, भरें और समझें <accent>उनसे बातचीत करके</accent>",
     "getStarted": "शुरू करें",
     "howItWorks": "SimplePDF Copilot कैसे काम करता है",
     "close": "स्वागत बंद करें"

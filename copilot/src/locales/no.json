@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Velkommen til SimplePDF Copilot",
-    "tagline": "<accent>AI som hjelper</accent> brukere å fylle ut PDF-skjemaer steg for steg",
+    "tagline": "Rediger, fyll ut og forstå PDF-er <accent>ved å chatte med dem</accent>",
     "getStarted": "Kom i gang",
     "howItWorks": "Slik fungerer SimplePDF Copilot",
     "close": "Lukk velkomst"

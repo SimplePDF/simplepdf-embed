@@ -178,7 +178,7 @@
   },
   "welcomeModal": {
     "title": "Welcome to SimplePDF Copilot",
-    "tagline": "<accent>AI that helps</accent> users fill PDF forms step by step",
+    "tagline": "Edit, fill and understand PDFs <accent>by chatting with them</accent>",
     "getStarted": "Get started",
     "howItWorks": "How SimplePDF Copilot works",
     "close": "Close welcome"

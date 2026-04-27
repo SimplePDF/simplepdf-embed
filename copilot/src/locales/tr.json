@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "SimplePDF Copilot’a hoş geldiniz",
-    "tagline": "<accent>Yardımcı olan yapay zeka</accent>, kullanıcılar PDF formlarını adım adım doldursun diye",
+    "tagline": "PDF’leri düzenleyin, doldurun ve anlayın, <accent>onlarla sohbet ederek</accent>",
     "getStarted": "Başla",
     "howItWorks": "SimplePDF Copilot nasıl çalışır",
     "close": "Karşılamayı kapat"

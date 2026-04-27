@@ -162,7 +162,7 @@
   },
   "welcomeModal": {
     "title": "ברוכים הבאים ל־SimplePDF Copilot",
-    "tagline": "<accent>בינה מלאכותית שמסייעת</accent> למשתמשים למלא טפסי PDF צעד אחר צעד",
+    "tagline": "ערכו, מלאו והבינו קובצי PDF <accent>על ידי שיחה איתם</accent>",
     "getStarted": "להתחיל",
     "howItWorks": "איך SimplePDF Copilot עובד",
     "close": "סגירת ברכת קבלת הפנים"

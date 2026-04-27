@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Willkommen bei SimplePDF Copilot",
-    "tagline": "<accent>KI, die hilft</accent>, PDF-Formulare Schritt für Schritt auszufüllen",
+    "tagline": "PDFs bearbeiten, ausfüllen und verstehen, <accent>indem Sie mit ihnen chatten</accent>",
     "getStarted": "Loslegen",
     "howItWorks": "So funktioniert SimplePDF Copilot",
     "close": "Begrüßung schließen"

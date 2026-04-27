@@ -162,7 +162,7 @@
   },
   "welcomeModal": {
     "title": "Bun venit în SimplePDF Copilot",
-    "tagline": "<accent>AI care ajută</accent> utilizatorii să completeze formulare PDF pas cu pas",
+    "tagline": "Editează, completează și înțelege PDF-urile <accent>conversând cu ele</accent>",
     "getStarted": "Începe",
     "howItWorks": "Cum funcționează SimplePDF Copilot",
     "close": "Închide salutul"

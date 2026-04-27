@@ -158,7 +158,7 @@
   },
   "welcomeModal": {
     "title": "Chào mừng đến với SimplePDF Copilot",
-    "tagline": "<accent>AI giúp</accent> người dùng điền biểu mẫu PDF từng bước",
+    "tagline": "Chỉnh sửa, điền và hiểu PDF <accent>bằng cách trò chuyện với chúng</accent>",
     "getStarted": "Bắt đầu",
     "howItWorks": "Cách SimplePDF Copilot hoạt động",
     "close": "Đóng lời chào"

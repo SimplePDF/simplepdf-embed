@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Benvenuto in SimplePDF Copilot",
-    "tagline": "<accent>IA che aiuta</accent> gli utenti a compilare moduli PDF passo dopo passo",
+    "tagline": "Modifica, compila e comprendi i PDF <accent>chattando con loro</accent>",
     "getStarted": "Inizia",
     "howItWorks": "Come funziona SimplePDF Copilot",
     "close": "Chiudi benvenuto"

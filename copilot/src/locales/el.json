@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Καλώς ήρθατε στο SimplePDF Copilot",
-    "tagline": "<accent>AI που βοηθά</accent> τους χρήστες να συμπληρώνουν φόρμες PDF βήμα βήμα",
+    "tagline": "Επεξεργαστείτε, συμπληρώστε και κατανοήστε PDF <accent>συνομιλώντας μαζί τους</accent>",
     "getStarted": "Ξεκινήστε",
     "howItWorks": "Πώς λειτουργεί το SimplePDF Copilot",
     "close": "Κλείσιμο καλωσορίσματος"

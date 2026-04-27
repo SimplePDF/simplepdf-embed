@@ -160,7 +160,7 @@
   },
   "welcomeModal": {
     "title": "Tere tulemast SimplePDF Copilotisse",
-    "tagline": "<accent>Tehisintellekt, mis aitab</accent> kasutajatel samm-sammult PDF-vorme täita",
+    "tagline": "Muutke, täitke ja mõistke PDF-e <accent>nendega vesteldes</accent>",
     "getStarted": "Alusta",
     "howItWorks": "Kuidas SimplePDF Copilot töötab",
     "close": "Sulge tervitus"

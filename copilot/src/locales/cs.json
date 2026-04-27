@@ -162,7 +162,7 @@
   },
   "welcomeModal": {
     "title": "Vítejte ve SimplePDF Copilot",
-    "tagline": "<accent>AI, která pomáhá</accent> uživatelům vyplnit PDF formuláře krok za krokem",
+    "tagline": "Upravujte, vyplňujte a chápejte PDF <accent>pomocí konverzace s nimi</accent>",
     "getStarted": "Začít",
     "howItWorks": "Jak SimplePDF Copilot funguje",
     "close": "Zavřít uvítání"

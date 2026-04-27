@@ -168,7 +168,7 @@
   },
   "welcomeModal": {
     "title": "مرحبًا بك في SimplePDF Copilot",
-    "tagline": "<accent>ذكاء اصطناعي يساعد</accent> المستخدمين على تعبئة نماذج PDF خطوة بخطوة",
+    "tagline": "حرّر ملفات PDF واملأها وافهمها <accent>عبر الدردشة معها</accent>",
     "getStarted": "ابدأ الآن",
     "howItWorks": "كيف يعمل SimplePDF Copilot",
     "close": "إغلاق الترحيب"
