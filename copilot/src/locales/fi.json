@@ -7,9 +7,7 @@
     "poweredBy": "Toteuttaja: SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot toimii parhaiten tietokoneella",
-    "watchDemo": "Katso demo",
-    "videoPlaceholder": "Video"
+    "headline": "SimplePDF Copilot toimii parhaiten tietokoneella"
   },
   "infoModal": {
     "title": "Tekoälyavusteinen lomakkeiden täyttö, ihminen mukana",

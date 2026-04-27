@@ -34,16 +34,6 @@ export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => 
       <div className="flex flex-1 items-center justify-center p-6 lg:hidden">
         <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
           <h1 className="text-lg font-semibold text-slate-900">{t('mobileFallback.headline')}</h1>
-          <div className="w-full">
-            <h2 className="mb-2 text-sm font-medium text-slate-700">{t('mobileFallback.watchDemo')}</h2>
-            <div
-              role="img"
-              aria-label={t('mobileFallback.videoPlaceholder')}
-              className="flex aspect-video w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-xs font-medium uppercase tracking-[0.2em] text-slate-400"
-            >
-              {t('mobileFallback.videoPlaceholder')}
-            </div>
-          </div>
         </div>
       </div>
     </div>

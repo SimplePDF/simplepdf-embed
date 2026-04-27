@@ -7,9 +7,7 @@
     "poweredBy": "由 SimplePDF 提供支持"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot 在桌面设备上体验最佳",
-    "watchDemo": "观看演示",
-    "videoPlaceholder": "视频"
+    "headline": "SimplePDF Copilot 在桌面设备上体验最佳"
   },
   "infoModal": {
     "title": "AI 辅助填写表单，同时保留人工审核",

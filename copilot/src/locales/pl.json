@@ -7,9 +7,7 @@
     "poweredBy": "Napędzane przez SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot najlepiej sprawdza się na komputerze",
-    "watchDemo": "Obejrzyj demo",
-    "videoPlaceholder": "Wideo"
+    "headline": "SimplePDF Copilot najlepiej sprawdza się na komputerze"
   },
   "infoModal": {
     "title": "Wypełnianie formularzy wspomagane przez AI, z człowiekiem w pętli",

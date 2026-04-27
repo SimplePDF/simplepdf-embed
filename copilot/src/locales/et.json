@@ -7,9 +7,7 @@
     "poweredBy": "Jooksutab SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot töötab kõige paremini arvutis",
-    "watchDemo": "Vaata demo",
-    "videoPlaceholder": "Video"
+    "headline": "SimplePDF Copilot töötab kõige paremini arvutis"
   },
   "infoModal": {
     "title": "Tehisintellekti abil vormide täitmine, inimene silmusesse",

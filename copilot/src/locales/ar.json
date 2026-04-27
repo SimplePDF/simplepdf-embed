@@ -7,9 +7,7 @@
     "poweredBy": "مدعوم من SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot يُستخدم بأفضل شكل على سطح المكتب",
-    "watchDemo": "شاهد العرض التوضيحي",
-    "videoPlaceholder": "فيديو"
+    "headline": "SimplePDF Copilot يُستخدم بأفضل شكل على سطح المكتب"
   },
   "infoModal": {
     "title": "تعبئة نماذج بمساعدة الذكاء الاصطناعي، مع إشراف بشري",

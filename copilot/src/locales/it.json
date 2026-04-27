@@ -7,9 +7,7 @@
     "poweredBy": "Alimentato da SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot dà il meglio su desktop",
-    "watchDemo": "Guarda la demo",
-    "videoPlaceholder": "Video"
+    "headline": "SimplePDF Copilot dà il meglio su desktop"
   },
   "infoModal": {
     "title": "Compilazione di moduli assistita dall’IA, con un umano nel ciclo",

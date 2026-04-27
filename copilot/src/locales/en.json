@@ -7,9 +7,7 @@
     "poweredBy": "Powered by SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot is best experienced on desktop",
-    "watchDemo": "Watch the demo",
-    "videoPlaceholder": "Video"
+    "headline": "SimplePDF Copilot is best experienced on desktop"
   },
   "infoModal": {
     "title": "AI-assisted form filling, with a human in the loop",
