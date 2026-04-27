@@ -68,16 +68,6 @@ export type LoadDocumentArgs = {
   initialPage?: number
 }
 
-export type CreateFieldArgs = {
-  type: SupportedFieldType
-  x: number
-  y: number
-  width: number
-  height: number
-  page: number
-  value?: string | null
-}
-
 export type DeleteFieldsArgs = {
   fieldIds?: unknown
   page?: unknown
@@ -104,7 +94,6 @@ export type BridgeRequestType =
   | 'GET_FIELDS'
   | 'SET_FIELD_VALUE'
   | 'FOCUS_FIELD'
-  | 'CREATE_FIELD'
   | 'SUBMIT'
   | 'DOWNLOAD'
   | 'MOVE_PAGE'
@@ -131,7 +120,6 @@ export type IframeBridge = {
   focusField: (args: {
     fieldId: unknown
   }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
-  createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
   submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
   movePage: (args: { fromPage: unknown; toPage: unknown }) => Promise<BridgeResult>

@@ -3,7 +3,6 @@ import {
   type BridgeRequestType,
   type BridgeResult,
   type BridgeState,
-  type CreateFieldArgs,
   type DocumentContentResult,
   type FieldRecord,
   type IframeBridge,
@@ -34,7 +33,6 @@ const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
     case 'DETECT_FIELDS':
     case 'GET_DOCUMENT_CONTENT':
       return HEAVY_REQUEST_TIMEOUT_MS
-    case 'CREATE_FIELD':
     case 'DELETE_FIELDS':
     case 'DELETE_PAGES':
     case 'FOCUS_FIELD':
@@ -389,16 +387,6 @@ export const createBridge = ({
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
     setFieldValue: ({ fieldId, value }) => sendRequest('SET_FIELD_VALUE', { field_id: fieldId, value }),
     focusField: ({ fieldId }) => sendRequest('FOCUS_FIELD', { field_id: fieldId }),
-    createField: ({ type, x, y, width, height, page, value }: CreateFieldArgs) =>
-      sendRequest<{ field_id: string }>('CREATE_FIELD', {
-        type,
-        x,
-        y,
-        width,
-        height,
-        page,
-        value: value ?? null,
-      }),
     submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
     download: () => sendRequest('DOWNLOAD', {}),
     movePage: ({ fromPage, toPage }) => sendRequest('MOVE_PAGE', { from_page: fromPage, to_page: toPage }),

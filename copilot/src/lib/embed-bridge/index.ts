@@ -6,7 +6,6 @@ export type {
   BridgeRequestType,
   BridgeResult,
   BridgeState,
-  CreateFieldArgs,
   DeleteFieldsArgs,
   DocumentContentPage,
   DocumentContentResult,
