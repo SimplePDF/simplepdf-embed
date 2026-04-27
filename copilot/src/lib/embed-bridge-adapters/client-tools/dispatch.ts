@@ -1,5 +1,5 @@
 import type { BridgeResult, IframeBridge, SupportedFieldType } from '../../embed-bridge'
-import { type ClientToolName, isClientToolName } from './schemas'
+import type { ClientToolName } from './schemas'
 
 export type ToolInput = Record<string, unknown>
 
@@ -71,21 +71,4 @@ export const dispatch = async (
         error: { code: 'unknown_tool', message: `Unknown tool: ${String(toolName)}` },
       }
   }
-}
-
-// Optional safety wrapper around `dispatch` that accepts an arbitrary tool
-// name (e.g. coming from an LLM tool call where the type isn't narrowed yet)
-// and rejects unknown names with a typed error.
-export const safeDispatch = async (
-  bridge: IframeBridge,
-  toolName: string,
-  input: ToolInput,
-): Promise<BridgeResult<unknown>> => {
-  if (!isClientToolName(toolName)) {
-    return {
-      success: false,
-      error: { code: 'unknown_tool', message: `Unknown tool: ${toolName}` },
-    }
-  }
-  return dispatch(bridge, toolName, input)
 }

@@ -1,5 +1,5 @@
 export type { ToolInput } from './dispatch'
-export { dispatch, safeDispatch } from './dispatch'
+export { dispatch } from './dispatch'
 export type { ClientTools, CreateClientToolsArgs } from './factory'
 export { createClientTools } from './factory'
 export type { FinalisationAction, FinalisationToolMap } from './finalisation'

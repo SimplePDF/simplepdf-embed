@@ -1,5 +1,5 @@
 import type { BridgeResult, IframeBridge } from '../../embed-bridge'
-import { safeDispatch, type ToolInput } from './dispatch'
+import { dispatch, type ToolInput } from './dispatch'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
 import { CLIENT_TOOL_SCHEMAS, isClientToolName } from './schemas'
 
@@ -27,8 +27,10 @@ export type ClientTools = {
   // the consumer to pass to their LLM.
   systemPrompt: string
   // Main entry: given a raw tool name + input (e.g. from an LLM tool call),
-  // run the middleware stack and dispatch to the bridge. Unknown tool names
-  // come back as a typed `unknown_tool` failure.
+  // run the middleware stack and dispatch to the bridge. Tool names that
+  // aren't in the registry come back as `unknown_tool`. In practice the
+  // Vercel AI SDK validates tool calls against the registered tool list
+  // before this fires, so the unknown branch is defensive only.
   execute: (toolName: string, input: ToolInput) => Promise<BridgeResult<unknown>>
   // Type guard re-export so the consumer can branch on tool names without
   // importing `schemas.ts` separately.
@@ -40,9 +42,15 @@ export const createClientTools = ({
   systemPrompt,
   middleware = [],
 }: CreateClientToolsArgs): ClientTools => {
-  const composed = composeMiddleware(middleware, ({ toolName, input }) =>
-    safeDispatch(bridge, toolName, input),
-  )
+  const composed = composeMiddleware(middleware, async ({ toolName, input }) => {
+    if (!isClientToolName(toolName)) {
+      return {
+        success: false,
+        error: { code: 'unknown_tool', message: `Unknown tool: ${toolName}` },
+      }
+    }
+    return dispatch(bridge, toolName, input)
+  })
   return {
     schemas: CLIENT_TOOL_SCHEMAS,
     systemPrompt,
