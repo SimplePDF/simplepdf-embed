@@ -1,5 +1,6 @@
 import type { BridgeResult } from '../../embed-bridge'
 import type { ToolInput } from './dispatch'
+import type { ClientToolName } from './schemas'
 
 // Onion-style middleware. Each layer receives a context (tool name + input)
 // and `next()` which triggers the inner dispatcher. Layers can short-circuit
@@ -14,7 +15,7 @@ import type { ToolInput } from './dispatch'
 //     data }` envelope for prompt-injection hardening.
 
 export type MiddlewareContext = {
-  toolName: string
+  toolName: ClientToolName
   input: ToolInput
 }
 

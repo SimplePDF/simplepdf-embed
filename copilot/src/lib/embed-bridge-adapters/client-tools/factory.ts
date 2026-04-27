@@ -1,7 +1,7 @@
 import type { BridgeResult, IframeBridge } from '../../embed-bridge'
 import { dispatch, type ToolInput } from './dispatch'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
-import { CLIENT_TOOL_SCHEMAS, isClientToolName } from './schemas'
+import { type ClientToolName, CLIENT_TOOL_SCHEMAS, isClientToolName } from './schemas'
 
 export type CreateClientToolsArgs = {
   // The iframe bridge the dispatcher will drive. Usually comes from the React
@@ -26,12 +26,13 @@ export type ClientTools = {
   // System prompt passed into createClientTools, re-exported verbatim for
   // the consumer to pass to their LLM.
   systemPrompt: string
-  // Main entry: given a raw tool name + input (e.g. from an LLM tool call),
-  // run the middleware stack and dispatch to the bridge. Tool names that
-  // aren't in the registry come back as `unknown_tool`. In practice the
-  // Vercel AI SDK validates tool calls against the registered tool list
-  // before this fires, so the unknown branch is defensive only.
-  execute: (toolName: string, input: ToolInput) => Promise<BridgeResult<unknown>>
+  // Main entry: middleware stack + bridge dispatch. The caller is expected
+  // to narrow toolName via `isClientToolName` BEFORE calling execute (the
+  // Vercel AI SDK guarantees the LLM only fires registered tools, so the
+  // narrow is a one-line type assertion at the consumer). Pushing the
+  // narrow up means there is no redundant runtime check here, and the
+  // dispatcher stays a pure router with `satisfies never` exhaustiveness.
+  execute: (toolName: ClientToolName, input: ToolInput) => Promise<BridgeResult<unknown>>
   // Type guard re-export so the consumer can branch on tool names without
   // importing `schemas.ts` separately.
   isClientToolName: typeof isClientToolName
@@ -42,15 +43,7 @@ export const createClientTools = ({
   systemPrompt,
   middleware = [],
 }: CreateClientToolsArgs): ClientTools => {
-  const composed = composeMiddleware(middleware, async ({ toolName, input }) => {
-    if (!isClientToolName(toolName)) {
-      return {
-        success: false,
-        error: { code: 'unknown_tool', message: `Unknown tool: ${toolName}` },
-      }
-    }
-    return dispatch(bridge, toolName, input)
-  })
+  const composed = composeMiddleware(middleware, ({ toolName, input }) => dispatch(bridge, toolName, input))
   return {
     schemas: CLIENT_TOOL_SCHEMAS,
     systemPrompt,
