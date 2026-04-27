@@ -1,6 +1,21 @@
 // Shared types for the SimplePDF embed bridge. Pure TypeScript, no
 // framework dependencies.
 
+import type { z } from 'zod'
+import type {
+  DeleteFieldsInput,
+  DeletePagesInput,
+  FocusFieldInput,
+  GetDocumentContentInput,
+  GoToInput,
+  LoadDocumentInput,
+  MovePageInput,
+  RotatePageInput,
+  SelectToolInput,
+  SetFieldValueInput,
+  SubmitInput,
+} from './schemas'
+
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
   | { success: false; error: { code: string; message: string } }
@@ -62,17 +77,6 @@ export type DocumentContentResult = {
   pages: DocumentContentPage[]
 }
 
-export type LoadDocumentArgs = {
-  dataUrl: string
-  name?: string
-  initialPage?: number
-}
-
-export type DeleteFieldsArgs = {
-  fieldIds?: unknown
-  page?: unknown
-}
-
 // State machine. Transitions are strictly forward (booting -> editor_ready ->
 // document_loaded) except for `editor_ready` -> `editor_ready` on EDITOR_READY
 // re-emission (fresh iframe, no doc yet). Impossible states like
@@ -100,29 +104,26 @@ export type BridgeRequestType =
   | 'DELETE_PAGES'
   | 'ROTATE_PAGE'
 
-// LLM-driven bridge methods accept `unknown` for raw LLM-supplied values.
-// The iframe handler in `client/lib/iframe/handlers.ts` is the canonical
-// validator (it owns visiblePageCount + per-field shape rules), so the
-// dispatcher routes the LLM input through unmodified rather than rebuilding
-// a parallel validation layer that would drift from the iframe's rules.
+// Each method's input is typed via z.infer from its bridge schema in
+// schemas.ts — that file is the single source of truth for the iframe
+// contract shape. Output types (BridgeResult<...>) stay explicit since
+// they describe the iframe response, not the request input.
+export type FocusFieldResult = { hint: { type: 'user_action_expected'; message: string } } | null
+
 export type IframeBridge = {
   getState: () => BridgeState
-  loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
-  goTo: (args: { page: unknown }) => Promise<BridgeResult>
-  selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
-  detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
-  deleteFields: (args?: DeleteFieldsArgs) => Promise<BridgeResult<{ deleted_count: number }>>
-  getDocumentContent: (args: {
-    extractionMode: 'auto' | 'ocr'
-  }) => Promise<BridgeResult<DocumentContentResult>>
+  loadDocument: (args: z.infer<typeof LoadDocumentInput>) => Promise<BridgeResult>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
-  setFieldValue: (args: { fieldId: unknown; value: unknown }) => Promise<BridgeResult>
-  focusField: (args: {
-    fieldId: unknown
-  }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
-  submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
+  getDocumentContent: (args: z.infer<typeof GetDocumentContentInput>) => Promise<BridgeResult<DocumentContentResult>>
+  detectFields: () => Promise<BridgeResult<{ detected_count: number }>>
+  deleteFields: (args: z.infer<typeof DeleteFieldsInput>) => Promise<BridgeResult<{ deleted_count: number }>>
+  selectTool: (args: z.infer<typeof SelectToolInput>) => Promise<BridgeResult>
+  setFieldValue: (args: z.infer<typeof SetFieldValueInput>) => Promise<BridgeResult>
+  focusField: (args: z.infer<typeof FocusFieldInput>) => Promise<BridgeResult<FocusFieldResult>>
+  goTo: (args: z.infer<typeof GoToInput>) => Promise<BridgeResult>
+  movePage: (args: z.infer<typeof MovePageInput>) => Promise<BridgeResult>
+  deletePages: (args: z.infer<typeof DeletePagesInput>) => Promise<BridgeResult>
+  rotatePage: (args: z.infer<typeof RotatePageInput>) => Promise<BridgeResult>
+  submit: (args: z.infer<typeof SubmitInput>) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
-  movePage: (args: { fromPage: unknown; toPage: unknown }) => Promise<BridgeResult>
-  deletePages: (args: { pages: unknown }) => Promise<BridgeResult>
-  rotatePage: (args: { page: unknown }) => Promise<BridgeResult>
 }

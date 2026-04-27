@@ -7,8 +7,6 @@ import {
   type FieldRecord,
   type IframeBridge,
   isBridgeResultLike,
-  type LoadDocumentArgs,
-  type DeleteFieldsArgs,
 } from './types'
 
 type PendingRequest = {
@@ -370,28 +368,25 @@ export const createBridge = ({
 
   window.addEventListener('message', onMessage)
 
+  // Each method is a one-line pass-through to sendRequest. The args shape
+  // already matches the iframe's snake_case payload (see schemas.ts), so
+  // no key conversion happens at this layer.
   const bridge: IframeBridge = {
     getState: () => state,
-    loadDocument: ({ dataUrl, name, initialPage }: LoadDocumentArgs) =>
-      sendRequest('LOAD_DOCUMENT', { data_url: dataUrl, name, page: initialPage }),
-    goTo: ({ page }) => sendRequest('GO_TO', { page }),
-    selectTool: ({ tool }) => sendRequest('SELECT_TOOL', { tool }),
-    detectFields: (args) => sendRequest('DETECT_FIELDS', { debug_mode: args?.debugMode === true }),
-    deleteFields: (args?: DeleteFieldsArgs) =>
-      sendRequest('DELETE_FIELDS', {
-        field_ids: args?.fieldIds ?? null,
-        page: args?.page ?? null,
-      }),
-    getDocumentContent: ({ extractionMode }) =>
-      sendRequest<DocumentContentResult>('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
+    loadDocument: (args) => sendRequest('LOAD_DOCUMENT', args),
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
-    setFieldValue: ({ fieldId, value }) => sendRequest('SET_FIELD_VALUE', { field_id: fieldId, value }),
-    focusField: ({ fieldId }) => sendRequest('FOCUS_FIELD', { field_id: fieldId }),
-    submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
+    getDocumentContent: (args) => sendRequest<DocumentContentResult>('GET_DOCUMENT_CONTENT', args),
+    detectFields: () => sendRequest('DETECT_FIELDS', {}),
+    deleteFields: (args) => sendRequest('DELETE_FIELDS', args),
+    selectTool: (args) => sendRequest('SELECT_TOOL', args),
+    setFieldValue: (args) => sendRequest('SET_FIELD_VALUE', args),
+    focusField: (args) => sendRequest('FOCUS_FIELD', args),
+    goTo: (args) => sendRequest('GO_TO', args),
+    movePage: (args) => sendRequest('MOVE_PAGE', args),
+    deletePages: (args) => sendRequest('DELETE_PAGES', args),
+    rotatePage: (args) => sendRequest('ROTATE_PAGE', args),
+    submit: (args) => sendRequest('SUBMIT', args),
     download: () => sendRequest('DOWNLOAD', {}),
-    movePage: ({ fromPage, toPage }) => sendRequest('MOVE_PAGE', { from_page: fromPage, to_page: toPage }),
-    deletePages: ({ pages }) => sendRequest('DELETE_PAGES', { pages }),
-    rotatePage: ({ page }) => sendRequest('ROTATE_PAGE', { page }),
   }
 
   const subscribe = (listener: (nextState: BridgeState) => void): (() => void) => {

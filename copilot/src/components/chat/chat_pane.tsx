@@ -531,7 +531,7 @@ export const ChatPane = ({
     if (activeBridge === null) {
       return
     }
-    void activeBridge.submit({ downloadCopy: false })
+    void activeBridge.submit({ download_copy: false })
   }, [])
 
   const handleDownloadRequested = useCallback((): void => {
