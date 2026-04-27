@@ -1,21 +1,6 @@
 // Shared types for the SimplePDF embed bridge. Pure TypeScript, no
 // framework dependencies.
 
-import type { z } from 'zod'
-import type {
-  DeleteFieldsInput,
-  DeletePagesInput,
-  FocusFieldInput,
-  GetDocumentContentInput,
-  GoToInput,
-  LoadDocumentInput,
-  MovePageInput,
-  RotatePageInput,
-  SelectToolInput,
-  SetFieldValueInput,
-  SubmitInput,
-} from './schemas'
-
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
   | { success: false; error: { code: string; message: string } }
@@ -104,26 +89,28 @@ export type BridgeRequestType =
   | 'DELETE_PAGES'
   | 'ROTATE_PAGE'
 
-// Each method's input is typed via z.infer from its bridge schema in
-// schemas.ts — that file is the single source of truth for the iframe
-// contract shape. Output types (BridgeResult<...>) stay explicit since
-// they describe the iframe response, not the request input.
 export type FocusFieldResult = { hint: { type: 'user_action_expected'; message: string } } | null
 
+// The bridge owns the contract. Each method takes `unknown` (raw, from any
+// caller — the LLM dispatcher, direct UI code, etc.) and validates it
+// internally against the matching Zod schema in schemas.ts before posting
+// to the iframe. Bad input surfaces as `{ success: false, error: { code:
+// 'bad_input', ... } }` without a postMessage round-trip. Adapters do not
+// re-validate.
 export type IframeBridge = {
   getState: () => BridgeState
-  loadDocument: (args: z.infer<typeof LoadDocumentInput>) => Promise<BridgeResult>
+  loadDocument: (args: unknown) => Promise<BridgeResult>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
-  getDocumentContent: (args: z.infer<typeof GetDocumentContentInput>) => Promise<BridgeResult<DocumentContentResult>>
+  getDocumentContent: (args: unknown) => Promise<BridgeResult<DocumentContentResult>>
   detectFields: () => Promise<BridgeResult<{ detected_count: number }>>
-  deleteFields: (args: z.infer<typeof DeleteFieldsInput>) => Promise<BridgeResult<{ deleted_count: number }>>
-  selectTool: (args: z.infer<typeof SelectToolInput>) => Promise<BridgeResult>
-  setFieldValue: (args: z.infer<typeof SetFieldValueInput>) => Promise<BridgeResult>
-  focusField: (args: z.infer<typeof FocusFieldInput>) => Promise<BridgeResult<FocusFieldResult>>
-  goTo: (args: z.infer<typeof GoToInput>) => Promise<BridgeResult>
-  movePage: (args: z.infer<typeof MovePageInput>) => Promise<BridgeResult>
-  deletePages: (args: z.infer<typeof DeletePagesInput>) => Promise<BridgeResult>
-  rotatePage: (args: z.infer<typeof RotatePageInput>) => Promise<BridgeResult>
-  submit: (args: z.infer<typeof SubmitInput>) => Promise<BridgeResult>
+  deleteFields: (args: unknown) => Promise<BridgeResult<{ deleted_count: number }>>
+  selectTool: (args: unknown) => Promise<BridgeResult>
+  setFieldValue: (args: unknown) => Promise<BridgeResult>
+  focusField: (args: unknown) => Promise<BridgeResult<FocusFieldResult>>
+  goTo: (args: unknown) => Promise<BridgeResult>
+  movePage: (args: unknown) => Promise<BridgeResult>
+  deletePages: (args: unknown) => Promise<BridgeResult>
+  rotatePage: (args: unknown) => Promise<BridgeResult>
+  submit: (args: unknown) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
 }

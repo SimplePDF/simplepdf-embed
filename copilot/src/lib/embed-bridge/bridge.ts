@@ -1,10 +1,25 @@
+import type { z } from 'zod'
 import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import {
+  DeleteFieldsInput,
+  DeletePagesInput,
+  FocusFieldInput,
+  GetDocumentContentInput,
+  GoToInput,
+  LoadDocumentInput,
+  MovePageInput,
+  RotatePageInput,
+  SelectToolInput,
+  SetFieldValueInput,
+  SubmitInput,
+} from './schemas'
 import {
   type BridgeRequestType,
   type BridgeResult,
   type BridgeState,
   type DocumentContentResult,
   type FieldRecord,
+  type FocusFieldResult,
   type IframeBridge,
   isBridgeResultLike,
 } from './types'
@@ -109,7 +124,7 @@ export const createBridge = ({
 
   const sendRequest = <TData>(
     type: BridgeRequestType,
-    data: Record<string, unknown>,
+    data: unknown,
   ): Promise<BridgeResult<TData>> =>
     new Promise((resolve) => {
       const iframe = getIframe()
@@ -368,24 +383,49 @@ export const createBridge = ({
 
   window.addEventListener('message', onMessage)
 
-  // Each method is a one-line pass-through to sendRequest. The args shape
-  // already matches the iframe's snake_case payload (see schemas.ts), so
-  // no key conversion happens at this layer.
+  // The bridge OWNS validation: each method validates its `unknown` input
+  // against the schema in schemas.ts before posting to the iframe. The
+  // adapter layer (LLM dispatcher, React SDK, etc.) is therefore a pure
+  // router — no parse, no narrowing. Adding a new method = add a schema in
+  // schemas.ts, add a method on IframeBridge, and add a `parseAndSend` line
+  // here.
+  const parseAndSend = <TSchema extends z.ZodType, TData = null>(
+    schema: TSchema,
+    type: BridgeRequestType,
+    args: unknown,
+  ): Promise<BridgeResult<TData>> => {
+    const parsed = schema.safeParse(args)
+    if (!parsed.success) {
+      return Promise.resolve({
+        success: false,
+        error: { code: 'bad_input', message: parsed.error.message },
+      })
+    }
+    return sendRequest<TData>(type, parsed.data)
+  }
   const bridge: IframeBridge = {
     getState: () => state,
-    loadDocument: (args) => sendRequest('LOAD_DOCUMENT', args),
+    loadDocument: (args) => parseAndSend(LoadDocumentInput, 'LOAD_DOCUMENT', args),
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
-    getDocumentContent: (args) => sendRequest<DocumentContentResult>('GET_DOCUMENT_CONTENT', args),
+    getDocumentContent: (args) => parseAndSend<typeof GetDocumentContentInput, DocumentContentResult>(
+      GetDocumentContentInput,
+      'GET_DOCUMENT_CONTENT',
+      args,
+    ),
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
-    deleteFields: (args) => sendRequest('DELETE_FIELDS', args),
-    selectTool: (args) => sendRequest('SELECT_TOOL', args),
-    setFieldValue: (args) => sendRequest('SET_FIELD_VALUE', args),
-    focusField: (args) => sendRequest('FOCUS_FIELD', args),
-    goTo: (args) => sendRequest('GO_TO', args),
-    movePage: (args) => sendRequest('MOVE_PAGE', args),
-    deletePages: (args) => sendRequest('DELETE_PAGES', args),
-    rotatePage: (args) => sendRequest('ROTATE_PAGE', args),
-    submit: (args) => sendRequest('SUBMIT', args),
+    deleteFields: (args) => parseAndSend<typeof DeleteFieldsInput, { deleted_count: number }>(
+      DeleteFieldsInput,
+      'DELETE_FIELDS',
+      args,
+    ),
+    selectTool: (args) => parseAndSend(SelectToolInput, 'SELECT_TOOL', args),
+    setFieldValue: (args) => parseAndSend(SetFieldValueInput, 'SET_FIELD_VALUE', args),
+    focusField: (args) => parseAndSend<typeof FocusFieldInput, FocusFieldResult>(FocusFieldInput, 'FOCUS_FIELD', args),
+    goTo: (args) => parseAndSend(GoToInput, 'GO_TO', args),
+    movePage: (args) => parseAndSend(MovePageInput, 'MOVE_PAGE', args),
+    deletePages: (args) => parseAndSend(DeletePagesInput, 'DELETE_PAGES', args),
+    rotatePage: (args) => parseAndSend(RotatePageInput, 'ROTATE_PAGE', args),
+    submit: (args) => parseAndSend(SubmitInput, 'SUBMIT', args),
     download: () => sendRequest('DOWNLOAD', {}),
   }
 

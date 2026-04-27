@@ -1,16 +1,4 @@
-import {
-  type BridgeResult,
-  DeleteFieldsInput,
-  DeletePagesInput,
-  FocusFieldInput,
-  GetDocumentContentInput,
-  GoToInput,
-  type IframeBridge,
-  MovePageInput,
-  RotatePageInput,
-  SelectToolInput,
-  SetFieldValueInput,
-} from '../../embed-bridge'
+import type { BridgeResult, IframeBridge } from '../../embed-bridge'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
 import { type ClientToolName, isClientToolName } from './tools'
 
@@ -41,7 +29,7 @@ export type ClientTools = {
   // registered tools.
   execute: (toolName: ClientToolName, input: ToolInput) => Promise<BridgeResult<unknown>>
   // Type guard re-export so the consumer can branch on tool names without
-  // importing `schemas.ts` separately.
+  // importing `tools.ts` separately.
   isClientToolName: typeof isClientToolName
 }
 
@@ -50,45 +38,43 @@ export const createClientTools = ({
   systemPrompt,
   middleware = [],
 }: CreateClientToolsArgs): ClientTools => {
-  // One arm per tool. Each arm parses the LLM-supplied input via the
-  // bridge schema (single source of truth, lives in
-  // embed-bridge/schemas.ts) and forwards the typed payload to the matching
-  // bridge method. `satisfies never` keeps the switch exhaustive over
-  // ClientToolName at compile time.
-  const composed = composeMiddleware(middleware, async ({ toolName, input }) => {
+  // Pure router. Each arm just hands the LLM input to the matching bridge
+  // method; the bridge owns parsing + validation. `satisfies never` keeps
+  // the switch exhaustive over ClientToolName at compile time.
+  const composed = composeMiddleware(middleware, ({ toolName, input }) => {
     switch (toolName) {
       case 'get_fields':
         return bridge.getFields()
       case 'get_document_content':
-        return bridge.getDocumentContent(GetDocumentContentInput.parse(input))
+        return bridge.getDocumentContent(input)
       case 'detect_fields':
         return bridge.detectFields()
       case 'delete_fields':
-        return bridge.deleteFields(DeleteFieldsInput.parse(input))
+        return bridge.deleteFields(input)
       case 'select_tool':
-        return bridge.selectTool(SelectToolInput.parse(input))
+        return bridge.selectTool(input)
       case 'set_field_value':
-        return bridge.setFieldValue(SetFieldValueInput.parse(input))
+        return bridge.setFieldValue(input)
       case 'focus_field':
-        return bridge.focusField(FocusFieldInput.parse(input))
+        return bridge.focusField(input)
       case 'go_to_page':
-        return bridge.goTo(GoToInput.parse(input))
+        return bridge.goTo(input)
       case 'move_page':
-        return bridge.movePage(MovePageInput.parse(input))
+        return bridge.movePage(input)
       case 'delete_pages':
-        return bridge.deletePages(DeletePagesInput.parse(input))
+        return bridge.deletePages(input)
       case 'rotate_page':
-        return bridge.rotatePage(RotatePageInput.parse(input))
+        return bridge.rotatePage(input)
       case 'submit':
         return bridge.submit({ download_copy: false })
       case 'download':
         return bridge.download()
       default:
         toolName satisfies never
-        return {
+        return Promise.resolve({
           success: false,
           error: { code: 'unknown_tool', message: `Unknown tool: ${String(toolName)}` },
-        }
+        })
     }
   })
   return {
