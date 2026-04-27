@@ -324,25 +324,6 @@ const createToolbarSyncMiddleware =
     return result
   }
 
-// When the LLM itself creates a field (via `create_field`), the iframe's
-// field set grows by one. If we did nothing, the post-stream getFields
-// would diff that field as "user-added" and nudge the LLM about a field
-// it just created itself. This middleware extracts the new field id from
-// the bridge result and forwards it to the host so the field-detection
-// hook can pre-mark it as known.
-const createLlmFieldBaselineMiddleware =
-  ({ onLlmCreatedField }: { onLlmCreatedField: (fieldId: string) => void }): ToolMiddleware =>
-  async ({ toolName }, next) => {
-    const result = await next()
-    if (toolName === 'create_field' && result.success) {
-      const data = result.data
-      if (data !== null && typeof data === 'object' && 'field_id' in data && typeof data.field_id === 'string') {
-        onLlmCreatedField(data.field_id)
-      }
-    }
-    return result
-  }
-
 const toUnexpectedToolResult = (error: unknown): BridgeResult<null> => {
   const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
   return {
@@ -550,7 +531,7 @@ export const ChatPane = ({
     if (activeBridge === null) {
       return
     }
-    void activeBridge.submit({ downloadCopy: false })
+    void activeBridge.submit({ download_copy: false })
   }, [])
 
   const handleDownloadRequested = useCallback((): void => {
@@ -640,13 +621,13 @@ export const ChatPane = ({
   }, [])
 
   // Refs-not-props for isStreaming + onFieldAdded: useDetectUserAddedField
-  // must be called BEFORE `tools` useMemo (which needs markFieldAsKnown),
-  // but both of those pieces of information come from useChat which runs
-  // AFTER `tools`. Refs break the cycle; they are synced once useChat's
-  // output is in scope (a bit further down in this component).
+  // must be called BEFORE `tools` useMemo, but both of those pieces of
+  // information come from useChat which runs AFTER `tools`. Refs break the
+  // cycle; they are synced once useChat's output is in scope (a bit further
+  // down in this component).
   const isStreamingRef = useRef(false)
   const onFieldAddedRef = useRef<(event: { tools: SupportedFieldType[]; delta: number }) => void>(() => {})
-  const { markFieldAsKnown: markFieldDetectionAsKnown } = useDetectUserAddedField({
+  useDetectUserAddedField({
     bridge,
     isReady,
     toolbarTool,
@@ -665,11 +646,6 @@ export const ChatPane = ({
     }
     const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
-      createLlmFieldBaselineMiddleware({
-        // When the LLM creates a field, mark its id as known so the next
-        // user-placed-field diff does not attribute it to the user.
-        onLlmCreatedField: (fieldId) => markFieldDetectionAsKnown(fieldId),
-      }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
     ]
     // Demo-only middleware lives at the head of the chain so it
@@ -684,7 +660,7 @@ export const ChatPane = ({
       systemPrompt: SYSTEM_PROMPT,
       middleware,
     })
-  }, [bridge, handleDownloadRequested, markFieldDetectionAsKnown])
+  }, [bridge, handleDownloadRequested])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,

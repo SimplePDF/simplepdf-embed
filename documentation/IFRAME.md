@@ -188,12 +188,12 @@ await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE",
 // Detect fields in the document
 await sendEvent("DETECT_FIELDS", {});
 
-// Remove all fields (or specific ones)
-await sendEvent("REMOVE_FIELDS", {}); // Remove all
-await sendEvent("REMOVE_FIELDS", { page: 1 }); // Remove page 1 only
-await sendEvent("REMOVE_FIELDS", {
+// Delete all fields (or specific ones)
+await sendEvent("DELETE_FIELDS", {}); // Delete all
+await sendEvent("DELETE_FIELDS", { page: 1 }); // Delete page 1 only
+await sendEvent("DELETE_FIELDS", {
   field_ids: ["f_kj8n2hd9x3m1p", "f_q7v5c4b6a0wyz"],
-}); // Remove specific fields
+}); // Delete specific fields
 
 // Extract document content
 const content = await sendEvent("GET_DOCUMENT_CONTENT", {
@@ -208,8 +208,9 @@ await sendEvent("SUBMIT", { download_copy: true });
 // Move a visible page (1-indexed) to a new position
 await sendEvent("MOVE_PAGE", { from_page: 2, to_page: 5 });
 
-// Delete a visible page (1-indexed). The last remaining visible page cannot be deleted
-await sendEvent("DELETE_PAGE", { page: 3 });
+// Delete one or more visible pages (1-indexed). At least one visible page must remain
+await sendEvent("DELETE_PAGES", { pages: [3] });
+await sendEvent("DELETE_PAGES", { pages: [2, 4, 6] });
 
 // Rotate a visible page (1-indexed) 90° clockwise
 await sendEvent("ROTATE_PAGE", { page: 1 });
@@ -297,20 +298,20 @@ Automatically detect form fields in the document.
 
 _No data fields required._
 
-#### REMOVE_FIELDS
+#### DELETE_FIELDS
 
-Remove fields from the document.
+Delete fields from the document.
 
-| Field       | Type       | Required | Description                                      |
-| ----------- | ---------- | -------- | ------------------------------------------------ |
-| `field_ids` | `string[]` | No       | Specific field IDs to remove (omit to remove all) |
-| `page`      | `number`   | No       | Only remove fields on this page                   |
+| Field       | Type       | Required | Description                                       |
+| ----------- | ---------- | -------- | ------------------------------------------------- |
+| `field_ids` | `string[]` | No       | Specific field IDs to delete (omit to delete all) |
+| `page`      | `number`   | No       | Only delete fields on this page                   |
 
 **Response data:**
 
 ```json
 {
-  "removed_count": 5
+  "deleted_count": 5
 }
 ```
 
@@ -353,13 +354,19 @@ Reorder a visible page. Both positions are 1-indexed visible-page numbers (match
 | `from_page` | `number` | Yes      | Visible page to move (1-indexed)             |
 | `to_page`   | `number` | Yes      | Target visible position (1-indexed)          |
 
-#### DELETE_PAGE
+#### DELETE_PAGES
 
-Delete a visible page and any fields placed on it. The last remaining visible page cannot be deleted; doing so returns `bad_request:event_not_allowed`.
+Delete one or more visible pages and any fields placed on them. Visible-page positions are resolved to absolute page numbers before any deletion runs, so passing multiple pages in one call is safe regardless of intermediate index shifts.
 
-| Field  | Type     | Required | Description                          |
-| ------ | -------- | -------- | ------------------------------------ |
-| `page` | `number` | Yes      | Visible page to delete (1-indexed)   |
+| Field   | Type       | Required | Description                                          |
+| ------- | ---------- | -------- | ---------------------------------------------------- |
+| `pages` | `number[]` | Yes      | Non-empty array of visible pages to delete (1-indexed) |
+
+Validation:
+
+- Empty `pages` returns `bad_request:invalid_page`.
+- Any out-of-range or non-integer value returns `bad_request:page_out_of_range` / `bad_request:invalid_page`.
+- `pages.length >= total_visible_pages` returns `bad_request:event_not_allowed` — at least one visible page must remain.
 
 #### ROTATE_PAGE
 

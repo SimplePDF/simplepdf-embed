@@ -213,10 +213,9 @@
       "go_to_page": "Going to the page",
       "set_field_value": "Filling the field",
       "select_tool": "Switching tool",
-      "create_field": "Creating a field",
-      "remove_fields": "Removing fields",
+      "delete_fields": "Deleting fields",
       "move_page": "Moving the page",
-      "delete_page": "Deleting the page",
+      "delete_pages": "Deleting pages",
       "rotate_page": "Rotating the page",
       "submit": "Submitting the form",
       "download": "Preparing the download"

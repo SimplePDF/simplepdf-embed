@@ -1,15 +1,27 @@
+import type { z } from 'zod'
 import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import {
+  DeleteFieldsInput,
+  DeletePagesInput,
+  FocusFieldInput,
+  GetDocumentContentInput,
+  GoToInput,
+  LoadDocumentInput,
+  MovePageInput,
+  RotatePageInput,
+  SelectToolInput,
+  SetFieldValueInput,
+  SubmitInput,
+} from './schemas'
 import {
   type BridgeRequestType,
   type BridgeResult,
   type BridgeState,
-  type CreateFieldArgs,
   type DocumentContentResult,
   type FieldRecord,
+  type FocusFieldResult,
   type IframeBridge,
   isBridgeResultLike,
-  type LoadDocumentArgs,
-  type RemoveFieldsArgs,
 } from './types'
 
 type PendingRequest = {
@@ -34,15 +46,14 @@ const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
     case 'DETECT_FIELDS':
     case 'GET_DOCUMENT_CONTENT':
       return HEAVY_REQUEST_TIMEOUT_MS
-    case 'CREATE_FIELD':
-    case 'DELETE_PAGE':
+    case 'DELETE_FIELDS':
+    case 'DELETE_PAGES':
     case 'FOCUS_FIELD':
     case 'GET_FIELDS':
     case 'DOWNLOAD':
     case 'GO_TO':
     case 'LOAD_DOCUMENT':
     case 'MOVE_PAGE':
-    case 'REMOVE_FIELDS':
     case 'ROTATE_PAGE':
     case 'SELECT_TOOL':
     case 'SET_FIELD_VALUE':
@@ -113,7 +124,7 @@ export const createBridge = ({
 
   const sendRequest = <TData>(
     type: BridgeRequestType,
-    data: Record<string, unknown>,
+    data: unknown,
   ): Promise<BridgeResult<TData>> =>
     new Promise((resolve) => {
       const iframe = getIframe()
@@ -372,38 +383,50 @@ export const createBridge = ({
 
   window.addEventListener('message', onMessage)
 
+  // The bridge OWNS validation: each method validates its `unknown` input
+  // against the schema in schemas.ts before posting to the iframe. The
+  // adapter layer (LLM tool registry, React SDK, etc.) is therefore a pure
+  // router — no parse, no narrowing. Adding a new method = add a schema in
+  // schemas.ts, add a method on IframeBridge, and add a `parseAndSend` line
+  // here.
+  const parseAndSend = <TSchema extends z.ZodType, TData = null>(
+    schema: TSchema,
+    type: BridgeRequestType,
+    args: unknown,
+  ): Promise<BridgeResult<TData>> => {
+    const parsed = schema.safeParse(args)
+    if (!parsed.success) {
+      return Promise.resolve({
+        success: false,
+        error: { code: 'bad_input', message: parsed.error.message },
+      })
+    }
+    return sendRequest<TData>(type, parsed.data)
+  }
   const bridge: IframeBridge = {
     getState: () => state,
-    loadDocument: ({ dataUrl, name, initialPage }: LoadDocumentArgs) =>
-      sendRequest('LOAD_DOCUMENT', { data_url: dataUrl, name, page: initialPage }),
-    goTo: ({ page }) => sendRequest('GO_TO', { page }),
-    selectTool: ({ tool }) => sendRequest('SELECT_TOOL', { tool }),
-    detectFields: (args) => sendRequest('DETECT_FIELDS', { debug_mode: args?.debugMode === true }),
-    removeFields: (args?: RemoveFieldsArgs) =>
-      sendRequest('REMOVE_FIELDS', {
-        field_ids: args?.fieldIds ?? null,
-        page: args?.page ?? null,
-      }),
-    getDocumentContent: ({ extractionMode }) =>
-      sendRequest<DocumentContentResult>('GET_DOCUMENT_CONTENT', { extraction_mode: extractionMode }),
+    loadDocument: (args) => parseAndSend(LoadDocumentInput, 'LOAD_DOCUMENT', args),
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
-    setFieldValue: ({ fieldId, value }) => sendRequest('SET_FIELD_VALUE', { field_id: fieldId, value }),
-    focusField: ({ fieldId }) => sendRequest('FOCUS_FIELD', { field_id: fieldId }),
-    createField: ({ type, x, y, width, height, page, value }: CreateFieldArgs) =>
-      sendRequest<{ field_id: string }>('CREATE_FIELD', {
-        type,
-        x,
-        y,
-        width,
-        height,
-        page,
-        value: value ?? null,
-      }),
-    submit: ({ downloadCopy }) => sendRequest('SUBMIT', { download_copy: downloadCopy }),
+    getDocumentContent: (args) => parseAndSend<typeof GetDocumentContentInput, DocumentContentResult>(
+      GetDocumentContentInput,
+      'GET_DOCUMENT_CONTENT',
+      args,
+    ),
+    detectFields: () => sendRequest('DETECT_FIELDS', {}),
+    deleteFields: (args) => parseAndSend<typeof DeleteFieldsInput, { deleted_count: number }>(
+      DeleteFieldsInput,
+      'DELETE_FIELDS',
+      args,
+    ),
+    selectTool: (args) => parseAndSend(SelectToolInput, 'SELECT_TOOL', args),
+    setFieldValue: (args) => parseAndSend(SetFieldValueInput, 'SET_FIELD_VALUE', args),
+    focusField: (args) => parseAndSend<typeof FocusFieldInput, FocusFieldResult>(FocusFieldInput, 'FOCUS_FIELD', args),
+    goTo: (args) => parseAndSend(GoToInput, 'GO_TO', args),
+    movePage: (args) => parseAndSend(MovePageInput, 'MOVE_PAGE', args),
+    deletePages: (args) => parseAndSend(DeletePagesInput, 'DELETE_PAGES', args),
+    rotatePage: (args) => parseAndSend(RotatePageInput, 'ROTATE_PAGE', args),
+    submit: (args) => parseAndSend(SubmitInput, 'SUBMIT', args),
     download: () => sendRequest('DOWNLOAD', {}),
-    movePage: ({ fromPage, toPage }) => sendRequest('MOVE_PAGE', { from_page: fromPage, to_page: toPage }),
-    deletePage: ({ page }) => sendRequest('DELETE_PAGE', { page }),
-    rotatePage: ({ page }) => sendRequest('ROTATE_PAGE', { page }),
   }
 
   const subscribe = (listener: (nextState: BridgeState) => void): (() => void) => {

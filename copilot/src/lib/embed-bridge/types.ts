@@ -1,9 +1,19 @@
 // Shared types for the SimplePDF embed bridge. Pure TypeScript, no
 // framework dependencies.
 
+// Codes the bridge itself emits. Anything else (`bad_request:invalid_page`,
+// `forbidden:editing_not_allowed`, etc.) is forwarded verbatim from the
+// iframe handler and flows through as a plain string. The `(string & {})`
+// in the union preserves IDE autocomplete for the bridge-owned literals
+// while still accepting arbitrary forwarded codes — narrowing on a
+// specific iframe code stays the consumer's responsibility.
+type BridgeOwnedErrorCode = 'bad_input' | 'bridge_disposed' | 'iframe_not_ready' | 'missing_result' | 'timeout'
+
+export type BridgeErrorCode = BridgeOwnedErrorCode | (string & {})
+
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
-  | { success: false; error: { code: string; message: string } }
+  | { success: false; error: { code: BridgeErrorCode; message: string } }
 
 // Runtime guard for BridgeResult shapes received from the iframe. The
 // postMessage payload is JSON parsed from an untrusted source — same-origin
@@ -62,27 +72,6 @@ export type DocumentContentResult = {
   pages: DocumentContentPage[]
 }
 
-export type LoadDocumentArgs = {
-  dataUrl: string
-  name?: string
-  initialPage?: number
-}
-
-export type CreateFieldArgs = {
-  type: SupportedFieldType
-  x: number
-  y: number
-  width: number
-  height: number
-  page: number
-  value?: string | null
-}
-
-export type RemoveFieldsArgs = {
-  fieldIds?: string[] | null
-  page?: number | null
-}
-
 // State machine. Transitions are strictly forward (booting -> editor_ready ->
 // document_loaded) except for `editor_ready` -> `editor_ready` on EDITOR_READY
 // re-emission (fresh iframe, no doc yet). Impossible states like
@@ -99,37 +88,39 @@ export type BridgeRequestType =
   | 'GO_TO'
   | 'SELECT_TOOL'
   | 'DETECT_FIELDS'
-  | 'REMOVE_FIELDS'
+  | 'DELETE_FIELDS'
   | 'GET_DOCUMENT_CONTENT'
   | 'GET_FIELDS'
   | 'SET_FIELD_VALUE'
   | 'FOCUS_FIELD'
-  | 'CREATE_FIELD'
   | 'SUBMIT'
   | 'DOWNLOAD'
   | 'MOVE_PAGE'
-  | 'DELETE_PAGE'
+  | 'DELETE_PAGES'
   | 'ROTATE_PAGE'
 
+export type FocusFieldResult = { hint: { type: 'user_action_expected'; message: string } } | null
+
+// The bridge owns the contract. Each method takes `unknown` (raw, from any
+// caller) and validates it internally against the matching Zod schema in
+// schemas.ts before posting to the iframe. Bad input surfaces as
+// `{ success: false, error: { code: 'bad_input', ... } }` without a
+// postMessage round-trip. Adapters (LLM tool registry, etc.) do not
+// re-validate.
 export type IframeBridge = {
   getState: () => BridgeState
-  loadDocument: (args: LoadDocumentArgs) => Promise<BridgeResult>
-  goTo: (args: { page: number }) => Promise<BridgeResult>
-  selectTool: (args: { tool: SupportedFieldType | null }) => Promise<BridgeResult>
-  detectFields: (args?: { debugMode?: boolean }) => Promise<BridgeResult<{ detected_count: number }>>
-  removeFields: (args?: RemoveFieldsArgs) => Promise<BridgeResult<{ removed_count: number }>>
-  getDocumentContent: (args: {
-    extractionMode: 'auto' | 'ocr'
-  }) => Promise<BridgeResult<DocumentContentResult>>
+  loadDocument: (args: unknown) => Promise<BridgeResult>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
-  setFieldValue: (args: { fieldId: string; value: string | null }) => Promise<BridgeResult>
-  focusField: (args: {
-    fieldId: string
-  }) => Promise<BridgeResult<{ hint: { type: 'user_action_expected'; message: string } } | null>>
-  createField: (args: CreateFieldArgs) => Promise<BridgeResult<{ field_id: string }>>
-  submit: (args: { downloadCopy: boolean }) => Promise<BridgeResult>
+  getDocumentContent: (args: unknown) => Promise<BridgeResult<DocumentContentResult>>
+  detectFields: () => Promise<BridgeResult<{ detected_count: number }>>
+  deleteFields: (args: unknown) => Promise<BridgeResult<{ deleted_count: number }>>
+  selectTool: (args: unknown) => Promise<BridgeResult>
+  setFieldValue: (args: unknown) => Promise<BridgeResult>
+  focusField: (args: unknown) => Promise<BridgeResult<FocusFieldResult>>
+  goTo: (args: unknown) => Promise<BridgeResult>
+  movePage: (args: unknown) => Promise<BridgeResult>
+  deletePages: (args: unknown) => Promise<BridgeResult>
+  rotatePage: (args: unknown) => Promise<BridgeResult>
+  submit: (args: unknown) => Promise<BridgeResult>
   download: () => Promise<BridgeResult>
-  movePage: (args: { fromPage: number; toPage: number }) => Promise<BridgeResult>
-  deletePage: (args: { page: number }) => Promise<BridgeResult>
-  rotatePage: (args: { page: number }) => Promise<BridgeResult>
 }

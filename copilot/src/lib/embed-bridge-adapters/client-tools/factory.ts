@@ -1,7 +1,8 @@
 import type { BridgeResult, IframeBridge } from '../../embed-bridge'
-import { safeDispatch, type ToolInput } from './dispatch'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
-import { CLIENT_TOOL_SCHEMAS, isClientToolName } from './schemas'
+import { type ClientToolName, isClientToolName } from './tools'
+
+export type ToolInput = Record<string, unknown>
 
 export type CreateClientToolsArgs = {
   // The iframe bridge the dispatcher will drive. Usually comes from the React
@@ -20,18 +21,15 @@ export type CreateClientToolsArgs = {
 }
 
 export type ClientTools = {
-  // Zod input schemas keyed by tool name. Spread into streamText({ tools })
-  // alongside descriptions.
-  schemas: typeof CLIENT_TOOL_SCHEMAS
   // System prompt passed into createClientTools, re-exported verbatim for
   // the consumer to pass to their LLM.
   systemPrompt: string
-  // Main entry: given a raw tool name + input (e.g. from an LLM tool call),
-  // run the middleware stack and dispatch to the bridge. Unknown tool names
-  // come back as a typed `unknown_tool` failure.
-  execute: (toolName: string, input: ToolInput) => Promise<BridgeResult<unknown>>
-  // Type guard re-export so the consumer can branch on tool names without
-  // importing `schemas.ts` separately.
+  // Main entry. The caller narrows toolName via `isClientToolName` once at
+  // the consumer boundary; the Vercel AI SDK guarantees the LLM only fires
+  // registered tools.
+  execute: (toolName: ClientToolName, input: ToolInput) => Promise<BridgeResult<unknown>>
+  // Type guard re-export so the consumer can branch on LLM tool names
+  // without importing `tools.ts` separately.
   isClientToolName: typeof isClientToolName
 }
 
@@ -40,11 +38,46 @@ export const createClientTools = ({
   systemPrompt,
   middleware = [],
 }: CreateClientToolsArgs): ClientTools => {
-  const composed = composeMiddleware(middleware, ({ toolName, input }) =>
-    safeDispatch(bridge, toolName, input),
-  )
+  // Pure router. Each arm just hands the LLM input to the matching bridge
+  // method; the bridge owns parsing + validation. `satisfies never` keeps
+  // the switch exhaustive over ClientToolName at compile time.
+  const composed = composeMiddleware(middleware, ({ toolName, input }) => {
+    switch (toolName) {
+      case 'get_fields':
+        return bridge.getFields()
+      case 'get_document_content':
+        return bridge.getDocumentContent(input)
+      case 'detect_fields':
+        return bridge.detectFields()
+      case 'delete_fields':
+        return bridge.deleteFields(input)
+      case 'select_tool':
+        return bridge.selectTool(input)
+      case 'set_field_value':
+        return bridge.setFieldValue(input)
+      case 'focus_field':
+        return bridge.focusField(input)
+      case 'go_to_page':
+        return bridge.goTo(input)
+      case 'move_page':
+        return bridge.movePage(input)
+      case 'delete_pages':
+        return bridge.deletePages(input)
+      case 'rotate_page':
+        return bridge.rotatePage(input)
+      case 'submit':
+        return bridge.submit({ download_copy: false })
+      case 'download':
+        return bridge.download()
+      default:
+        toolName satisfies never
+        return Promise.resolve({
+          success: false,
+          error: { code: 'unknown_tool', message: `Unknown tool: ${String(toolName)}` },
+        })
+    }
+  })
   return {
-    schemas: CLIENT_TOOL_SCHEMAS,
     systemPrompt,
     execute: (toolName, input) => composed({ toolName, input }),
     isClientToolName,

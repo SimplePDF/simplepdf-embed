@@ -312,7 +312,7 @@ describe('EmbedPDF', () => {
       expect(typeof ref.current?.goTo).toBe('function');
       expect(typeof ref.current?.selectTool).toBe('function');
       expect(typeof ref.current?.detectFields).toBe('function');
-      expect(typeof ref.current?.removeFields).toBe('function');
+      expect(typeof ref.current?.deleteFields).toBe('function');
       expect(typeof ref.current?.getDocumentContent).toBe('function');
       expect(typeof ref.current?.submit).toBe('function');
     });
@@ -322,7 +322,7 @@ describe('EmbedPDF', () => {
         { action: 'goTo' as const, args: { page: 1 } },
         { action: 'selectTool' as const, args: 'TEXT' as const },
         { action: 'detectFields' as const, args: undefined },
-        { action: 'removeFields' as const, args: {} },
+        { action: 'deleteFields' as const, args: {} },
         { action: 'getDocumentContent' as const, args: {} },
         { action: 'submit' as const, args: { downloadCopyOnDevice: false } },
       ])('$action returns error when iframe not available (modal not opened)', async ({ action, args }) => {

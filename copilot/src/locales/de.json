@@ -195,10 +195,9 @@
       "go_to_page": "Wechsel zur Seite",
       "set_field_value": "Feld wird ausgefüllt",
       "select_tool": "Werkzeug wird gewechselt",
-      "create_field": "Feld wird erstellt",
-      "remove_fields": "Felder werden entfernt",
+      "delete_fields": "Felder werden gelöscht",
       "move_page": "Seite wird verschoben",
-      "delete_page": "Seite wird gelöscht",
+      "delete_pages": "Seiten werden gelöscht",
       "rotate_page": "Seite wird gedreht",
       "submit": "Formular wird gesendet",
       "download": "Download wird vorbereitet"

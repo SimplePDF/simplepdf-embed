@@ -1,4 +1,4 @@
-import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
+import { type MutableRefObject, useEffect, useRef } from 'react'
 import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge'
 
 // WORKAROUND: the SimplePDF editor does not currently emit an outbound
@@ -30,11 +30,6 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 // the UI can show one icon per unique type when the user mixed (e.g.
 // TEXT + SIGNATURE in the same batch).
 //
-// LLM-created fields bypass this nudge via `markFieldAsKnown(fieldId)`,
-// called from the create_field middleware once the iframe has confirmed
-// the new field id. The id goes straight into the seen set; the next
-// poll's diff sees no user-added fields.
-//
 // Refs-not-props for the streaming flag and the fire callback let the
 // hook be called BEFORE useChat in the consumer (useChat produces the
 // status + sendMessage used downstream). The consumer syncs the refs
@@ -53,14 +48,6 @@ type UseDetectUserAddedFieldArgs = {
   onFieldAddedRef: MutableRefObject<(event: FieldAddedEvent) => void>
 }
 
-type UseDetectUserAddedFieldReturn = {
-  // Consumers call this when they know a field was added by something
-  // other than the user (e.g. the LLM's `create_field` tool returned a
-  // field id). The id is added to the seen set so the next poll does
-  // NOT attribute that field to the user.
-  markFieldAsKnown: (fieldId: string) => void
-}
-
 export const useDetectUserAddedField = ({
   bridge,
   isReady,
@@ -68,15 +55,9 @@ export const useDetectUserAddedField = ({
   isCursorOverEditor,
   isStreamingRef,
   onFieldAddedRef,
-}: UseDetectUserAddedFieldArgs): UseDetectUserAddedFieldReturn => {
+}: UseDetectUserAddedFieldArgs): void => {
   const seenIdsRef = useRef<Set<string> | null>(null)
   const lastBridgeRef = useRef<IframeBridge | null>(null)
-
-  const markFieldAsKnown = useCallback((fieldId: string): void => {
-    if (seenIdsRef.current !== null) {
-      seenIdsRef.current.add(fieldId)
-    }
-  }, [])
 
   useEffect(() => {
     // Bridge swap is the only event that invalidates the seen set; the
@@ -145,6 +126,4 @@ export const useDetectUserAddedField = ({
       }
     }
   }, [bridge, isReady, toolbarTool, isCursorOverEditor, isStreamingRef, onFieldAddedRef])
-
-  return { markFieldAsKnown }
 }

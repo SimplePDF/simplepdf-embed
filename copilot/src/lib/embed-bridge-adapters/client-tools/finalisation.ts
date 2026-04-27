@@ -1,30 +1,19 @@
+import { DownloadInput, SubmitInput } from '../../embed-bridge'
 import { IS_DEMO_MODE } from '../../mode'
-import { DownloadInput, SubmitInput } from './schemas'
 
 // The single AI SDK tool that finalises the filled PDF. Demo mode (the
 // SimplePDF-hosted copilot.simplepdf.com) exposes only `download`, which
 // short-circuits through the host's upsell-aware handler. SimplePDF customer
 // forks expose only `submit`, which fires the SimplePDF SUBMIT iframe event
 // so the filled PDF lands in the customer's BYOS storage + webhook stack.
+// Both descriptions live with the bridge schemas.
 export type FinalisationToolMap =
   | { submit: { description: string; inputSchema: typeof SubmitInput } }
   | { download: { description: string; inputSchema: typeof DownloadInput } }
 
 export const FINALISATION_TOOL: FinalisationToolMap = IS_DEMO_MODE
-  ? {
-      download: {
-        description:
-          'Finalizes the filled PDF and triggers an in-browser download for the user. Use only when the user asks to download.',
-        inputSchema: DownloadInput,
-      },
-    }
-  : {
-      submit: {
-        description:
-          'Finalizes the filled PDF and submits it to the host application (storage, webhook, etc.). Use only when the user asks to submit or finalize.',
-        inputSchema: SubmitInput,
-      },
-    }
+  ? { download: { description: DownloadInput.description ?? '', inputSchema: DownloadInput } }
+  : { submit: { description: SubmitInput.description ?? '', inputSchema: SubmitInput } }
 
 // Merges the mode-appropriate finalisation tool into the caller's static
 // tool map. The constraint `T & { submit?: never; download?: never }`

@@ -195,10 +195,9 @@
       "go_to_page": "Sayfaya gidiliyor",
       "set_field_value": "Alan dolduruluyor",
       "select_tool": "Araç değiştiriliyor",
-      "create_field": "Alan oluşturuluyor",
-      "remove_fields": "Alanlar kaldırılıyor",
+      "delete_fields": "Alanlar siliniyor",
       "move_page": "Sayfa taşınıyor",
-      "delete_page": "Sayfa siliniyor",
+      "delete_pages": "Sayfalar siliniyor",
       "rotate_page": "Sayfa döndürülüyor",
       "submit": "Form gönderiliyor",
       "download": "İndirme hazırlanıyor"

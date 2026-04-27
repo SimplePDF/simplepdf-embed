@@ -3,18 +3,8 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import type { ServerErrorBody } from '../../lib/api_envelope'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import {
-  DeletePageInput,
-  DetectFieldsInput,
   FINALISATION_ACTION,
-  FocusFieldInput,
-  GetDocumentContentInput,
-  GetFieldsInput,
-  GoToPageInput,
-  MovePageInput,
-  RemoveFieldsInput,
-  RotatePageInput,
-  SelectToolInput,
-  SetFieldValueInput,
+  LLM_STATIC_TOOLS,
   withFinalisationTool,
 } from '../../lib/embed-bridge-adapters/client-tools'
 import { monitoring, normalizeError } from '../../lib/monitoring'
@@ -168,58 +158,7 @@ export const Route = createFileRoute('/api/chat')({
           ],
           maxRetries: 0,
           maxOutputTokens: 500,
-          tools: withFinalisationTool({
-            get_fields: {
-              description: 'Lists every fillable field currently on the document.',
-              inputSchema: GetFieldsInput,
-            },
-            get_document_content: {
-              description: 'Extracts the textual content of the document page by page.',
-              inputSchema: GetDocumentContentInput,
-            },
-            detect_fields: {
-              description:
-                'Asks the editor to auto-detect and create missing fields. Call this when get_fields returned 0 fields.',
-              inputSchema: DetectFieldsInput,
-            },
-            remove_fields: {
-              description:
-                'Removes fields from the document. field_ids targets specific fields by id; page targets a single page (1-indexed); both omitted clears all fields. Destructive — only call when the user explicitly asks to remove fields.',
-              inputSchema: RemoveFieldsInput,
-            },
-            select_tool: {
-              description:
-                'Switches the editor tool (TEXT, BOXED_TEXT, CHECKBOX, SIGNATURE, PICTURE, or null for cursor). Use TEXT to invite the user to drop fields on a scanned document that has no native fields.',
-              inputSchema: SelectToolInput,
-            },
-            set_field_value: {
-              description: 'Writes a value into a single field. Always focus_field first.',
-              inputSchema: SetFieldValueInput,
-            },
-            focus_field: {
-              description: 'Scrolls to and visually highlights a field.',
-              inputSchema: FocusFieldInput,
-            },
-            go_to_page: {
-              description: 'Scrolls the editor to a given 1-based page.',
-              inputSchema: GoToPageInput,
-            },
-            move_page: {
-              description:
-                'Reorders pages: from_page and to_page are 1-indexed visible page positions. Destructive — only call when the user explicitly asks to reorder a page.',
-              inputSchema: MovePageInput,
-            },
-            delete_page: {
-              description:
-                'Permanently removes a visible page (1-indexed) and any fields placed on it. The last remaining page cannot be deleted. Destructive — only call when the user explicitly asks to delete a page.',
-              inputSchema: DeletePageInput,
-            },
-            rotate_page: {
-              description:
-                'Rotates a visible page (1-indexed) 90° clockwise per call (repeat for 180° / 270°). Destructive — only call when the user explicitly asks to rotate a page.',
-              inputSchema: RotatePageInput,
-            },
-          }),
+          tools: withFinalisationTool(LLM_STATIC_TOOLS),
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {
             monitoring.info('chat.finished', {

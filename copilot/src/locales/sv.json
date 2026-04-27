@@ -195,10 +195,9 @@
       "go_to_page": "Går till sidan",
       "set_field_value": "Fyller i fältet",
       "select_tool": "Byter verktyg",
-      "create_field": "Skapar ett fält",
-      "remove_fields": "Tar bort fält",
+      "delete_fields": "Tar bort fält",
       "move_page": "Flyttar sidan",
-      "delete_page": "Tar bort sidan",
+      "delete_pages": "Tar bort sidor",
       "rotate_page": "Roterar sidan",
       "submit": "Skickar in formuläret",
       "download": "Förbereder nedladdning"

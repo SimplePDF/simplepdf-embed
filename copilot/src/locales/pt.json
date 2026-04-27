@@ -195,10 +195,9 @@
       "go_to_page": "A ir para a página",
       "set_field_value": "A preencher o campo",
       "select_tool": "A mudar de ferramenta",
-      "create_field": "A criar um campo",
-      "remove_fields": "A remover campos",
+      "delete_fields": "A eliminar campos",
       "move_page": "A mover a página",
-      "delete_page": "A eliminar a página",
+      "delete_pages": "A eliminar as páginas",
       "rotate_page": "A rodar a página",
       "submit": "A submeter o formulário",
       "download": "A preparar a transferência"

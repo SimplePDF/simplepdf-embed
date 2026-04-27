@@ -195,10 +195,9 @@
       "go_to_page": "Går til siden",
       "set_field_value": "Udfylder feltet",
       "select_tool": "Skifter værktøj",
-      "create_field": "Opretter et felt",
-      "remove_fields": "Fjerner felter",
+      "delete_fields": "Sletter felter",
       "move_page": "Flytter siden",
-      "delete_page": "Sletter siden",
+      "delete_pages": "Sletter sider",
       "rotate_page": "Roterer siden",
       "submit": "Indsender formularen",
       "download": "Forbereder download"

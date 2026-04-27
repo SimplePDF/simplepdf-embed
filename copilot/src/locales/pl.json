@@ -201,10 +201,9 @@
       "go_to_page": "Przechodzenie do strony",
       "set_field_value": "Wypełnianie pola",
       "select_tool": "Zmiana narzędzia",
-      "create_field": "Tworzenie pola",
-      "remove_fields": "Usuwanie pól",
+      "delete_fields": "Usuwanie pól",
       "move_page": "Przenoszenie strony",
-      "delete_page": "Usuwanie strony",
+      "delete_pages": "Usuwanie stron",
       "rotate_page": "Obracanie strony",
       "submit": "Wysyłanie formularza",
       "download": "Przygotowywanie pobrania"
