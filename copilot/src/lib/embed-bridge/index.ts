@@ -21,6 +21,7 @@ export {
   SupportedFieldTypeSchema,
 } from './schemas'
 export type {
+  BridgeErrorCode,
   BridgeRequestType,
   BridgeResult,
   BridgeState,

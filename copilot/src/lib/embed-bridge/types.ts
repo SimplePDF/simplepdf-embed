@@ -1,9 +1,19 @@
 // Shared types for the SimplePDF embed bridge. Pure TypeScript, no
 // framework dependencies.
 
+// Codes the bridge itself emits. Anything else (`bad_request:invalid_page`,
+// `forbidden:editing_not_allowed`, etc.) is forwarded verbatim from the
+// iframe handler and flows through as a plain string. The `(string & {})`
+// in the union preserves IDE autocomplete for the bridge-owned literals
+// while still accepting arbitrary forwarded codes — narrowing on a
+// specific iframe code stays the consumer's responsibility.
+type BridgeOwnedErrorCode = 'bad_input' | 'bridge_disposed' | 'iframe_not_ready' | 'missing_result' | 'timeout'
+
+export type BridgeErrorCode = BridgeOwnedErrorCode | (string & {})
+
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
-  | { success: false; error: { code: string; message: string } }
+  | { success: false; error: { code: BridgeErrorCode; message: string } }
 
 // Runtime guard for BridgeResult shapes received from the iframe. The
 // postMessage payload is JSON parsed from an untrusted source — same-origin
