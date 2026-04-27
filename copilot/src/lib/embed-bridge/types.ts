@@ -74,6 +74,7 @@ export type BridgeState =
 // Request type union. Every postMessage the bridge sends carries one of these
 // as its `type` field. The editor honours each.
 export type BridgeRequestType =
+  | 'LOAD_DOCUMENT'
   | 'GO_TO'
   | 'SELECT_TOOL'
   | 'DETECT_FIELDS'
@@ -98,6 +99,7 @@ export type FocusFieldResult = { hint: { type: 'user_action_expected'; message: 
 // re-validate.
 export type IframeBridge = {
   getState: () => BridgeState
+  loadDocument: (args: unknown) => Promise<BridgeResult>
   getFields: () => Promise<BridgeResult<{ fields: FieldRecord[] }>>
   getDocumentContent: (args: unknown) => Promise<BridgeResult<DocumentContentResult>>
   detectFields: () => Promise<BridgeResult<{ detected_count: number }>>

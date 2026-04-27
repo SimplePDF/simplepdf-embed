@@ -6,6 +6,7 @@ import {
   FocusFieldInput,
   GetDocumentContentInput,
   GoToInput,
+  LoadDocumentInput,
   MovePageInput,
   RotatePageInput,
   SelectToolInput,
@@ -51,6 +52,7 @@ const getRequestTimeoutMs = (requestType: BridgeRequestType): number => {
     case 'GET_FIELDS':
     case 'DOWNLOAD':
     case 'GO_TO':
+    case 'LOAD_DOCUMENT':
     case 'MOVE_PAGE':
     case 'ROTATE_PAGE':
     case 'SELECT_TOOL':
@@ -403,6 +405,7 @@ export const createBridge = ({
   }
   const bridge: IframeBridge = {
     getState: () => state,
+    loadDocument: (args) => parseAndSend(LoadDocumentInput, 'LOAD_DOCUMENT', args),
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
     getDocumentContent: (args) => parseAndSend<typeof GetDocumentContentInput, DocumentContentResult>(
       GetDocumentContentInput,

@@ -98,3 +98,14 @@ export const SubmitInput = z
 export const DownloadInput = NoInput.describe(
   'Finalizes the filled PDF and triggers an in-browser download for the user. Use only when the user asks to download.',
 )
+
+// Bridge-only — not exposed as an LLM tool. Direct callers (host apps,
+// SDK adapters) load documents via this; the copilot demo itself bootstraps
+// from URL params and doesn't currently use it.
+export const LoadDocumentInput = z
+  .object({
+    data_url: z.string(),
+    name: z.string().optional(),
+    page: z.number().int().positive().optional(),
+  })
+  .describe('Loads a PDF document into the editor by URL or data-URL.')
