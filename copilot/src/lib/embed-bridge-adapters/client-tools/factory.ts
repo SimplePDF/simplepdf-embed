@@ -12,7 +12,7 @@ import {
   SetFieldValueInput,
 } from '../../embed-bridge'
 import { composeMiddleware, type ToolMiddleware } from './middleware'
-import { type ClientToolName, isClientToolName } from './schemas'
+import { type ClientToolName, isClientToolName } from './tools'
 
 export type ToolInput = Record<string, unknown>
 

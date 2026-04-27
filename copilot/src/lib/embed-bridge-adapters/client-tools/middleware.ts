@@ -1,6 +1,6 @@
 import type { BridgeResult } from '../../embed-bridge'
 import type { ToolInput } from './factory'
-import type { ClientToolName } from './schemas'
+import type { ClientToolName } from './tools'
 
 // Onion-style middleware. Each layer receives a context (tool name + input)
 // and `next()` which triggers the inner dispatcher. Layers can short-circuit
