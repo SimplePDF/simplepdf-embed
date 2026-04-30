@@ -93,6 +93,8 @@
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
+      "providerGoogle": "Google Gemini",
+      "providerMistral": "Mistral",
       "providerCustom": "自定义端点",
       "providerAzure": "Azure OpenAI",
       "providerBedrock": "AWS Bedrock",

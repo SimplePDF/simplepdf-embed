@@ -93,6 +93,8 @@
       "providerOpenai": "OpenAI",
       "providerAnthropic": "Anthropic",
       "providerDeepseek": "DeepSeek",
+      "providerGoogle": "Google Gemini",
+      "providerMistral": "Mistral",
       "providerCustom": "Kohandatud lõpp-punkt",
       "providerAzure": "Azure OpenAI",
       "providerBedrock": "AWS Bedrock",

@@ -1,5 +1,7 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createDeepSeek } from '@ai-sdk/deepseek'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createMistral } from '@ai-sdk/mistral'
 import { createOpenAI } from '@ai-sdk/openai'
 import type { ByokConfig } from './providers'
 
@@ -24,6 +26,14 @@ export const buildBrowserModel = (config: ByokConfig) => {
     case 'deepseek': {
       const deepseek = createDeepSeek({ apiKey: config.apiKey })
       return deepseek(config.model)
+    }
+    case 'google': {
+      const google = createGoogleGenerativeAI({ apiKey: config.apiKey })
+      return google(config.model)
+    }
+    case 'mistral': {
+      const mistral = createMistral({ apiKey: config.apiKey })
+      return mistral(config.model)
     }
     case 'custom':
       return buildCustomModel(config)

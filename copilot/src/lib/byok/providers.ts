@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export type ByokProviderId = 'openai' | 'anthropic' | 'deepseek' | 'custom'
+export type ByokProviderId = 'openai' | 'anthropic' | 'deepseek' | 'google' | 'mistral' | 'custom'
 type UnsupportedProviderId = 'azure' | 'bedrock'
 
 export type ByokModel = {
@@ -43,7 +43,7 @@ const CustomInstructionsSchema: z.ZodType<CustomInstructions> = z.object({
 // this schema.
 export const ByokConfigSchema: z.ZodType<ByokConfig> = z.discriminatedUnion('provider', [
   z.object({
-    provider: z.enum(['openai', 'anthropic', 'deepseek']),
+    provider: z.enum(['openai', 'anthropic', 'deepseek', 'google', 'mistral']),
     model: z.string().min(1),
     apiKey: z.string(),
     customInstructions: CustomInstructionsSchema.nullable(),
@@ -142,6 +142,46 @@ export const PROVIDER_ENTRIES: ProviderEntry[] = [
         id: 'deepseek-reasoner',
         label: 'DeepSeek V4 Pro',
         description: 'Chain-of-thought mode for tricky forms',
+        recommended: false,
+      },
+    ],
+  },
+  {
+    id: 'google',
+    kind: 'catalog',
+    labelKey: 'chat.modelPicker.providerGoogle',
+    supported: true,
+    models: [
+      {
+        id: 'gemini-2.5-flash',
+        label: 'Gemini 2.5 Flash',
+        description: 'Fast and inexpensive. Fine for most form-filling.',
+        recommended: true,
+      },
+      {
+        id: 'gemini-2.5-pro',
+        label: 'Gemini 2.5 Pro',
+        description: 'Higher reasoning for tricky forms',
+        recommended: false,
+      },
+    ],
+  },
+  {
+    id: 'mistral',
+    kind: 'catalog',
+    labelKey: 'chat.modelPicker.providerMistral',
+    supported: true,
+    models: [
+      {
+        id: 'mistral-small-latest',
+        label: 'Mistral Small',
+        description: 'Fast and inexpensive. Fine for most form-filling.',
+        recommended: true,
+      },
+      {
+        id: 'mistral-large-latest',
+        label: 'Mistral Large',
+        description: 'Higher reasoning for tricky forms',
         recommended: false,
       },
     ],
