@@ -112,7 +112,7 @@
     },
     "stop": "Stoppen",
     "thinking": "Denkt na…",
-    "piiWarning": "Openbare demo. Gebruik alleen voorbeeldgegevens. Berichten worden verwerkt door de geselecteerde AI-provider.",
+    "piiWarning": "Openbare demo. Uw chatberichten verlaten uw apparaat en worden naar de geselecteerde AI-provider verzonden. Gebruik alleen voorbeeldgegevens.",
     "newFieldHint_one": "Nieuw {{field}}-veld toegevoegd door de gebruiker",
     "newFieldHint_other": "{{count}} nieuwe {{field}}-velden toegevoegd door de gebruiker",
     "newFieldsHint_one": "Nieuw veld toegevoegd door de gebruiker",

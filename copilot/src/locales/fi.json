@@ -112,7 +112,7 @@
     },
     "stop": "Pysäytä",
     "thinking": "Ajattelee…",
-    "piiWarning": "Julkinen demo. Käytä vain esimerkkitietoja. Viestit käsittelee valittu tekoälytarjoaja.",
+    "piiWarning": "Julkinen demo. Viestisi poistuvat laitteeltasi ja lähetetään valitulle tekoälytarjoajalle. Käytä vain esimerkkitietoja.",
     "newFieldHint_one": "Käyttäjän lisäämä uusi {{field}}-kenttä",
     "newFieldHint_other": "Käyttäjän lisäämä {{count}} uutta {{field}}-kenttää",
     "newFieldsHint_one": "Käyttäjän lisäämä uusi kenttä",

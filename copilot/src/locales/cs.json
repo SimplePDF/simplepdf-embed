@@ -112,7 +112,7 @@
     },
     "stop": "Zastavit",
     "thinking": "Přemýšlím…",
-    "piiWarning": "Veřejné demo. Používejte pouze ukázková data. Zprávy zpracovává zvolený AI poskytovatel.",
+    "piiWarning": "Veřejné demo. Vaše zprávy opouštějí vaše zařízení a jsou odesílány zvolenému AI poskytovateli. Používejte pouze ukázková data.",
     "newFieldHint_one": "Nové pole typu {{field}} přidané uživatelem",
     "newFieldHint_few": "{{count}} nová pole typu {{field}} přidaná uživatelem",
     "newFieldHint_other": "{{count}} nových polí typu {{field}} přidaných uživatelem",

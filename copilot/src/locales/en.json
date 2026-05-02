@@ -129,7 +129,7 @@
     },
     "stop": "Stop",
     "thinking": "Thinking…",
-    "piiWarning": "Public demo. Use sample data only. Messages are processed by the selected AI provider.",
+    "piiWarning": "Public demo. Your chat messages leave your device and are sent to the selected AI provider. Use sample data only.",
     "newFieldHint_one": "New {{field}} field added by the user",
     "newFieldHint_other": "{{count}} new {{field}} fields added by the user",
     "newFieldsHint_other": "{{count}} new fields added by the user",

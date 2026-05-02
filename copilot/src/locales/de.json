@@ -112,7 +112,7 @@
     },
     "stop": "Stopp",
     "thinking": "Denkt nach…",
-    "piiWarning": "Öffentliche Demo. Verwenden Sie nur Beispieldaten. Nachrichten werden vom ausgewählten KI-Anbieter verarbeitet.",
+    "piiWarning": "Öffentliche Demo. Ihre Chat-Nachrichten verlassen Ihr Gerät und werden an den ausgewählten KI-Anbieter gesendet. Verwenden Sie nur Beispieldaten.",
     "newFieldHint_one": "Neues {{field}}-Feld vom Benutzer hinzugefügt",
     "newFieldHint_other": "{{count}} neue {{field}}-Felder vom Benutzer hinzugefügt",
     "newFieldsHint_one": "Neues Feld vom Benutzer hinzugefügt",

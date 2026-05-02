@@ -112,7 +112,7 @@
     },
     "stop": "Peata",
     "thinking": "Mõtleb…",
-    "piiWarning": "Avalik demo. Kasuta ainult näidisandmeid. Teateid töötleb valitud AI-teenusepakkuja.",
+    "piiWarning": "Avalik demo. Sinu vestlusteated lahkuvad sinu seadmest ja saadetakse valitud AI-teenusepakkujale. Kasuta ainult näidisandmeid.",
     "newFieldHint_one": "Kasutaja lisas uue {{field}}-välja",
     "newFieldHint_other": "Kasutaja lisas {{count}} uut {{field}}-välja",
     "newFieldsHint_one": "Kasutaja lisas uue välja",

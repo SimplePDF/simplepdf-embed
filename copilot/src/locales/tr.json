@@ -112,7 +112,7 @@
     },
     "stop": "Durdur",
     "thinking": "Düşünüyor…",
-    "piiWarning": "Herkese açık demo. Yalnızca örnek veri kullanın. Mesajlar seçilen yapay zeka sağlayıcısı tarafından işlenir.",
+    "piiWarning": "Herkese açık demo. Sohbet mesajlarınız cihazınızdan ayrılır ve seçilen yapay zeka sağlayıcısına gönderilir. Yalnızca örnek veri kullanın.",
     "newFieldHint_one": "Kullanıcı tarafından yeni {{field}} alanı eklendi",
     "newFieldHint_other": "Kullanıcı tarafından {{count}} yeni {{field}} alanı eklendi",
     "newFieldsHint_one": "Kullanıcı tarafından yeni alan eklendi",

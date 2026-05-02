@@ -112,7 +112,7 @@
     },
     "stop": "Zatrzymaj",
     "thinking": "Myślę…",
-    "piiWarning": "Publiczne demo. Używaj wyłącznie przykładowych danych. Wiadomości są przetwarzane przez wybranego dostawcę AI.",
+    "piiWarning": "Publiczne demo. Twoje wiadomości opuszczają Twoje urządzenie i są wysyłane do wybranego dostawcy AI. Używaj wyłącznie przykładowych danych.",
     "newFieldHint_one": "Nowe pole typu {{field}} dodane przez użytkownika",
     "newFieldHint_few": "{{count}} nowe pola typu {{field}} dodane przez użytkownika",
     "newFieldHint_many": "{{count}} nowych pól typu {{field}} dodanych przez użytkownika",

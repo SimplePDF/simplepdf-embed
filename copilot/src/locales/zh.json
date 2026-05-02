@@ -112,7 +112,7 @@
     },
     "stop": "停止",
     "thinking": "思考中…",
-    "piiWarning": "公开演示。仅使用示例数据。消息由所选 AI 提供商处理。",
+    "piiWarning": "公开演示。您的聊天消息会离开您的设备并发送到所选的 AI 提供商。仅使用示例数据。",
     "newFieldHint_other": "用户添加了 {{count}} 个新的 {{field}} 字段",
     "newFieldsHint_other": "用户添加了 {{count}} 个新字段",
     "errorAuthTitle": "身份验证失败。",

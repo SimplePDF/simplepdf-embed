@@ -112,7 +112,7 @@
     },
     "stop": "Arrêter",
     "thinking": "Réflexion en cours…",
-    "piiWarning": "Démo publique. Utilisez uniquement des données d’exemple. Les messages sont traités par le fournisseur d’IA sélectionné.",
+    "piiWarning": "Démo publique. Vos messages quittent votre appareil et sont envoyés au fournisseur d’IA sélectionné. Utilisez uniquement des données d’exemple.",
     "newFieldHint_one": "Nouveau champ {{field}} ajouté par l’utilisateur",
     "newFieldHint_other": "{{count}} nouveaux champs {{field}} ajoutés par l’utilisateur",
     "newFieldsHint_one": "Nouveau champ ajouté par l’utilisateur",

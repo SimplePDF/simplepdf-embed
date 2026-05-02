@@ -112,7 +112,7 @@
     },
     "stop": "Dừng",
     "thinking": "Đang suy nghĩ…",
-    "piiWarning": "Bản demo công khai. Chỉ sử dụng dữ liệu mẫu. Tin nhắn được xử lý bởi nhà cung cấp AI đã chọn.",
+    "piiWarning": "Bản demo công khai. Tin nhắn trò chuyện của bạn rời khỏi thiết bị của bạn và được gửi tới nhà cung cấp AI đã chọn. Chỉ sử dụng dữ liệu mẫu.",
     "newFieldHint_other": "{{count}} trường {{field}} mới do người dùng thêm",
     "newFieldsHint_other": "{{count}} trường mới do người dùng thêm",
     "errorAuthTitle": "Xác thực không thành công.",

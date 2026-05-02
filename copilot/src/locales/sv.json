@@ -112,7 +112,7 @@
     },
     "stop": "Stoppa",
     "thinking": "Tänker…",
-    "piiWarning": "Offentlig demo. Använd endast exempeldata. Meddelanden behandlas av den valda AI-leverantören.",
+    "piiWarning": "Offentlig demo. Dina chattmeddelanden lämnar din enhet och skickas till den valda AI-leverantören. Använd endast exempeldata.",
     "newFieldHint_one": "Nytt {{field}}-fält tillagt av användaren",
     "newFieldHint_other": "{{count}} nya {{field}}-fält tillagda av användaren",
     "newFieldsHint_one": "Nytt fält tillagt av användaren",

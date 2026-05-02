@@ -112,7 +112,7 @@
     },
     "stop": "Ferma",
     "thinking": "Sto pensando…",
-    "piiWarning": "Demo pubblica. Usa solo dati di esempio. I messaggi sono elaborati dal provider IA selezionato.",
+    "piiWarning": "Demo pubblica. I tuoi messaggi escono dal tuo dispositivo e vengono inviati al provider IA selezionato. Usa solo dati di esempio.",
     "newFieldHint_one": "Nuovo campo di tipo {{field}} aggiunto dall’utente",
     "newFieldHint_other": "{{count}} nuovi campi di tipo {{field}} aggiunti dall’utente",
     "newFieldsHint_one": "Nuovo campo aggiunto dall’utente",

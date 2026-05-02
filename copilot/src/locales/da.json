@@ -112,7 +112,7 @@
     },
     "stop": "Stop",
     "thinking": "Tænker…",
-    "piiWarning": "Offentlig demo. Brug kun eksempeldata. Beskeder behandles af den valgte AI-udbyder.",
+    "piiWarning": "Offentlig demo. Dine chatbeskeder forlader din enhed og sendes til den valgte AI-udbyder. Brug kun eksempeldata.",
     "newFieldHint_one": "Nyt {{field}}-felt tilføjet af brugeren",
     "newFieldHint_other": "{{count}} nye {{field}}-felter tilføjet af brugeren",
     "newFieldsHint_one": "Nyt felt tilføjet af brugeren",

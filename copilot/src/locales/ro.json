@@ -112,7 +112,7 @@
     },
     "stop": "Oprește",
     "thinking": "Gândește…",
-    "piiWarning": "Demonstrație publică. Folosiți doar date de exemplu. Mesajele sunt procesate de furnizorul AI selectat.",
+    "piiWarning": "Demonstrație publică. Mesajele tale părăsesc dispozitivul și sunt trimise furnizorului AI selectat. Folosește doar date de exemplu.",
     "newFieldHint_one": "Câmp nou de tip {{field}} adăugat de utilizator",
     "newFieldHint_few": "{{count}} câmpuri noi de tip {{field}} adăugate de utilizator",
     "newFieldHint_other": "{{count}} de câmpuri noi de tip {{field}} adăugate de utilizator",
