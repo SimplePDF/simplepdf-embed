@@ -7,7 +7,8 @@
     "poweredBy": "SimplePDF द्वारा संचालित"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot का अनुभव डेस्कटॉप पर सबसे अच्छा है"
+    "headline": "SimplePDF Copilot का अनुभव डेस्कटॉप पर सबसे अच्छा है",
+    "learnMore": "SimplePDF Copilot के बारे में और जानें"
   },
   "infoModal": {
     "title": "AI-सहायता से फ़ॉर्म भरना, लूप में मानव के साथ",

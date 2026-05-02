@@ -7,7 +7,8 @@
     "poweredBy": "Drivs av SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot upplevs bäst på datorn"
+    "headline": "SimplePDF Copilot upplevs bäst på datorn",
+    "learnMore": "Läs mer om SimplePDF Copilot"
   },
   "infoModal": {
     "title": "AI-assisterad formulärifyllnad, med en människa i loopen",

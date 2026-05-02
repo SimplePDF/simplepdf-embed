@@ -8,6 +8,8 @@ import { CerfaDorModal } from './easter-eggs/cerfa_dor_modal'
 import { FormPicker } from './form_picker'
 
 const CERFA_DOR_LOGO_URL = 'https://cdn.simplepdf.com/simple-pdf/assets/form-copilot/cerfa-dor.jpeg'
+const MOBILE_ILLUSTRATION_URL =
+  'https://cdn.simplepdf.com/simple-pdf/assets/common/form-copilot-illustration.png'
 
 const homeRoute = getRouteApi('/')
 
@@ -20,6 +22,7 @@ type LayoutProps = {
 
 export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => {
   const { t } = useTranslation()
+  const learnMoreHref = buildSimplepdfUrl({ locale, path: '/copilot', query: { s: 'copilot' } })
   return (
     <div className="flex h-screen flex-col bg-slate-50">
       <Header locale={locale} currentFormId={currentFormId} />
@@ -33,7 +36,22 @@ export const Layout = ({ locale, currentFormId, editor, chat }: LayoutProps) => 
       </main>
       <div className="flex flex-1 items-center justify-center p-6 lg:hidden">
         <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
-          <h1 className="text-lg font-semibold text-slate-900">{t('mobileFallback.headline')}</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">{t('mobileFallback.headline')}</h1>
+          <img
+            src={MOBILE_ILLUSTRATION_URL}
+            alt=""
+            aria-hidden="true"
+            className="block h-auto w-full max-w-xs object-contain"
+          />
+          <p className="max-w-[300px] text-base font-medium text-slate-900">{t('header.tagline')}</p>
+          <a
+            href={learnMoreHref}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-medium text-sky-700 hover:text-sky-800 underline underline-offset-4"
+          >
+            {t('mobileFallback.learnMore')}
+          </a>
         </div>
       </div>
     </div>

@@ -7,7 +7,8 @@
     "poweredBy": "Pohoní SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot si nejlépe vychutnáte na počítači"
+    "headline": "SimplePDF Copilot si nejlépe vychutnáte na počítači",
+    "learnMore": "Zjistěte více o SimplePDF Copilot"
   },
   "infoModal": {
     "title": "Vyplňování formulářů s podporou AI, s člověkem ve smyčce",

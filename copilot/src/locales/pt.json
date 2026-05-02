@@ -7,7 +7,8 @@
     "poweredBy": "Com tecnologia SimplePDF"
   },
   "mobileFallback": {
-    "headline": "O SimplePDF Copilot desfruta-se melhor no computador"
+    "headline": "O SimplePDF Copilot desfruta-se melhor no computador",
+    "learnMore": "Saiba mais sobre o SimplePDF Copilot"
   },
   "infoModal": {
     "title": "Preenchimento de formulários assistido por IA, com um humano no processo",

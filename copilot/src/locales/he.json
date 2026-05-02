@@ -7,7 +7,8 @@
     "poweredBy": "מופעל על ידי SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot מיטבי לחוויה במחשב שולחני"
+    "headline": "SimplePDF Copilot מיטבי לחוויה במחשב שולחני",
+    "learnMore": "מידע נוסף על SimplePDF Copilot"
   },
   "infoModal": {
     "title": "מילוי טפסים בסיוע בינה מלאכותית, עם אדם בלולאה",

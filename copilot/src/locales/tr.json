@@ -7,7 +7,8 @@
     "poweredBy": "SimplePDF tarafından güçlendirilmiştir"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot en iyi masaüstünde deneyimlenir"
+    "headline": "SimplePDF Copilot en iyi masaüstünde deneyimlenir",
+    "learnMore": "SimplePDF Copilot hakkında daha fazla bilgi edinin"
   },
   "infoModal": {
     "title": "Döngüde insanla, yapay zeka destekli form doldurma",

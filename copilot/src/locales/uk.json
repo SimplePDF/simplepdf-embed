@@ -7,7 +7,8 @@
     "poweredBy": "Працює на SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot найкраще працює на настільному комп’ютері"
+    "headline": "SimplePDF Copilot найкраще працює на настільному комп’ютері",
+    "learnMore": "Дізнайтеся більше про SimplePDF Copilot"
   },
   "infoModal": {
     "title": "Заповнення форм за допомогою ШІ, з людиною в циклі",

@@ -7,7 +7,8 @@
     "poweredBy": "Drevet av SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot oppleves best på skrivebordet"
+    "headline": "SimplePDF Copilot oppleves best på skrivebordet",
+    "learnMore": "Les mer om SimplePDF Copilot"
   },
   "infoModal": {
     "title": "AI-assistert skjemautfylling, med et menneske i løkken",

@@ -7,7 +7,8 @@
     "poweredBy": "Propulsé par SimplePDF"
   },
   "mobileFallback": {
-    "headline": "SimplePDF Copilot se découvre mieux sur ordinateur"
+    "headline": "SimplePDF Copilot se découvre mieux sur ordinateur",
+    "learnMore": "En savoir plus sur SimplePDF Copilot"
   },
   "infoModal": {
     "title": "Remplissage de formulaires assisté par IA, avec un humain dans la boucle",
