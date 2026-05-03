@@ -92,6 +92,7 @@ export type EventPayloads = {
     instructions_mode: 'append' | 'replace' | null
     instructions_length: number
     system_prompt_length: number
+    max_output_tokens: number
   }
 
   // key_vault.ts (client)

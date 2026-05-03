@@ -7,7 +7,7 @@ import {
 } from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
 import { monitoring, normalizeError } from '../monitoring'
-import { buildBrowserModel } from './model'
+import { buildBrowserModel, getRequestTuning } from './model'
 import type { ByokConfig } from './providers'
 
 const DEFAULT_SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
@@ -61,12 +61,15 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
     config.customInstructions === null
       ? { anthropic: { cacheControl: { type: 'ephemeral' as const } } }
       : undefined
+  const tuning = getRequestTuning(config)
+  const maxOutputTokens = Math.max(MAX_OUTPUT_TOKENS, tuning.maxOutputTokensFloor)
   monitoring.info('byok.system_prompt_built', {
     provider: config.provider,
     model: config.model,
     instructions_mode: config.customInstructions?.mode ?? null,
     instructions_length: config.customInstructions?.text.length ?? 0,
     system_prompt_length: systemContent.length,
+    max_output_tokens: maxOutputTokens,
   })
   const result = streamText({
     model: buildBrowserModel(config),
@@ -82,7 +85,8 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
     // coalesce the null to undefined.
     abortSignal: init?.signal ?? undefined,
     maxRetries: 0,
-    maxOutputTokens: MAX_OUTPUT_TOKENS,
+    maxOutputTokens,
+    providerOptions: tuning.providerOptions,
     tools: withFinalisationTool(LLM_STATIC_TOOLS),
     onError: ({ error }) => {
       monitoring.error('byok.stream_error', { detail: normalizeError(error) })
