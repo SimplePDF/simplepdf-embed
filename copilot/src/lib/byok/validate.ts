@@ -12,10 +12,13 @@ type ValidateArgs = {
 
 const PROBE_TIMEOUT_MS = 10_000
 
-// Sends a single-token completion against the same endpoint the chat uses.
-// CORS surface is inherited from the real chat path, so a green probe means
-// the conversation will work. Worst-case cost is ~5 tokens (~$1e-6) which is
-// cheaper than surfacing a bad key after the first real chat turn.
+// Sends a tiny completion against the same endpoint the chat uses. CORS
+// surface is inherited from the real chat path, so a green probe means
+// the conversation will work. Cost is ~20 tokens (~$1e-5) which is cheaper
+// than surfacing a bad key after the first real chat turn. The cap is 16
+// because the GPT-5 Responses API rejects max_output_tokens below that.
+const PROBE_MAX_OUTPUT_TOKENS = 16
+
 export const validateApiKey = async ({ config, signal }: ValidateArgs): Promise<ValidateResult> => {
   const timeoutSignal = AbortSignal.timeout(PROBE_TIMEOUT_MS)
   const abortSignal = signal !== undefined ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
@@ -23,7 +26,7 @@ export const validateApiKey = async ({ config, signal }: ValidateArgs): Promise<
     await generateText({
       model: buildBrowserModel(config),
       prompt: 'ping',
-      maxOutputTokens: 1,
+      maxOutputTokens: PROBE_MAX_OUTPUT_TOKENS,
       maxRetries: 0,
       abortSignal,
     })
