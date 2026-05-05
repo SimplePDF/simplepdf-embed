@@ -58,7 +58,7 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 
 PHI never leaves the browser unless you explicitly enable submissions. BAA available, end-users need no signup, and submitted documents can land directly in your own S3, Azure Blob Storage, or SharePoint. Used in production by health-tech platforms.
 
-[Learn more about SimplePDF for healthcare »](https://simplepdf.com/healthcare)
+[Learn more about SimplePDF for healthcare »](https://simplepdf.com/use-cases/healthcare)
 
 # AI Copilot
 
