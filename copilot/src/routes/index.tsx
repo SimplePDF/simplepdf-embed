@@ -170,12 +170,11 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
     // Custom / user-picked PDF: the editor falls back to its native file picker
     // when no ?open= is provided. We also drop loadingPlaceholder so the picker
     // is not hidden behind a loading screen.
-    return `${editorHost}?ignoreExistingFields=true`
+    return editorHost
   }
   const params = new URLSearchParams({
     open: pdfUrl,
     loadingPlaceholder: 'true',
-    ignoreExistingFields: 'true',
   })
   return `${editorHost}?${params.toString()}`
 }
