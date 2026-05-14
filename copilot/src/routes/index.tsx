@@ -7,7 +7,7 @@ import { ChatPane } from '../components/chat/chat_pane'
 import { WelcomeModal } from '../components/demo/welcome_modal'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
-import { DEFAULT_FORM_ID, type FormId, getFormsForLocale, isFormId } from '../lib/demo/forms'
+import { DEFAULT_FORM_ID, type FormId, getDefaultFormIdForLocale, getFormsForLocale, isFormId } from '../lib/demo/forms'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { i18n, i18nReady, matchLocaleFromAcceptLanguage } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
@@ -64,12 +64,15 @@ type HomeLoaderData = {
 
 export const Route = createFileRoute('/')({
   component: Home,
-  validateSearch: (raw: Record<string, unknown>): HomeSearch => ({
-    form: isFormId(raw.form) ? raw.form : DEFAULT_FORM_ID,
-    lang: isLanguageCode(raw.lang) ? raw.lang : DEFAULT_LANGUAGE_CODE,
-    ...(isShowParam(raw.show) ? { show: raw.show } : {}),
-    ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
-  }),
+  validateSearch: (raw: Record<string, unknown>): HomeSearch => {
+    const lang = isLanguageCode(raw.lang) ? raw.lang : DEFAULT_LANGUAGE_CODE
+    return {
+      form: isFormId(raw.form) ? raw.form : getDefaultFormIdForLocale(lang),
+      lang,
+      ...(isShowParam(raw.show) ? { show: raw.show } : {}),
+      ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
+    }
+  },
   beforeLoad: async ({ search }) => {
     // Wait for i18next's init() Promise to resolve before the route renders.
     // Without this, the very first render (SSR pass + first client paint)

@@ -8,6 +8,7 @@ export type FormId =
   | 'state_scanned'
   | 'cerfa_12485'
   | 'cerfa_14598'
+  | 'pre_anesthesia'
   | 'custom'
 
 export type FormConfig = {
@@ -85,6 +86,12 @@ const ALL_FORMS: Record<FormId, FormConfig> = {
     labelKey: 'forms.labels.cerfa14598',
     pdfUrl: `${CDN_BASE}/form-copilot/cerfa-14598.pdf`,
   },
+  pre_anesthesia: {
+    id: 'pre_anesthesia',
+    useCaseKey: 'forms.useCases.healthcare',
+    labelKey: 'forms.labels.preAnesthesia',
+    pdfUrl: `${CDN_BASE}/form-copilot/pre-anesthesia.pdf`,
+  },
   custom: {
     id: 'custom',
     useCaseKey: 'forms.useCases.custom',
@@ -95,10 +102,19 @@ const ALL_FORMS: Record<FormId, FormConfig> = {
 
 const EN_ORDER: FormId[] = ['custom', 'w9', 'w4', 'i9', 'healthcare', 'hr']
 const NL_ORDER: FormId[] = ['custom', 'state', 'state_scanned']
-const FR_ORDER: FormId[] = ['custom', 'cerfa_12485', 'cerfa_14598']
+const FR_ORDER: FormId[] = ['custom', 'pre_anesthesia', 'cerfa_12485', 'cerfa_14598']
 const FALLBACK_ORDER: FormId[] = ['custom', 'w9']
 
 export const DEFAULT_FORM_ID: FormId = 'w9'
+
+// Per-locale landing default. The picker order's first non-custom entry is
+// the form a visitor sees on their first paint when no `?form=` is set.
+export const getDefaultFormIdForLocale = (locale: string): FormId => {
+  if (locale === 'fr') {
+    return 'pre_anesthesia'
+  }
+  return DEFAULT_FORM_ID
+}
 
 // Locale-specific form catalogues. Non-EN locales default to a single
 // language-appropriate form (plus the "pick your own" slot). The use-case
@@ -131,4 +147,5 @@ export const isFormId = (value: unknown): value is FormId =>
   value === 'state_scanned' ||
   value === 'cerfa_12485' ||
   value === 'cerfa_14598' ||
+  value === 'pre_anesthesia' ||
   value === 'custom'
