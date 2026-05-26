@@ -335,6 +335,8 @@ Extract text content from the loaded document.
 }
 ```
 
+`content` is reading-order plain text with line breaks preserved between visual lines. Embedded images are represented by an `[image]` marker placed in reading order. Only visible pages are returned (deleted pages are excluded), in their current order.
+
 #### SUBMIT
 
 Submit the document for processing.
