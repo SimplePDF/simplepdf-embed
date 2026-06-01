@@ -72,8 +72,10 @@ const isShowParam = (value: unknown): value is ShowParam =>
   typeof value === 'string' && SHOW_PARAMS.some((candidate) => candidate === value)
 
 // A `?url=` value is dropped straight into the iframe `src` AND its origin
-// becomes the postMessage bridge target, so it must be an absolute http(s) URL
-// on the editor's own base-domain family (e.g. any `*.simplepdf.com` tenant).
+// becomes the postMessage bridge target, so it must be a valid SimplePDF
+// document URL on the editor's own base-domain family (e.g. any
+// `*.simplepdf.com` tenant), such as
+// https://demo.simplepdf.com/documents/c28f061b-1974-4251-ba7a-d08bedc3ef28?prefill=35fdf39e-2e06-4712-bb9d-f62d2f88ce50
 // Rejecting everything else keeps a crafted `?url=javascript:...`, a relative
 // path resolving against our own origin, or a third-party origin (which would
 // be framed with our clipboard permissions and wired to the bridge) out of the
