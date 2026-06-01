@@ -119,6 +119,18 @@ Two providers are supported on the shared-key path:
 
 See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limit options, and the portable base64 one-liner for hosts that mangle embedded quotes (DigitalOcean App Platform, Render, fly.io). Then visit `http://localhost:3001/?share=<id>` and you're set.
 
+### Load a specific document via `?url=`
+
+To open a specific editor URL instead of the bundled demo forms, append `?url=<editor-url>`. The value is used verbatim as the editor iframe `src`, so pass a full SimplePDF editor URL with whatever it needs (`?open=`, a locale prefix, signature-request params, a different tenant subdomain):
+
+```
+http://localhost:3001/?url=https%3A%2F%2Fspdf-copilot.simplepdf.com%2Feditor
+```
+
+URL-encode the value whenever it carries its own query string (e.g. `?open=`), otherwise the nested params get parsed as part of the page URL and dropped.
+
+The value must be an absolute `http(s)` URL on your configured base-domain family (`*.simplepdf.com` by default, or whatever host `VITE_SIMPLEPDF_BASE_DOMAIN` resolves to). Third-party origins are rejected on purpose: the iframe is granted clipboard access and is wired to the `postMessage` bridge, so framing an arbitrary site would hand it both. A malformed or off-domain `?url=` silently falls back to the default demo form. `?url=` combines with `?lang=` and `?share=`; when set, it wins for what the editor loads.
+
 ### Ship it on your own domain
 
 Running SimplePDF Copilot anywhere other than `localhost:3001` or the hosted demo URL requires a SimplePDF [Pro](https://simplepdf.com/pricing) account (or higher) so that:

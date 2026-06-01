@@ -21,6 +21,47 @@ import {
 
 export type { DemoGate }
 
+// Trim incoming env strings, treat empty as missing. Outputs `string | undefined`.
+const TrimmedOptionalString = z.preprocess((val) => {
+  if (typeof val !== 'string') {
+    return undefined
+  }
+  const trimmed = val.trim()
+  return trimmed === '' ? undefined : trimmed
+}, z.string().min(1).optional())
+
+// The company identifier is the only required env var. A missing value MUST
+// fail loudly at startup instead of silently pointing at production SimplePDF
+// with the demo's shared identifier (which would either succeed and bill the
+// demo workspace, or fail at iframe-load time with a confusing whitelist
+// error). Base domain is optional with a default of https://simplepdf.com;
+// override for staging, alternate prod tenants, or a local SimplePDF dev
+// checkout.
+const ClientEnvSchema = z.object({
+  VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
+    (val) => (typeof val === 'string' ? val.trim() : val),
+    z.string().min(1, 'VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)'),
+  ),
+  VITE_SIMPLEPDF_BASE_DOMAIN: TrimmedOptionalString.pipe(z.url().optional()),
+})
+
+const DEFAULT_BASE_DOMAIN = 'https://simplepdf.com'
+
+const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
+  const result = ClientEnvSchema.safeParse({
+    VITE_SIMPLEPDF_COMPANY_IDENTIFIER: import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER,
+    VITE_SIMPLEPDF_BASE_DOMAIN: import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN,
+  })
+  if (!result.success) {
+    throw new Error(`Client env invalid:\n${z.prettifyError(result.error)}`)
+  }
+  return result.data
+})()
+
+const COMPANY_IDENTIFIER = clientEnv.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
+const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN ?? DEFAULT_BASE_DOMAIN)
+const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
+
 // Tuple-derived union so adding / removing a value updates the type, the
 // runtime check, and the URL contract in lockstep. No `as` casts needed at
 // the membership check (the predicate uses `.some` over the typed tuple).
@@ -30,11 +71,35 @@ export type ShowParam = (typeof SHOW_PARAMS)[number]
 const isShowParam = (value: unknown): value is ShowParam =>
   typeof value === 'string' && SHOW_PARAMS.some((candidate) => candidate === value)
 
+// A `?url=` value is dropped straight into the iframe `src` AND its origin
+// becomes the postMessage bridge target, so it must be an absolute http(s) URL
+// on the editor's own base-domain family (e.g. any `*.simplepdf.com` tenant).
+// Rejecting everything else keeps a crafted `?url=javascript:...`, a relative
+// path resolving against our own origin, or a third-party origin (which would
+// be framed with our clipboard permissions and wired to the bridge) out of the
+// iframe. The leading dot on the suffix check blocks look-alikes like
+// `evilsimplepdf.com`.
+const isEmbeddableUrl = (value: unknown): value is string => {
+  if (typeof value !== 'string' || value === '') {
+    return false
+  }
+  try {
+    const { protocol, host } = new URL(value)
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return false
+    }
+    return host === BASE_DOMAIN_URL.host || host.endsWith(`.${BASE_DOMAIN_URL.host}`)
+  } catch {
+    return false
+  }
+}
+
 type HomeSearch = {
   form: FormId
   lang: string
   show?: ShowParam
   share?: string
+  url?: string
 }
 
 // Server-side: detect the visitor's preferred locale when the URL doesn't
@@ -71,6 +136,7 @@ export const Route = createFileRoute('/')({
       lang,
       ...(isShowParam(raw.show) ? { show: raw.show } : {}),
       ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
+      ...(isEmbeddableUrl(raw.url) ? { url: raw.url } : {}),
     }
   },
   beforeLoad: async ({ search }) => {
@@ -121,47 +187,6 @@ export const Route = createFileRoute('/')({
   },
 })
 
-// Trim incoming env strings, treat empty as missing. Outputs `string | undefined`.
-const TrimmedOptionalString = z.preprocess((val) => {
-  if (typeof val !== 'string') {
-    return undefined
-  }
-  const trimmed = val.trim()
-  return trimmed === '' ? undefined : trimmed
-}, z.string().min(1).optional())
-
-// The company identifier is the only required env var. A missing value MUST
-// fail loudly at startup instead of silently pointing at production SimplePDF
-// with the demo's shared identifier (which would either succeed and bill the
-// demo workspace, or fail at iframe-load time with a confusing whitelist
-// error). Base domain is optional with a default of https://simplepdf.com;
-// override for staging, alternate prod tenants, or a local SimplePDF dev
-// checkout.
-const ClientEnvSchema = z.object({
-  VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
-    (val) => (typeof val === 'string' ? val.trim() : val),
-    z.string().min(1, 'VITE_SIMPLEPDF_COMPANY_IDENTIFIER is required (see .env.example)'),
-  ),
-  VITE_SIMPLEPDF_BASE_DOMAIN: TrimmedOptionalString.pipe(z.url().optional()),
-})
-
-const DEFAULT_BASE_DOMAIN = 'https://simplepdf.com'
-
-const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
-  const result = ClientEnvSchema.safeParse({
-    VITE_SIMPLEPDF_COMPANY_IDENTIFIER: import.meta.env.VITE_SIMPLEPDF_COMPANY_IDENTIFIER,
-    VITE_SIMPLEPDF_BASE_DOMAIN: import.meta.env.VITE_SIMPLEPDF_BASE_DOMAIN,
-  })
-  if (!result.success) {
-    throw new Error(`Client env invalid:\n${z.prettifyError(result.error)}`)
-  }
-  return result.data
-})()
-
-const COMPANY_IDENTIFIER = clientEnv.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
-const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN ?? DEFAULT_BASE_DOMAIN)
-const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
-
 // Locales the SimplePDF editor can render via i18n path-prefix routing.
 // English is the default on the non-prefixed path, so it is not listed here.
 const EDITOR_SUPPORTED_LOCALES = new Set(['de', 'es', 'fr', 'it', 'nl', 'pt'])
@@ -183,20 +208,36 @@ const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): str
 }
 
 function Home() {
-  const { form, lang } = Route.useSearch()
+  const { form, lang, url } = Route.useSearch()
   const { demoGate, welcomeDismissed } = Route.useLoaderData()
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const editorResetKey = `${currentForm.id}:${lang}`
+  // A `?url=` overrides everything: its value becomes the iframe `src` verbatim
+  // and the bridge targets that URL's origin so the copilot keeps driving the
+  // editor even when the URL points at a different fork / subdomain. Without
+  // it, the editor URL is built from the picked demo form + locale (the
+  // default behaviour). `url` is validated as an absolute http(s) URL in
+  // validateSearch, so `new URL(url)` never throws here.
+  const editorTarget = ((): { src: string; origin: string } => {
+    if (url !== undefined) {
+      return { src: url, origin: new URL(url).origin }
+    }
+    return { src: buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang }), origin: EDITOR_ORIGIN }
+  })()
+  const editorResetKey = url ?? `${currentForm.id}:${lang}`
   const { bridge, bridgeState } = useIframeBridge({
     iframeRef,
-    editorOrigin: EDITOR_ORIGIN,
+    editorOrigin: editorTarget.origin,
     resetKey: editorResetKey,
     logger: bridgeLogger,
   })
   const isDocumentLoaded = bridgeState.kind === 'document_loaded'
+  // A `?url=` always supplies the document, so the user is never asked to
+  // upload one — only the `custom` demo form (which opens the native file
+  // picker) requires an upload.
+  const requiresUserUpload = url === undefined && form === 'custom'
 
   // WORKAROUND: the SimplePDF editor does not currently emit an outbound
   // FIELD_ADDED event when the user drops a field via the toolbar, so the
@@ -234,6 +275,7 @@ function Home() {
           form: prev.form ?? DEFAULT_FORM_ID,
           lang: nextLang,
           ...(prev.share !== undefined ? { share: prev.share } : {}),
+          ...(prev.url !== undefined ? { url: prev.url } : {}),
         }),
       })
     },
@@ -262,6 +304,7 @@ function Home() {
         lang: prev.lang ?? DEFAULT_LANGUAGE_CODE,
         show: 'info' as const,
         ...(prev.share !== undefined ? { share: prev.share } : {}),
+        ...(prev.url !== undefined ? { url: prev.url } : {}),
       }),
     })
   }, [dismissWelcome, navigate])
@@ -271,18 +314,12 @@ function Home() {
       <Layout
         locale={lang}
         currentFormId={form}
-        editor={
-          <EditorPane
-            ref={iframeRef}
-            iframeKey={editorResetKey}
-            editorSrc={buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang })}
-          />
-        }
+        editor={<EditorPane ref={iframeRef} iframeKey={editorResetKey} editorSrc={editorTarget.src} />}
         chat={
           <ChatPane
             bridge={bridge}
             isReady={isDocumentLoaded}
-            requiresUserUpload={form === 'custom'}
+            requiresUserUpload={requiresUserUpload}
             language={lang}
             onLanguageChange={handleLanguageChange}
             form={form}
