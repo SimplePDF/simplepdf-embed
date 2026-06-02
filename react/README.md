@@ -137,14 +137,14 @@ _Some actions require a SimplePDF account. See [Retrieving PDF Data](../README.m
 
 Use `const { embedRef, actions } = useEmbed();` to programmatically control the embed editor:
 
-| Action                                           | Description                                                                                                         |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `actions.goTo({ page })`                         | Navigate to a specific page                                                                                         |
+| Action                                           | Description                                                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `actions.goTo({ page })`                         | Navigate to a specific page                                                                                        |
 | `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'COMB_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
-| `actions.detectFields()`                         | Automatically detect form fields in the document                                                                    |
-| `actions.deleteFields(options?)`                 | Delete fields by `fieldIds` or `page`, or all fields if no options                                                  |
-| `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                      |
-| `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                 |
+| `actions.detectFields()`                         | Automatically detect form fields in the document                                                                   |
+| `actions.deleteFields(options?)`                 | Delete fields by `fieldIds` or `page`, or all fields if no options                                                 |
+| `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                     |
+| `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                |
 
 All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
