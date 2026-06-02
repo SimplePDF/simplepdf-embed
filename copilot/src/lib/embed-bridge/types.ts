@@ -7,7 +7,12 @@
 // in the union preserves IDE autocomplete for the bridge-owned literals
 // while still accepting arbitrary forwarded codes — narrowing on a
 // specific iframe code stays the consumer's responsibility.
-type BridgeOwnedErrorCode = 'bad_input' | 'bridge_disposed' | 'iframe_not_ready' | 'missing_result' | 'timeout'
+type BridgeOwnedErrorCode =
+  | 'bad_input'
+  | 'bridge_disposed'
+  | 'iframe_not_ready'
+  | 'missing_result'
+  | 'timeout'
 
 export type BridgeErrorCode = BridgeOwnedErrorCode | (string & {})
 
@@ -52,7 +57,7 @@ export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknow
   return false
 }
 
-export type SupportedFieldType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE'
+export type SupportedFieldType = 'TEXT' | 'COMB_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE'
 
 export type FieldRecord = {
   field_id: string

@@ -122,10 +122,7 @@ export const createBridge = ({
     notify()
   }
 
-  const sendRequest = <TData>(
-    type: BridgeRequestType,
-    data: unknown,
-  ): Promise<BridgeResult<TData>> =>
+  const sendRequest = <TData>(type: BridgeRequestType, data: unknown): Promise<BridgeResult<TData>> =>
     new Promise((resolve) => {
       const iframe = getIframe()
       if (iframe === null || iframe.contentWindow === null) {
@@ -407,20 +404,23 @@ export const createBridge = ({
     getState: () => state,
     loadDocument: (args) => parseAndSend(LoadDocumentInput, 'LOAD_DOCUMENT', args),
     getFields: () => sendRequest<{ fields: FieldRecord[] }>('GET_FIELDS', {}),
-    getDocumentContent: (args) => parseAndSend<typeof GetDocumentContentInput, DocumentContentResult>(
-      GetDocumentContentInput,
-      'GET_DOCUMENT_CONTENT',
-      args,
-    ),
+    getDocumentContent: (args) =>
+      parseAndSend<typeof GetDocumentContentInput, DocumentContentResult>(
+        GetDocumentContentInput,
+        'GET_DOCUMENT_CONTENT',
+        args,
+      ),
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
-    deleteFields: (args) => parseAndSend<typeof DeleteFieldsInput, { deleted_count: number }>(
-      DeleteFieldsInput,
-      'DELETE_FIELDS',
-      args,
-    ),
+    deleteFields: (args) =>
+      parseAndSend<typeof DeleteFieldsInput, { deleted_count: number }>(
+        DeleteFieldsInput,
+        'DELETE_FIELDS',
+        args,
+      ),
     selectTool: (args) => parseAndSend(SelectToolInput, 'SELECT_TOOL', args),
     setFieldValue: (args) => parseAndSend(SetFieldValueInput, 'SET_FIELD_VALUE', args),
-    focusField: (args) => parseAndSend<typeof FocusFieldInput, FocusFieldResult>(FocusFieldInput, 'FOCUS_FIELD', args),
+    focusField: (args) =>
+      parseAndSend<typeof FocusFieldInput, FocusFieldResult>(FocusFieldInput, 'FOCUS_FIELD', args),
     goTo: (args) => parseAndSend(GoToInput, 'GO_TO', args),
     movePage: (args) => parseAndSend(MovePageInput, 'MOVE_PAGE', args),
     deletePages: (args) => parseAndSend(DeletePagesInput, 'DELETE_PAGES', args),

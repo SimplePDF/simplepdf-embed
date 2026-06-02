@@ -155,7 +155,7 @@
     "checkbox": "Valintaruutu",
     "signature": "Allekirjoitus",
     "picture": "Kuva",
-    "boxedText": "Teksti ruuduissa",
+    "combText": "Teksti ruuduissa",
     "download": "Lataa",
     "submit": "Lähetä"
   },

@@ -19,7 +19,7 @@ type ToolbarProps = {
   onFinalisation: () => void
 }
 
-const BoxedTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) => (
+const CombTextIcon = ({ size = 14 }: { size?: number; strokeWidth?: number }) => (
   <svg
     viewBox="0 0 5515 4463"
     width={size}
@@ -48,7 +48,7 @@ export const TOOLBAR_OPTIONS: ToolOption[] = [
   { value: 'CHECKBOX', labelKey: 'toolbar.checkbox', icon: Check },
   { value: 'SIGNATURE', labelKey: 'toolbar.signature', icon: PenTool },
   { value: 'PICTURE', labelKey: 'toolbar.picture', icon: ImageIcon },
-  { value: 'BOXED_TEXT', labelKey: 'toolbar.boxedText', icon: BoxedTextIcon },
+  { value: 'COMB_TEXT', labelKey: 'toolbar.combText', icon: CombTextIcon },
 ]
 
 export const Toolbar = ({

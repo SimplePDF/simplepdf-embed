@@ -140,7 +140,7 @@ Use `const { embedRef, actions } = useEmbed();` to programmatically control the 
 | Action                                           | Description                                                                                                         |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `actions.goTo({ page })`                         | Navigate to a specific page                                                                                         |
-| `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'BOXED_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
+| `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'COMB_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
 | `actions.detectFields()`                         | Automatically detect form fields in the document                                                                    |
 | `actions.deleteFields(options?)`                 | Delete fields by `fieldIds` or `page`, or all fields if no options                                                  |
 | `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                      |

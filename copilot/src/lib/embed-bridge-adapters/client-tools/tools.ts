@@ -23,7 +23,9 @@ import {
 // in factory.ts. The switch is exhaustive over ClientToolName, so any
 // addition forces a matching arm at compile time.
 
-const tool = <TSchema extends z.ZodType>(inputSchema: TSchema): { description: string; inputSchema: TSchema } => ({
+const tool = <TSchema extends z.ZodType>(
+  inputSchema: TSchema,
+): { description: string; inputSchema: TSchema } => ({
   description: inputSchema.description ?? '',
   inputSchema,
 })

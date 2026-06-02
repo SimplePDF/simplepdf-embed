@@ -138,7 +138,7 @@ type CompactedDocumentContent = { name: string | null; pages: DocumentContentPag
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
   value === null ||
   value === 'TEXT' ||
-  value === 'BOXED_TEXT' ||
+  value === 'COMB_TEXT' ||
   value === 'CHECKBOX' ||
   value === 'SIGNATURE' ||
   value === 'PICTURE'
@@ -156,7 +156,7 @@ type PlacementTool = Exclude<ToolbarTool, null>
 // dedupes for icon rendering.
 type NewFieldHintMetadata = { kind: 'new_field_hint'; tools: PlacementTool[]; delta: number }
 
-const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
+const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'COMB_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
 const isPlacementTool = (value: unknown): value is PlacementTool =>
   typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 
@@ -174,7 +174,9 @@ const buildNewFieldMessage = ({
     if (uniqueTools.length === 1) {
       return `${delta} new ${uniqueTools[0]} fields were just added to the document. Please continue helping me with them.`
     }
-    const breakdown = uniqueTools.map((tool) => `${tools.filter((t) => t === tool).length} ${tool}`).join(', ')
+    const breakdown = uniqueTools
+      .map((tool) => `${tools.filter((t) => t === tool).length} ${tool}`)
+      .join(', ')
     return `${delta} new fields were just added to the document (${breakdown}). Please continue helping me with them.`
   })()
   return { text, metadata: { kind: 'new_field_hint', tools, delta } }
@@ -859,6 +861,7 @@ export const ChatPane = ({
   // the visible width. Reset height to 'auto' first so scrollHeight reflects
   // the wrapped content, then clamp to MAX. The CSS transition on the element
   // animates the height change.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `draft` is a deliberate re-run trigger (the body reads scrollHeight, not draft) so the textarea resizes on every keystroke; removing it freezes the height.
   useLayoutEffect(() => {
     const textarea = inputRef.current
     if (textarea === null) {

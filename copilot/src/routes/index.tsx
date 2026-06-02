@@ -7,7 +7,13 @@ import { ChatPane } from '../components/chat/chat_pane'
 import { WelcomeModal } from '../components/demo/welcome_modal'
 import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
-import { DEFAULT_FORM_ID, type FormId, getDefaultFormIdForLocale, getFormsForLocale, isFormId } from '../lib/demo/forms'
+import {
+  DEFAULT_FORM_ID,
+  type FormId,
+  getDefaultFormIdForLocale,
+  getFormsForLocale,
+  isFormId,
+} from '../lib/demo/forms'
 import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { i18n, i18nReady, matchLocaleFromAcceptLanguage } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
@@ -117,7 +123,7 @@ const readPreferredLocaleWhenLangAbsent = createServerFn({ method: 'GET' }).hand
         return null
       }
     })()
-    if (url !== null && url.searchParams.has('lang')) {
+    if (url?.searchParams.has('lang')) {
       return null
     }
     return matchLocaleFromAcceptLanguage(getRequestHeader('accept-language'))

@@ -374,7 +374,7 @@ describe('Type assertions', () => {
   // These types are intentionally inlined to act as a "frozen" contract.
   // If the actual types change, these tests will fail at compile time.
 
-  type ExpectedToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+  type ExpectedToolType = 'TEXT' | 'COMB_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
 
   type ExpectedErrorResult = {
     success: false;

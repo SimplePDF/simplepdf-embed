@@ -155,7 +155,7 @@
     "checkbox": "Afkrydsningsfelt",
     "signature": "Underskrift",
     "picture": "Billede",
-    "boxedText": "Tekst i felter",
+    "combText": "Tekst i felter",
     "download": "Download",
     "submit": "Indsend"
   },

@@ -193,7 +193,7 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `detect_fields` | Auto-detect missing fields on scanned PDFs |
 | `focus_field` | Highlight + scroll to a field |
 | `set_field_value` | Write a value into a field |
-| `select_tool` | Switch the editor toolbar (`TEXT`, `BOXED_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
+| `select_tool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
 | `go_to_page` | Navigate to a specific page (1-indexed) |
 | `move_page` | Reorder a visible page (`from_page` → `to_page`, both 1-indexed). Destructive — only fired on explicit user request |
 | `delete_page` | Remove a visible page and its fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |

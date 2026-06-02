@@ -5,7 +5,7 @@ const DEFAULT_REQUEST_TIMEOUT_IN_MS = 30000;
 
 type ExtractionMode = 'auto' | 'ocr';
 
-type ToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
+type ToolType = 'TEXT' | 'COMB_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE';
 
 type ErrorCodePrefix = 'bad_request' | 'unexpected' | 'forbidden';
 
