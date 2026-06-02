@@ -183,7 +183,7 @@ await sendEvent("LOAD_DOCUMENT", {
 await sendEvent("GO_TO", { page: 3 });
 
 // Select a tool
-await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE", "PICTURE", "BOXED_TEXT", null
+await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE", "PICTURE", "COMB_TEXT", null
 
 // Detect fields in the document
 await sendEvent("DETECT_FIELDS", {});
@@ -290,7 +290,7 @@ Select a drawing tool or return to cursor mode.
 
 | Field  | Type             | Required | Description                                                                              |
 | ------ | ---------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `tool` | `string \| null` | Yes      | `"TEXT"`, `"BOXED_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, `"PICTURE"`, or `null` for cursor |
+| `tool` | `string \| null` | Yes      | `"TEXT"`, `"COMB_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, `"PICTURE"`, or `null` for cursor |
 
 #### DETECT_FIELDS
 

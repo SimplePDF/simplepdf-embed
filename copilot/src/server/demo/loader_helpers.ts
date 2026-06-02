@@ -85,5 +85,6 @@ export const writeWelcomeDismissedCookie = (): void => {
     return
   }
   const secureFlag = typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : ''
+  // biome-ignore lint/suspicious/noDocumentCookie: deliberate first-party write; the CookieStore API is async and lacks the browser support this synchronous helper needs.
   document.cookie = `${WELCOME_DISMISSED_COOKIE}=1; path=/; max-age=31536000; SameSite=Lax${secureFlag}`
 }

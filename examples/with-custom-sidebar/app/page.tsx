@@ -5,7 +5,7 @@ import { Type, ImageIcon, MousePointer, Check, PenTool, FileText, Loader2 } from
 import { EmbedPDF, useEmbed } from "@simplepdf/react-embed-pdf"
 import { Switch } from "@/components/ui/switch"
 
-type ToolType = 'TEXT' | 'BOXED_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE' | null;
+type ToolType = 'TEXT' | 'COMB_TEXT' | 'CHECKBOX' | 'PICTURE' | 'SIGNATURE' | null;
 
 export default function PDFEditorUI() {
   const [selectedTool, setSelectedTool] = useState<ToolType>(null)

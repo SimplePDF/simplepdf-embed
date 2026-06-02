@@ -10,7 +10,7 @@ import { z } from 'zod'
 // One file, one schema per operation. The shape is the snake_case payload
 // that travels over postMessage; nothing converts keys between layers.
 
-export const SupportedFieldTypeSchema = z.enum(['TEXT', 'BOXED_TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
+export const SupportedFieldTypeSchema = z.enum(['TEXT', 'COMB_TEXT', 'CHECKBOX', 'PICTURE', 'SIGNATURE'])
 
 export const NoInput = z.object({})
 
@@ -28,8 +28,16 @@ export const DetectFieldsInput = NoInput.describe(
 
 export const DeleteFieldsInput = z
   .object({
-    field_ids: z.array(z.string()).optional().describe('Specific field identifiers to delete (omit to target by page or all)'),
-    page: z.number().int().positive().optional().describe('1-indexed visible page to clear (omit to target specific ids or all)'),
+    field_ids: z
+      .array(z.string())
+      .optional()
+      .describe('Specific field identifiers to delete (omit to target by page or all)'),
+    page: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .describe('1-indexed visible page to clear (omit to target specific ids or all)'),
   })
   .describe(
     'Deletes fields from the document. Pass field_ids to delete specific fields, page to clear a single page, or both omitted to delete every field. Destructive: only call when the user explicitly asks.',
@@ -37,10 +45,12 @@ export const DeleteFieldsInput = z
 
 export const SelectToolInput = z
   .object({
-    tool: SupportedFieldTypeSchema.nullable().describe('Editor tool to activate. Pass null to return to the cursor.'),
+    tool: SupportedFieldTypeSchema.nullable().describe(
+      'Editor tool to activate. Pass null to return to the cursor.',
+    ),
   })
   .describe(
-    'Switches the active editor tool. Use tool="TEXT" for free-form text, "BOXED_TEXT" for box-per-character fields (e.g. IBAN), or any of the other field types to let the user drop fields on a document without native AcroFields.',
+    'Switches the active editor tool. Use tool="TEXT" for free-form text, "COMB_TEXT" for box-per-character fields (e.g. IBAN), or any of the other field types to let the user drop fields on a document without native AcroFields.',
   )
 
 export const SetFieldValueInput = z
@@ -50,7 +60,7 @@ export const SetFieldValueInput = z
       .string()
       .nullable()
       .describe(
-        'Value to write. TEXT/BOXED_TEXT: any string. CHECKBOX: "checked" ticks, null un-ticks (never "true"/"false"). Do not use this tool for SIGNATURE or PICTURE fields.',
+        'Value to write. TEXT/COMB_TEXT: any string. CHECKBOX: "checked" ticks, null un-ticks (never "true"/"false"). Do not use this tool for SIGNATURE or PICTURE fields.',
       ),
   })
   .describe('Writes a value into a single field in the PDF')
