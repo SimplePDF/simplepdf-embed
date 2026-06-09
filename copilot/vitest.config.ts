@@ -14,5 +14,9 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
     environment: 'node',
+    // Registers a global afterEach so @testing-library/react auto-cleans the
+    // DOM between component tests (otherwise renders accumulate in the same
+    // document and pollute document-scoped queries).
+    globals: true,
   },
 })
