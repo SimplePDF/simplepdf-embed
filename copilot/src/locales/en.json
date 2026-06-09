@@ -249,5 +249,30 @@
       "ruptureConventionnelle": "HR (mutual agreement termination)"
     },
     "customSubtitle": "Any PDF works - kept on your device"
+  },
+  "voice": {
+    "micLabel": "Record a voice message",
+    "record": "Record",
+    "recordLabel": "Start recording",
+    "stop": "Stop",
+    "stopLabel": "Stop recording",
+    "cancel": "Cancel",
+    "cancelLabel": "Discard recording",
+    "disclosure": "Audio is sent to SimplePDF and OpenAI to transcribe.",
+    "transcribing": "Transcribing…",
+    "statusRecording": "Recording",
+    "statusTranscribing": "Transcribing your recording",
+    "waveformLabel": "Microphone input level",
+    "dismissError": "Dismiss",
+    "errorPermissionDenied": "Microphone access was denied. Allow it in your browser to use voice input.",
+    "errorMicrophoneUnavailable": "No microphone was found. Connect one and try again.",
+    "errorRecordingFailed": "Recording failed. Please try again.",
+    "errorEncodingFailed": "Could not capture the audio. Please try again.",
+    "errorUnauthorized": "Voice input isn't available for this session.",
+    "errorRateLimited": "You've reached the voice input limit for this demo.",
+    "errorTooLarge": "That recording is too long. Try a shorter one.",
+    "errorUnsupportedMediaType": "Your browser produced an unsupported audio format.",
+    "errorBadRequest": "We couldn't transcribe that audio. Please try again.",
+    "errorServiceUnavailable": "Voice transcription is temporarily unavailable. Please try again."
   }
 }
