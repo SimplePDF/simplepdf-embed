@@ -222,5 +222,30 @@
       "custom": "Elige tu propio PDF"
     },
     "customSubtitle": "Cualquier PDF funciona - se queda en tu dispositivo"
+  },
+  "voice": {
+    "micLabel": "Grabar un mensaje de voz",
+    "record": "Grabar",
+    "recordLabel": "Iniciar grabación",
+    "stop": "Detener",
+    "stopLabel": "Detener grabación",
+    "cancel": "Cancelar",
+    "cancelLabel": "Descartar grabación",
+    "disclosure": "El audio se envía a SimplePDF y OpenAI para transcribirlo.",
+    "transcribing": "Transcribiendo…",
+    "statusRecording": "Grabando",
+    "statusTranscribing": "Transcribiendo tu grabación",
+    "waveformLabel": "Nivel de entrada del micrófono",
+    "dismissError": "Descartar",
+    "errorPermissionDenied": "Se denegó el acceso al micrófono. Permítelo en tu navegador para usar la entrada de voz.",
+    "errorMicrophoneUnavailable": "No se encontró ningún micrófono. Conecta uno e inténtalo de nuevo.",
+    "errorRecordingFailed": "La grabación falló. Inténtalo de nuevo.",
+    "errorEncodingFailed": "No se pudo capturar el audio. Inténtalo de nuevo.",
+    "errorUnauthorized": "La entrada de voz no está disponible para esta sesión.",
+    "errorRateLimited": "Has alcanzado el límite de entrada de voz para esta demostración.",
+    "errorTooLarge": "Esa grabación es demasiado larga. Prueba con una más corta.",
+    "errorUnsupportedMediaType": "Tu navegador produjo un formato de audio no compatible.",
+    "errorBadRequest": "No pudimos transcribir ese audio. Inténtalo de nuevo.",
+    "errorServiceUnavailable": "La transcripción de voz no está disponible temporalmente. Inténtalo de nuevo."
   }
 }

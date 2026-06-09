@@ -234,5 +234,30 @@
       "custom": "اختر PDF الخاص بك"
     },
     "customSubtitle": "أي PDF يعمل - يبقى على جهازك"
+  },
+  "voice": {
+    "micLabel": "تسجيل رسالة صوتية",
+    "record": "تسجيل",
+    "recordLabel": "بدء التسجيل",
+    "stop": "إيقاف",
+    "stopLabel": "إيقاف التسجيل",
+    "cancel": "إلغاء",
+    "cancelLabel": "تجاهل التسجيل",
+    "disclosure": "يُرسَل الصوت إلى SimplePDF وOpenAI لتفريغه نصيًا.",
+    "transcribing": "جارٍ التفريغ النصي…",
+    "statusRecording": "جارٍ التسجيل",
+    "statusTranscribing": "جارٍ تفريغ تسجيلك نصيًا",
+    "waveformLabel": "مستوى دخل الميكروفون",
+    "dismissError": "تجاهل",
+    "errorPermissionDenied": "تم رفض الوصول إلى الميكروفون. اسمح به في متصفحك لاستخدام الإدخال الصوتي.",
+    "errorMicrophoneUnavailable": "لم يُعثر على ميكروفون. وصّل واحدًا وحاول مرة أخرى.",
+    "errorRecordingFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى.",
+    "errorEncodingFailed": "تعذّر التقاط الصوت. يرجى المحاولة مرة أخرى.",
+    "errorUnauthorized": "الإدخال الصوتي غير متاح لهذه الجلسة.",
+    "errorRateLimited": "لقد وصلت إلى حد الإدخال الصوتي لهذا العرض التوضيحي.",
+    "errorTooLarge": "هذا التسجيل طويل جدًا. جرّب تسجيلًا أقصر.",
+    "errorUnsupportedMediaType": "أنتج متصفحك تنسيق صوت غير مدعوم.",
+    "errorBadRequest": "تعذّر علينا تفريغ هذا الصوت نصيًا. يرجى المحاولة مرة أخرى.",
+    "errorServiceUnavailable": "التفريغ النصي للصوت غير متاح مؤقتًا. يرجى المحاولة مرة أخرى."
   }
 }

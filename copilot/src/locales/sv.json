@@ -222,5 +222,30 @@
       "custom": "Välj din egen PDF"
     },
     "customSubtitle": "Alla PDF fungerar - stannar på din enhet"
+  },
+  "voice": {
+    "micLabel": "Spela in ett röstmeddelande",
+    "record": "Spela in",
+    "recordLabel": "Starta inspelning",
+    "stop": "Stoppa",
+    "stopLabel": "Stoppa inspelning",
+    "cancel": "Avbryt",
+    "cancelLabel": "Kassera inspelning",
+    "disclosure": "Ljudet skickas till SimplePDF och OpenAI för transkribering.",
+    "transcribing": "Transkriberar…",
+    "statusRecording": "Spelar in",
+    "statusTranscribing": "Transkriberar din inspelning",
+    "waveformLabel": "Mikrofonens ingångsnivå",
+    "dismissError": "Stäng",
+    "errorPermissionDenied": "Åtkomst till mikrofonen nekades. Tillåt den i din webbläsare för att använda röstinmatning.",
+    "errorMicrophoneUnavailable": "Ingen mikrofon hittades. Anslut en och försök igen.",
+    "errorRecordingFailed": "Inspelningen misslyckades. Försök igen.",
+    "errorEncodingFailed": "Det gick inte att fånga ljudet. Försök igen.",
+    "errorUnauthorized": "Röstinmatning är inte tillgänglig för den här sessionen.",
+    "errorRateLimited": "Du har nått gränsen för röstinmatning i den här demon.",
+    "errorTooLarge": "Inspelningen är för lång. Prova en kortare.",
+    "errorUnsupportedMediaType": "Din webbläsare skapade ett ljudformat som inte stöds.",
+    "errorBadRequest": "Vi kunde inte transkribera det ljudet. Försök igen.",
+    "errorServiceUnavailable": "Rösttranskribering är tillfälligt otillgänglig. Försök igen."
   }
 }

@@ -225,5 +225,30 @@
       "custom": "Alege propriul PDF"
     },
     "customSubtitle": "Orice PDF funcționează - rămâne pe dispozitivul tău"
+  },
+  "voice": {
+    "micLabel": "Înregistrează un mesaj vocal",
+    "record": "Înregistrează",
+    "recordLabel": "Pornește înregistrarea",
+    "stop": "Oprește",
+    "stopLabel": "Oprește înregistrarea",
+    "cancel": "Anulează",
+    "cancelLabel": "Renunță la înregistrare",
+    "disclosure": "Sunetul este trimis către SimplePDF și OpenAI pentru transcriere.",
+    "transcribing": "Se transcrie…",
+    "statusRecording": "Se înregistrează",
+    "statusTranscribing": "Se transcrie înregistrarea ta",
+    "waveformLabel": "Nivelul de intrare al microfonului",
+    "dismissError": "Închide",
+    "errorPermissionDenied": "Accesul la microfon a fost refuzat. Permite-l în browser pentru a folosi introducerea vocală.",
+    "errorMicrophoneUnavailable": "Nu a fost găsit niciun microfon. Conectează unul și încearcă din nou.",
+    "errorRecordingFailed": "Înregistrarea a eșuat. Te rugăm să încerci din nou.",
+    "errorEncodingFailed": "Sunetul nu a putut fi capturat. Te rugăm să încerci din nou.",
+    "errorUnauthorized": "Introducerea vocală nu este disponibilă pentru această sesiune.",
+    "errorRateLimited": "Ai atins limita de introducere vocală pentru această demonstrație.",
+    "errorTooLarge": "Înregistrarea este prea lungă. Încearcă una mai scurtă.",
+    "errorUnsupportedMediaType": "Browserul tău a produs un format audio neacceptat.",
+    "errorBadRequest": "Nu am putut transcrie acel audio. Te rugăm să încerci din nou.",
+    "errorServiceUnavailable": "Transcrierea vocală este temporar indisponibilă. Te rugăm să încerci din nou."
   }
 }

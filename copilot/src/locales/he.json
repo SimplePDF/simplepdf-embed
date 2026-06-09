@@ -225,5 +225,30 @@
       "custom": "בחרו PDF משלכם"
     },
     "customSubtitle": "כל PDF עובד - נשאר במכשיר שלכם"
+  },
+  "voice": {
+    "micLabel": "הקלטת הודעה קולית",
+    "record": "הקלטה",
+    "recordLabel": "התחלת הקלטה",
+    "stop": "עצירה",
+    "stopLabel": "עצירת ההקלטה",
+    "cancel": "ביטול",
+    "cancelLabel": "מחיקת ההקלטה",
+    "disclosure": "האודיו נשלח אל SimplePDF ואל OpenAI לצורך תמלול.",
+    "transcribing": "מתמלל…",
+    "statusRecording": "מקליט",
+    "statusTranscribing": "מתמלל את ההקלטה שלכם",
+    "waveformLabel": "עוצמת הקלט של המיקרופון",
+    "dismissError": "סגירה",
+    "errorPermissionDenied": "הגישה למיקרופון נדחתה. אשרו אותה בדפדפן כדי להשתמש בקלט קולי.",
+    "errorMicrophoneUnavailable": "לא נמצא מיקרופון. חברו מיקרופון ונסו שוב.",
+    "errorRecordingFailed": "ההקלטה נכשלה. נסו שוב.",
+    "errorEncodingFailed": "לא ניתן היה ללכוד את האודיו. נסו שוב.",
+    "errorUnauthorized": "קלט קולי אינו זמין עבור הפעלה זו.",
+    "errorRateLimited": "הגעתם למגבלת הקלט הקולי של הדגמה זו.",
+    "errorTooLarge": "ההקלטה הזו ארוכה מדי. נסו הקלטה קצרה יותר.",
+    "errorUnsupportedMediaType": "הדפדפן שלכם הפיק פורמט אודיו שאינו נתמך.",
+    "errorBadRequest": "לא הצלחנו לתמלל את האודיו הזה. נסו שוב.",
+    "errorServiceUnavailable": "תמלול קולי אינו זמין באופן זמני. נסו שוב."
   }
 }

@@ -220,5 +220,30 @@
       "custom": "Chọn PDF của riêng bạn"
     },
     "customSubtitle": "Mọi PDF đều hoạt động - giữ trên thiết bị của bạn"
+  },
+  "voice": {
+    "micLabel": "Ghi âm tin nhắn thoại",
+    "record": "Ghi âm",
+    "recordLabel": "Bắt đầu ghi âm",
+    "stop": "Dừng",
+    "stopLabel": "Dừng ghi âm",
+    "cancel": "Hủy",
+    "cancelLabel": "Bỏ bản ghi âm",
+    "disclosure": "Âm thanh được gửi đến SimplePDF và OpenAI để chuyển thành văn bản.",
+    "transcribing": "Đang chuyển thành văn bản…",
+    "statusRecording": "Đang ghi âm",
+    "statusTranscribing": "Đang chuyển bản ghi âm của bạn thành văn bản",
+    "waveformLabel": "Mức tín hiệu đầu vào micrô",
+    "dismissError": "Bỏ qua",
+    "errorPermissionDenied": "Quyền truy cập micrô đã bị từ chối. Hãy cho phép trong trình duyệt để dùng nhập bằng giọng nói.",
+    "errorMicrophoneUnavailable": "Không tìm thấy micrô. Hãy kết nối một chiếc và thử lại.",
+    "errorRecordingFailed": "Ghi âm thất bại. Vui lòng thử lại.",
+    "errorEncodingFailed": "Không thể thu âm thanh. Vui lòng thử lại.",
+    "errorUnauthorized": "Nhập bằng giọng nói không khả dụng cho phiên này.",
+    "errorRateLimited": "Bạn đã đạt giới hạn nhập bằng giọng nói cho bản demo này.",
+    "errorTooLarge": "Bản ghi âm đó quá dài. Hãy thử bản ngắn hơn.",
+    "errorUnsupportedMediaType": "Trình duyệt của bạn đã tạo ra định dạng âm thanh không được hỗ trợ.",
+    "errorBadRequest": "Chúng tôi không thể chuyển âm thanh đó thành văn bản. Vui lòng thử lại.",
+    "errorServiceUnavailable": "Dịch vụ chuyển giọng nói thành văn bản tạm thời không khả dụng. Vui lòng thử lại."
   }
 }

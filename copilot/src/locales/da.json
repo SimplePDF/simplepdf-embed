@@ -222,5 +222,30 @@
       "custom": "Vælg din egen PDF"
     },
     "customSubtitle": "Enhver PDF fungerer - bliver på din enhed"
+  },
+  "voice": {
+    "micLabel": "Optag en talebesked",
+    "record": "Optag",
+    "recordLabel": "Start optagelse",
+    "stop": "Stop",
+    "stopLabel": "Stop optagelse",
+    "cancel": "Annuller",
+    "cancelLabel": "Kassér optagelse",
+    "disclosure": "Lyd sendes til SimplePDF og OpenAI for at blive transskriberet.",
+    "transcribing": "Transskriberer…",
+    "statusRecording": "Optager",
+    "statusTranscribing": "Transskriberer din optagelse",
+    "waveformLabel": "Mikrofonens inputniveau",
+    "dismissError": "Luk",
+    "errorPermissionDenied": "Adgang til mikrofonen blev nægtet. Tillad den i din browser for at bruge taleinput.",
+    "errorMicrophoneUnavailable": "Der blev ikke fundet nogen mikrofon. Tilslut en, og prøv igen.",
+    "errorRecordingFailed": "Optagelsen mislykkedes. Prøv igen.",
+    "errorEncodingFailed": "Lyden kunne ikke optages. Prøv igen.",
+    "errorUnauthorized": "Taleinput er ikke tilgængeligt for denne session.",
+    "errorRateLimited": "Du har nået grænsen for taleinput i denne demo.",
+    "errorTooLarge": "Den optagelse er for lang. Prøv en kortere.",
+    "errorUnsupportedMediaType": "Din browser producerede et lydformat, der ikke understøttes.",
+    "errorBadRequest": "Vi kunne ikke transskribere den lyd. Prøv igen.",
+    "errorServiceUnavailable": "Taletransskription er midlertidigt utilgængelig. Prøv igen."
   }
 }

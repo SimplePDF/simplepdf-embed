@@ -222,5 +222,30 @@
       "custom": "Velg din egen PDF"
     },
     "customSubtitle": "Enhver PDF fungerer - blir på enheten din"
+  },
+  "voice": {
+    "micLabel": "Spill inn en talemelding",
+    "record": "Spill inn",
+    "recordLabel": "Start opptak",
+    "stop": "Stopp",
+    "stopLabel": "Stopp opptak",
+    "cancel": "Avbryt",
+    "cancelLabel": "Forkast opptak",
+    "disclosure": "Lyd sendes til SimplePDF og OpenAI for transkribering.",
+    "transcribing": "Transkriberer…",
+    "statusRecording": "Tar opp",
+    "statusTranscribing": "Transkriberer opptaket ditt",
+    "waveformLabel": "Inngangsnivå for mikrofon",
+    "dismissError": "Lukk",
+    "errorPermissionDenied": "Tilgang til mikrofonen ble nektet. Tillat den i nettleseren for å bruke taleinndata.",
+    "errorMicrophoneUnavailable": "Fant ingen mikrofon. Koble til en og prøv igjen.",
+    "errorRecordingFailed": "Opptaket mislyktes. Prøv igjen.",
+    "errorEncodingFailed": "Kunne ikke fange opp lyden. Prøv igjen.",
+    "errorUnauthorized": "Taleinndata er ikke tilgjengelig for denne økten.",
+    "errorRateLimited": "Du har nådd grensen for taleinndata i denne demoen.",
+    "errorTooLarge": "Det opptaket er for langt. Prøv et kortere.",
+    "errorUnsupportedMediaType": "Nettleseren din produserte et lydformat som ikke støttes.",
+    "errorBadRequest": "Vi klarte ikke å transkribere den lyden. Prøv igjen.",
+    "errorServiceUnavailable": "Taletranskribering er midlertidig utilgjengelig. Prøv igjen."
   }
 }

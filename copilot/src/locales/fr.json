@@ -235,5 +235,30 @@
     "dismiss": "Plus tard",
     "share": "Partager sur X",
     "close": "Fermer"
+  },
+  "voice": {
+    "micLabel": "Enregistrer un message vocal",
+    "record": "Enregistrer",
+    "recordLabel": "Démarrer l’enregistrement",
+    "stop": "Arrêter",
+    "stopLabel": "Arrêter l’enregistrement",
+    "cancel": "Annuler",
+    "cancelLabel": "Supprimer l’enregistrement",
+    "disclosure": "L’audio est envoyé à SimplePDF et OpenAI pour la transcription.",
+    "transcribing": "Transcription…",
+    "statusRecording": "Enregistrement en cours",
+    "statusTranscribing": "Transcription de votre enregistrement",
+    "waveformLabel": "Niveau d’entrée du microphone",
+    "dismissError": "Ignorer",
+    "errorPermissionDenied": "L’accès au microphone a été refusé. Autorisez-le dans votre navigateur pour utiliser la saisie vocale.",
+    "errorMicrophoneUnavailable": "Aucun microphone n’a été détecté. Branchez-en un et réessayez.",
+    "errorRecordingFailed": "L’enregistrement a échoué. Veuillez réessayer.",
+    "errorEncodingFailed": "Impossible de capturer l’audio. Veuillez réessayer.",
+    "errorUnauthorized": "La saisie vocale n’est pas disponible pour cette session.",
+    "errorRateLimited": "Vous avez atteint la limite de saisie vocale pour cette démo.",
+    "errorTooLarge": "Cet enregistrement est trop long. Essayez-en un plus court.",
+    "errorUnsupportedMediaType": "Votre navigateur a produit un format audio non pris en charge.",
+    "errorBadRequest": "Nous n’avons pas pu transcrire cet audio. Veuillez réessayer.",
+    "errorServiceUnavailable": "La transcription vocale est temporairement indisponible. Veuillez réessayer."
   }
 }

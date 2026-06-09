@@ -65,9 +65,14 @@ export const VoiceInputBar = ({
               type="button"
               onClick={onStop}
               aria-label={t('voice.stopLabel')}
-              className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-rose-600 text-white transition-colors hover:bg-rose-700"
+              className="relative flex h-8 w-8 flex-none items-center justify-center rounded-full bg-rose-600 text-white transition-colors hover:bg-rose-700"
             >
-              <span className="h-3 w-3 rounded-[2px] bg-current" aria-hidden="true" />
+              {/* Pulsing ring signals "live recording"; removed under reduced motion. */}
+              <span
+                className="absolute inset-0 rounded-full bg-rose-500/40 motion-safe:animate-ping"
+                aria-hidden="true"
+              />
+              <span className="relative h-3 w-3 rounded-[2px] bg-current" aria-hidden="true" />
             </button>
             <div className="flex flex-1 items-center text-slate-600">
               <VoiceWaveform level={level} elapsedMs={elapsedMs} ariaLabel={t('voice.waveformLabel')} />

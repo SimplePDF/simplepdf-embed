@@ -222,5 +222,30 @@
       "custom": "Kendi PDF’inizi seçin"
     },
     "customSubtitle": "Herhangi bir PDF çalışır - cihazınızda kalır"
+  },
+  "voice": {
+    "micLabel": "Sesli mesaj kaydet",
+    "record": "Kaydet",
+    "recordLabel": "Kaydı başlat",
+    "stop": "Durdur",
+    "stopLabel": "Kaydı durdur",
+    "cancel": "İptal",
+    "cancelLabel": "Kaydı sil",
+    "disclosure": "Ses, yazıya dökülmek üzere SimplePDF ve OpenAI’ye gönderilir.",
+    "transcribing": "Yazıya dökülüyor…",
+    "statusRecording": "Kaydediliyor",
+    "statusTranscribing": "Kaydınız yazıya dökülüyor",
+    "waveformLabel": "Mikrofon giriş düzeyi",
+    "dismissError": "Kapat",
+    "errorPermissionDenied": "Mikrofon erişimi reddedildi. Sesli girişi kullanmak için tarayıcınızda buna izin verin.",
+    "errorMicrophoneUnavailable": "Mikrofon bulunamadı. Bir tane bağlayın ve tekrar deneyin.",
+    "errorRecordingFailed": "Kayıt başarısız oldu. Lütfen tekrar deneyin.",
+    "errorEncodingFailed": "Ses yakalanamadı. Lütfen tekrar deneyin.",
+    "errorUnauthorized": "Sesli giriş bu oturum için kullanılamıyor.",
+    "errorRateLimited": "Bu demo için sesli giriş sınırına ulaştınız.",
+    "errorTooLarge": "Bu kayıt çok uzun. Daha kısa bir tane deneyin.",
+    "errorUnsupportedMediaType": "Tarayıcınız desteklenmeyen bir ses biçimi üretti.",
+    "errorBadRequest": "O sesi yazıya dökemedik. Lütfen tekrar deneyin.",
+    "errorServiceUnavailable": "Ses yazıya dökme hizmeti geçici olarak kullanılamıyor. Lütfen tekrar deneyin."
   }
 }

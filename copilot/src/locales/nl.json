@@ -222,5 +222,30 @@
       "custom": "Kies uw eigen PDF"
     },
     "customSubtitle": "Elke PDF werkt - blijft op je apparaat"
+  },
+  "voice": {
+    "micLabel": "Een spraakbericht opnemen",
+    "record": "Opnemen",
+    "recordLabel": "Opname starten",
+    "stop": "Stoppen",
+    "stopLabel": "Opname stoppen",
+    "cancel": "Annuleren",
+    "cancelLabel": "Opname verwijderen",
+    "disclosure": "Audio wordt naar SimplePDF en OpenAI gestuurd om te transcriberen.",
+    "transcribing": "Transcriberen…",
+    "statusRecording": "Bezig met opnemen",
+    "statusTranscribing": "Uw opname wordt getranscribeerd",
+    "waveformLabel": "Ingangsniveau microfoon",
+    "dismissError": "Sluiten",
+    "errorPermissionDenied": "Toegang tot de microfoon is geweigerd. Sta deze toe in uw browser om spraakinvoer te gebruiken.",
+    "errorMicrophoneUnavailable": "Er is geen microfoon gevonden. Sluit er een aan en probeer het opnieuw.",
+    "errorRecordingFailed": "Opname mislukt. Probeer het opnieuw.",
+    "errorEncodingFailed": "Kon de audio niet vastleggen. Probeer het opnieuw.",
+    "errorUnauthorized": "Spraakinvoer is niet beschikbaar voor deze sessie.",
+    "errorRateLimited": "U hebt de limiet voor spraakinvoer van deze demo bereikt.",
+    "errorTooLarge": "Die opname is te lang. Probeer een kortere.",
+    "errorUnsupportedMediaType": "Uw browser heeft een niet-ondersteund audioformaat geproduceerd.",
+    "errorBadRequest": "We konden die audio niet transcriberen. Probeer het opnieuw.",
+    "errorServiceUnavailable": "Spraaktranscriptie is tijdelijk niet beschikbaar. Probeer het opnieuw."
   }
 }

@@ -222,5 +222,30 @@
       "custom": "Valitse oma PDF"
     },
     "customSubtitle": "Mikä tahansa PDF käy - pysyy laitteellasi"
+  },
+  "voice": {
+    "micLabel": "Tallenna ääniviesti",
+    "record": "Tallenna",
+    "recordLabel": "Aloita tallennus",
+    "stop": "Pysäytä",
+    "stopLabel": "Pysäytä tallennus",
+    "cancel": "Peruuta",
+    "cancelLabel": "Hylkää tallennus",
+    "disclosure": "Ääni lähetetään SimplePDF:lle ja OpenAI:lle litterointia varten.",
+    "transcribing": "Litteroidaan…",
+    "statusRecording": "Tallennetaan",
+    "statusTranscribing": "Litteroidaan tallennustasi",
+    "waveformLabel": "Mikrofonin tulotaso",
+    "dismissError": "Sulje",
+    "errorPermissionDenied": "Mikrofonin käyttö estettiin. Salli se selaimessasi käyttääksesi äänisyöttöä.",
+    "errorMicrophoneUnavailable": "Mikrofonia ei löytynyt. Liitä mikrofoni ja yritä uudelleen.",
+    "errorRecordingFailed": "Tallennus epäonnistui. Yritä uudelleen.",
+    "errorEncodingFailed": "Ääntä ei voitu tallentaa. Yritä uudelleen.",
+    "errorUnauthorized": "Äänisyöttö ei ole käytettävissä tässä istunnossa.",
+    "errorRateLimited": "Olet saavuttanut tämän demon äänisyötön rajan.",
+    "errorTooLarge": "Tallennus on liian pitkä. Kokeile lyhyempää.",
+    "errorUnsupportedMediaType": "Selaimesi tuotti ei-tuetun äänimuodon.",
+    "errorBadRequest": "Emme voineet litteroida tätä ääntä. Yritä uudelleen.",
+    "errorServiceUnavailable": "Äänen litterointi ei ole tilapäisesti käytettävissä. Yritä uudelleen."
   }
 }

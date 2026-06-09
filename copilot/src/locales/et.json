@@ -222,5 +222,30 @@
       "custom": "Vali oma PDF"
     },
     "customSubtitle": "Iga PDF sobib - jääb sinu seadmesse"
+  },
+  "voice": {
+    "micLabel": "Salvesta häälsõnum",
+    "record": "Salvesta",
+    "recordLabel": "Alusta salvestamist",
+    "stop": "Peata",
+    "stopLabel": "Peata salvestamine",
+    "cancel": "Tühista",
+    "cancelLabel": "Loobu salvestusest",
+    "disclosure": "Heli saadetakse transkribeerimiseks SimplePDF-ile ja OpenAI-le.",
+    "transcribing": "Transkribeerin…",
+    "statusRecording": "Salvestamine",
+    "statusTranscribing": "Sinu salvestuse transkribeerimine",
+    "waveformLabel": "Mikrofoni sisendi tase",
+    "dismissError": "Sulge",
+    "errorPermissionDenied": "Juurdepääs mikrofonile keelati. Luba see brauseris, et kasutada häälsisestust.",
+    "errorMicrophoneUnavailable": "Mikrofoni ei leitud. Ühenda see ja proovi uuesti.",
+    "errorRecordingFailed": "Salvestamine ebaõnnestus. Palun proovi uuesti.",
+    "errorEncodingFailed": "Heli ei õnnestunud salvestada. Palun proovi uuesti.",
+    "errorUnauthorized": "Häälsisestus pole selle seansi jaoks saadaval.",
+    "errorRateLimited": "Oled jõudnud selle demo häälsisestuse piirini.",
+    "errorTooLarge": "See salvestus on liiga pikk. Proovi lühemat.",
+    "errorUnsupportedMediaType": "Sinu brauser tekitas toetamata helivormingu.",
+    "errorBadRequest": "Me ei suutnud seda heli transkribeerida. Palun proovi uuesti.",
+    "errorServiceUnavailable": "Hääle transkribeerimine on ajutiselt kättesaamatu. Palun proovi uuesti."
   }
 }

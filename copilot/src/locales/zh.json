@@ -220,5 +220,30 @@
       "custom": "选择您自己的 PDF"
     },
     "customSubtitle": "任何 PDF 都可以 - 保留在你的设备上"
+  },
+  "voice": {
+    "micLabel": "录制语音消息",
+    "record": "录制",
+    "recordLabel": "开始录制",
+    "stop": "停止",
+    "stopLabel": "停止录制",
+    "cancel": "取消",
+    "cancelLabel": "丢弃录音",
+    "disclosure": "音频将发送至 SimplePDF 和 OpenAI 进行转写。",
+    "transcribing": "正在转写…",
+    "statusRecording": "正在录制",
+    "statusTranscribing": "正在转写您的录音",
+    "waveformLabel": "麦克风输入电平",
+    "dismissError": "关闭",
+    "errorPermissionDenied": "麦克风访问已被拒绝。请在浏览器中允许访问以使用语音输入。",
+    "errorMicrophoneUnavailable": "未找到麦克风。请连接一个后重试。",
+    "errorRecordingFailed": "录制失败。请重试。",
+    "errorEncodingFailed": "无法采集音频。请重试。",
+    "errorUnauthorized": "本次会话无法使用语音输入。",
+    "errorRateLimited": "您已达到本演示的语音输入上限。",
+    "errorTooLarge": "该录音太长。请尝试更短的录音。",
+    "errorUnsupportedMediaType": "您的浏览器生成了不受支持的音频格式。",
+    "errorBadRequest": "我们无法转写该音频。请重试。",
+    "errorServiceUnavailable": "语音转写暂时不可用。请重试。"
   }
 }

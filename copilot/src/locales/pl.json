@@ -228,5 +228,30 @@
       "custom": "Wybierz własny PDF"
     },
     "customSubtitle": "Dowolny PDF zadziała - zostaje na Twoim urządzeniu"
+  },
+  "voice": {
+    "micLabel": "Nagraj wiadomość głosową",
+    "record": "Nagraj",
+    "recordLabel": "Rozpocznij nagrywanie",
+    "stop": "Zatrzymaj",
+    "stopLabel": "Zatrzymaj nagrywanie",
+    "cancel": "Anuluj",
+    "cancelLabel": "Odrzuć nagranie",
+    "disclosure": "Dźwięk jest wysyłany do SimplePDF i OpenAI w celu transkrypcji.",
+    "transcribing": "Transkrybowanie…",
+    "statusRecording": "Nagrywanie",
+    "statusTranscribing": "Transkrybowanie Twojego nagrania",
+    "waveformLabel": "Poziom sygnału mikrofonu",
+    "dismissError": "Zamknij",
+    "errorPermissionDenied": "Odmówiono dostępu do mikrofonu. Zezwól na niego w przeglądarce, aby korzystać z wprowadzania głosowego.",
+    "errorMicrophoneUnavailable": "Nie znaleziono mikrofonu. Podłącz go i spróbuj ponownie.",
+    "errorRecordingFailed": "Nagrywanie nie powiodło się. Spróbuj ponownie.",
+    "errorEncodingFailed": "Nie udało się przechwycić dźwięku. Spróbuj ponownie.",
+    "errorUnauthorized": "Wprowadzanie głosowe nie jest dostępne dla tej sesji.",
+    "errorRateLimited": "Osiągnięto limit wprowadzania głosowego dla tej wersji demonstracyjnej.",
+    "errorTooLarge": "To nagranie jest zbyt długie. Spróbuj krótszego.",
+    "errorUnsupportedMediaType": "Twoja przeglądarka utworzyła nieobsługiwany format dźwięku.",
+    "errorBadRequest": "Nie udało nam się dokonać transkrypcji tego dźwięku. Spróbuj ponownie.",
+    "errorServiceUnavailable": "Transkrypcja głosu jest tymczasowo niedostępna. Spróbuj ponownie."
   }
 }

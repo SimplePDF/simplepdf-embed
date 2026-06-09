@@ -222,5 +222,30 @@
       "custom": "Scegli il tuo PDF"
     },
     "customSubtitle": "Funziona qualsiasi PDF - resta sul tuo dispositivo"
+  },
+  "voice": {
+    "micLabel": "Registra un messaggio vocale",
+    "record": "Registra",
+    "recordLabel": "Avvia registrazione",
+    "stop": "Interrompi",
+    "stopLabel": "Interrompi registrazione",
+    "cancel": "Annulla",
+    "cancelLabel": "Elimina registrazione",
+    "disclosure": "L’audio viene inviato a SimplePDF e OpenAI per la trascrizione.",
+    "transcribing": "Trascrizione in corso…",
+    "statusRecording": "Registrazione in corso",
+    "statusTranscribing": "Trascrizione della tua registrazione",
+    "waveformLabel": "Livello di ingresso del microfono",
+    "dismissError": "Ignora",
+    "errorPermissionDenied": "L’accesso al microfono è stato negato. Autorizzalo nel browser per usare l’input vocale.",
+    "errorMicrophoneUnavailable": "Nessun microfono trovato. Collegane uno e riprova.",
+    "errorRecordingFailed": "Registrazione non riuscita. Riprova.",
+    "errorEncodingFailed": "Impossibile acquisire l’audio. Riprova.",
+    "errorUnauthorized": "L’input vocale non è disponibile per questa sessione.",
+    "errorRateLimited": "Hai raggiunto il limite di input vocale per questa demo.",
+    "errorTooLarge": "Questa registrazione è troppo lunga. Provane una più breve.",
+    "errorUnsupportedMediaType": "Il tuo browser ha prodotto un formato audio non supportato.",
+    "errorBadRequest": "Non siamo riusciti a trascrivere quell’audio. Riprova.",
+    "errorServiceUnavailable": "La trascrizione vocale è temporaneamente non disponibile. Riprova."
   }
 }

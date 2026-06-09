@@ -222,5 +222,30 @@
       "custom": "Eigene PDF auswählen"
     },
     "customSubtitle": "Jede PDF funktioniert - bleibt auf deinem Gerät"
+  },
+  "voice": {
+    "micLabel": "Sprachnachricht aufnehmen",
+    "record": "Aufnehmen",
+    "recordLabel": "Aufnahme starten",
+    "stop": "Stopp",
+    "stopLabel": "Aufnahme stoppen",
+    "cancel": "Abbrechen",
+    "cancelLabel": "Aufnahme verwerfen",
+    "disclosure": "Audio wird zur Transkription an SimplePDF und OpenAI gesendet.",
+    "transcribing": "Wird transkribiert…",
+    "statusRecording": "Aufnahme läuft",
+    "statusTranscribing": "Ihre Aufnahme wird transkribiert",
+    "waveformLabel": "Mikrofon-Eingangspegel",
+    "dismissError": "Schließen",
+    "errorPermissionDenied": "Der Zugriff auf das Mikrofon wurde verweigert. Erlauben Sie ihn in Ihrem Browser, um die Spracheingabe zu nutzen.",
+    "errorMicrophoneUnavailable": "Es wurde kein Mikrofon gefunden. Schließen Sie eines an und versuchen Sie es erneut.",
+    "errorRecordingFailed": "Die Aufnahme ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "errorEncodingFailed": "Das Audio konnte nicht erfasst werden. Bitte versuchen Sie es erneut.",
+    "errorUnauthorized": "Die Spracheingabe ist für diese Sitzung nicht verfügbar.",
+    "errorRateLimited": "Sie haben das Limit für die Spracheingabe in dieser Demo erreicht.",
+    "errorTooLarge": "Diese Aufnahme ist zu lang. Versuchen Sie es mit einer kürzeren.",
+    "errorUnsupportedMediaType": "Ihr Browser hat ein nicht unterstütztes Audioformat erzeugt.",
+    "errorBadRequest": "Dieses Audio konnte nicht transkribiert werden. Bitte versuchen Sie es erneut.",
+    "errorServiceUnavailable": "Die Sprachtranskription ist vorübergehend nicht verfügbar. Bitte versuchen Sie es erneut."
   }
 }
