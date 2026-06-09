@@ -425,7 +425,9 @@ export const ChatPane = ({
     [demoGate.kind],
   )
   const handleVoiceTranscript = useCallback((text: string) => {
-    setDraft(text)
+    // Append rather than replace so a user who typed before dictating never
+    // silently loses their draft.
+    setDraft((previous) => (previous.trim() === '' ? text : `${previous} ${text}`))
     // The textarea only re-mounts once status returns to idle, so focus must
     // wait for the commit — focusing synchronously here would no-op (the
     // composer is still showing the voice bar).
