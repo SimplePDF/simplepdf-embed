@@ -69,6 +69,19 @@ export type EventPayloads = {
     language: string
   }
 
+  // transcribe.ts (server)
+  'transcribe.missing_key': { ip_hash: string }
+  'transcribe.blocked_system_failure': { ip_hash: string | null; detail: string }
+  'transcribe.rate_limit_threw': { ip_hash: string; detail: string }
+  'transcribe.empty': { ip_hash: string; bytes: number }
+  'transcribe.failed': { ip_hash: string; detail: string }
+  'transcribe.done': {
+    ip_hash: string
+    bytes: number
+    elapsed_ms: number
+    language: string
+  }
+
   // chat_pane.tsx (client)
   'chat.error': { detail: string }
   'chat.tool_call': { tool_name: string; input: Record<string, unknown> }
