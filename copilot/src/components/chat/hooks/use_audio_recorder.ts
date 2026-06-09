@@ -5,6 +5,14 @@ import { selectRecordingMimeType } from '../../../lib/voice/select_recording_mim
 // Rolling window of mic levels fed to the waveform, and how often we sample.
 const LEVEL_SAMPLE_COUNT = 48
 const SAMPLE_INTERVAL_MS = 80
+// Raw speech RMS is small (~0.05-0.2), so the bars read flat without a visual
+// gain. This scales the displayed level only — it does NOT touch the recorded
+// audio. Tune up for livelier bars.
+const LEVEL_DISPLAY_GAIN = 6
+// Opus defaults in MediaRecorder are conservative (~32-64 kbps) and drop the
+// high-frequency detail the transcription model relies on; 128 kbps keeps
+// speech crisp without bloating the upload (well under TRANSCRIBE_MAX_BYTES).
+const RECORDER_AUDIO_BITS_PER_SECOND = 128_000
 
 export type VoiceStatus = 'idle' | 'armed' | 'recording' | 'transcribing'
 
@@ -163,7 +171,7 @@ export const useAudioRecorder = ({
       const data = new Uint8Array(analyser.frequencyBinCount)
       analyser.getByteTimeDomainData(data)
       const buffer = levelBufferRef.current
-      buffer.push(computeRms(data))
+      buffer.push(Math.min(1, computeRms(data) * LEVEL_DISPLAY_GAIN))
       if (buffer.length > LEVEL_SAMPLE_COUNT) {
         buffer.shift()
       }
@@ -194,7 +202,14 @@ export const useAudioRecorder = ({
       { ok: true; stream: MediaStream } | { ok: false; code: VoiceInputErrorCode }
     > => {
       try {
-        return { ok: true, stream: await navigator.mediaDevices.getUserMedia({ audio: true }) }
+        // autoGainControl boosts quiet mics (the usual cause of weak levels +
+        // under-transcribed audio); noiseSuppression/echoCancellation keep
+        // background out. These are browser defaults, requested explicitly so
+        // capture quality is consistent across Chrome/Firefox/Safari.
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { autoGainControl: true, echoCancellation: true, noiseSuppression: true },
+        })
+        return { ok: true, stream }
       } catch (error) {
         return { ok: false, code: mapGetUserMediaError(error) }
       }
@@ -206,7 +221,10 @@ export const useAudioRecorder = ({
     }
     const setup = ((): { ok: true } | { ok: false; code: VoiceInputErrorCode } => {
       try {
-        const recorder = new MediaRecorder(acquired.stream, { mimeType })
+        const recorder = new MediaRecorder(acquired.stream, {
+          mimeType,
+          audioBitsPerSecond: RECORDER_AUDIO_BITS_PER_SECOND,
+        })
         chunksRef.current = []
         recorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
