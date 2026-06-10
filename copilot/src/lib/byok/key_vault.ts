@@ -116,13 +116,15 @@ export type RemoveResult = { kind: 'removed' } | { kind: 'unavailable' } | { kin
 // AND Web Locks + BroadcastChannel to serialize mutations and revoke across
 // tabs. Missing any of them means a stored credential could not be reliably
 // changed or forgotten, so we treat the BYOK vault as entirely unavailable.
-const isAvailable = (): boolean =>
+export const isVaultAvailable = (): boolean =>
   typeof indexedDB !== 'undefined' &&
   typeof crypto !== 'undefined' &&
   typeof crypto.subtle !== 'undefined' &&
   typeof navigator !== 'undefined' &&
   typeof navigator.locks !== 'undefined' &&
   typeof BroadcastChannel !== 'undefined'
+
+const isAvailable = isVaultAvailable
 
 // Holds the origin-wide exclusive lock for the duration of `fn` (Web Locks
 // release when the callback's promise settles). All writes go through this so
