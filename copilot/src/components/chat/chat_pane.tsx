@@ -9,6 +9,7 @@ import {
   type ByokConfig,
   type CredentialKey,
   credentialKey,
+  dispatchSttUnderFreshCredential,
   EMPTY_VAULT,
   findProvider,
   loadVault,
@@ -39,7 +40,10 @@ import {
 import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
-import type { TranscribeFnResult } from '../../lib/voice/error_codes'
+import type { TranscribeClientErrorCode, TranscribeFnResult } from '../../lib/voice/error_codes'
+import { isAcceptedRecordingMime, RECORDING_MAX_BYTES } from '../../lib/voice/recording_format'
+import { resolveStt, type SttResolution } from '../../lib/voice/resolve_capability'
+import { transcribeByok } from '../../lib/voice/transcribe_byok'
 import { transcribeClient } from '../../lib/voice/transcribe_client'
 import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
 import type { DemoGate } from '../../routes/index'
@@ -65,6 +69,11 @@ const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 // per-share turn charge, not this timer (see plan D10); on reaching it the
 // recorder auto-stops and transcribes exactly as if Stop was pressed.
 const VOICE_MAX_DURATION_MS = 120_000
+
+const voiceFailure = (code: TranscribeClientErrorCode): TranscribeFnResult => ({
+  success: false,
+  error: { code, message: code },
+})
 
 const homeRoute = getRouteApi('/')
 
@@ -409,18 +418,49 @@ export const ChatPane = ({
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const voiceInputSupported = useVoiceInputSupport()
+  // The STT route is resolved ONCE when recording starts and frozen here, so a
+  // recording can't silently change destination and the request gate can detect
+  // a mid-recording revoke (P070-02 V4/V5). Set by handleVoiceRecord below.
+  const frozenSttRef = useRef<SttResolution | null>(null)
   const handleVoiceTranscribe = useCallback(
-    ({ blob, signal }: { blob: Blob; signal: AbortSignal }): Promise<TranscribeFnResult> => {
-      // Only a resolved-valid demo session reaches here (the mic is gated on
-      // demoGate.kind === 'demo'); the null guard is defensive.
-      const shareId = demoGate.kind === 'demo' ? shareIdRef.current : null
-      if (shareId === null) {
-        return Promise.resolve({
-          success: false,
-          error: { code: 'unauthorized', message: 'voice requires a valid demo share' },
-        })
+    async ({ blob, signal }: { blob: Blob; signal: AbortSignal }): Promise<TranscribeFnResult> => {
+      const frozen = frozenSttRef.current
+      if (frozen === null || frozen.kind === 'none') {
+        return voiceFailure('unauthorized')
       }
-      return transcribeClient({ blob, shareId, signal })
+      if (frozen.kind === 'demo') {
+        const shareId = demoGate.kind === 'demo' ? shareIdRef.current : null
+        if (shareId === null) {
+          return voiceFailure('unauthorized')
+        }
+        return transcribeClient({ blob, shareId, signal })
+      }
+      // BYOK browser-direct: bounded conversion (single recording-format owner),
+      // then dispatch through the request gate so a forgotten key is never used.
+      if (!isAcceptedRecordingMime(blob.type)) {
+        return voiceFailure('unsupported_media_type')
+      }
+      if (blob.size > RECORDING_MAX_BYTES) {
+        return voiceFailure('too_large')
+      }
+      const audioBytes = new Uint8Array(await blob.arrayBuffer())
+      const dispatch = await dispatchSttUnderFreshCredential({
+        frozenKey: frozen.key,
+        signal,
+        run: (config) => transcribeByok({ audioBytes, signal, config }),
+      })
+      switch (dispatch.kind) {
+        case 'ran':
+          return dispatch.result
+        case 'revoked':
+        case 'unavailable':
+          return voiceFailure('service_unavailable')
+        case 'cancelled':
+          return voiceFailure('cancelled')
+        default:
+          dispatch satisfies never
+          return voiceFailure('service_unavailable')
+      }
     },
     [demoGate.kind],
   )
@@ -883,6 +923,12 @@ export const ChatPane = ({
   // but the cost of holding is invisible.
   const canSend = isReady && !isStreaming && !serverLocked && !isVaultLoading
   const micVisible = shouldShowMic({ canSend, demoGate, voiceInputSupported })
+  const handleVoiceRecord = useCallback(() => {
+    // Resolve the STT route ONCE and freeze it before getUserMedia so the
+    // recording's destination is fixed for its whole lifetime.
+    frozenSttRef.current = resolveStt({ vault: byokVault, demoGate })
+    void voice.record()
+  }, [byokVault, demoGate, voice.record])
   const hasUserMessage = messages.some((message) => message.role === 'user')
   const chatStatusMessage = useMemo((): string => {
     if (!hasActiveModel) {
@@ -1107,7 +1153,7 @@ export const ChatPane = ({
               status={voice.status}
               level={voice.level}
               elapsedMs={voice.elapsedMs}
-              onRecord={voice.record}
+              onRecord={handleVoiceRecord}
               onStop={voice.stop}
               onCancel={voice.cancel}
             />
