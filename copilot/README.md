@@ -69,7 +69,10 @@ Browser
 - SimplePDF Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
 - Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
-- **Voice input is different — it is a deliberate audio egress.** On the SimplePDF-hosted demo, dictating into the composer records a short audio clip in the browser and uploads it to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns an editable transcript. So while PDF bytes stay on-device, **dictated audio leaves the browser to SimplePDF's server and then OpenAI**. A localized disclosure is shown in the recorder before the first recording, audio is sent only on an explicit Record (never automatically), and the feature is gated by the same `?share=` entitlement as chat. Voice is hosted-demo-only today; customer forks do not ship it until a fork-side transcription path exists.
+- **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; on an explicit Record it is transcribed and the editable transcript drops into the textarea. Two routes, each disclosed in the recorder before recording:
+  - **Demo (server):** with an invited `?share=` session, the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
+  - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault — a demo/reference feature (a browser-held key is exposed to anything on the page).
+  - In both cases PDF bytes still stay on-device, audio is sent only on an explicit Record (never automatically), and the disclosure names the exact recipient.
 
 ## Built with
 
@@ -122,7 +125,12 @@ See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limi
 
 ### Voice input (dictation)
 
-Inside an invited (`?share=<id>`) demo session, the chat composer shows a microphone: record a clip, it is transcribed server-side, and the editable transcript drops into the textarea. To enable it locally, set `TRANSCRIPTION_OPENAI_API_KEY` in your `.env` to an OpenAI key (transcription-only — never your chat key). Without it, `/api/transcribe` fails closed with `503` and the mic stays hidden, while the rest of Copilot keeps working. Voice is hosted-demo-only and gated by the same `?share=` entitlement as chat; see the privacy notes above for the audio-egress disclosure.
+The chat composer shows a microphone whenever the browser can record. Clicking it needs **both** a Chat model and a Speech-to-Text provider configured (a transcript you can't send is useless), so it opens the model picker on whichever is missing, else it records. Two transcription routes:
+
+- **Demo (server):** in an invited `?share=<id>` session, set `TRANSCRIPTION_OPENAI_API_KEY` in your `.env` (transcription-only — never your chat key). The clip is transcribed via `/api/transcribe`; without the key that route fails closed with `503`.
+- **BYOK (browser-direct):** in the picker's **Speech-to-Text** tab, configure OpenAI (`gpt-4o-mini-transcribe` / `gpt-4o-transcribe`) or a custom OpenAI-compatible endpoint. The clip is transcribed directly browser→provider, never touching SimplePDF's server. No env var needed.
+
+See the privacy notes above for the per-route audio-egress disclosure.
 
 ### Load a specific document via `?url=`
 
@@ -166,7 +174,7 @@ The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simpl
 - `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
 - `REDIS_URL` (optional secret): a Redis-protocol connection URL (Valkey on DO Managed Caching works as-is). Required for multi-container deployments where per-IP rate-limit counters must be shared. Leave empty for single-instance / BYOK-only.
 - `IP_HASH_SALT` (required when `REDIS_URL` is set): salts the SHA-256 IP hash so persisted snapshots aren't brute-forceable. Generate with `openssl rand -hex 32`.
-- `TRANSCRIPTION_OPENAI_API_KEY` (optional secret): an OpenAI key used **only** for voice-input transcription (`gpt-4o-transcribe`). Never the chat key, never a BYOK key. Leave empty to keep voice input disabled — `/api/transcribe` then fails closed with `503` while the rest of Copilot keeps working.
+- `TRANSCRIPTION_OPENAI_API_KEY` (optional secret): an OpenAI key for the **demo** voice path only (`gpt-4o-transcribe` via `/api/transcribe`). Never the chat key, never a BYOK key. Leave empty to disable the demo voice route — it fails closed with `503` — while the rest of Copilot (and BYOK voice, which is browser-direct and needs no server key) keeps working.
 
 Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 
@@ -227,7 +235,7 @@ The architecture is deliberate:
 - **Document data stays in the browser.** SimplePDF processes PDFs client-side. The iframe never uploads document bytes to SimplePDF.
 - **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
 - **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket, never to SimplePDF servers.
-- **Voice input is the one exception, and it is opt-in.** On the hosted demo, dictation uploads the recorded audio clip to SimplePDF's server and on to OpenAI for transcription — so unlike PDF bytes, dictated audio (which can contain PII/PHI) does leave the browser. It is sent only on an explicit Record, behind the same `?share=` entitlement as chat, with a disclosure shown before recording. The server keeps no audio and logs no transcript text (only an IP hash, byte size, elapsed time, and detected language).
+- **Voice input is the one exception, and it is opt-in.** Dictation sends the recorded audio clip out of the browser — unlike PDF bytes, dictated audio (which can contain PII/PHI) leaves the device. Two routes, each disclosed before recording: the **demo** route uploads to SimplePDF's server and on to OpenAI (the server keeps no audio and logs no transcript text — only an IP hash, byte size, elapsed time, and detected language); the **BYOK** route sends audio **directly to the user's chosen provider, never to SimplePDF** (SimplePDF makes no retention claim for user-selected providers — that's the provider's policy). Audio is sent only on an explicit Record.
 
 ### Using the demo account
 
