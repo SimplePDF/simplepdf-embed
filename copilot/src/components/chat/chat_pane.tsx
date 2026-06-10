@@ -490,6 +490,7 @@ export const ChatPane = ({
     setByokState((current) => {
       const baseVault = current.kind === 'loading' ? EMPTY_VAULT : current.vault
       const vault: Vault = {
+        ...baseVault,
         active: key,
         credentials: { ...baseVault.credentials, [key]: next },
       }
@@ -512,7 +513,7 @@ export const ChatPane = ({
       delete remaining[key]
       const nextActiveKey = baseVault.active === key ? null : baseVault.active
       const nextActive: ByokConfig | null = nextActiveKey === null ? null : (remaining[nextActiveKey] ?? null)
-      const nextVault: Vault = { active: nextActiveKey, credentials: remaining }
+      const nextVault: Vault = { ...baseVault, active: nextActiveKey, credentials: remaining }
       return nextActive === null
         ? { kind: 'absent', vault: nextVault }
         : { kind: 'present', active: nextActive, vault: nextVault }

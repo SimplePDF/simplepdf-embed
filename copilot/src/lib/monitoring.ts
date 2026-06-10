@@ -123,6 +123,7 @@ export type EventPayloads = {
     instructions_mode: 'append' | 'replace' | null
     instructions_length: number
   }
+  'byok_vault.stt_saved': { key: string }
   'byok_vault.load_failed': { detail: string }
   'byok_vault.save_failed': { detail: string }
   'byok_vault.clear_failed': { detail: string }
