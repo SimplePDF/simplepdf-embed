@@ -2,25 +2,16 @@ import { createFileRoute } from '@tanstack/react-router'
 import { APICallError, experimental_transcribe, NoTranscriptGeneratedError } from 'ai'
 import type { ServerErrorBody } from '../../lib/api_envelope'
 import { monitoring, normalizeError } from '../../lib/monitoring'
+import { RECORDING_CONTAINER_SIGNATURES, RECORDING_MAX_BYTES } from '../../lib/voice/recording_format'
 import { applyDemoPreflight } from '../../server/demo/gate'
-import { type ContainerSignature, parseBinaryBody } from '../../server/http'
+import { parseBinaryBody } from '../../server/http'
 import { type RateLimitDecision, rateLimiter } from '../../server/rate_limit'
 import { buildTranscriptionModel, readTranscriptionKey } from '../../server/transcription_model'
 
-// Byte cap bounds upload size / memory / bandwidth per request — NOT audio
-// duration or paid cost (compressed/silent audio carries minutes under the
-// same cap). The real cost control is the per-share turn charge (one
-// admitted upload attempt = one turn). Timeout bounds provider wall-clock.
-const TRANSCRIBE_MAX_BYTES = 5 * 1024 * 1024
+// Byte cap (RECORDING_MAX_BYTES) and container allowlist come from the single
+// recording-format owner so client and server can't drift. Timeout bounds
+// provider wall-clock per call.
 const TRANSCRIBE_TIMEOUT_MS = 30_000
-
-// Container allowlist for the MIME types selectRecordingMimeType() emits in
-// the target browsers: WebM/Opus (Chrome, Firefox) and MP4/AAC (Safari). An
-// allowlist, not proof of an audio track — see parseBinaryBody.
-const AUDIO_CONTAINERS: readonly ContainerSignature[] = [
-  { offset: 0, magic: [0x1a, 0x45, 0xdf, 0xa3] }, // EBML (WebM / Matroska)
-  { offset: 4, magic: [0x66, 0x74, 0x79, 0x70] }, // ftyp (MP4 / ISO-BMFF)
-]
 
 type TranscribeOutcome =
   | { ok: true; text: string; language: string | undefined }
@@ -147,8 +138,8 @@ export const transcribePostHandler = async ({ request }: { request: Request }): 
 
   const body = await parseBinaryBody({
     request,
-    maxBytes: TRANSCRIBE_MAX_BYTES,
-    allowedContainers: AUDIO_CONTAINERS,
+    maxBytes: RECORDING_MAX_BYTES,
+    allowedContainers: RECORDING_CONTAINER_SIGNATURES,
   })
   if (!body.success) {
     return Response.json(body.body satisfies ServerErrorBody, { status: body.status })

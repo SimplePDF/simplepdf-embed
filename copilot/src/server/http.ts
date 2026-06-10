@@ -1,5 +1,6 @@
 import type { ZodType, z } from 'zod'
 import type { ServerErrorBody } from '../lib/api_envelope'
+import type { ContainerSignature } from '../lib/voice/recording_format'
 
 // The exact ServerErrorBody variants this module can produce. Extracting
 // them by `error` keeps each variant's full shape (including `message`),
@@ -19,12 +20,6 @@ export type BodyReadFailure = {
 }
 
 export type BodyReadSuccess = { success: true; text: string }
-
-// Leading-bytes signature of an accepted upload container. `offset` is where
-// the magic bytes start (EBML/WebM at 0, MP4 `ftyp` at 4). This is an
-// allowlist, NOT proof of an audio track — a valid container can still wrap
-// non-audio/malformed media; that case is caught upstream by the provider.
-export type ContainerSignature = { offset: number; magic: readonly number[] }
 
 export type BinaryBodySuccess = { success: true; bytes: Uint8Array }
 

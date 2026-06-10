@@ -77,6 +77,14 @@ export type ShowParam = (typeof SHOW_PARAMS)[number]
 const isShowParam = (value: unknown): value is ShowParam =>
   typeof value === 'string' && SHOW_PARAMS.some((candidate) => candidate === value)
 
+// Sub-selection inside the `?show=model` picker. Absent / invalid normalizes
+// to 'chat' at read time (the modal defaults to the Chat tab).
+const MODEL_TABS = ['chat', 'speech-to-text'] as const
+export type ModelTab = (typeof MODEL_TABS)[number]
+
+const isModelTab = (value: unknown): value is ModelTab =>
+  typeof value === 'string' && MODEL_TABS.some((candidate) => candidate === value)
+
 // A `?url=` value is dropped straight into the iframe `src` AND its origin
 // becomes the postMessage bridge target, so it must be a valid SimplePDF
 // document URL on the editor's own base-domain family (e.g. any
@@ -106,6 +114,7 @@ type HomeSearch = {
   form: FormId
   lang: string
   show?: ShowParam
+  tab?: ModelTab
   share?: string
   url?: string
 }
@@ -143,6 +152,7 @@ export const Route = createFileRoute('/')({
       form: isFormId(raw.form) ? raw.form : getDefaultFormIdForLocale(lang),
       lang,
       ...(isShowParam(raw.show) ? { show: raw.show } : {}),
+      ...(isModelTab(raw.tab) ? { tab: raw.tab } : {}),
       ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
       ...(isEmbeddableUrl(raw.url) ? { url: raw.url } : {}),
     }

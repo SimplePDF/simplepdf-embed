@@ -57,6 +57,45 @@ export const ByokConfigSchema: z.ZodType<ByokConfig> = z.discriminatedUnion('pro
   }),
 ])
 
+// --- Speech-to-Text (P070-02) -------------------------------------------------
+// STT is a separate capability with its own narrow catalog: only OpenAI (two
+// transcription models) and a custom OpenAI-compatible endpoint expose
+// `.transcription()` in the installed AI SDK. No customInstructions. The key is
+// optional for custom (some local endpoints need none); required for OpenAI.
+
+export type SttProviderId = 'custom' | 'openai'
+
+export type ByokSttConfig =
+  | { provider: 'openai'; model: string; apiKey: string }
+  | { provider: 'custom'; model: string; apiKey: string; baseUrl: string }
+
+export const ByokSttConfigSchema: z.ZodType<ByokSttConfig> = z.discriminatedUnion('provider', [
+  z.object({ provider: z.literal('openai'), model: z.string().min(1), apiKey: z.string() }),
+  z.object({
+    provider: z.literal('custom'),
+    model: z.string().min(1),
+    apiKey: z.string(),
+    baseUrl: z.string().min(1),
+  }),
+])
+
+// gpt-4o-mini-transcribe is the recommended lower-cost default; gpt-4o-transcribe
+// is the higher-accuracy option (P070-02 V3 #5 / V1 #8).
+export const STT_OPENAI_MODELS: readonly ByokModel[] = [
+  {
+    id: 'gpt-4o-mini-transcribe',
+    label: 'GPT-4o mini Transcribe',
+    description: 'Recommended — lower cost',
+    recommended: true,
+  },
+  {
+    id: 'gpt-4o-transcribe',
+    label: 'GPT-4o Transcribe',
+    description: 'Higher accuracy',
+    recommended: false,
+  },
+]
+
 type CatalogProviderSpec = {
   id: Exclude<ByokProviderId, 'custom'>
   kind: 'catalog'
