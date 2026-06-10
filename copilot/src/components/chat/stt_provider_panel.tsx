@@ -9,10 +9,12 @@ import {
 } from '../../lib/byok'
 import { TextInput } from '../ui/text_input'
 
-// Speech-to-Text provider configuration (P070-02). Only OpenAI (two
-// transcription models) and a custom OpenAI-compatible endpoint expose
-// transcription in the AI SDK. The key lives only in this browser's vault and
-// audio goes browser-direct to the chosen endpoint — never to SimplePDF.
+// Speech-to-Text provider configuration (P070-02). UX deliberately mirrors the
+// Chat picker (provider cards + model cards + key input — no dropdowns) so the
+// two tabs feel identical. Only OpenAI (two transcription models) and a custom
+// OpenAI-compatible endpoint expose transcription in the AI SDK. The key lives
+// only in this browser's vault and audio goes browser-direct — never to
+// SimplePDF.
 
 const customUrlErrorKey = (code: CustomSttUrlErrorCode): string => {
   switch (code) {
@@ -33,6 +35,37 @@ const customUrlErrorKey = (code: CustomSttUrlErrorCode): string => {
   }
 }
 
+const ProviderCard = ({
+  selected,
+  onClick,
+  label,
+  badge,
+}: {
+  selected: boolean
+  onClick: () => void
+  label: string
+  badge: string | null
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={selected}
+    className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2 text-left text-xs transition ${selected ? 'border-sky-600 text-sky-700' : 'border-slate-200 text-slate-700 hover:border-sky-600'}`}
+  >
+    <span className="flex w-full items-center justify-between gap-2">
+      <span className="flex items-center gap-2 font-medium">
+        {label}
+        {badge !== null ? (
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-emerald-700">
+            {badge}
+          </span>
+        ) : null}
+      </span>
+      {selected ? <span className="text-sky-600">✓</span> : null}
+    </span>
+  </button>
+)
+
 export const SttProviderPanel = ({
   activeStt,
   onApply,
@@ -45,9 +78,7 @@ export const SttProviderPanel = ({
   const { t } = useTranslation()
   const [provider, setProvider] = useState<SttProviderId>(activeStt?.provider ?? 'openai')
   const firstModel = STT_OPENAI_MODELS[0]?.id ?? 'gpt-4o-mini-transcribe'
-  const [openaiModel, setOpenaiModel] = useState(
-    activeStt?.provider === 'openai' ? activeStt.model : firstModel,
-  )
+  const [openaiModel, setOpenaiModel] = useState(activeStt?.provider === 'openai' ? activeStt.model : firstModel)
   const [customModel, setCustomModel] = useState(activeStt?.provider === 'custom' ? activeStt.model : '')
   const [baseUrl, setBaseUrl] = useState(activeStt?.provider === 'custom' ? activeStt.baseUrl : '')
   const [apiKey, setApiKey] = useState(activeStt?.apiKey ?? '')
@@ -94,93 +125,102 @@ export const SttProviderPanel = ({
       <p className="text-xs text-slate-600">{t('chat.modelPicker.stt.intro')}</p>
 
       <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
+        <ProviderCard
+          selected={provider === 'openai'}
           onClick={handleSelectOpenai}
-          aria-pressed={provider === 'openai'}
-          className={`rounded-md border px-3 py-2 text-left text-xs font-medium transition ${provider === 'openai' ? 'border-sky-600 text-sky-700' : 'border-slate-200 text-slate-700 hover:border-sky-600'}`}
-        >
-          {t('chat.modelPicker.stt.providerOpenai')}
-        </button>
-        <button
-          type="button"
+          label={t('chat.modelPicker.stt.providerOpenai')}
+          badge={null}
+        />
+        <ProviderCard
+          selected={provider === 'custom'}
           onClick={handleSelectCustom}
-          aria-pressed={provider === 'custom'}
-          className={`rounded-md border px-3 py-2 text-left text-xs font-medium transition ${provider === 'custom' ? 'border-sky-600 text-sky-700' : 'border-slate-200 text-slate-700 hover:border-sky-600'}`}
-        >
-          {t('chat.modelPicker.stt.providerCustom')}
-        </button>
+          label={t('chat.modelPicker.stt.providerCustom')}
+          badge={t('chat.modelPicker.privacyBadge')}
+        />
       </div>
 
       {provider === 'openai' ? (
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-slate-700" htmlFor="stt-openai-model">
-            {t('chat.modelPicker.stt.modelLabel')}
-          </label>
-          <select
-            id="stt-openai-model"
-            value={openaiModel}
-            onChange={(event) => setOpenaiModel(event.target.value)}
-            className="block w-full rounded-md border border-solid border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-sky-600 focus:outline-none"
-            style={{ borderWidth: '1px' }}
-          >
-            {STT_OPENAI_MODELS.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.label}
-                {model.recommended ? ` — ${t('chat.modelPicker.stt.recommended')}` : ''}
-              </option>
-            ))}
-          </select>
-          <label className="block text-xs font-medium text-slate-700" htmlFor="stt-openai-key">
-            {t('chat.modelPicker.stt.keyLabel')}
-          </label>
-          <TextInput
-            id="stt-openai-key"
-            type="password"
-            value={apiKey}
-            placeholder="sk-..."
-            onChange={(event) => setApiKey(event.target.value)}
-          />
+        <div className="space-y-3">
+          <div>
+            <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              {t('chat.modelPicker.modelSectionTitle')}
+            </div>
+            <div className="mt-1 space-y-1.5">
+              {STT_OPENAI_MODELS.map((model) => {
+                const selected = model.id === openaiModel
+                return (
+                  <button
+                    key={model.id}
+                    type="button"
+                    onClick={() => setOpenaiModel(model.id)}
+                    className={`flex w-full items-start justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition ${selected ? 'border-sky-600' : 'border-slate-200 hover:border-sky-600'}`}
+                  >
+                    <span>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium text-slate-900">{model.label}</span>
+                        {model.recommended ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-emerald-700">
+                            {t('chat.modelPicker.recommendedBadge')}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-slate-500">{model.description}</span>
+                    </span>
+                    {selected ? <span className="text-sky-600">✓</span> : null}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div>
+            <TextInput
+              type="password"
+              value={apiKey}
+              placeholder="sk-..."
+              autoComplete="off"
+              onChange={(event) => setApiKey(event.target.value)}
+            />
+            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.keyLabel')}</p>
+          </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <label className="block text-xs font-medium text-slate-700" htmlFor="stt-custom-url">
-            {t('chat.modelPicker.stt.baseUrlLabel')}
-          </label>
-          <TextInput
-            id="stt-custom-url"
-            type="text"
-            value={baseUrl}
-            invalid={urlError !== null}
-            placeholder="https://host/v1"
-            onChange={(event) => {
-              setBaseUrl(event.target.value)
-              setUrlError(null)
-            }}
-          />
-          {urlError !== null ? (
-            <p className="text-xs text-rose-600">{t(customUrlErrorKey(urlError))}</p>
-          ) : null}
-          <label className="block text-xs font-medium text-slate-700" htmlFor="stt-custom-model">
-            {t('chat.modelPicker.stt.modelLabel')}
-          </label>
-          <TextInput
-            id="stt-custom-model"
-            type="text"
-            value={customModel}
-            placeholder="whisper-1"
-            onChange={(event) => setCustomModel(event.target.value)}
-          />
-          <label className="block text-xs font-medium text-slate-700" htmlFor="stt-custom-key">
-            {t('chat.modelPicker.stt.keyOptionalLabel')}
-          </label>
-          <TextInput
-            id="stt-custom-key"
-            type="password"
-            value={apiKey}
-            placeholder={t('chat.modelPicker.stt.keyOptionalPlaceholder')}
-            onChange={(event) => setApiKey(event.target.value)}
-          />
+        <div className="space-y-3">
+          <div>
+            <TextInput
+              type="text"
+              value={baseUrl}
+              invalid={urlError !== null}
+              placeholder="https://host/v1"
+              onChange={(event) => {
+                setBaseUrl(event.target.value)
+                setUrlError(null)
+              }}
+            />
+            {urlError !== null ? (
+              <p className="mt-1 text-[11px] text-rose-600">{t(customUrlErrorKey(urlError))}</p>
+            ) : (
+              <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.baseUrlLabel')}</p>
+            )}
+          </div>
+          <div>
+            <TextInput
+              type="text"
+              value={customModel}
+              placeholder="whisper-1"
+              onChange={(event) => setCustomModel(event.target.value)}
+            />
+            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.modelLabel')}</p>
+          </div>
+          <div>
+            <TextInput
+              type="password"
+              value={apiKey}
+              autoComplete="off"
+              placeholder={t('chat.modelPicker.stt.keyOptionalPlaceholder')}
+              onChange={(event) => setApiKey(event.target.value)}
+            />
+            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.keyOptionalLabel')}</p>
+          </div>
         </div>
       )}
 

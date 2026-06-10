@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { DemoGate } from '../../routes/index'
 import type { Vault } from '../byok'
-import { isSttAvailable, resolveChat, resolveStt, sttDestination } from './resolve_capability'
+import {
+  isSttAvailable,
+  resolveChat,
+  resolveMicAction,
+  resolveStt,
+  sttDestination,
+} from './resolve_capability'
 
 const demo: DemoGate = { kind: 'demo', model: 'anthropic_haiku_4_5' }
 const byokGate: DemoGate = { kind: 'byok' }
@@ -54,6 +60,24 @@ describe('resolveStt', () => {
   it('none when neither', () => {
     expect(resolveStt({ vault: vault({}), demoGate: byokGate })).toEqual({ kind: 'none' })
     expect(isSttAvailable(resolveStt({ vault: vault({}), demoGate: byokGate }))).toBe(false)
+  })
+})
+
+describe('resolveMicAction (Chat-first, STT-second)', () => {
+  it('opens the chat tab when Chat is unavailable (even if STT is)', () => {
+    expect(resolveMicAction({ chat: { kind: 'none' }, stt: { kind: 'demo' } })).toEqual({
+      kind: 'configure',
+      tab: 'chat',
+    })
+  })
+  it('opens the STT tab when Chat is available but STT is not', () => {
+    expect(resolveMicAction({ chat: { kind: 'demo' }, stt: { kind: 'none' } })).toEqual({
+      kind: 'configure',
+      tab: 'speech-to-text',
+    })
+  })
+  it('records when both are available', () => {
+    expect(resolveMicAction({ chat: { kind: 'demo' }, stt: { kind: 'demo' } })).toEqual({ kind: 'record' })
   })
 })
 

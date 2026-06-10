@@ -46,6 +46,22 @@ export const resolveStt = ({ vault, demoGate }: { vault: Vault; demoGate: DemoGa
 export const isChatAvailable = (resolution: ChatResolution): boolean => resolution.kind !== 'none'
 export const isSttAvailable = (resolution: SttResolution): boolean => resolution.kind !== 'none'
 
+// What clicking the mic should do (P070-02 V1 #5). Recording needs BOTH Chat
+// and STT — a transcript you can't send is useless — so the resolver is
+// Chat-first, STT-second: open the picker on the missing capability's tab, else
+// arm recording.
+export type MicAction = { kind: 'record' } | { kind: 'configure'; tab: 'chat' | 'speech-to-text' }
+
+export const resolveMicAction = ({ chat, stt }: { chat: ChatResolution; stt: SttResolution }): MicAction => {
+  if (chat.kind === 'none') {
+    return { kind: 'configure', tab: 'chat' }
+  }
+  if (stt.kind === 'none') {
+    return { kind: 'configure', tab: 'speech-to-text' }
+  }
+  return { kind: 'record' }
+}
+
 const hostOf = (baseUrl: string): string => {
   try {
     return new URL(baseUrl).host

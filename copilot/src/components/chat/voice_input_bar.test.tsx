@@ -11,6 +11,7 @@ const renderBar = (status: 'armed' | 'recording' | 'transcribing') =>
       status={status}
       level={[0.2, 0.6]}
       elapsedMs={3_000}
+      destination={null}
       onRecord={noop}
       onStop={noop}
       onCancel={noop}
@@ -44,6 +45,7 @@ describe('VoiceInputBar', () => {
         status="recording"
         level={[]}
         elapsedMs={0}
+        destination={null}
         onRecord={noop}
         onStop={onStop}
         onCancel={onCancel}

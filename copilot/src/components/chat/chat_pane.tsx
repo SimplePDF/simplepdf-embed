@@ -46,7 +46,14 @@ import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
 import type { TranscribeClientErrorCode, TranscribeFnResult } from '../../lib/voice/error_codes'
 import { isAcceptedRecordingMime, RECORDING_MAX_BYTES } from '../../lib/voice/recording_format'
-import { resolveStt, type SttResolution } from '../../lib/voice/resolve_capability'
+import {
+  resolveChat,
+  resolveMicAction,
+  resolveStt,
+  type SttResolution,
+  sttDestination,
+  type TranscriptionDestination,
+} from '../../lib/voice/resolve_capability'
 import { transcribeByok } from '../../lib/voice/transcribe_byok'
 import { transcribeClient } from '../../lib/voice/transcribe_client'
 import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
@@ -61,7 +68,6 @@ import { useAudioRecorder } from './hooks/use_audio_recorder'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
 import { useVoiceInputSupport } from './hooks/use_voice_input_support'
 import { ModelPickerModal } from './model_picker_modal'
-import { shouldShowMic } from './should_show_mic'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
@@ -422,6 +428,8 @@ export const ChatPane = ({
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const voiceInputSupported = useVoiceInputSupport()
+  // Recipient of the frozen recording, for the armed-view disclosure (V1 #7).
+  const [voiceDestination, setVoiceDestination] = useState<TranscriptionDestination | null>(null)
   // The STT route is resolved ONCE when recording starts and frozen here, so a
   // recording can't silently change destination and the request gate can detect
   // a mid-recording revoke (P070-02 V4/V5). Set by handleVoiceRecord below.
@@ -974,13 +982,23 @@ export const ChatPane = ({
   // the byokState block above. Race window is sub-millisecond on warm IDB
   // but the cost of holding is invisible.
   const canSend = isReady && !isStreaming && !serverLocked && !isVaultLoading
-  const micVisible = shouldShowMic({ canSend, demoGate, voiceInputSupported })
-  const handleVoiceRecord = useCallback(() => {
-    // Resolve the STT route ONCE and freeze it before getUserMedia so the
-    // recording's destination is fixed for its whole lifetime.
-    frozenSttRef.current = resolveStt({ vault: byokVault, demoGate })
-    void voice.record()
-  }, [byokVault, demoGate, voice.record])
+  // Mic is VISIBLE whenever the browser can record; DISABLED (not hidden) while
+  // the composer isn't usable. Clicking it resolves Chat-first then STT: open
+  // the picker on a missing capability, else freeze the route + destination and
+  // arm (the armed view shows the recipient disclosure before getUserMedia).
+  const micVisible = voiceInputSupported
+  const handleMicClick = useCallback(() => {
+    const chat = resolveChat({ vault: byokVault, demoGate })
+    const stt = resolveStt({ vault: byokVault, demoGate })
+    const action = resolveMicAction({ chat, stt })
+    if (action.kind === 'configure') {
+      void navigate({ search: (prev) => ({ ...prev, show: 'model', tab: action.tab }) })
+      return
+    }
+    frozenSttRef.current = stt
+    setVoiceDestination(sttDestination(stt))
+    voice.arm()
+  }, [byokVault, demoGate, navigate, voice.arm])
   const hasUserMessage = messages.some((message) => message.role === 'user')
   const chatStatusMessage = useMemo((): string => {
     if (!hasActiveModel) {
@@ -1184,9 +1202,10 @@ export const ChatPane = ({
               {micVisible ? (
                 <button
                   type="button"
-                  onClick={voice.arm}
+                  onClick={handleMicClick}
+                  disabled={!canSend}
                   aria-label={t('voice.micLabel')}
-                  className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
                 >
                   <Mic size={18} aria-hidden="true" />
                 </button>
@@ -1205,7 +1224,8 @@ export const ChatPane = ({
               status={voice.status}
               level={voice.level}
               elapsedMs={voice.elapsedMs}
-              onRecord={handleVoiceRecord}
+              destination={voiceDestination}
+              onRecord={voice.record}
               onStop={voice.stop}
               onCancel={voice.cancel}
             />

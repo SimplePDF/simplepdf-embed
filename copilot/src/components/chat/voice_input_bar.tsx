@@ -1,6 +1,7 @@
 import { Loader2, Mic, X } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { TranscriptionDestination } from '../../lib/voice/resolve_capability'
 import type { VoiceStatus } from './hooks/use_audio_recorder'
 import { VoiceWaveform } from './voice_waveform'
 
@@ -14,6 +15,7 @@ export const VoiceInputBar = ({
   status,
   level,
   elapsedMs,
+  destination,
   onRecord,
   onStop,
   onCancel,
@@ -21,11 +23,32 @@ export const VoiceInputBar = ({
   status: VoiceBarStatus
   level: readonly number[]
   elapsedMs: number
+  destination: TranscriptionDestination | null
   onRecord: () => void
   onStop: () => void
   onCancel: () => void
 }) => {
   const { t } = useTranslation()
+
+  // Recipient-specific disclosure (V1 #7): the copy names exactly who receives
+  // the audio for the frozen destination — never a false "SimplePDF" claim for
+  // a BYOK path. Frozen before the armed view renders.
+  const disclosureText = ((): string => {
+    if (destination === null) {
+      return t('voice.disclosureDemo')
+    }
+    switch (destination.kind) {
+      case 'demo':
+        return t('voice.disclosureDemo')
+      case 'openai-byok':
+        return t('voice.disclosureOpenaiByok')
+      case 'custom-byok':
+        return t('voice.disclosureCustomByok', { host: destination.host })
+      default:
+        destination satisfies never
+        return t('voice.disclosureDemo')
+    }
+  })()
 
   const liveStatusKey = ((): string | null => {
     switch (status) {
@@ -46,7 +69,7 @@ export const VoiceInputBar = ({
       case 'armed':
         return (
           <>
-            <span className="flex-1 text-xs leading-tight text-slate-500">{t('voice.disclosure')}</span>
+            <span className="flex-1 text-xs leading-tight text-slate-500">{disclosureText}</span>
             <button
               type="button"
               onClick={onRecord}
