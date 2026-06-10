@@ -49,7 +49,7 @@ let transcribe: Mock
 let onTranscript: Mock
 
 const renderRecorder = (maxDurationMs = 120_000) =>
-  renderHook(() => useAudioRecorder({ transcribe, onTranscript, maxDurationMs }))
+  renderHook(() => useAudioRecorder({ transcribe, onTranscript, onTranscriptDelta: () => {}, maxDurationMs }))
 
 beforeEach(() => {
   track.stop.mockClear()
@@ -86,7 +86,11 @@ describe('useAudioRecorder', () => {
     await act(async () => {
       result.current.stop()
     })
-    expect(transcribe).toHaveBeenCalledWith({ blob: expect.any(Blob), signal: expect.any(AbortSignal) })
+    expect(transcribe).toHaveBeenCalledWith({
+      blob: expect.any(Blob),
+      signal: expect.any(AbortSignal),
+      onDelta: expect.any(Function),
+    })
     expect(onTranscript).toHaveBeenCalledWith('hello world')
     expect(result.current.status).toBe('idle')
     expect(result.current.lastError).toBeNull()

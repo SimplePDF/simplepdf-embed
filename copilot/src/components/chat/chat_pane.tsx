@@ -54,7 +54,7 @@ import {
   sttDestination,
   type TranscriptionDestination,
 } from '../../lib/voice/resolve_capability'
-import { transcribeByok } from '../../lib/voice/transcribe_byok'
+import { transcribeByokStreaming } from '../../lib/voice/transcribe_byok_streaming'
 import { transcribeClient } from '../../lib/voice/transcribe_client'
 import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
 import type { DemoGate, ModelTab } from '../../routes/index'
@@ -84,6 +84,12 @@ const voiceFailure = (code: TranscribeClientErrorCode): TranscribeFnResult => ({
   success: false,
   error: { code, message: code },
 })
+
+// The draft during/after dictation = whatever the user had typed before
+// recording (the prefix) + the transcript. Streaming deltas keep replacing the
+// transcript part; the prefix is never clobbered.
+const joinVoiceDraft = (prefix: string, transcript: string): string =>
+  prefix.trim() === '' ? transcript : `${prefix} ${transcript}`
 
 const homeRoute = getRouteApi('/')
 
@@ -416,6 +422,8 @@ export const ChatPane = ({
   const shareIdRef = useRef<string | null>(search.share ?? null)
   shareIdRef.current = search.share ?? null
   const [draft, setDraft] = useState('')
+  const draftRef = useRef(draft)
+  draftRef.current = draft
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
@@ -434,21 +442,35 @@ export const ChatPane = ({
   // recording can't silently change destination and the request gate can detect
   // a mid-recording revoke (P070-02 V4/V5). Set by handleVoiceRecord below.
   const frozenSttRef = useRef<SttResolution | null>(null)
+  // The user's typed text at record-start, so streaming deltas + the final
+  // transcript compose onto it instead of clobbering it.
+  const voiceDraftPrefixRef = useRef('')
   const handleVoiceTranscribe = useCallback(
-    async ({ blob, signal }: { blob: Blob; signal: AbortSignal }): Promise<TranscribeFnResult> => {
+    async ({
+      blob,
+      signal,
+      onDelta,
+    }: {
+      blob: Blob
+      signal: AbortSignal
+      onDelta: (textSoFar: string) => void
+    }): Promise<TranscribeFnResult> => {
       const frozen = frozenSttRef.current
       if (frozen === null || frozen.kind === 'none') {
         return voiceFailure('unauthorized')
       }
       if (frozen.kind === 'demo') {
+        // The demo server route returns a complete transcript (no SSE), so no
+        // deltas are emitted on this path.
         const shareId = demoGate.kind === 'demo' ? shareIdRef.current : null
         if (shareId === null) {
           return voiceFailure('unauthorized')
         }
         return transcribeClient({ blob, shareId, signal })
       }
-      // BYOK browser-direct: bounded conversion (single recording-format owner),
-      // then dispatch through the request gate so a forgotten key is never used.
+      // BYOK browser-direct streaming: bounded conversion (single
+      // recording-format owner), then dispatch through the request gate so a
+      // forgotten key is never used. Deltas stream into the draft as produced.
       if (!isAcceptedRecordingMime(blob.type)) {
         return voiceFailure('unsupported_media_type')
       }
@@ -459,7 +481,7 @@ export const ChatPane = ({
       const dispatch = await dispatchSttUnderFreshCredential({
         frozenKey: frozen.key,
         signal,
-        run: (config) => transcribeByok({ audioBytes, signal, config }),
+        run: (config) => transcribeByokStreaming({ audioBytes, signal, config, onDelta }),
       })
       switch (dispatch.kind) {
         case 'ran':
@@ -476,10 +498,11 @@ export const ChatPane = ({
     },
     [demoGate.kind],
   )
+  const handleVoiceTranscriptDelta = useCallback((textSoFar: string) => {
+    setDraft(joinVoiceDraft(voiceDraftPrefixRef.current, textSoFar))
+  }, [])
   const handleVoiceTranscript = useCallback((text: string) => {
-    // Append rather than replace so a user who typed before dictating never
-    // silently loses their draft.
-    setDraft((previous) => (previous.trim() === '' ? text : `${previous} ${text}`))
+    setDraft(joinVoiceDraft(voiceDraftPrefixRef.current, text))
     // The textarea only re-mounts once status returns to idle, so focus must
     // wait for the commit — focusing synchronously here would no-op (the
     // composer is still showing the voice bar).
@@ -488,6 +511,7 @@ export const ChatPane = ({
   const voice = useAudioRecorder({
     transcribe: handleVoiceTranscribe,
     onTranscript: handleVoiceTranscript,
+    onTranscriptDelta: handleVoiceTranscriptDelta,
     maxDurationMs: VOICE_MAX_DURATION_MS,
   })
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
@@ -996,6 +1020,7 @@ export const ChatPane = ({
       return
     }
     frozenSttRef.current = stt
+    voiceDraftPrefixRef.current = draftRef.current
     setVoiceDestination(sttDestination(stt))
     voice.arm()
   }, [byokVault, demoGate, navigate, voice.arm])

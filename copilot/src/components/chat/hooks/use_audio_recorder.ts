@@ -16,7 +16,13 @@ const RECORDER_AUDIO_BITS_PER_SECOND = 128_000
 
 export type VoiceStatus = 'idle' | 'armed' | 'recording' | 'transcribing'
 
-type TranscribeFn = (args: { blob: Blob; signal: AbortSignal }) => Promise<TranscribeFnResult>
+type TranscribeFn = (args: {
+  blob: Blob
+  signal: AbortSignal
+  // Called with the full transcript-so-far as streaming deltas arrive (the
+  // non-streaming demo path simply never calls it).
+  onDelta: (textSoFar: string) => void
+}) => Promise<TranscribeFnResult>
 
 export type UseAudioRecorder = {
   status: VoiceStatus
@@ -60,10 +66,12 @@ const computeRms = (data: Uint8Array): number => {
 export const useAudioRecorder = ({
   transcribe,
   onTranscript,
+  onTranscriptDelta,
   maxDurationMs,
 }: {
   transcribe: TranscribeFn
   onTranscript: (text: string) => void
+  onTranscriptDelta: (textSoFar: string) => void
   maxDurationMs: number
 }): UseAudioRecorder => {
   const [status, setStatus] = useState<VoiceStatus>('idle')
@@ -75,6 +83,8 @@ export const useAudioRecorder = ({
   transcribeRef.current = transcribe
   const onTranscriptRef = useRef(onTranscript)
   onTranscriptRef.current = onTranscript
+  const onTranscriptDeltaRef = useRef(onTranscriptDelta)
+  onTranscriptDeltaRef.current = onTranscriptDelta
   const maxDurationMsRef = useRef(maxDurationMs)
   maxDurationMsRef.current = maxDurationMs
 
@@ -154,7 +164,17 @@ export const useAudioRecorder = ({
     setStatus('transcribing')
     const controller = new AbortController()
     abortRef.current = controller
-    const result = await transcribeRef.current({ blob, signal: controller.signal })
+    const result = await transcribeRef.current({
+      blob,
+      signal: controller.signal,
+      // Drop late deltas after cancel/unmount/new-record so a superseded
+      // recording can't keep writing to the draft.
+      onDelta: (textSoFar) => {
+        if (!controller.signal.aborted) {
+          onTranscriptDeltaRef.current(textSoFar)
+        }
+      },
+    })
     // A late result after cancel / unmount / a new recording must never touch
     // the draft or error state.
     if (controller.signal.aborted) {
