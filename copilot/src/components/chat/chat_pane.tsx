@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import {
   type ByokConfig,
+  type ByokSttConfig,
   type CredentialKey,
   credentialKey,
   dispatchSttUnderFreshCredential,
@@ -16,6 +17,9 @@ import {
   removeCredential,
   runByokStream,
   saveCredential,
+  storeForgetStt,
+  storeSaveStt,
+  sttCredentialKey,
   touchLastUsed,
   type Vault,
 } from '../../lib/byok'
@@ -46,7 +50,7 @@ import { resolveStt, type SttResolution } from '../../lib/voice/resolve_capabili
 import { transcribeByok } from '../../lib/voice/transcribe_byok'
 import { transcribeClient } from '../../lib/voice/transcribe_client'
 import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
-import type { DemoGate } from '../../routes/index'
+import type { DemoGate, ModelTab } from '../../routes/index'
 import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
 import { ErrorBanner } from '../error_banner'
@@ -560,6 +564,54 @@ export const ChatPane = ({
     })
     void removeCredential(key)
   }, [])
+
+  // STT BYOK lives in its own vault slot; saving/forgetting it never touches
+  // the Chat credential. Durable write goes through the vault store (serialized
+  // + cross-tab notify); the local byokState is updated optimistically so the
+  // picker reflects it immediately.
+  const handleApplyStt = useCallback((config: ByokSttConfig): void => {
+    const key = sttCredentialKey(config)
+    setByokState((current) => {
+      if (current.kind === 'loading') {
+        return current
+      }
+      return {
+        ...current,
+        vault: {
+          ...current.vault,
+          sttActive: key,
+          sttCredentials: { ...current.vault.sttCredentials, [key]: config },
+        },
+      }
+    })
+    void storeSaveStt(config)
+  }, [])
+
+  const handleForgetStt = useCallback((): void => {
+    const key = byokVault.sttActive
+    if (key === null) {
+      return
+    }
+    setByokState((current) => {
+      if (current.kind === 'loading') {
+        return current
+      }
+      const remaining = { ...current.vault.sttCredentials }
+      delete remaining[key]
+      return { ...current, vault: { ...current.vault, sttActive: null, sttCredentials: remaining } }
+    })
+    void storeForgetStt(key)
+  }, [byokVault.sttActive])
+
+  const sttActive: ByokSttConfig | null =
+    byokVault.sttActive !== null ? (byokVault.sttCredentials[byokVault.sttActive] ?? null) : null
+  const modelTab: ModelTab = search.tab ?? 'chat'
+  const handleModelTabChange = useCallback(
+    (next: ModelTab): void => {
+      void navigate({ search: (prev) => ({ ...prev, tab: next }) })
+    },
+    [navigate],
+  )
 
   // Plain function: identity-stability does not matter for the picker (no
   // dependency-array consumer), and the body is a one-liner. Per the global
@@ -1168,6 +1220,11 @@ export const ChatPane = ({
         onApply={handleApplyByok}
         onForget={handleForgetByok}
         lookupSavedCredential={lookupSavedCredential}
+        tab={modelTab}
+        onTabChange={handleModelTabChange}
+        sttActive={sttActive}
+        onApplyStt={handleApplyStt}
+        onForgetStt={handleForgetStt}
       />
       <DownloadModal
         open={isDownloadModalOpen}
