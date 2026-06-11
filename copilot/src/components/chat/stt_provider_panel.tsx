@@ -7,7 +7,7 @@ import {
   type SttProviderId,
   validateCustomSttUrl,
 } from '../../lib/byok'
-import { TextInput } from '../ui/text_input'
+import { LabeledField } from '../ui/labeled_field'
 
 // Speech-to-Text provider configuration (P070-02). UX deliberately mirrors the
 // Chat picker (provider cards + model cards + key input — no dropdowns) so the
@@ -76,10 +76,14 @@ export const SttProviderPanel = ({
   onForget: () => void
 }) => {
   const { t } = useTranslation()
-  const [provider, setProvider] = useState<SttProviderId>(activeStt?.provider ?? 'openai')
-  const firstModel = STT_OPENAI_MODELS[0]?.id ?? 'gpt-4o-mini-transcribe'
-  const [openaiModel, setOpenaiModel] = useState(
-    activeStt?.provider === 'openai' ? activeStt.model : firstModel,
+  // No provider is pre-selected when there is no saved config (mirrors the Chat
+  // tab's `selectedProvider ?? null`): only a saved STT config pre-selects its
+  // provider. Opening the tab fresh shows the cards with nothing selected.
+  const [provider, setProvider] = useState<SttProviderId | null>(activeStt?.provider ?? null)
+  // Null until the user picks a model (mirrors the Chat tab's selectedModelId):
+  // only a saved OpenAI config pre-selects its model.
+  const [openaiModel, setOpenaiModel] = useState<string | null>(
+    activeStt?.provider === 'openai' ? activeStt.model : null,
   )
   const [customModel, setCustomModel] = useState(activeStt?.provider === 'custom' ? activeStt.model : '')
   const [baseUrl, setBaseUrl] = useState(activeStt?.provider === 'custom' ? activeStt.baseUrl : '')
@@ -93,10 +97,17 @@ export const SttProviderPanel = ({
   const handleSelectCustom = useCallback(() => {
     setProvider('custom')
   }, [])
+  const handleBaseUrlChange = useCallback((value: string) => {
+    setBaseUrl(value)
+    setUrlError(null)
+  }, [])
 
   const handleSave = useCallback(() => {
+    if (provider === null) {
+      return
+    }
     if (provider === 'openai') {
-      if (apiKey.trim() === '') {
+      if (openaiModel === null || apiKey.trim() === '') {
         return
       }
       onApply({ provider: 'openai', model: openaiModel, apiKey: apiKey.trim() })
@@ -119,8 +130,15 @@ export const SttProviderPanel = ({
     })
   }, [provider, apiKey, openaiModel, baseUrl, customModel, onApply])
 
-  const saveDisabled =
-    provider === 'openai' ? apiKey.trim() === '' : baseUrl.trim() === '' || customModel.trim() === ''
+  const saveDisabled = ((): boolean => {
+    if (provider === null) {
+      return true
+    }
+    if (provider === 'openai') {
+      return openaiModel === null || apiKey.trim() === ''
+    }
+    return baseUrl.trim() === '' || customModel.trim() === ''
+  })()
 
   return (
     <section className="space-y-3">
@@ -130,13 +148,13 @@ export const SttProviderPanel = ({
         <ProviderCard
           selected={provider === 'openai'}
           onClick={handleSelectOpenai}
-          label={t('chat.modelPicker.stt.providerOpenai')}
+          label={t('chat.modelPicker.providerOpenai')}
           badge={null}
         />
         <ProviderCard
           selected={provider === 'custom'}
           onClick={handleSelectCustom}
-          label={t('chat.modelPicker.stt.providerCustom')}
+          label={t('chat.modelPicker.providerCustom')}
           badge={t('chat.modelPicker.privacyBadge')}
         />
       </div>
@@ -174,57 +192,59 @@ export const SttProviderPanel = ({
               })}
             </div>
           </div>
-          <div>
-            <TextInput
+          {openaiModel !== null ? (
+            <LabeledField
+              label={null}
               type="password"
               value={apiKey}
-              placeholder="sk-..."
+              onChange={setApiKey}
+              placeholder={t('chat.modelPicker.keyInputPlaceholder', {
+                provider: t('chat.modelPicker.providerOpenai'),
+              })}
+              hint={t('chat.modelPicker.keyInputHint')}
+              error={null}
               autoComplete="off"
-              onChange={(event) => setApiKey(event.target.value)}
             />
-            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.keyLabel')}</p>
-          </div>
+          ) : null}
         </div>
-      ) : (
+      ) : provider === 'custom' ? (
         <div className="space-y-3">
-          <div>
-            <TextInput
-              type="text"
-              value={baseUrl}
-              invalid={urlError !== null}
-              placeholder="https://host/v1"
-              onChange={(event) => {
-                setBaseUrl(event.target.value)
-                setUrlError(null)
-              }}
-            />
-            {urlError !== null ? (
-              <p className="mt-1 text-[11px] text-rose-600">{t(customUrlErrorKey(urlError))}</p>
-            ) : (
-              <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.baseUrlLabel')}</p>
-            )}
-          </div>
-          <div>
-            <TextInput
-              type="text"
-              value={customModel}
-              placeholder="whisper-1"
-              onChange={(event) => setCustomModel(event.target.value)}
-            />
-            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.modelLabel')}</p>
-          </div>
-          <div>
-            <TextInput
-              type="password"
-              value={apiKey}
-              autoComplete="off"
-              placeholder={t('chat.modelPicker.stt.keyOptionalPlaceholder')}
-              onChange={(event) => setApiKey(event.target.value)}
-            />
-            <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.stt.keyOptionalLabel')}</p>
-          </div>
+          <LabeledField
+            id="stt-base-url"
+            label={t('chat.modelPicker.customBaseUrlLabel')}
+            type="url"
+            value={baseUrl}
+            onChange={handleBaseUrlChange}
+            placeholder="https://host/v1"
+            hint={t('chat.modelPicker.customBaseUrlHint')}
+            error={urlError !== null ? t(customUrlErrorKey(urlError)) : null}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <LabeledField
+            id="stt-model"
+            label={t('chat.modelPicker.customModelLabel')}
+            type="text"
+            value={customModel}
+            onChange={setCustomModel}
+            placeholder="gpt-4o-mini-transcribe"
+            hint={null}
+            error={null}
+            spellCheck={false}
+          />
+          <LabeledField
+            id="stt-api-key"
+            label={t('chat.modelPicker.customKeyLabel')}
+            type="password"
+            value={apiKey}
+            onChange={setApiKey}
+            placeholder={t('chat.modelPicker.customKeyPlaceholder')}
+            hint={t('chat.modelPicker.customKeyHint')}
+            error={null}
+            autoComplete="off"
+          />
         </div>
-      )}
+      ) : null}
 
       <p className="text-[11px] leading-snug text-slate-500">{t('chat.modelPicker.stt.privacyNote')}</p>
 

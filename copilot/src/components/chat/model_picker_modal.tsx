@@ -1,5 +1,5 @@
 import { Cog } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   type ByokConfig,
@@ -21,8 +21,8 @@ import { FINALISATION_ACTION } from '../../lib/embed-bridge-adapters/client-tool
 import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
 import type { DemoGate, ModelTab } from '../../routes/index'
 import { getDefaultSystemPrompt } from '../../server/tools'
+import { LabeledField } from '../ui/labeled_field'
 import { Modal, ModalCloseButton } from '../ui/modal'
-import { TextInput } from '../ui/text_input'
 import { DefaultPromptModal } from './default_prompt_modal'
 import { SttProviderPanel } from './stt_provider_panel'
 
@@ -139,6 +139,23 @@ const pickSttCurrentlyUsed = ({
   }
   return demoGate.kind === 'demo' ? 'OpenAI · gpt-4o-transcribe' : null
 }
+
+// Per-tab "Currently used" card. Each tab renders its own (Chat shows the chat
+// model, Speech-to-Text shows the transcription model) — the tab itself already
+// names the capability, so no per-row label is needed. Takes pre-translated
+// strings so it stays a pure presentational primitive.
+const CurrentlyUsedCard = ({
+  sectionTitle,
+  value,
+}: {
+  sectionTitle: string
+  value: string
+}): ReactElement => (
+  <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+    <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">{sectionTitle}</div>
+    <div className="mt-1 font-semibold text-slate-900">{value}</div>
+  </section>
+)
 
 type ValidationState =
   | { kind: 'idle' }
@@ -545,33 +562,19 @@ const ModelPickerModalBody = ({
       </div>
 
       <div className="mt-4 space-y-4 text-sm text-slate-700">
-        <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
-          <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-            {t('chat.modelPicker.currentlyUsedSectionTitle')}
-          </div>
-          <dl className="mt-1 space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <dt className="text-slate-500">{t('chat.modelPicker.currentlyUsedChatLabel')}</dt>
-              <dd className="font-semibold text-slate-900">
-                {pickCurrentlyUsed({ activeConfig, demoGate })?.label ??
-                  t('chat.modelPicker.currentlyUsedNotSet')}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <dt className="text-slate-500">{t('chat.modelPicker.currentlyUsedSttLabel')}</dt>
-              <dd className="font-semibold text-slate-900">
-                {pickSttCurrentlyUsed({ sttActive, demoGate }) ?? t('chat.modelPicker.currentlyUsedNotSet')}
-              </dd>
-            </div>
-          </dl>
-        </section>
-
         {tab === 'speech-to-text' ? (
           <section
             role="tabpanel"
             id="model-tabpanel-speech-to-text"
             aria-labelledby="model-tab-speech-to-text"
+            className="space-y-4"
           >
+            <CurrentlyUsedCard
+              sectionTitle={t('chat.modelPicker.currentlyUsedSectionTitle')}
+              value={
+                pickSttCurrentlyUsed({ sttActive, demoGate }) ?? t('chat.modelPicker.currentlyUsedNotSet')
+              }
+            />
             <SttProviderPanel activeStt={sttActive} onApply={onApplyStt} onForget={onForgetStt} />
           </section>
         ) : (
@@ -581,6 +584,13 @@ const ModelPickerModalBody = ({
             aria-labelledby="model-tab-chat"
             className="space-y-4"
           >
+            <CurrentlyUsedCard
+              sectionTitle={t('chat.modelPicker.currentlyUsedSectionTitle')}
+              value={
+                pickCurrentlyUsed({ activeConfig, demoGate })?.label ??
+                t('chat.modelPicker.currentlyUsedNotSet')
+              }
+            />
             <section>
               <p className="text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
 
@@ -690,97 +700,61 @@ const ModelPickerModalBody = ({
                   </div>
 
                   {selectedModelId !== null ? (
-                    <div>
-                      <TextInput
-                        inputRef={focusOnMount}
-                        type="password"
-                        value={apiKeyDraft}
-                        onChange={(event) => handleKeyChange(event.target.value)}
-                        placeholder={t('chat.modelPicker.keyInputPlaceholder', { provider: providerLabel })}
-                        invalid={validation.kind === 'error'}
-                        autoComplete="off"
-                      />
-                      {validation.kind === 'error' ? (
-                        <p className="mt-1 text-[11px] text-rose-600">
-                          {t(catalogErrorKey(validation.reason))}
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-[11px] text-slate-500">
-                          {t('chat.modelPicker.keyInputHint')}
-                        </p>
-                      )}
-                    </div>
+                    <LabeledField
+                      inputRef={focusOnMount}
+                      label={null}
+                      type="password"
+                      value={apiKeyDraft}
+                      onChange={handleKeyChange}
+                      placeholder={t('chat.modelPicker.keyInputPlaceholder', { provider: providerLabel })}
+                      hint={t('chat.modelPicker.keyInputHint')}
+                      error={validation.kind === 'error' ? t(catalogErrorKey(validation.reason)) : null}
+                      autoComplete="off"
+                    />
                   ) : null}
                 </div>
               ) : null}
 
               {providerSpec !== null && providerSpec.kind === 'custom' ? (
                 <div className="mt-4 space-y-3">
-                  <div>
-                    <label
-                      htmlFor="custom-base-url"
-                      className="text-[10px] font-medium uppercase tracking-wide text-slate-400"
-                    >
-                      {t('chat.modelPicker.customBaseUrlLabel')}
-                    </label>
-                    <TextInput
-                      id="custom-base-url"
-                      inputRef={focusOnMount}
-                      type="url"
-                      value={baseUrlDraft}
-                      onChange={(event) => handleBaseUrlChange(event.target.value)}
-                      placeholder={providerSpec.defaults.baseUrl}
-                      className="mt-1"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      {t('chat.modelPicker.customBaseUrlHint')}
-                    </p>
-                  </div>
+                  <LabeledField
+                    id="custom-base-url"
+                    inputRef={focusOnMount}
+                    label={t('chat.modelPicker.customBaseUrlLabel')}
+                    type="url"
+                    value={baseUrlDraft}
+                    onChange={handleBaseUrlChange}
+                    placeholder={providerSpec.defaults.baseUrl}
+                    hint={t('chat.modelPicker.customBaseUrlHint')}
+                    error={null}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
 
-                  <div>
-                    <label
-                      htmlFor="custom-model-name"
-                      className="text-[10px] font-medium uppercase tracking-wide text-slate-400"
-                    >
-                      {t('chat.modelPicker.customModelLabel')}
-                    </label>
-                    <TextInput
-                      id="custom-model-name"
-                      type="text"
-                      value={modelNameDraft}
-                      onChange={(event) => handleModelNameChange(event.target.value)}
-                      placeholder={providerSpec.defaults.model}
-                      className="mt-1"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                  </div>
+                  <LabeledField
+                    id="custom-model-name"
+                    label={t('chat.modelPicker.customModelLabel')}
+                    type="text"
+                    value={modelNameDraft}
+                    onChange={handleModelNameChange}
+                    placeholder={providerSpec.defaults.model}
+                    hint={null}
+                    error={null}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
 
-                  <div>
-                    <label
-                      htmlFor="custom-api-key"
-                      className="text-[10px] font-medium uppercase tracking-wide text-slate-400"
-                    >
-                      {t('chat.modelPicker.customKeyLabel')}
-                    </label>
-                    <TextInput
-                      id="custom-api-key"
-                      type="password"
-                      value={apiKeyDraft}
-                      onChange={(event) => handleKeyChange(event.target.value)}
-                      placeholder={t('chat.modelPicker.customKeyPlaceholder')}
-                      invalid={validation.kind === 'error'}
-                      className="mt-1"
-                      autoComplete="off"
-                    />
-                    {validation.kind === 'error' ? (
-                      <p className="mt-1 text-[11px] text-rose-600">{t(customErrorKey(validation.reason))}</p>
-                    ) : (
-                      <p className="mt-1 text-[11px] text-slate-500">{t('chat.modelPicker.customKeyHint')}</p>
-                    )}
-                  </div>
+                  <LabeledField
+                    id="custom-api-key"
+                    label={t('chat.modelPicker.customKeyLabel')}
+                    type="password"
+                    value={apiKeyDraft}
+                    onChange={handleKeyChange}
+                    placeholder={t('chat.modelPicker.customKeyPlaceholder')}
+                    hint={t('chat.modelPicker.customKeyHint')}
+                    error={validation.kind === 'error' ? t(customErrorKey(validation.reason)) : null}
+                    autoComplete="off"
+                  />
                 </div>
               ) : null}
 
@@ -867,11 +841,6 @@ const ModelPickerModalBody = ({
                   ) : null}
                 </div>
               ) : null}
-
-              <div className="mt-4 rounded-md border border-sky-100 bg-sky-50 p-3 text-[11px] text-sky-900">
-                <div className="font-semibold">{t('chat.modelPicker.byokSecurityTitle')}</div>
-                <p className="mt-1 leading-relaxed">{t('chat.modelPicker.byokSecurityBody')}</p>
-              </div>
             </section>
 
             <section className="flex items-center justify-between gap-2 border-t border-slate-100 pt-4">
@@ -912,6 +881,13 @@ const ModelPickerModalBody = ({
             </section>
           </div>
         )}
+
+        {/* Shared across both tabs: chat and speech-to-text BYOK keys live in
+            the same on-device vault, so the storage disclosure is tab-agnostic. */}
+        <div className="rounded-md border border-sky-100 bg-sky-50 p-3 text-[11px] text-sky-900">
+          <div className="font-semibold">{t('chat.modelPicker.byokSecurityTitle')}</div>
+          <p className="mt-1 leading-relaxed">{t('chat.modelPicker.byokSecurityBody')}</p>
+        </div>
       </div>
       <DefaultPromptModal
         open={defaultPromptOpen}
