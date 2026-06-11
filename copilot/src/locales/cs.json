@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Doporučeno",
       "keyInputPlaceholder": "Vložte svůj API key pro {{provider}}",
-      "keyInputHint": "Klíč neopustí váš prohlížeč. Je uložen v paměti pouze pro tuto záložku.",
       "keyInvalid": "Tento API klíč byl poskytovatelem odmítnut.",
       "keyModelNotFound": "Model nebyl nalezen. Vyberte jiný model nebo ověřte, že je součástí vašeho tarifu.",
       "keyNetworkError": "Nepodařilo se kontaktovat poskytovatele pro ověření klíče. Zkontrolujte připojení a zkuste to znovu.",

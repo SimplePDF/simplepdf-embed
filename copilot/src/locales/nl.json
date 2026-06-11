@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Aanbevolen",
       "keyInputPlaceholder": "Plak uw {{provider}} API key",
-      "keyInputHint": "De sleutel verlaat uw browser niet. Alleen in het geheugen opgeslagen voor dit tabblad.",
       "keyInvalid": "Deze API-sleutel is door de provider geweigerd.",
       "keyModelNotFound": "Model niet gevonden. Kies een ander model of controleer of het in uw abonnement is inbegrepen.",
       "keyNetworkError": "De provider kon niet worden bereikt om de sleutel te verifiëren. Controleer uw verbinding en probeer het opnieuw.",

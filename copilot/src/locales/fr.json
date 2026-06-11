@@ -93,7 +93,6 @@
       "modelSectionTitle": "Modèle",
       "recommendedBadge": "Recommandé",
       "keyInputPlaceholder": "Collez votre API key {{provider}}",
-      "keyInputHint": "La clé ne quitte jamais votre navigateur. Stockée en mémoire uniquement pour cet onglet.",
       "keyInvalid": "Cette clé API a été refusée par le fournisseur.",
       "keyModelNotFound": "Modèle introuvable. Choisissez un autre modèle ou vérifiez qu’il est inclus dans votre forfait.",
       "keyNetworkError": "Impossible de contacter le fournisseur pour vérifier la clé. Vérifiez votre connexion et réessayez.",

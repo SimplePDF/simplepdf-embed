@@ -93,7 +93,6 @@
       "modelSectionTitle": "Modello",
       "recommendedBadge": "Consigliato",
       "keyInputPlaceholder": "Incolla la tua API key di {{provider}}",
-      "keyInputHint": "La chiave non lascia mai il tuo browser. Memorizzata solo per questa scheda.",
       "keyInvalid": "Questa chiave API è stata rifiutata dal provider.",
       "keyModelNotFound": "Modello non trovato. Scegli un altro modello o verifica che sia incluso nel tuo piano.",
       "keyNetworkError": "Impossibile contattare il provider per verificare la chiave. Controlla la tua connessione e riprova.",

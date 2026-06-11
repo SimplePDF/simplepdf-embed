@@ -93,7 +93,6 @@
       "modelSectionTitle": "Malli",
       "recommendedBadge": "Suositeltu",
       "keyInputPlaceholder": "Lisää {{provider}} API key",
-      "keyInputHint": "Avain ei poistu selaimestasi. Se tallennetaan muistiin vain tälle välilehdelle.",
       "keyInvalid": "Tarjoaja hylkäsi tämän API-avaimen.",
       "keyModelNotFound": "Mallia ei löytynyt. Valitse toinen malli tai tarkista, että se kuuluu sopimukseesi.",
       "keyNetworkError": "Tarjoajaan ei saatu yhteyttä avaimen vahvistamiseksi. Tarkista yhteytesi ja yritä uudelleen.",

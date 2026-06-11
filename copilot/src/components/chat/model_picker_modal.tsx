@@ -714,7 +714,7 @@ const ModelPickerModalBody = ({
                       value={apiKeyDraft}
                       onChange={handleKeyChange}
                       placeholder={t('chat.modelPicker.keyInputPlaceholder', { provider: providerLabel })}
-                      hint={t('chat.modelPicker.keyInputHint')}
+                      hint={null}
                       error={validation.kind === 'error' ? t(catalogErrorKey(validation.reason)) : null}
                       autoComplete="off"
                     />

@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Önerilen",
       "keyInputPlaceholder": "{{provider}} API key’inizi yapıştırın",
-      "keyInputHint": "Anahtar tarayıcınızı asla terk etmez. Yalnızca bu sekme için bellekte tutulur.",
       "keyInvalid": "Bu API anahtarı sağlayıcı tarafından reddedildi.",
       "keyModelNotFound": "Model bulunamadı. Farklı bir model seçin veya planınızın bu modeli içerdiğini kontrol edin.",
       "keyNetworkError": "Anahtarı doğrulamak için sağlayıcıya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",

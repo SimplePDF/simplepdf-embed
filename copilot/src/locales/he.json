@@ -93,7 +93,6 @@
       "modelSectionTitle": "מודל",
       "recommendedBadge": "מומלץ",
       "keyInputPlaceholder": "הדביקו את ה־API key של {{provider}}",
-      "keyInputHint": "המפתח לא עוזב את הדפדפן. נשמר בזיכרון עבור לשונית זו בלבד.",
       "keyInvalid": "מפתח ה־API הזה נדחה על ידי הספק.",
       "keyModelNotFound": "הדגם לא נמצא. בחר דגם אחר או ודא שהוא כלול בחבילה שלך.",
       "keyNetworkError": "לא ניתן היה ליצור קשר עם הספק כדי לאמת את המפתח. בדקו את החיבור ונסו שוב.",

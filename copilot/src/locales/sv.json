@@ -93,7 +93,6 @@
       "modelSectionTitle": "Modell",
       "recommendedBadge": "Rekommenderad",
       "keyInputPlaceholder": "Klistra in din {{provider}} API key",
-      "keyInputHint": "Nyckeln lämnar aldrig din webbläsare. Lagras i minnet endast för denna flik.",
       "keyInvalid": "Den här API-nyckeln avvisades av leverantören.",
       "keyModelNotFound": "Modellen hittades inte. Välj en annan modell eller kontrollera att den ingår i ditt abonnemang.",
       "keyNetworkError": "Det gick inte att nå leverantören för att verifiera nyckeln. Kontrollera din anslutning och försök igen.",

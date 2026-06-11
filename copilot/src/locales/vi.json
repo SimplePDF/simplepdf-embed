@@ -93,7 +93,6 @@
       "modelSectionTitle": "Mô hình",
       "recommendedBadge": "Khuyên dùng",
       "keyInputPlaceholder": "Dán API key {{provider}} của bạn",
-      "keyInputHint": "Khóa không bao giờ rời khỏi trình duyệt của bạn. Chỉ được lưu trong bộ nhớ cho thẻ này.",
       "keyInvalid": "Khóa API này đã bị nhà cung cấp từ chối.",
       "keyModelNotFound": "Không tìm thấy mô hình. Hãy chọn mô hình khác hoặc kiểm tra xem gói của bạn có bao gồm mô hình này không.",
       "keyNetworkError": "Không thể kết nối với nhà cung cấp để xác minh khóa. Hãy kiểm tra kết nối và thử lại.",

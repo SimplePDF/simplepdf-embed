@@ -226,7 +226,7 @@ export const SttProviderPanel = ({
               placeholder={t('chat.modelPicker.keyInputPlaceholder', {
                 provider: t('chat.modelPicker.providerOpenai'),
               })}
-              hint={t('chat.modelPicker.keyInputHint')}
+              hint={null}
               error={null}
               autoComplete="off"
             />

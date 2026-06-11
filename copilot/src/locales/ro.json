@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Recomandat",
       "keyInputPlaceholder": "Lipește cheia API {{provider}}",
-      "keyInputHint": "Cheia nu părăsește niciodată browserul. Este păstrată în memorie doar pentru această filă.",
       "keyInvalid": "Această cheie API a fost respinsă de furnizor.",
       "keyModelNotFound": "Modelul nu a fost găsit. Alege alt model sau verifică dacă este inclus în planul tău.",
       "keyNetworkError": "Nu s-a putut contacta furnizorul pentru a verifica cheia. Verifică conexiunea și încearcă din nou.",

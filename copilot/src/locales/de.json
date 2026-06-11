@@ -93,7 +93,6 @@
       "modelSectionTitle": "Modell",
       "recommendedBadge": "Empfohlen",
       "keyInputPlaceholder": "{{provider}} API key einfügen",
-      "keyInputHint": "Der Schlüssel verlässt Ihren Browser nicht. Er wird nur für diesen Tab im Arbeitsspeicher gehalten.",
       "keyInvalid": "Dieser API-Schlüssel wurde vom Anbieter abgelehnt.",
       "keyModelNotFound": "Modell nicht gefunden. Wählen Sie ein anderes Modell oder prüfen Sie, ob es in Ihrem Plan enthalten ist.",
       "keyNetworkError": "Der Anbieter konnte zur Überprüfung des Schlüssels nicht erreicht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",

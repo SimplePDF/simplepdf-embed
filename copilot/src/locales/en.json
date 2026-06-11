@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Recommended",
       "keyInputPlaceholder": "Paste your {{provider}} API key",
-      "keyInputHint": "Encrypted in this browser. Never sent to SimplePDF.",
       "keyInvalid": "This API key was rejected by the provider.",
       "keyModelNotFound": "Model not found. Pick a different model or check that your plan includes it.",
       "keyNetworkError": "Could not reach the provider to verify the key. Check your connection and try again.",

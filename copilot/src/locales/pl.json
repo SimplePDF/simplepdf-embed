@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Zalecane",
       "keyInputPlaceholder": "Wklej swój klucz API do {{provider}}",
-      "keyInputHint": "Klucz nigdy nie opuszcza Twojej przeglądarki. Przechowywany w pamięci wyłącznie dla tej karty.",
       "keyInvalid": "Ten klucz API został odrzucony przez dostawcę.",
       "keyModelNotFound": "Nie znaleziono modelu. Wybierz inny model lub sprawdź, czy jest objęty Twoim planem.",
       "keyNetworkError": "Nie można połączyć się z dostawcą, aby zweryfikować klucz. Sprawdź połączenie i spróbuj ponownie.",

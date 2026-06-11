@@ -93,7 +93,6 @@
       "modelSectionTitle": "Model",
       "recommendedBadge": "Anbefalet",
       "keyInputPlaceholder": "Indsæt din {{provider}} API key",
-      "keyInputHint": "Nøglen forlader aldrig din browser. Den gemmes i hukommelsen kun for denne fane.",
       "keyInvalid": "Denne API-nøgle blev afvist af udbyderen.",
       "keyModelNotFound": "Model ikke fundet. Vælg en anden model, eller tjek at den er inkluderet i dit abonnement.",
       "keyNetworkError": "Kunne ikke nå udbyderen for at verificere nøglen. Tjek din forbindelse og prøv igen.",
