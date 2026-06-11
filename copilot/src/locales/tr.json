@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Ayarlanmadı",
       "stt": {
-        "intro": "Sohbete dikte etmek için bir sağlayıcı seçin. Transkripsiyon, doğrudan tarayıcıdan seçtiğiniz uç noktaya çalışır.",
+        "intro": "Sohbete dikte etmek için bir sağlayıcı seçin ve kimlik bilgilerinizi girin.",
         "urlInvalid": "Geçerli bir URL girin (örn. https://host/v1).",
         "urlScheme": "Yalnızca http:// ve https:// desteklenir.",
         "urlLoopback": "http:// yalnızca localhost / 127.0.0.0/8 / [::1] için izinlidir.",
         "urlCredentials": "URL'ye kimlik bilgileri koymayın.",
         "urlExtras": "URL'den sorgu dizesini veya # parçasını kaldırın.",
-        "privacyNote": "Ses, SimplePDF'ye değil, seçtiğiniz uç noktaya doğrudan gönderilir. Bu bir demo/referans özelliğidir: tarayıcıda tutulan bir anahtar, bu sayfada çalışan her şeye açıktır.",
-        "save": "Kaydet",
-        "forget": "Unut"
+        "save": "Kaydet"
       },
       "currentlyUsedSectionTitle": "Şu anda kullanılıyor",
       "demoRateLimitedBadge": "demo · kullanım sınırlı",
-      "byokIntro": "Bir sağlayıcı seçin ve kendi anahtarınızı yapıştırarak bunun üzerinden sohbet edin.",
+      "byokIntro": "Bir sağlayıcı seçin ve bunun üzerinden sohbet etmek için kimlik bilgilerinizi girin.",
       "byokSecurityTitle": "Kimlik bilgileriniz cihazınızda kalır.",
       "byokSecurityBody": "Kimlik bilgileri yalnızca bellekte tutulur (asla diske yazılmaz, asla SimplePDF sunucularına gönderilmez) ve her LLM isteği, seçtiğiniz yapay zekaya doğrudan tarayıcınızdan gönderilir.",
       "modelSectionTitle": "Model",

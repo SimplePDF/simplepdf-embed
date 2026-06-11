@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Inte angiven",
       "stt": {
-        "intro": "Välj en leverantör för att diktera i chatten. Transkriberingen körs direkt från webbläsaren till den endpoint du väljer.",
+        "intro": "Välj en leverantör och ange dina autentiseringsuppgifter för att diktera i chatten.",
         "urlInvalid": "Ange en giltig URL (t.ex. https://host/v1).",
         "urlScheme": "Endast http:// och https:// stöds.",
         "urlLoopback": "http:// tillåts endast för localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "Lägg inte in autentiseringsuppgifter i URL:en.",
         "urlExtras": "Ta bort frågesträngen eller #-fragmentet från URL:en.",
-        "privacyNote": "Ljud skickas direkt till den endpoint du valt, inte till SimplePDF. Detta är en demo-/referensfunktion: en nyckel som förvaras i webbläsaren är exponerad för allt som körs på den här sidan.",
-        "save": "Spara",
-        "forget": "Glöm"
+        "save": "Spara"
       },
       "currentlyUsedSectionTitle": "Används just nu",
       "demoRateLimitedBadge": "demo · begränsad användning",
-      "byokIntro": "Välj en leverantör och klistra in din nyckel för att chatta via den istället.",
+      "byokIntro": "Välj en leverantör och ange dina autentiseringsuppgifter för att chatta via den.",
       "byokSecurityTitle": "Dina inloggningsuppgifter stannar på din enhet.",
       "byokSecurityBody": "Inloggningsuppgifter hålls endast i minnet (skrivs aldrig till disk, skickas aldrig till SimplePDF:s servrar) och varje LLM-förfrågan skickas direkt från din webbläsare till den AI du valt.",
       "modelSectionTitle": "Modell",

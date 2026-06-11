@@ -76,19 +76,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Not set",
       "stt": {
-        "intro": "Pick a provider to dictate into the chat. Transcription runs browser-direct to the endpoint you choose.",
+        "intro": "Pick a provider and enter your credentials to dictate into the chat.",
         "urlInvalid": "Enter a valid URL (e.g. https://host/v1).",
         "urlScheme": "Only http:// and https:// are supported.",
         "urlLoopback": "http:// is only allowed for localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "Don't put credentials in the URL.",
         "urlExtras": "Remove the query string or # fragment from the URL.",
-        "privacyNote": "Audio is sent directly to your chosen endpoint, not to SimplePDF. This is a demo/reference feature: a browser-held key is exposed to anything running on this page.",
-        "save": "Save",
-        "forget": "Forget"
+        "save": "Save"
       },
       "currentlyUsedSectionTitle": "Currently used",
       "demoRateLimitedBadge": "demo · capped usage",
-      "byokIntro": "Pick a provider and enter your credentials to chat through it instead.",
+      "byokIntro": "Pick a provider and enter your credentials to chat through it.",
       "byokSecurityTitle": "Stored on this device, encrypted.",
       "byokSecurityBody": "Your credentials are encrypted with a key that never leaves this browser and are sent straight from your browser to the AI provider, never to SimplePDF. Anyone with access to this device can still use them. Cleared automatically after 30 days of inactivity.",
       "forgetKey": "Forget configuration",

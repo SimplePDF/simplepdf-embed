@@ -8,6 +8,8 @@ import {
   validateCustomSttUrl,
 } from '../../lib/byok'
 import { LabeledField } from '../ui/labeled_field'
+import { ModalFooterActions } from './modal_footer_actions'
+import { StoredOnDeviceNote } from './stored_on_device_note'
 
 // Speech-to-Text provider configuration (P070-02). UX deliberately mirrors the
 // Chat picker (provider cards + model cards + key input — no dropdowns) so the
@@ -70,10 +72,12 @@ export const SttProviderPanel = ({
   activeStt,
   onApply,
   onForget,
+  onCancel,
 }: {
   activeStt: ByokSttConfig | null
   onApply: (config: ByokSttConfig) => void
   onForget: () => void
+  onCancel: () => void
 }) => {
   const { t } = useTranslation()
   // No provider is pre-selected when there is no saved config (mirrors the Chat
@@ -90,13 +94,34 @@ export const SttProviderPanel = ({
   const [apiKey, setApiKey] = useState(activeStt?.apiKey ?? '')
   const [urlError, setUrlError] = useState<CustomSttUrlErrorCode | null>(null)
 
+  // Switching providers restores the saved config for that provider (so the
+  // user doesn't re-type) or resets to a clean draft otherwise — mirrors the
+  // Chat tab's restoreFromCredential / resetDraftFields, and keeps the shared
+  // API key from carrying across providers.
   const handleSelectOpenai = useCallback(() => {
     setProvider('openai')
     setUrlError(null)
-  }, [])
+    if (activeStt?.provider === 'openai') {
+      setOpenaiModel(activeStt.model)
+      setApiKey(activeStt.apiKey)
+    } else {
+      setOpenaiModel(null)
+      setApiKey('')
+    }
+  }, [activeStt])
   const handleSelectCustom = useCallback(() => {
     setProvider('custom')
-  }, [])
+    setUrlError(null)
+    if (activeStt?.provider === 'custom') {
+      setBaseUrl(activeStt.baseUrl)
+      setCustomModel(activeStt.model)
+      setApiKey(activeStt.apiKey)
+    } else {
+      setBaseUrl('')
+      setCustomModel('')
+      setApiKey('')
+    }
+  }, [activeStt])
   const handleBaseUrlChange = useCallback((value: string) => {
     setBaseUrl(value)
     setUrlError(null)
@@ -246,27 +271,18 @@ export const SttProviderPanel = ({
         </div>
       ) : null}
 
-      <p className="text-[11px] leading-snug text-slate-500">{t('chat.modelPicker.stt.privacyNote')}</p>
+      <StoredOnDeviceNote />
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saveDisabled}
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          {t('chat.modelPicker.stt.save')}
-        </button>
-        {activeStt !== null ? (
-          <button
-            type="button"
-            onClick={onForget}
-            className="rounded-md px-3 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
-          >
-            {t('chat.modelPicker.stt.forget')}
-          </button>
-        ) : null}
-      </div>
+      <ModalFooterActions
+        showForget={activeStt !== null}
+        forgetLabel={t('chat.modelPicker.forgetKey')}
+        onForget={onForget}
+        cancelLabel={t('chat.modelPicker.cancelButton')}
+        onCancel={onCancel}
+        primaryLabel={t('chat.modelPicker.stt.save')}
+        primaryDisabled={saveDisabled}
+        onPrimary={handleSave}
+      />
     </section>
   )
 }

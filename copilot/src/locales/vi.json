@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Chưa đặt",
       "stt": {
-        "intro": "Chọn một nhà cung cấp để đọc chính tả vào cuộc trò chuyện. Việc chuyển lời nói thành văn bản chạy trực tiếp từ trình duyệt đến endpoint bạn chọn.",
+        "intro": "Chọn một nhà cung cấp và nhập thông tin xác thực của bạn để đọc chính tả vào cuộc trò chuyện.",
         "urlInvalid": "Nhập một URL hợp lệ (ví dụ https://host/v1).",
         "urlScheme": "Chỉ hỗ trợ http:// và https://.",
         "urlLoopback": "http:// chỉ được phép cho localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "Không đặt thông tin xác thực trong URL.",
         "urlExtras": "Xóa chuỗi truy vấn hoặc phân đoạn # khỏi URL.",
-        "privacyNote": "Âm thanh được gửi trực tiếp đến endpoint bạn chọn, không phải đến SimplePDF. Đây là tính năng demo/tham khảo: một khóa được giữ trong trình duyệt sẽ bị phơi bày trước mọi thứ đang chạy trên trang này.",
-        "save": "Lưu",
-        "forget": "Quên"
+        "save": "Lưu"
       },
       "currentlyUsedSectionTitle": "Đang được sử dụng",
       "demoRateLimitedBadge": "demo · giới hạn sử dụng",
-      "byokIntro": "Chọn một nhà cung cấp và dán khóa của bạn để trò chuyện qua nhà cung cấp đó.",
+      "byokIntro": "Chọn một nhà cung cấp và nhập thông tin xác thực của bạn để trò chuyện qua nhà cung cấp đó.",
       "byokSecurityTitle": "Thông tin xác thực của bạn luôn ở trên thiết bị của bạn.",
       "byokSecurityBody": "Thông tin xác thực chỉ được lưu trong bộ nhớ (không bao giờ ghi ra đĩa, không bao giờ gửi đến máy chủ của SimplePDF) và mỗi yêu cầu LLM được gửi trực tiếp từ trình duyệt của bạn đến AI bạn đã chọn.",
       "modelSectionTitle": "Mô hình",

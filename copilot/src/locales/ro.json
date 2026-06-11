@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Nesetat",
       "stt": {
-        "intro": "Alege un furnizor pentru a dicta în chat. Transcrierea rulează direct din browser către endpointul pe care îl alegi.",
+        "intro": "Alege un furnizor și introdu credențialele tale pentru a dicta în chat.",
         "urlInvalid": "Introdu un URL valid (de ex. https://host/v1).",
         "urlScheme": "Sunt acceptate doar http:// și https://.",
         "urlLoopback": "http:// este permis doar pentru localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "Nu pune credențiale în URL.",
         "urlExtras": "Elimină șirul de interogare sau fragmentul # din URL.",
-        "privacyNote": "Sunetul este trimis direct către endpointul ales de tine, nu către SimplePDF. Aceasta este o funcție demonstrativă/de referință: o cheie păstrată în browser este expusă la tot ce rulează pe această pagină.",
-        "save": "Salvează",
-        "forget": "Uită"
+        "save": "Salvează"
       },
       "currentlyUsedSectionTitle": "Utilizat în prezent",
       "demoRateLimitedBadge": "demo · utilizare limitată",
-      "byokIntro": "Alege un furnizor și lipește cheia ta pentru a discuta prin el.",
+      "byokIntro": "Alege un furnizor și introdu credențialele tale pentru a discuta prin el.",
       "byokSecurityTitle": "Datele tale de autentificare rămân pe dispozitivul tău.",
       "byokSecurityBody": "Datele de autentificare sunt păstrate doar în memorie (niciodată scrise pe disc, niciodată trimise către serverele SimplePDF) și fiecare cerere LLM este trimisă direct din browserul tău către AI-ul ales.",
       "modelSectionTitle": "Model",

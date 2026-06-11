@@ -24,6 +24,8 @@ import { getDefaultSystemPrompt } from '../../server/tools'
 import { LabeledField } from '../ui/labeled_field'
 import { Modal, ModalCloseButton } from '../ui/modal'
 import { DefaultPromptModal } from './default_prompt_modal'
+import { ModalFooterActions } from './modal_footer_actions'
+import { StoredOnDeviceNote } from './stored_on_device_note'
 import { SttProviderPanel } from './stt_provider_panel'
 
 type ModelPickerModalProps = {
@@ -575,7 +577,12 @@ const ModelPickerModalBody = ({
                 pickSttCurrentlyUsed({ sttActive, demoGate }) ?? t('chat.modelPicker.currentlyUsedNotSet')
               }
             />
-            <SttProviderPanel activeStt={sttActive} onApply={onApplyStt} onForget={onForgetStt} />
+            <SttProviderPanel
+              activeStt={sttActive}
+              onApply={onApplyStt}
+              onForget={onForgetStt}
+              onCancel={handleCancel}
+            />
           </section>
         ) : (
           <div
@@ -843,51 +850,28 @@ const ModelPickerModalBody = ({
               ) : null}
             </section>
 
-            <section className="flex items-center justify-between gap-2 border-t border-slate-100 pt-4">
-              {isUpdatingExisting ? (
-                <button
-                  type="button"
-                  onClick={handleForget}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-rose-600 hover:border-rose-300 hover:text-rose-700"
-                >
-                  {t('chat.modelPicker.forgetKey')}
-                </button>
-              ) : (
-                <span />
-              )}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:border-slate-300"
-                >
-                  {t('chat.modelPicker.cancelButton')}
-                </button>
-                <button
-                  type="button"
-                  disabled={!canApply}
-                  onClick={() => {
-                    void handleApply()
-                  }}
-                  className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-                >
-                  {isValidating
-                    ? t('chat.modelPicker.validatingButton')
-                    : isUpdatingExisting
-                      ? t('chat.modelPicker.updateConfigButton')
-                      : t('chat.modelPicker.applyButton')}
-                </button>
-              </div>
-            </section>
+            <StoredOnDeviceNote />
+
+            <ModalFooterActions
+              showForget={isUpdatingExisting}
+              forgetLabel={t('chat.modelPicker.forgetKey')}
+              onForget={handleForget}
+              cancelLabel={t('chat.modelPicker.cancelButton')}
+              onCancel={handleCancel}
+              primaryLabel={
+                isValidating
+                  ? t('chat.modelPicker.validatingButton')
+                  : isUpdatingExisting
+                    ? t('chat.modelPicker.updateConfigButton')
+                    : t('chat.modelPicker.applyButton')
+              }
+              primaryDisabled={!canApply}
+              onPrimary={() => {
+                void handleApply()
+              }}
+            />
           </div>
         )}
-
-        {/* Shared across both tabs: chat and speech-to-text BYOK keys live in
-            the same on-device vault, so the storage disclosure is tab-agnostic. */}
-        <div className="rounded-md border border-sky-100 bg-sky-50 p-3 text-[11px] text-sky-900">
-          <div className="font-semibold">{t('chat.modelPicker.byokSecurityTitle')}</div>
-          <p className="mt-1 leading-relaxed">{t('chat.modelPicker.byokSecurityBody')}</p>
-        </div>
       </div>
       <DefaultPromptModal
         open={defaultPromptOpen}

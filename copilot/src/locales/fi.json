@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Ei asetettu",
       "stt": {
-        "intro": "Valitse palveluntarjoaja sanellaksesi keskusteluun. Litterointi tapahtuu suoraan selaimesta valitsemaasi päätepisteeseen.",
+        "intro": "Valitse palveluntarjoaja ja anna tunnistetietosi sanellaksesi keskusteluun.",
         "urlInvalid": "Anna kelvollinen URL (esim. https://host/v1).",
         "urlScheme": "Vain http:// ja https:// ovat tuettuja.",
         "urlLoopback": "http:// on sallittu vain osoitteille localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "Älä laita tunnistetietoja URL-osoitteeseen.",
         "urlExtras": "Poista kyselymerkkijono tai #-fragmentti URL-osoitteesta.",
-        "privacyNote": "Ääni lähetetään suoraan valitsemaasi päätepisteeseen, ei SimplePDF:lle. Tämä on demo-/viitetoiminto: selaimessa säilytettävä avain on alttiina kaikelle, mikä tällä sivulla on käynnissä.",
-        "save": "Tallenna",
-        "forget": "Unohda"
+        "save": "Tallenna"
       },
       "currentlyUsedSectionTitle": "Parhaillaan käytössä",
       "demoRateLimitedBadge": "demo · rajoitettu käyttö",
-      "byokIntro": "Valitse tarjoaja ja lisää avaimesi keskustellaksesi sen kautta.",
+      "byokIntro": "Valitse palveluntarjoaja ja anna tunnistetietosi keskustellaksesi sen kautta.",
       "byokSecurityTitle": "Tunnistetietosi pysyvät laitteellasi.",
       "byokSecurityBody": "Tunnistetiedot säilytetään vain muistissa (niitä ei koskaan kirjoiteta levylle eikä lähetetä SimplePDF:n palvelimille), ja jokainen LLM-pyyntö lähetetään suoraan selaimestasi valitsemallesi tekoälylle.",
       "modelSectionTitle": "Malli",

@@ -77,19 +77,17 @@
       "tabSpeechToText": "Speech-to-Text",
       "currentlyUsedNotSet": "Sin definir",
       "stt": {
-        "intro": "Elige un proveedor para dictar en el chat. La transcripción se realiza directamente desde el navegador al endpoint que elijas.",
+        "intro": "Elige un proveedor e introduce tus credenciales para dictar en el chat.",
         "urlInvalid": "Introduce una URL válida (p. ej. https://host/v1).",
         "urlScheme": "Solo se admiten http:// y https://.",
         "urlLoopback": "http:// solo se permite para localhost / 127.0.0.0/8 / [::1].",
         "urlCredentials": "No incluyas credenciales en la URL.",
         "urlExtras": "Elimina la cadena de consulta o el fragmento # de la URL.",
-        "privacyNote": "El audio se envía directamente al endpoint que elijas, no a SimplePDF. Esta es una función de demostración/referencia: una clave guardada en el navegador queda expuesta a todo lo que se ejecute en esta página.",
-        "save": "Guardar",
-        "forget": "Olvidar"
+        "save": "Guardar"
       },
       "currentlyUsedSectionTitle": "En uso actualmente",
       "demoRateLimitedBadge": "demo · uso limitado",
-      "byokIntro": "Elige un proveedor y pega tu clave para chatear a través de él.",
+      "byokIntro": "Elige un proveedor e introduce tus credenciales para chatear a través de él.",
       "byokSecurityTitle": "Tus credenciales se quedan en tu dispositivo.",
       "byokSecurityBody": "Las credenciales se guardan solo en memoria (nunca se escriben en disco, nunca se envían a los servidores de SimplePDF) y cada petición LLM se envía directamente desde tu navegador a la IA que elijas.",
       "modelSectionTitle": "Modelo",
