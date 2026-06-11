@@ -123,39 +123,53 @@ const pickCurrentlyUsed = ({
   }
 }
 
-// STT "Currently used" label: a saved BYOK config wins (per-capability
-// precedence), else the demo server model when a valid share is present, else
-// null (→ "Not set").
+// STT "Currently used": a saved BYOK config wins (per-capability precedence),
+// else the demo server model when a valid share is present, else null
+// (→ "Not set"). Returns the same shape as pickCurrentlyUsed so the demo path
+// gets the capped-usage badge.
 const pickSttCurrentlyUsed = ({
   sttActive,
   demoGate,
 }: {
   sttActive: ByokSttConfig | null
   demoGate: DemoGate
-}): string | null => {
+}): CurrentlyUsed => {
   if (sttActive !== null) {
-    if (sttActive.provider === 'openai') {
-      return STT_OPENAI_MODELS.find((model) => model.id === sttActive.model)?.label ?? sttActive.model
-    }
-    return sttActive.model
+    const label =
+      sttActive.provider === 'openai'
+        ? (STT_OPENAI_MODELS.find((model) => model.id === sttActive.model)?.label ?? sttActive.model)
+        : sttActive.model
+    return { kind: 'byok', label }
   }
-  return demoGate.kind === 'demo' ? 'OpenAI · gpt-4o-transcribe' : null
+  return demoGate.kind === 'demo' ? { kind: 'demo', label: 'OpenAI · gpt-4o-transcribe' } : null
 }
 
 // Per-tab "Currently used" card. Each tab renders its own (Chat shows the chat
 // model, Speech-to-Text shows the transcription model) — the tab itself already
-// names the capability, so no per-row label is needed. Takes pre-translated
-// strings so it stays a pure presentational primitive.
+// names the capability, so no per-row label is needed. The demo path carries an
+// amber "capped usage" badge (the server-paid route is rate-limited per share);
+// BYOK and "not set" carry none.
 const CurrentlyUsedCard = ({
   sectionTitle,
-  value,
+  current,
+  notSetLabel,
+  demoBadgeLabel,
 }: {
   sectionTitle: string
-  value: string
+  current: CurrentlyUsed
+  notSetLabel: string
+  demoBadgeLabel: string
 }): ReactElement => (
   <section className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
     <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">{sectionTitle}</div>
-    <div className="mt-1 font-semibold text-slate-900">{value}</div>
+    <div className="mt-1 flex items-center gap-2">
+      <span className="font-semibold text-slate-900">{current?.label ?? notSetLabel}</span>
+      {current?.kind === 'demo' ? (
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-amber-700">
+          {demoBadgeLabel}
+        </span>
+      ) : null}
+    </div>
   </section>
 )
 
@@ -573,9 +587,9 @@ const ModelPickerModalBody = ({
           >
             <CurrentlyUsedCard
               sectionTitle={t('chat.modelPicker.currentlyUsedSectionTitle')}
-              value={
-                pickSttCurrentlyUsed({ sttActive, demoGate }) ?? t('chat.modelPicker.currentlyUsedNotSet')
-              }
+              current={pickSttCurrentlyUsed({ sttActive, demoGate })}
+              notSetLabel={t('chat.modelPicker.currentlyUsedNotSet')}
+              demoBadgeLabel={t('chat.modelPicker.demoRateLimitedBadge')}
             />
             <SttProviderPanel
               activeStt={sttActive}
@@ -593,10 +607,9 @@ const ModelPickerModalBody = ({
           >
             <CurrentlyUsedCard
               sectionTitle={t('chat.modelPicker.currentlyUsedSectionTitle')}
-              value={
-                pickCurrentlyUsed({ activeConfig, demoGate })?.label ??
-                t('chat.modelPicker.currentlyUsedNotSet')
-              }
+              current={pickCurrentlyUsed({ activeConfig, demoGate })}
+              notSetLabel={t('chat.modelPicker.currentlyUsedNotSet')}
+              demoBadgeLabel={t('chat.modelPicker.demoRateLimitedBadge')}
             />
             <section>
               <p className="text-xs text-slate-600">{t('chat.modelPicker.byokIntro')}</p>
