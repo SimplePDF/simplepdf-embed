@@ -1,5 +1,6 @@
 import type { ServerErrorBody } from '../lib/api_envelope'
 import { monitoring, normalizeError } from '../lib/monitoring'
+import { recordingUploadFor } from '../lib/voice/recording_format'
 import {
   MAX_TRANSCRIPT_CHARS,
   parseTranscriptDataLine,
@@ -178,6 +179,7 @@ const buildSanitizedRelay = ({
 export const streamTranscription = async ({
   apiKey,
   bytes,
+  mimeType,
   requestSignal,
   timeoutMs,
   ipHash,
@@ -185,15 +187,20 @@ export const streamTranscription = async ({
 }: {
   apiKey: string
   bytes: Uint8Array<ArrayBuffer>
+  // The recorded container's mime (from the request content-type) so the
+  // upstream upload is named for its real format — Safari MP4 must not be sent
+  // as `.webm`. Derived to a filename + Blob type via the recording-format owner.
+  mimeType: string
   requestSignal: AbortSignal
   timeoutMs: number
   ipHash: string
   startedAt: number
 }): Promise<StreamTranscriptionResult> => {
   const combined = AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)])
+  const upload = recordingUploadFor(mimeType)
   const form = new FormData()
   form.append('model', TRANSCRIPTION_MODEL_ID)
-  form.append('file', new Blob([bytes]), 'audio.webm')
+  form.append('file', new Blob([bytes], { type: upload.type }), upload.fileName)
   form.append('stream', 'true')
 
   const opened = await (async (): Promise<

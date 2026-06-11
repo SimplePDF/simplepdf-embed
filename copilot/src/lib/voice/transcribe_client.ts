@@ -1,5 +1,10 @@
 import type { ServerErrorBody } from '../api_envelope'
-import type { TranscribeClientErrorCode, TranscribeErrorCode, TranscribeFnResult } from './error_codes'
+import {
+  classifyFetchError,
+  type TranscribeClientErrorCode,
+  type TranscribeErrorCode,
+  type TranscribeFnResult,
+} from './error_codes'
 import { parseServerErrorResponse } from './parse_server_error_response'
 import { drainTranscriptSse } from './transcript_sse'
 
@@ -7,7 +12,7 @@ import { drainTranscriptSse } from './transcript_sse'
 // applyDemoPreflight) can return → the small UI-facing TranscribeErrorCode.
 // `misconfigured_environment` is an operator/server fault, not an entitlement
 // problem, so it maps to service_unavailable (never auth copy that blames the
-// invite). `default: body.error satisfies never` forces this to stay total.
+// invite). `default: body satisfies never` forces this to stay total.
 export const mapServerErrorBodyToTranscribeErrorCode = (body: ServerErrorBody): TranscribeErrorCode => {
   switch (body.error) {
     case 'forbidden_blocked':
@@ -70,10 +75,7 @@ export const transcribeClient = async ({
       })
       return { ok: true, response }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return { ok: false, code: 'cancelled' }
-      }
-      return { ok: false, code: 'service_unavailable' }
+      return { ok: false, code: classifyFetchError(error) }
     }
   })()
   if (!fetched.ok) {

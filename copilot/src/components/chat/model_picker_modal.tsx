@@ -409,6 +409,21 @@ const ModelPickerModalBody = ({
     onClose()
   }
 
+  // STT save/forget close the modal, matching the Chat tab (handleApply /
+  // handleForget both onClose). Stable identities so SttProviderPanel's
+  // useCallback handlers don't churn.
+  const handleApplySttAndClose = useCallback(
+    (config: ByokSttConfig): void => {
+      onApplyStt(config)
+      onClose()
+    },
+    [onApplyStt, onClose],
+  )
+  const handleForgetSttAndClose = useCallback((): void => {
+    onForgetStt()
+    onClose()
+  }, [onForgetStt, onClose])
+
   const providerSpec = selectedProvider === null ? null : findProvider(selectedProvider)
   const providerLabel = providerSpec === null ? '' : t(providerSpec.labelKey)
   const isValidating = validation.kind === 'validating'
@@ -593,8 +608,8 @@ const ModelPickerModalBody = ({
             />
             <SttProviderPanel
               activeStt={sttActive}
-              onApply={onApplyStt}
-              onForget={onForgetStt}
+              onApply={handleApplySttAndClose}
+              onForget={handleForgetSttAndClose}
               onCancel={handleCancel}
             />
           </section>
@@ -723,6 +738,7 @@ const ModelPickerModalBody = ({
                     <LabeledField
                       inputRef={focusOnMount}
                       label={null}
+                      ariaLabel={t('chat.modelPicker.keyInputPlaceholder', { provider: providerLabel })}
                       type="password"
                       value={apiKeyDraft}
                       onChange={handleKeyChange}
@@ -741,6 +757,7 @@ const ModelPickerModalBody = ({
                     id="custom-base-url"
                     inputRef={focusOnMount}
                     label={t('chat.modelPicker.customBaseUrlLabel')}
+                    ariaLabel={null}
                     type="url"
                     value={baseUrlDraft}
                     onChange={handleBaseUrlChange}
@@ -754,6 +771,7 @@ const ModelPickerModalBody = ({
                   <LabeledField
                     id="custom-model-name"
                     label={t('chat.modelPicker.customModelLabel')}
+                    ariaLabel={null}
                     type="text"
                     value={modelNameDraft}
                     onChange={handleModelNameChange}
@@ -767,6 +785,7 @@ const ModelPickerModalBody = ({
                   <LabeledField
                     id="custom-api-key"
                     label={t('chat.modelPicker.customKeyLabel')}
+                    ariaLabel={null}
                     type="password"
                     value={apiKeyDraft}
                     onChange={handleKeyChange}

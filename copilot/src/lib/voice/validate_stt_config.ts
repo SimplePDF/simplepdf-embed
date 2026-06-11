@@ -19,14 +19,20 @@ export type SttValidationResult = { kind: 'valid' } | { kind: 'invalid'; code: S
 export const validateSttConfig = async ({
   config,
   fixtureBytes,
+  fixtureMimeType,
   signal,
 }: {
   config: ByokSttConfig
   fixtureBytes: Uint8Array<ArrayBuffer>
+  // The fixture's container mime — matches selectRecordingMimeType() for the
+  // current browser so validation exercises the exact upload shape a real
+  // recording will send (Safari MP4 vs Chrome/Firefox WebM).
+  fixtureMimeType: string
   signal: AbortSignal
 }): Promise<SttValidationResult> => {
   const result = await transcribeByokStreaming({
     audioBytes: fixtureBytes,
+    mimeType: fixtureMimeType,
     signal,
     config,
     onDelta: () => {},

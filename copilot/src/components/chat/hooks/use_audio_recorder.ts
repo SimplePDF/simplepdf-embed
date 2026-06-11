@@ -97,6 +97,10 @@ export const useAudioRecorder = ({
   const startedAtRef = useRef<number>(0)
   const abortRef = useRef<AbortController | null>(null)
   const levelBufferRef = useRef<number[]>([])
+  // Bumped by cancel/unmount (and each new record) so a record() whose
+  // `getUserMedia` was still pending can detect it was superseded and stop the
+  // just-acquired track instead of starting a recording on a dead component.
+  const recordGenerationRef = useRef(0)
 
   const stopSampler = useCallback((): void => {
     if (samplerRef.current !== null) {
@@ -200,8 +204,13 @@ export const useAudioRecorder = ({
     const elapsed = Date.now() - startedAtRef.current
     setElapsedMs(elapsed)
     if (elapsed >= maxDurationMsRef.current) {
-      // UX auto-stop: behave exactly as if Stop was pressed.
-      recorderRef.current?.stop()
+      // UX auto-stop: behave exactly as if Stop was pressed. Guard the state so
+      // a sampler tick that fires before onstop processes can't call stop() on
+      // an already-inactive recorder (throws InvalidStateError in real browsers).
+      const recorder = recorderRef.current
+      if (recorder !== null && recorder.state !== 'inactive') {
+        recorder.stop()
+      }
     }
   }, [])
 
@@ -212,6 +221,7 @@ export const useAudioRecorder = ({
 
   const record = useCallback(async (): Promise<void> => {
     setLastError(null)
+    const generation = ++recordGenerationRef.current
     const mimeType = selectRecordingMimeType()
     if (mimeType === null) {
       setStatus('idle')
@@ -237,6 +247,16 @@ export const useAudioRecorder = ({
     if (!acquired.ok) {
       setStatus('idle')
       setLastError(acquired.code)
+      return
+    }
+    // cancel()/unmount (or a newer record()) may have fired while the
+    // getUserMedia permission prompt was open. Teardown ran while the refs were
+    // still null (no-op), so stop the just-acquired track here and bail rather
+    // than starting a recording on a torn-down/unmounted component.
+    if (generation !== recordGenerationRef.current) {
+      for (const track of acquired.stream.getTracks()) {
+        track.stop()
+      }
       return
     }
     const setup = ((): { ok: true } | { ok: false; code: VoiceInputErrorCode } => {
@@ -298,6 +318,7 @@ export const useAudioRecorder = ({
   }, [])
 
   const cancel = useCallback((): void => {
+    recordGenerationRef.current += 1
     abortRef.current?.abort()
     abortRef.current = null
     const recorder = recorderRef.current
@@ -323,6 +344,7 @@ export const useAudioRecorder = ({
   // unmount. No effect derives render state.
   useEffect(() => {
     return () => {
+      recordGenerationRef.current += 1
       abortRef.current?.abort()
       const recorder = recorderRef.current
       if (recorder !== null) {

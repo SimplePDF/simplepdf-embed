@@ -94,6 +94,9 @@ export const transcribePostHandler = async ({ request }: { request: Request }): 
   const streamed = await streamTranscription({
     apiKey: keyResult.data,
     bytes: body.bytes,
+    // The client posts the recording with its container content-type; forward
+    // it so the upstream upload is named for the real format (Safari MP4).
+    mimeType: request.headers.get('content-type') ?? '',
     requestSignal: request.signal,
     timeoutMs: TRANSCRIBE_TIMEOUT_MS,
     ipHash,

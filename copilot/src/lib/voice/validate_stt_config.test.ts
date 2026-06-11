@@ -19,7 +19,9 @@ afterEach(() => {
 describe('validateSttConfig', () => {
   it('valid on a non-empty transcript', async () => {
     transcribeMock.mockResolvedValue({ success: true, data: { text: 'hello' } })
-    expect(await validateSttConfig({ config, fixtureBytes, signal: fresh() })).toEqual({ kind: 'valid' })
+    expect(
+      await validateSttConfig({ config, fixtureBytes, fixtureMimeType: 'audio/webm', signal: fresh() }),
+    ).toEqual({ kind: 'valid' })
   })
 
   it.each([
@@ -31,7 +33,9 @@ describe('validateSttConfig', () => {
     ['service_unavailable', 'reach'],
   ] as const)('maps transcribe error %s → validation %s', async (code, expected) => {
     transcribeMock.mockResolvedValue({ success: false, error: { code, message: code } })
-    expect(await validateSttConfig({ config, fixtureBytes, signal: fresh() })).toEqual({
+    expect(
+      await validateSttConfig({ config, fixtureBytes, fixtureMimeType: 'audio/webm', signal: fresh() }),
+    ).toEqual({
       kind: 'invalid',
       code: expected,
     })

@@ -32,3 +32,9 @@ export type VoiceInputErrorCode =
 export type TranscribeFnResult =
   | { success: true; data: { text: string } }
   | { success: false; error: { code: TranscribeClientErrorCode; message: string } }
+
+// Shared classification for a thrown fetch/transport error in the client
+// transcribe paths (BYOK browser-direct + demo relay): an AbortError (caller
+// signal / timeout) is a silent cancel; anything else is a transport failure.
+export const classifyFetchError = (error: unknown): TranscribeClientErrorCode =>
+  error instanceof Error && error.name === 'AbortError' ? 'cancelled' : 'service_unavailable'

@@ -82,6 +82,25 @@ export const drainTranscriptSse = async ({
     let buffer = ''
     let accumulated = ''
     let done: string | null = null
+    // Applies one SSE line: accumulates a delta (emitting it only if still under
+    // the cap, so an over-cap string is never pushed to the UI) or records the
+    // done text. Returns 'capped' to abort the drain.
+    const applyLine = (line: string): 'ok' | 'capped' => {
+      const event = parseTranscriptDataLine(line)
+      if (event === null) {
+        return 'ok'
+      }
+      if ('delta' in event) {
+        accumulated += event.delta
+        if (accumulated.length > MAX_TRANSCRIPT_CHARS) {
+          return 'capped'
+        }
+        onDelta(accumulated)
+        return 'ok'
+      }
+      done = event.done
+      return done.length > MAX_TRANSCRIPT_CHARS ? 'capped' : 'ok'
+    }
     try {
       while (true) {
         const chunk = await reader.read()
@@ -92,20 +111,15 @@ export const drainTranscriptSse = async ({
         const lines = buffer.split('\n')
         buffer = lines.pop() ?? ''
         for (const line of lines) {
-          const event = parseTranscriptDataLine(line)
-          if (event === null) {
-            continue
-          }
-          if ('delta' in event) {
-            accumulated += event.delta
-            onDelta(accumulated)
-          } else {
-            done = event.done
+          if (applyLine(line) === 'capped') {
+            return { ok: false, code: 'service_unavailable' }
           }
         }
-        if (accumulated.length > MAX_TRANSCRIPT_CHARS || (done?.length ?? 0) > MAX_TRANSCRIPT_CHARS) {
-          return { ok: false, code: 'service_unavailable' }
-        }
+      }
+      // A compliant OpenAI stream ends events with `\n\n`, but a non-spec BYOK
+      // endpoint may omit the final newline — parse the leftover line too.
+      if (applyLine(buffer) === 'capped') {
+        return { ok: false, code: 'service_unavailable' }
       }
     } catch (error) {
       if (isAborted() || (error instanceof Error && error.name === 'AbortError')) {

@@ -33,7 +33,9 @@ const fail = (code: CustomSttUrlErrorCode, message: string): ValidateCustomSttUr
 // `localhost.evil.com` is NOT loopback.
 const isLoopbackHost = (hostname: string): boolean => {
   const lower = hostname.toLowerCase()
-  if (lower === 'localhost' || lower === '[::1]' || lower === '::1') {
+  // `new URL` always brackets an IPv6 host, so `[::1]` is the only reachable
+  // loopback form (a bare `::1` host throws → caught as invalid_url upstream).
+  if (lower === 'localhost' || lower === '[::1]') {
     return true
   }
   const octets = lower.split('.')

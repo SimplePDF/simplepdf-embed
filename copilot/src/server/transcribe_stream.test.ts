@@ -35,10 +35,11 @@ const readWire = async (body: ReadableStream<Uint8Array>): Promise<string> => {
   return wire
 }
 
-const call = (over?: { signal?: AbortSignal; timeoutMs?: number }) =>
+const call = (over?: { signal?: AbortSignal; timeoutMs?: number; mimeType?: string }) =>
   streamTranscription({
     apiKey: 'sk-demo',
     bytes,
+    mimeType: over?.mimeType ?? 'audio/webm',
     requestSignal: over?.signal ?? fresh(),
     timeoutMs: over?.timeoutMs ?? 30_000,
     ipHash: 'iphash',

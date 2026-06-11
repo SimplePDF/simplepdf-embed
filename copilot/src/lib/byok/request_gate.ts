@@ -1,4 +1,4 @@
-import { isVaultAvailable, loadVault, VAULT_LOCK_NAME } from './key_vault'
+import { isVaultAvailable, readVaultStateUnlocked, VAULT_LOCK_NAME } from './key_vault'
 import type { ByokSttConfig } from './providers'
 
 // The authoritative revocation boundary for BYOK provider dispatch (P070-02 V4
@@ -8,12 +8,15 @@ import type { ByokSttConfig } from './providers'
 // the lock. Web-Locks reader/writer ordering then guarantees: a `forget`
 // queued during a dispatch waits for it to finish, and a dispatch queued after
 // a `forget` waits behind it — so a forgotten key can never be used by a later
-// request. `BroadcastChannel` is only a UI hint; this lock is the security
-// guarantee.
+// request. This lock + the fresh-read inside it are the sole revocation
+// authority.
 
-export type SttDispatchResult<TResult> =
+// Local (not exported — callers use the inferred return type). `revoked` =
+// the frozen credential is no longer the active one under `frozenKey` (removed,
+// or — for the single-slot `custom` key — replaced by a different endpoint).
+type SttDispatchResult<TResult> =
   | { kind: 'ran'; result: TResult }
-  | { kind: 'revoked' } // the frozen credential was removed/replaced — fail visibly, no fallback
+  | { kind: 'revoked' }
   | { kind: 'unavailable' } // vault primitives missing
   | { kind: 'cancelled' } // the caller aborted before/at dispatch
 
@@ -38,7 +41,7 @@ export const dispatchSttUnderFreshCredential = async <TResult>({
       VAULT_LOCK_NAME,
       { mode: 'shared', signal },
       async (): Promise<SttDispatchResult<TResult>> => {
-        const load = await loadVault()
+        const load = await readVaultStateUnlocked()
         const vault = load.kind === 'loaded' ? load.vault : null
         const fresh =
           vault !== null && vault.sttActive === frozenKey ? (vault.sttCredentials[frozenKey] ?? null) : null

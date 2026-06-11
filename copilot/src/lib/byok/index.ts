@@ -38,17 +38,7 @@ export {
   PROVIDER_ENTRIES,
   STT_OPENAI_MODELS,
 } from './providers'
-export { dispatchSttUnderFreshCredential, type SttDispatchResult } from './request_gate'
+export { dispatchSttUnderFreshCredential } from './request_gate'
 export { runByokStream } from './transport'
 export type { ValidateFailureKind, ValidateResult } from './validate'
 export { validateApiKey } from './validate'
-export {
-  getVaultServerSnapshot,
-  getVaultSnapshot,
-  storeForgetChat,
-  storeForgetStt,
-  storeSaveChat,
-  storeSaveStt,
-  subscribeVault,
-  type VaultStoreState,
-} from './vault_store'

@@ -52,3 +52,16 @@ export const isAcceptedRecordingMime = (mimeType: string): boolean => {
   const base = mimeType.split(';')[0]?.trim().toLowerCase() ?? ''
   return ACCEPTED_BASE_MIME_TYPES.includes(base)
 }
+
+// OpenAI's transcription endpoint routes the audio format off the multipart
+// filename extension, so an upload MUST be named for its actual container —
+// Safari/iOS record MP4/AAC, Chrome/Firefox WebM/Opus. Both the BYOK
+// browser-direct upload and the demo server relay derive the filename + Blob
+// type from here (off the recorded mime) so a Safari recording isn't posted as
+// `.webm` and silently mis-decoded. Unknown/empty mime defaults to webm.
+export const recordingUploadFor = (mimeType: string): { fileName: string; type: string } => {
+  const base = mimeType.split(';')[0]?.trim().toLowerCase() ?? ''
+  const container =
+    RECORDING_FORMATS.find((format) => `audio/${format.container}` === base)?.container ?? 'webm'
+  return { fileName: `audio.${container}`, type: `audio/${container}` }
+}

@@ -15,10 +15,10 @@ import {
   findProvider,
   loadVault,
   removeCredential,
+  removeSttCredential,
   runByokStream,
   saveCredential,
-  storeForgetStt,
-  storeSaveStt,
+  saveSttCredential,
   sttCredentialKey,
   touchLastUsed,
   type Vault,
@@ -481,7 +481,8 @@ export const ChatPane = ({
       const dispatch = await dispatchSttUnderFreshCredential({
         frozenKey: frozen.key,
         signal,
-        run: (config) => transcribeByokStreaming({ audioBytes, signal, config, onDelta }),
+        run: (config) =>
+          transcribeByokStreaming({ audioBytes, mimeType: blob.type, signal, config, onDelta }),
       })
       switch (dispatch.kind) {
         case 'ran':
@@ -598,9 +599,9 @@ export const ChatPane = ({
   }, [])
 
   // STT BYOK lives in its own vault slot; saving/forgetting it never touches
-  // the Chat credential. Durable write goes through the vault store (serialized
-  // + cross-tab notify); the local byokState is updated optimistically so the
-  // picker reflects it immediately.
+  // the Chat credential. The durable write goes through the serialized vault
+  // mutation (same as Chat's saveCredential/removeCredential); the local
+  // byokState is updated optimistically so the picker reflects it immediately.
   const handleApplyStt = useCallback((config: ByokSttConfig): void => {
     const key = sttCredentialKey(config)
     setByokState((current) => {
@@ -616,7 +617,7 @@ export const ChatPane = ({
         },
       }
     })
-    void storeSaveStt(config)
+    void saveSttCredential(config)
   }, [])
 
   const handleForgetStt = useCallback((): void => {
@@ -632,7 +633,7 @@ export const ChatPane = ({
       delete remaining[key]
       return { ...current, vault: { ...current.vault, sttActive: null, sttCredentials: remaining } }
     })
-    void storeForgetStt(key)
+    void removeSttCredential(key)
   }, [byokVault.sttActive])
 
   const sttActive: ByokSttConfig | null =

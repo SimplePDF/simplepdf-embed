@@ -19,10 +19,10 @@
 //
 // Every write is serialized through one exclusive Web Lock with a fresh read
 // inside the lock, so concurrent same-tab/cross-tab writes cannot lose
-// updates (P070-02 V2 #2). The vault is fail-closed: if IndexedDB, Web
-// Crypto, Web Locks, or BroadcastChannel are unavailable, the vault refuses
-// reads and writes (P070-02 V4 #2) — a stored BYOK credential is never
-// decrypted when it can't be reliably revoked.
+// updates (P070-02 V2 #2). The vault is fail-closed: if IndexedDB, Web Crypto,
+// or Web Locks are unavailable, the vault refuses reads and writes (P070-02
+// V4 #2) — a stored BYOK credential is never decrypted when it can't be
+// reliably revoked.
 
 import { z } from 'zod'
 import { monitoring, normalizeError } from '../monitoring'
@@ -112,19 +112,17 @@ export type LoadResult =
 export type SaveResult = { kind: 'saved' } | { kind: 'unavailable' } | { kind: 'error'; detail: string }
 export type RemoveResult = { kind: 'removed' } | { kind: 'unavailable' } | { kind: 'error'; detail: string }
 
-// Fail-closed gate: the vault needs IndexedDB + Web Crypto to store secrets,
-// AND Web Locks + BroadcastChannel to serialize mutations and revoke across
-// tabs. Missing any of them means a stored credential could not be reliably
-// changed or forgotten, so we treat the BYOK vault as entirely unavailable.
+// Fail-closed gate: the vault needs IndexedDB + Web Crypto to store secrets and
+// Web Locks to serialize mutations and order revocation against in-flight
+// dispatch (request_gate.ts). Missing any of them means a stored credential
+// could not be reliably changed or forgotten, so we treat the BYOK vault as
+// entirely unavailable.
 export const isVaultAvailable = (): boolean =>
   typeof indexedDB !== 'undefined' &&
   typeof crypto !== 'undefined' &&
   typeof crypto.subtle !== 'undefined' &&
   typeof navigator !== 'undefined' &&
-  typeof navigator.locks !== 'undefined' &&
-  typeof BroadcastChannel !== 'undefined'
-
-const isAvailable = isVaultAvailable
+  typeof navigator.locks !== 'undefined'
 
 // Holds the origin-wide exclusive lock for the duration of `fn` (Web Locks
 // release when the callback's promise settles). All writes go through this so
@@ -258,23 +256,25 @@ const readVaultOrEmpty = async (): Promise<Vault> => {
   return (await decryptVault(record)) ?? freshEmpty()
 }
 
-export const loadVault = async (): Promise<LoadResult> => {
-  if (!isAvailable()) {
-    return { kind: 'unavailable' }
+// Lock-free read + decrypt + classify. Does NOT self-clear (clearing re-locks
+// exclusively), so it is safe to call while already holding the vault lock.
+// `needsClear` tells a top-level caller to drop a stale/undecryptable record
+// under the exclusive lock.
+const readVaultState = async (): Promise<{ result: LoadResult; needsClear: boolean }> => {
+  if (!isVaultAvailable()) {
+    return { result: { kind: 'unavailable' }, needsClear: false }
   }
   try {
     const record = await withStore('readonly', (store) => getRecord<StoredVault>(store, VAULT_RECORD_ID))
     if (record === null) {
-      return { kind: 'empty' }
+      return { result: { kind: 'empty' }, needsClear: false }
     }
     if (Date.now() - record.lastUsed > STALE_AFTER_MS) {
-      await withExclusiveLock(clearVault)
-      return { kind: 'stale' }
+      return { result: { kind: 'stale' }, needsClear: true }
     }
     const vault = await decryptVault(record)
     if (vault === null) {
-      await withExclusiveLock(clearVault)
-      return { kind: 'empty' }
+      return { result: { kind: 'empty' }, needsClear: true }
     }
     const activeCred = vault.active === null ? null : (vault.credentials[vault.active] ?? null)
     monitoring.info('byok_vault.loaded', {
@@ -284,13 +284,31 @@ export const loadVault = async (): Promise<LoadResult> => {
       active_instructions_mode: activeCred?.customInstructions?.mode ?? null,
       active_instructions_length: activeCred?.customInstructions?.text.length ?? 0,
     })
-    return { kind: 'loaded', vault }
+    return { result: { kind: 'loaded', vault }, needsClear: false }
   } catch (e) {
     const detail = normalizeError(e)
     monitoring.error('byok_vault.load_failed', { detail })
-    return { kind: 'error', detail }
+    return { result: { kind: 'error', detail }, needsClear: false }
   }
 }
+
+// Top-level load (mount / store reload): self-clears a stale/undecryptable
+// record under the exclusive lock. MUST NOT run while already holding the vault
+// lock — Web Locks are non-reentrant, so the nested exclusive request would
+// deadlock behind the held lock. Callers inside the lock use
+// `readVaultStateUnlocked` instead (the request gate's shared-lock dispatch).
+export const loadVault = async (): Promise<LoadResult> => {
+  const { result, needsClear } = await readVaultState()
+  if (needsClear) {
+    await withExclusiveLock(clearVault)
+  }
+  return result
+}
+
+// Lock-free variant for callers ALREADY holding the vault lock (the request
+// gate's shared lock): reads the current state without clearing — a
+// stale/undecryptable record is left for the next top-level loadVault to drop.
+export const readVaultStateUnlocked = async (): Promise<LoadResult> => (await readVaultState()).result
 
 // Every mutation: take the exclusive lock, fresh-read inside it, apply, then
 // commit durably (clearing the whole record only when BOTH capabilities are
@@ -308,7 +326,7 @@ const commitMutation = async (apply: (current: Vault) => Vault): Promise<Vault> 
   })
 
 export const saveCredential = async (config: ByokConfig): Promise<SaveResult> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return { kind: 'unavailable' }
   }
   try {
@@ -333,7 +351,7 @@ export const saveCredential = async (config: ByokConfig): Promise<SaveResult> =>
 }
 
 export const removeCredential = async (key: CredentialKey): Promise<RemoveResult> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return { kind: 'unavailable' }
   }
   try {
@@ -354,7 +372,7 @@ export const removeCredential = async (key: CredentialKey): Promise<RemoveResult
 }
 
 export const saveSttCredential = async (config: ByokSttConfig): Promise<SaveResult> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return { kind: 'unavailable' }
   }
   try {
@@ -374,7 +392,7 @@ export const saveSttCredential = async (config: ByokSttConfig): Promise<SaveResu
 }
 
 export const removeSttCredential = async (key: CredentialKey): Promise<RemoveResult> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return { kind: 'unavailable' }
   }
   try {
@@ -403,7 +421,7 @@ export const removeSttCredential = async (key: CredentialKey): Promise<RemoveRes
 // clobber a concurrent mutation's record) but it does NOT change usable
 // credentials, so it never publishes a cross-tab invalidation (V4 polish).
 export const touchLastUsed = async (): Promise<void> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return
   }
   try {

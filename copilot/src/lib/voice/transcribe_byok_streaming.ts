@@ -1,5 +1,6 @@
 import type { ByokSttConfig } from '../byok/providers'
-import type { TranscribeClientErrorCode, TranscribeFnResult } from './error_codes'
+import { classifyFetchError, type TranscribeClientErrorCode, type TranscribeFnResult } from './error_codes'
+import { recordingUploadFor } from './recording_format'
 import { drainTranscriptSse } from './transcript_sse'
 
 // Streaming browser-direct BYOK transcription (P070-02 Phase 5). The AI SDK's
@@ -35,19 +36,22 @@ const statusToCode = (status: number): TranscribeClientErrorCode => {
 
 export const transcribeByokStreaming = async ({
   audioBytes,
+  mimeType,
   signal,
   config,
   onDelta,
 }: {
   audioBytes: Uint8Array<ArrayBuffer>
+  mimeType: string
   signal: AbortSignal
   config: ByokSttConfig
   onDelta: (textSoFar: string) => void
 }): Promise<TranscribeFnResult> => {
   const url = `${baseUrlFor(config).replace(/\/$/, '')}/audio/transcriptions`
+  const upload = recordingUploadFor(mimeType)
   const form = new FormData()
   form.append('model', config.model)
-  form.append('file', new Blob([audioBytes]), 'audio.webm')
+  form.append('file', new Blob([audioBytes], { type: upload.type }), upload.fileName)
   form.append('stream', 'true')
   const headers: Record<string, string> = {}
   if (config.apiKey !== '') {
@@ -64,10 +68,7 @@ export const transcribeByokStreaming = async ({
         response: await window.fetch(url, { method: 'POST', body: form, headers, signal: combined }),
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return { ok: false, code: 'cancelled' }
-      }
-      return { ok: false, code: 'service_unavailable' }
+      return { ok: false, code: classifyFetchError(error) }
     }
   })()
   if (!fetched.ok) {

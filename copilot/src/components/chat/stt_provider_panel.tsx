@@ -220,6 +220,9 @@ export const SttProviderPanel = ({
           {openaiModel !== null ? (
             <LabeledField
               label={null}
+              ariaLabel={t('chat.modelPicker.keyInputPlaceholder', {
+                provider: t('chat.modelPicker.providerOpenai'),
+              })}
               type="password"
               value={apiKey}
               onChange={setApiKey}
@@ -237,6 +240,7 @@ export const SttProviderPanel = ({
           <LabeledField
             id="stt-base-url"
             label={t('chat.modelPicker.customBaseUrlLabel')}
+            ariaLabel={null}
             type="url"
             value={baseUrl}
             onChange={handleBaseUrlChange}
@@ -249,6 +253,7 @@ export const SttProviderPanel = ({
           <LabeledField
             id="stt-model"
             label={t('chat.modelPicker.customModelLabel')}
+            ariaLabel={null}
             type="text"
             value={customModel}
             onChange={setCustomModel}
@@ -260,6 +265,7 @@ export const SttProviderPanel = ({
           <LabeledField
             id="stt-api-key"
             label={t('chat.modelPicker.customKeyLabel')}
+            ariaLabel={null}
             type="password"
             value={apiKey}
             onChange={setApiKey}

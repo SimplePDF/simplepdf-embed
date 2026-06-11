@@ -60,8 +60,9 @@ export const ByokConfigSchema: z.ZodType<ByokConfig> = z.discriminatedUnion('pro
 // --- Speech-to-Text (P070-02) -------------------------------------------------
 // STT is a separate capability with its own narrow catalog: only OpenAI (two
 // transcription models) and a custom OpenAI-compatible endpoint expose
-// `.transcription()` in the installed AI SDK. No customInstructions. The key is
-// optional for custom (some local endpoints need none); required for OpenAI.
+// `.transcription()` in the installed AI SDK. No customInstructions. The schema
+// accepts an empty key for both; the OpenAI key requirement is enforced at
+// save-time validation (validate_stt_config.ts), not in the schema.
 
 export type SttProviderId = 'custom' | 'openai'
 

@@ -42,12 +42,28 @@ describe('transcribeByokStreaming', () => {
     const deltas: string[] = []
     const result = await transcribeByokStreaming({
       audioBytes: bytes,
+      mimeType: 'audio/webm',
       signal: fresh(),
       config: openai,
       onDelta: (text) => deltas.push(text),
     })
     expect(deltas).toEqual(['Hello', 'Hello world'])
     expect(result).toEqual({ success: true, data: { text: 'Hello world' } })
+  })
+
+  it('names the multipart upload for the recorded container (Safari MP4, not .webm)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(sseResponse(['data: [DONE]\n\n']))
+    vi.stubGlobal('fetch', fetchMock)
+    await transcribeByokStreaming({
+      audioBytes: bytes,
+      mimeType: 'audio/mp4',
+      signal: fresh(),
+      config: openai,
+      onDelta: () => {},
+    })
+    const file = fetchMock.mock.calls[0][1].body.get('file')
+    expect(file.name).toBe('audio.mp4')
+    expect(file.type).toBe('audio/mp4')
   })
 
   it('falls back to the accumulated deltas when no done event arrives', async () => {
@@ -59,6 +75,7 @@ describe('transcribeByokStreaming', () => {
     )
     const result = await transcribeByokStreaming({
       audioBytes: bytes,
+      mimeType: 'audio/webm',
       signal: fresh(),
       config: openai,
       onDelta: () => {},
@@ -70,6 +87,7 @@ describe('transcribeByokStreaming', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('RAW', { status: 401 })))
     const result = await transcribeByokStreaming({
       audioBytes: bytes,
+      mimeType: 'audio/webm',
       signal: fresh(),
       config: openai,
       onDelta: () => {},
@@ -82,6 +100,7 @@ describe('transcribeByokStreaming', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
     const result = await transcribeByokStreaming({
       audioBytes: bytes,
+      mimeType: 'audio/webm',
       signal: fresh(),
       config: openai,
       onDelta: () => {},
@@ -93,6 +112,7 @@ describe('transcribeByokStreaming', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse(['data: [DONE]\n\n'])))
     const result = await transcribeByokStreaming({
       audioBytes: bytes,
+      mimeType: 'audio/webm',
       signal: fresh(),
       config: openai,
       onDelta: () => {},

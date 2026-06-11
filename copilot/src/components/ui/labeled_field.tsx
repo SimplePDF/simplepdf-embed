@@ -10,6 +10,7 @@ import { TextInput } from './text_input'
 export const LabeledField = ({
   id,
   label,
+  ariaLabel,
   type,
   value,
   onChange,
@@ -22,6 +23,10 @@ export const LabeledField = ({
 }: {
   id?: string
   label: string | null
+  // Accessible name when there is no visible `label` (a placeholder is a hint,
+  // not a reliable name for AT). Required to be explicit: pass the field's name
+  // when `label === null`, or `null` when the `<label>` already names it.
+  ariaLabel: string | null
   type: 'text' | 'url' | 'password'
   value: string
   onChange: (value: string) => void
@@ -58,6 +63,7 @@ export const LabeledField = ({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        aria-label={ariaLabel ?? undefined}
         invalid={error !== null}
         className={label !== null ? 'mt-1' : undefined}
         autoComplete={autoComplete}
