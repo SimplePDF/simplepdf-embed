@@ -60,7 +60,7 @@ import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translatio
 import type { DemoGate, ModelTab } from '../../routes/index'
 import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
-import { ErrorBanner } from '../error_banner'
+import { ErrorBanner, RateLimitPanel } from '../error_banner'
 import { ChatLLMMessage } from './chat_llm_message'
 import { ChatPaneHeader } from './chat_pane_header'
 import { ChatUserMessage } from './chat_user_message'
@@ -436,7 +436,7 @@ export const ChatPane = ({
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const voiceInputSupported = useVoiceInputSupport()
-  // Recipient of the frozen recording, for the armed-view disclosure (V1 #7).
+  // Recipient of the frozen recording, for the recording-view disclosure (V1 #7).
   const [voiceDestination, setVoiceDestination] = useState<TranscriptionDestination | null>(null)
   // The STT route is resolved ONCE when recording starts and frozen here, so a
   // recording can't silently change destination and the request gate can detect
@@ -1010,7 +1010,8 @@ export const ChatPane = ({
   // Mic is VISIBLE whenever the browser can record; DISABLED (not hidden) while
   // the composer isn't usable. Clicking it resolves Chat-first then STT: open
   // the picker on a missing capability, else freeze the route + destination and
-  // arm (the armed view shows the recipient disclosure before getUserMedia).
+  // record immediately (P070-03 dropped the armed step — getUserMedia prompts on
+  // click; the recipient disclosure now shows in the recording view, before ✓).
   const micVisible = voiceInputSupported
   const handleMicClick = useCallback(() => {
     const chat = resolveChat({ vault: byokVault, demoGate })
@@ -1023,8 +1024,8 @@ export const ChatPane = ({
     frozenSttRef.current = stt
     voiceDraftPrefixRef.current = draftRef.current
     setVoiceDestination(sttDestination(stt))
-    voice.arm()
-  }, [byokVault, demoGate, navigate, voice.arm])
+    void voice.record()
+  }, [byokVault, demoGate, navigate, voice.record])
   const hasUserMessage = messages.some((message) => message.role === 'user')
   const chatStatusMessage = useMemo((): string => {
     if (!hasActiveModel) {
@@ -1172,13 +1173,22 @@ export const ChatPane = ({
                     }}
                   />
                 ) : null}
+                {/* Voice transcription charges the same demo share bucket as
+                    chat (P070), so a voice rate-limit IS the demo cap: surface
+                    the SAME demo-limit + share entry in the chat rather than an
+                    inline composer error (P070-03). */}
+                {voice.lastError === 'rate_limited' ? (
+                  <RateLimitPanel onSwitchModel={openModelPicker} />
+                ) : null}
               </div>
             )
           })()}
         </div>
       </div>
       <div className="p-3">
-        {voice.lastError !== null ? (
+        {/* `rate_limited` is the shared demo cap — shown as the demo-limit +
+            share entry in the chat above, not as an inline composer error. */}
+        {voice.lastError !== null && voice.lastError !== 'rate_limited' ? (
           <div
             className="mb-2 flex items-start gap-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700"
             role="alert"
@@ -1201,61 +1211,73 @@ export const ChatPane = ({
           }}
           className="flex items-end gap-2"
         >
-          {voice.status === 'idle' ? (
-            <>
-              <textarea
-                ref={inputRef}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  // Enter sends; Shift+Enter inserts a newline. Mirrors the
-                  // pattern users already know from Slack / iMessage / vercel
-                  // AI chatbot.
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault()
-                    handleSend(draft)
-                  }
-                }}
-                disabled={!canSend}
-                placeholder={inputPlaceholder}
-                rows={1}
-                className="block flex-1 resize-none overflow-y-auto rounded-3xl border border-solid border-slate-200 bg-white px-4 py-2 text-sm leading-5 text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
-                // Inline `borderWidth` survives Tailwind's reset; height is
-                // managed by the auto-resize useLayoutEffect, with a short
-                // transition so growth feels intentional rather than jumpy.
-                style={{ borderWidth: '1px', transition: 'height 120ms ease-out' }}
-              />
-              {micVisible ? (
-                <button
-                  type="button"
-                  onClick={handleMicClick}
+          {/* One Claude-style composer box (P070-03) shared by every voice
+              state, so clicking the mic causes NO layout shift: the textarea ↔
+              recording prompt swap in the top row and the mic+send ↔ recording
+              controls swap in the same action row. The container owns the
+              border / 12px radius / focus ring / uniform padding; its children
+              are borderless. Inline `borderWidth` survives the embed's Tailwind
+              reset. */}
+          <div
+            className="flex flex-1 flex-col gap-1 rounded-xl border border-solid border-slate-200 bg-white p-3 transition-colors focus-within:border-sky-600"
+            style={{ borderWidth: '1px' }}
+          >
+            {voice.status === 'idle' ? (
+              <>
+                <textarea
+                  ref={inputRef}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    // Enter sends; Shift+Enter inserts a newline. Mirrors the
+                    // pattern users already know from Slack / iMessage / vercel
+                    // AI chatbot.
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      handleSend(draft)
+                    }
+                  }}
                   disabled={!canSend}
-                  aria-label={t('voice.micLabel')}
-                  className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
-                >
-                  <Mic size={18} aria-hidden="true" />
-                </button>
-              ) : null}
-              <button
-                type="submit"
-                disabled={!canSend || draft.trim() === ''}
-                aria-label={t('chat.send')}
-                className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                <ArrowUp size={18} strokeWidth={3} aria-hidden="true" />
-              </button>
-            </>
-          ) : (
-            <VoiceInputBar
-              status={voice.status}
-              level={voice.level}
-              elapsedMs={voice.elapsedMs}
-              destination={voiceDestination}
-              onRecord={voice.record}
-              onStop={voice.stop}
-              onCancel={voice.cancel}
-            />
-          )}
+                  placeholder={inputPlaceholder}
+                  rows={1}
+                  className="block w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-5 text-slate-800 placeholder-slate-400 focus:outline-none disabled:text-slate-400"
+                  // Height is managed by the auto-resize useLayoutEffect, with a
+                  // short transition so growth feels intentional rather than jumpy.
+                  style={{ transition: 'height 120ms ease-out' }}
+                />
+                <div className="flex items-center justify-end gap-1">
+                  {micVisible ? (
+                    <button
+                      type="button"
+                      onClick={handleMicClick}
+                      disabled={!canSend}
+                      aria-label={t('voice.micLabel')}
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+                    >
+                      <Mic size={18} aria-hidden="true" />
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={!canSend || draft.trim() === ''}
+                    aria-label={t('chat.send')}
+                    className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    <ArrowUp size={18} strokeWidth={3} aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <VoiceInputBar
+                status={voice.status}
+                level={voice.level}
+                elapsedMs={voice.elapsedMs}
+                destination={voiceDestination}
+                onStop={voice.stop}
+                onCancel={voice.cancel}
+              />
+            )}
+          </div>
         </form>
       </div>
       <ModelPickerModal

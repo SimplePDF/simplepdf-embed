@@ -14,7 +14,7 @@ const LEVEL_DISPLAY_GAIN = 6
 // speech crisp without bloating the upload (well under TRANSCRIBE_MAX_BYTES).
 const RECORDER_AUDIO_BITS_PER_SECOND = 128_000
 
-export type VoiceStatus = 'idle' | 'armed' | 'recording' | 'transcribing'
+export type VoiceStatus = 'idle' | 'recording' | 'transcribing'
 
 type TranscribeFn = (args: {
   blob: Blob
@@ -29,7 +29,6 @@ export type UseAudioRecorder = {
   lastError: VoiceInputErrorCode | null
   level: readonly number[]
   elapsedMs: number
-  arm: () => void
   record: () => Promise<void>
   stop: () => void
   cancel: () => void
@@ -214,11 +213,6 @@ export const useAudioRecorder = ({
     }
   }, [])
 
-  const arm = useCallback((): void => {
-    setLastError(null)
-    setStatus('armed')
-  }, [])
-
   const record = useCallback(async (): Promise<void> => {
     setLastError(null)
     const generation = ++recordGenerationRef.current
@@ -357,5 +351,5 @@ export const useAudioRecorder = ({
     }
   }, [teardownMedia])
 
-  return { status, lastError, level, elapsedMs, arm, record, stop, cancel, dismissError }
+  return { status, lastError, level, elapsedMs, record, stop, cancel, dismissError }
 }

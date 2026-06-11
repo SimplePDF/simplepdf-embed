@@ -70,13 +70,6 @@ afterEach(() => {
 })
 
 describe('useAudioRecorder', () => {
-  it('arm() moves idle → armed and clears any prior error', () => {
-    const { result } = renderRecorder()
-    act(() => result.current.arm())
-    expect(result.current.status).toBe('armed')
-    expect(result.current.lastError).toBeNull()
-  })
-
   it('record() → stop() transcribes and lands back on idle with the draft text', async () => {
     const { result } = renderRecorder()
     await act(async () => {

@@ -1,4 +1,4 @@
-import { Loader2, Mic, X } from 'lucide-react'
+import { Check, Loader2, X } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { TranscriptionDestination } from '../../lib/voice/resolve_capability'
@@ -7,16 +7,19 @@ import { VoiceWaveform } from './voice_waveform'
 
 type VoiceBarStatus = Exclude<VoiceStatus, 'idle'>
 
-// Presentational composer replacement while recording is in flight. Owns no
-// state — `status` comes straight from the recorder hook. There is no error
-// variant: failures land back on `idle` and chat_pane renders the inline error
-// (D18). Cancel is available in every non-idle state.
+// Non-idle composer content (P070-03). Rendered INSIDE the shared composer box
+// (chat_pane owns the border/radius/padding) as a fragment, so swapping
+// idle↔recording causes NO layout shift: the prompt span occupies the
+// textarea's row (same font/size as the placeholder, but user-select-none since
+// it is not editable) and the action row holds the recording controls where
+// mic+send sit when idle. The prompt names the actual audio recipient before
+// the user presses ✓ (audio egresses only on ✓) — never a false "SimplePDF"
+// claim for BYOK, preserving the P070-02 consent guarantee.
 export const VoiceInputBar = ({
   status,
   level,
   elapsedMs,
   destination,
-  onRecord,
   onStop,
   onCancel,
 }: {
@@ -24,91 +27,79 @@ export const VoiceInputBar = ({
   level: readonly number[]
   elapsedMs: number
   destination: TranscriptionDestination | null
-  onRecord: () => void
   onStop: () => void
   onCancel: () => void
-}) => {
+}): ReactElement => {
   const { t } = useTranslation()
 
-  // Armed-state prompt, frozen before the view renders. The BYOK paths keep a
-  // recipient-specific disclosure (V1 #7) naming exactly who receives the audio
-  // — never a false "SimplePDF" claim. The demo path (SimplePDF-hosted, data
-  // flow explained by "What is this demo?") instead shows an actionable prompt.
-  const armedPrompt = ((): string => {
+  const prompt = ((): string => {
     if (destination === null) {
-      return t('voice.disclosureDemo')
+      return t('voice.promptDemo')
     }
     switch (destination.kind) {
       case 'demo':
-        return t('voice.disclosureDemo')
+        return t('voice.promptDemo')
       case 'openai-byok':
-        return t('voice.disclosureOpenaiByok')
+        return t('voice.promptOpenaiByok')
       case 'custom-byok':
-        return t('voice.disclosureCustomByok', { host: destination.host })
+        return t('voice.promptCustomByok', { host: destination.host })
       default:
         destination satisfies never
-        return t('voice.disclosureDemo')
+        return t('voice.promptDemo')
     }
   })()
 
-  const liveStatusKey = ((): string | null => {
+  const liveStatusKey = ((): string => {
     switch (status) {
-      case 'armed':
-        return null
       case 'recording':
         return 'voice.statusRecording'
       case 'transcribing':
         return 'voice.statusTranscribing'
       default:
         status satisfies never
-        return null
+        return 'voice.statusRecording'
     }
   })()
 
-  const content = ((): ReactElement => {
+  const cancelButton = (
+    <button
+      type="button"
+      onClick={onCancel}
+      aria-label={t('voice.cancelLabel')}
+      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+    >
+      <X size={18} aria-hidden="true" />
+    </button>
+  )
+
+  const actionRow = ((): ReactElement => {
     switch (status) {
-      case 'armed':
-        return (
-          <>
-            <span className="flex-1 text-xs leading-tight text-slate-500">{armedPrompt}</span>
-            <button
-              type="button"
-              onClick={onRecord}
-              aria-label={t('voice.recordLabel')}
-              className="flex h-8 flex-none items-center gap-1.5 rounded-full bg-rose-600 px-3 text-sm font-medium text-white transition-colors hover:bg-rose-700"
-            >
-              <Mic size={15} aria-hidden="true" />
-              {t('voice.record')}
-            </button>
-          </>
-        )
       case 'recording':
         return (
           <>
+            <div className="flex flex-1 items-center text-slate-600">
+              <VoiceWaveform level={level} elapsedMs={elapsedMs} ariaLabel={t('voice.waveformLabel')} />
+            </div>
+            {cancelButton}
             <button
               type="button"
               onClick={onStop}
               aria-label={t('voice.stopLabel')}
-              className="relative flex h-8 w-8 flex-none items-center justify-center rounded-full bg-rose-600 text-white transition-colors hover:bg-rose-700"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-sky-600 text-white transition-colors hover:bg-sky-700"
             >
-              {/* Pulsing ring signals "live recording"; removed under reduced motion. */}
-              <span
-                className="absolute inset-0 rounded-full bg-rose-500/40 motion-safe:animate-ping"
-                aria-hidden="true"
-              />
-              <span className="relative h-3 w-3 rounded-[2px] bg-current" aria-hidden="true" />
+              <Check size={18} strokeWidth={3} aria-hidden="true" />
             </button>
-            <div className="flex flex-1 items-center text-slate-600">
-              <VoiceWaveform level={level} elapsedMs={elapsedMs} ariaLabel={t('voice.waveformLabel')} />
-            </div>
           </>
         )
       case 'transcribing':
         return (
-          <span className="flex flex-1 items-center gap-2 text-sm text-slate-500">
-            <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-            {t('voice.transcribing')}
-          </span>
+          <>
+            <span className="flex flex-1 items-center gap-2 text-sm text-slate-500">
+              <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              {t('voice.transcribing')}
+            </span>
+            {cancelButton}
+          </>
         )
       default:
         status satisfies never
@@ -117,22 +108,12 @@ export const VoiceInputBar = ({
   })()
 
   return (
-    <div
-      className="flex flex-1 items-center gap-2 rounded-3xl border border-solid border-slate-200 bg-white px-3 py-1.5"
-      style={{ borderWidth: '1px' }}
-    >
-      {content}
-      <button
-        type="button"
-        onClick={onCancel}
-        aria-label={t('voice.cancelLabel')}
-        className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-      >
-        <X size={18} aria-hidden="true" />
-      </button>
+    <>
+      <span className="block w-full select-none text-sm leading-5 text-slate-400">{prompt}</span>
+      <div className="flex items-center justify-end gap-1">{actionRow}</div>
       <span className="sr-only" aria-live="polite">
-        {liveStatusKey === null ? '' : t(liveStatusKey)}
+        {t(liveStatusKey)}
       </span>
-    </div>
+    </>
   )
 }

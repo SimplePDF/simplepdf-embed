@@ -84,7 +84,7 @@ export const ChatLLMMessage = ({ message }: ChatLLMMessageProps): ReactElement =
   const blocks = toBlocks(message)
   return (
     <div className="flex justify-start">
-      <div className="min-w-[296px] max-w-full rounded-[22px] bg-slate-100 py-2 pl-3 pr-5 text-sm leading-relaxed text-slate-900">
+      <div className="min-w-[296px] max-w-full rounded-xl bg-slate-100 py-2 pl-3 pr-5 text-sm leading-relaxed text-slate-900">
         {blocks.map((block) => {
           if (block.kind === 'text') {
             return (
