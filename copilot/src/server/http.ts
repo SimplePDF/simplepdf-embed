@@ -21,7 +21,10 @@ export type BodyReadFailure = {
 
 export type BodyReadSuccess = { success: true; text: string }
 
-export type BinaryBodySuccess = { success: true; bytes: Uint8Array }
+// `bytes` is a freshly-allocated, ArrayBuffer-backed view (concatChunks), so
+// it is precisely typed for callers that need a `BlobPart` (the streaming
+// transcription relay builds a Blob from it).
+export type BinaryBodySuccess = { success: true; bytes: Uint8Array<ArrayBuffer> }
 
 const encoder = new TextEncoder()
 
@@ -119,7 +122,13 @@ const matchesContainer = ({
   // a too-short buffer fails the match without an explicit length guard.
   signature.magic.every((value, index) => bytes[signature.offset + index] === value)
 
-const concatChunks = ({ chunks, total }: { chunks: Uint8Array[]; total: number }): Uint8Array => {
+const concatChunks = ({
+  chunks,
+  total,
+}: {
+  chunks: Uint8Array[]
+  total: number
+}): Uint8Array<ArrayBuffer> => {
   const out = new Uint8Array(total)
   chunks.reduce((offset, chunk) => {
     out.set(chunk, offset)

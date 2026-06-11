@@ -1,9 +1,6 @@
-import { createOpenAI } from '@ai-sdk/openai'
-import type { TranscriptionModel } from 'ai'
-
-// Lives in src/server/ (not src/lib/) so the OpenAI SDK import stays out of
-// the client bundle, mirroring language_model.ts. /api/transcribe is the
-// only consumer.
+// Lives in src/server/ (not src/lib/) so server-only env/secret reads stay out
+// of the client bundle, mirroring language_model.ts. /api/transcribe (via
+// transcribe_stream.ts) is the only consumer.
 //
 // The transcription secret is deliberately separate from the chat/share
 // keys: share keys are Anthropic/DeepSeek (neither transcribes) and BYOK
@@ -12,8 +9,10 @@ import type { TranscriptionModel } from 'ai'
 
 // Fixed model, no fallback. The whisper-1 auto-fallback was removed per the
 // repo fallback policy: a silent model swap would change cost / accuracy /
-// language behaviour without a product decision.
-const TRANSCRIPTION_MODEL_ID = 'gpt-4o-transcribe'
+// language behaviour without a product decision. `gpt-4o-transcribe` also
+// supports `stream: true`, which the relay (transcribe_stream.ts) requires
+// (whisper-1 does not stream).
+export const TRANSCRIPTION_MODEL_ID = 'gpt-4o-transcribe'
 
 type ReadTranscriptionKeyResult =
   | { success: true; data: string }
@@ -32,6 +31,3 @@ export const readTranscriptionKey = (): ReadTranscriptionKeyResult => {
   }
   return { success: true, data: apiKey }
 }
-
-export const buildTranscriptionModel = ({ apiKey }: { apiKey: string }): TranscriptionModel =>
-  createOpenAI({ apiKey }).transcription(TRANSCRIPTION_MODEL_ID)

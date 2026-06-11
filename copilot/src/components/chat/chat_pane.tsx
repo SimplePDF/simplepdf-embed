@@ -460,13 +460,13 @@ export const ChatPane = ({
         return voiceFailure('unauthorized')
       }
       if (frozen.kind === 'demo') {
-        // The demo server route returns a complete transcript (no SSE), so no
-        // deltas are emitted on this path.
+        // The demo server route now streams the transcript as SSE deltas
+        // (P070-02 Phase 5), same as BYOK — `onDelta` fills the draft live.
         const shareId = demoGate.kind === 'demo' ? shareIdRef.current : null
         if (shareId === null) {
           return voiceFailure('unauthorized')
         }
-        return transcribeClient({ blob, shareId, signal })
+        return transcribeClient({ blob, shareId, signal, onDelta })
       }
       // BYOK browser-direct streaming: bounded conversion (single
       // recording-format owner), then dispatch through the request gate so a

@@ -5,20 +5,50 @@ import type { TranscribeErrorCode } from './error_codes'
 import { mapServerErrorBodyToTranscribeErrorCode, transcribeClient } from './transcribe_client'
 
 const blob = new Blob(['audio-bytes'], { type: 'audio/webm' })
+const noop = (): void => {}
+
+// 200 `text/event-stream` of transcript SSE lines (P070-02 Phase 5), mirroring
+// what /api/transcribe's relay re-emits.
+const sseResponse = (lines: string[]): Response => {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const line of lines) {
+        controller.enqueue(encoder.encode(line))
+      }
+      controller.close()
+    },
+  })
+  return new Response(stream, { status: 200 })
+}
 
 afterEach(() => {
   vi.unstubAllGlobals()
 })
 
 describe('transcribeClient request shape', () => {
-  it('POSTs the blob with ?share, content-type, and the abort signal, parsing { text }', async () => {
+  it('POSTs the blob with ?share, content-type, the abort signal, and streams deltas into the final text', async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValue(new Response(JSON.stringify({ text: 'hello' }), { status: 200 }))
+      .mockResolvedValue(
+        sseResponse([
+          'data: {"type":"transcript.text.delta","delta":"hel"}\n\n',
+          'data: {"type":"transcript.text.delta","delta":"lo"}\n\n',
+          'data: {"type":"transcript.text.done","text":"hello"}\n\n',
+          'data: [DONE]\n\n',
+        ]),
+      )
     vi.stubGlobal('fetch', fetchMock)
     const controller = new AbortController()
-    const result = await transcribeClient({ blob, shareId: 'share-123', signal: controller.signal })
+    const deltas: string[] = []
+    const result = await transcribeClient({
+      blob,
+      shareId: 'share-123',
+      signal: controller.signal,
+      onDelta: (text) => deltas.push(text),
+    })
     expect(result).toEqual({ success: true, data: { text: 'hello' } })
+    expect(deltas).toEqual(['hel', 'hello'])
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0]
     expect(url.toString()).toContain('/api/transcribe?share=share-123')
@@ -33,27 +63,47 @@ describe('transcribeClient request shape', () => {
       'fetch',
       vi.fn().mockRejectedValue(Object.assign(new Error('aborted'), { name: 'AbortError' })),
     )
-    const result = await transcribeClient({ blob, shareId: 's', signal: new AbortController().signal })
+    const result = await transcribeClient({
+      blob,
+      shareId: 's',
+      signal: new AbortController().signal,
+      onDelta: noop,
+    })
     expect(result).toEqual({ success: false, error: { code: 'cancelled', message: expect.any(String) } })
   })
 
   it('maps a non-abort network error to service_unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
-    const result = await transcribeClient({ blob, shareId: 's', signal: new AbortController().signal })
+    const result = await transcribeClient({
+      blob,
+      shareId: 's',
+      signal: new AbortController().signal,
+      onDelta: noop,
+    })
     expect(result).toMatchObject({ success: false, error: { code: 'service_unavailable' } })
   })
 
   it('maps a non-2xx ServerErrorBody to its UI code', async () => {
     const body = JSON.stringify({ error: 'rate_limited', reason: 'lifetime' })
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status: 429 })))
-    const result = await transcribeClient({ blob, shareId: 's', signal: new AbortController().signal })
+    const result = await transcribeClient({
+      blob,
+      shareId: 's',
+      signal: new AbortController().signal,
+      onDelta: noop,
+    })
     expect(result).toMatchObject({ success: false, error: { code: 'rate_limited' } })
   })
 
-  it('maps a malformed 2xx body to service_unavailable', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 200 })))
-    const result = await transcribeClient({ blob, shareId: 's', signal: new AbortController().signal })
-    expect(result).toMatchObject({ success: false, error: { code: 'service_unavailable' } })
+  it('an empty stream (no speech) maps to bad_request', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse(['data: [DONE]\n\n'])))
+    const result = await transcribeClient({
+      blob,
+      shareId: 's',
+      signal: new AbortController().signal,
+      onDelta: noop,
+    })
+    expect(result).toMatchObject({ success: false, error: { code: 'bad_request' } })
   })
 })
 

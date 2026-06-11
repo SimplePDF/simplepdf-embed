@@ -4,7 +4,9 @@ import type { TranscribeFnResult } from './error_codes'
 import { validateSttConfig } from './validate_stt_config'
 
 const transcribeMock = vi.fn<(args: unknown) => Promise<TranscribeFnResult>>()
-vi.mock('./transcribe_byok', () => ({ transcribeByok: (args: unknown) => transcribeMock(args) }))
+vi.mock('./transcribe_byok_streaming', () => ({
+  transcribeByokStreaming: (args: unknown) => transcribeMock(args),
+}))
 
 const config: ByokSttConfig = { provider: 'openai', model: 'gpt-4o-mini-transcribe', apiKey: 'sk' }
 const fixtureBytes = new Uint8Array([1, 2, 3])

@@ -1,9 +1,7 @@
-import { z } from 'zod'
 import type { ServerErrorBody } from '../api_envelope'
 import type { TranscribeClientErrorCode, TranscribeErrorCode, TranscribeFnResult } from './error_codes'
 import { parseServerErrorResponse } from './parse_server_error_response'
-
-const TranscribeResponse = z.object({ text: z.string() })
+import { drainTranscriptSse } from './transcript_sse'
 
 // Exhaustive map of every ServerErrorBody variant /api/transcribe (including
 // applyDemoPreflight) can return → the small UI-facing TranscribeErrorCode.
@@ -39,36 +37,24 @@ const failure = (code: TranscribeClientErrorCode, message: string): TranscribeFn
   error: { code, message },
 })
 
-const parseSuccessBody = async (response: Response): Promise<TranscribeFnResult> => {
-  const text = await response.text()
-  const json = ((): unknown => {
-    try {
-      return JSON.parse(text)
-    } catch {
-      return null
-    }
-  })()
-  const parsed = TranscribeResponse.safeParse(json)
-  if (!parsed.success) {
-    return failure('service_unavailable', 'transcribe response body was not { text }')
-  }
-  return { success: true, data: { text: parsed.data.text } }
-}
-
 // The injected transcribe implementation. Explicit args (no shareIdRef
 // reach-in) — `shareId` is a known-valid demo share captured by chat_pane.
 // POST the raw Blob with `?share=` and its content-type, mirroring the chat
-// transport. AbortError → 'cancelled' (the hook treats it as a silent
-// discard); every other failure routes through the sanitized server-error
-// parser + exhaustive code map.
+// transport. On success the route streams a `text/event-stream` of transcript
+// deltas (P070-02 Phase 5) drained by the shared owner — `onDelta` fills the
+// composer as text arrives, same as the BYOK path. AbortError → 'cancelled'
+// (the hook treats it as a silent discard); every other failure routes through
+// the sanitized server-error parser + exhaustive code map.
 export const transcribeClient = async ({
   blob,
   shareId,
   signal,
+  onDelta,
 }: {
   blob: Blob
   shareId: string
   signal: AbortSignal
+  onDelta: (textSoFar: string) => void
 }): Promise<TranscribeFnResult> => {
   const url = new URL('/api/transcribe', window.location.origin)
   url.searchParams.set('share', shareId)
@@ -94,7 +80,18 @@ export const transcribeClient = async ({
     return failure(fetched.code, `transcribe fetch failed: ${fetched.code}`)
   }
   if (fetched.response.ok) {
-    return parseSuccessBody(fetched.response)
+    if (fetched.response.body === null) {
+      return failure('service_unavailable', 'transcribe response had no body')
+    }
+    const drained = await drainTranscriptSse({
+      body: fetched.response.body,
+      onDelta,
+      isAborted: () => signal.aborted,
+    })
+    if (!drained.ok) {
+      return failure(drained.code, `transcribe stream failed: ${drained.code}`)
+    }
+    return { success: true, data: { text: drained.text } }
   }
   const errorBody = await parseServerErrorResponse(fetched.response)
   return failure(

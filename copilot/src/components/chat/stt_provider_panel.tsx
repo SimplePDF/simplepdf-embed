@@ -78,7 +78,9 @@ export const SttProviderPanel = ({
   const { t } = useTranslation()
   const [provider, setProvider] = useState<SttProviderId>(activeStt?.provider ?? 'openai')
   const firstModel = STT_OPENAI_MODELS[0]?.id ?? 'gpt-4o-mini-transcribe'
-  const [openaiModel, setOpenaiModel] = useState(activeStt?.provider === 'openai' ? activeStt.model : firstModel)
+  const [openaiModel, setOpenaiModel] = useState(
+    activeStt?.provider === 'openai' ? activeStt.model : firstModel,
+  )
   const [customModel, setCustomModel] = useState(activeStt?.provider === 'custom' ? activeStt.model : '')
   const [baseUrl, setBaseUrl] = useState(activeStt?.provider === 'custom' ? activeStt.baseUrl : '')
   const [apiKey, setApiKey] = useState(activeStt?.apiKey ?? '')
