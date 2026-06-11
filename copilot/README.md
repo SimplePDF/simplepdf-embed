@@ -72,7 +72,7 @@ Browser
 - **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; on an explicit Record it is transcribed and the editable transcript drops into the textarea. Two routes, each disclosed in the recorder before recording:
   - **Demo (server):** with an invited `?share=` session, the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
   - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault — a demo/reference feature (a browser-held key is exposed to anything on the page).
-  - In both cases PDF bytes still stay on-device, audio is sent only on an explicit Record (never automatically), and the disclosure names the exact recipient.
+  - In both cases PDF bytes still stay on-device, and audio is sent only on an explicit Record (never automatically). The **BYOK** recorder names the exact recipient ("directly to OpenAI / your endpoint — not to SimplePDF"); the **demo** recorder shows an actionable record prompt (its server→OpenAI flow is the one described above, and "What is this demo?" documents it).
 
 ## Built with
 

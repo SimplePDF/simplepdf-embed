@@ -30,10 +30,11 @@ export const VoiceInputBar = ({
 }) => {
   const { t } = useTranslation()
 
-  // Recipient-specific disclosure (V1 #7): the copy names exactly who receives
-  // the audio for the frozen destination — never a false "SimplePDF" claim for
-  // a BYOK path. Frozen before the armed view renders.
-  const disclosureText = ((): string => {
+  // Armed-state prompt, frozen before the view renders. The BYOK paths keep a
+  // recipient-specific disclosure (V1 #7) naming exactly who receives the audio
+  // — never a false "SimplePDF" claim. The demo path (SimplePDF-hosted, data
+  // flow explained by "What is this demo?") instead shows an actionable prompt.
+  const armedPrompt = ((): string => {
     if (destination === null) {
       return t('voice.disclosureDemo')
     }
@@ -69,7 +70,7 @@ export const VoiceInputBar = ({
       case 'armed':
         return (
           <>
-            <span className="flex-1 text-xs leading-tight text-slate-500">{disclosureText}</span>
+            <span className="flex-1 text-xs leading-tight text-slate-500">{armedPrompt}</span>
             <button
               type="button"
               onClick={onRecord}
