@@ -25,6 +25,7 @@ import { LabeledField } from '../ui/labeled_field'
 import { Modal, ModalCloseButton } from '../ui/modal'
 import { DefaultPromptModal } from './default_prompt_modal'
 import { ModalFooterActions } from './modal_footer_actions'
+import { ModelCard } from './model_card'
 import { StoredOnDeviceNote } from './stored_on_device_note'
 import { SttProviderPanel } from './stt_provider_panel'
 
@@ -703,34 +704,16 @@ const ModelPickerModalBody = ({
                       {t('chat.modelPicker.modelSectionTitle')}
                     </div>
                     <div className="mt-1 space-y-1.5">
-                      {providerSpec.models.map((model) => {
-                        const isSelected = model.id === selectedModelId
-                        return (
-                          <button
-                            key={model.id}
-                            type="button"
-                            onClick={() => handlePickCatalogModel(model.id)}
-                            className={`flex w-full items-start justify-between gap-2 rounded-md border px-3 py-2 text-left text-xs transition ${
-                              isSelected ? 'border-sky-600' : 'border-slate-200 hover:border-sky-600'
-                            }`}
-                          >
-                            <span>
-                              <span className="flex items-center gap-2">
-                                <span className="font-medium text-slate-900">{model.label}</span>
-                                {model.recommended ? (
-                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-emerald-700">
-                                    {t('chat.modelPicker.recommendedBadge')}
-                                  </span>
-                                ) : null}
-                              </span>
-                              <span className="mt-0.5 block text-[11px] text-slate-500">
-                                {model.description}
-                              </span>
-                            </span>
-                            {isSelected ? <span className="text-sky-600">✓</span> : null}
-                          </button>
-                        )
-                      })}
+                      {providerSpec.models.map((model) => (
+                        <ModelCard
+                          key={model.id}
+                          label={model.label}
+                          description={model.description}
+                          recommended={model.recommended}
+                          selected={model.id === selectedModelId}
+                          onClick={() => handlePickCatalogModel(model.id)}
+                        />
+                      ))}
                     </div>
                   </div>
 
