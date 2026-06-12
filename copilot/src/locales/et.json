@@ -98,6 +98,7 @@
       "keyNetworkError": "Võtme kinnitamiseks ei õnnestunud teenusepakkujaga ühendust saada. Kontrolli ühendust ja proovi uuesti.",
       "applyButton": "Kasuta seda tehisintellekti",
       "validatingButton": "Võtme kinnitamine…",
+      "forgetKey": "Unusta seadistus",
       "cancelButton": "Tühista",
       "comingSoon": "Tulekul",
       "registerInterest": "Registreeri oma huvi →",

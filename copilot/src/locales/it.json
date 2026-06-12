@@ -98,6 +98,7 @@
       "keyNetworkError": "Impossibile contattare il provider per verificare la chiave. Controlla la tua connessione e riprova.",
       "applyButton": "Usa questa IA",
       "validatingButton": "Verifica della chiave…",
+      "forgetKey": "Dimentica configurazione",
       "cancelButton": "Annulla",
       "comingSoon": "Prossimamente",
       "registerInterest": "Registra il tuo interesse →",

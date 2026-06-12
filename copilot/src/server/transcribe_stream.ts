@@ -123,10 +123,6 @@ const buildSanitizedRelay = ({
                 ip_hash: ipHash,
                 bytes: bytes.byteLength,
                 elapsed_ms: Date.now() - startedAt,
-                // Streaming's transcript.text.done event carries no language
-                // field (the old one-shot SDK result did) — accepted telemetry
-                // loss in exchange for progressive transcripts.
-                language: 'unknown',
               })
             }
             controller.close()

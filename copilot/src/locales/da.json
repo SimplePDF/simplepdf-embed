@@ -98,6 +98,7 @@
       "keyNetworkError": "Kunne ikke nå udbyderen for at verificere nøglen. Tjek din forbindelse og prøv igen.",
       "applyButton": "Brug denne AI",
       "validatingButton": "Verificerer nøgle…",
+      "forgetKey": "Glem konfiguration",
       "cancelButton": "Annuller",
       "comingSoon": "Kommer snart",
       "registerInterest": "Tilmeld din interesse →",

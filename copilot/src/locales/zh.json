@@ -98,6 +98,7 @@
       "keyNetworkError": "无法连接到提供商以验证密钥。请检查您的网络连接并重试。",
       "applyButton": "使用此 AI",
       "validatingButton": "正在验证密钥…",
+      "forgetKey": "忘记配置",
       "cancelButton": "取消",
       "comingSoon": "即将推出",
       "registerInterest": "登记您的兴趣 →",

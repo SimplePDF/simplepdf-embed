@@ -98,6 +98,7 @@
       "keyNetworkError": "Nepodařilo se kontaktovat poskytovatele pro ověření klíče. Zkontrolujte připojení a zkuste to znovu.",
       "applyButton": "Použít tuto AI",
       "validatingButton": "Ověřování klíče…",
+      "forgetKey": "Zapomenout konfiguraci",
       "cancelButton": "Zrušit",
       "comingSoon": "Brzy",
       "registerInterest": "Zaregistrujte svůj zájem →",

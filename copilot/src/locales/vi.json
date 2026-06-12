@@ -98,6 +98,7 @@
       "keyNetworkError": "Không thể kết nối với nhà cung cấp để xác minh khóa. Hãy kiểm tra kết nối và thử lại.",
       "applyButton": "Dùng AI này",
       "validatingButton": "Đang xác minh khóa…",
+      "forgetKey": "Quên cấu hình",
       "cancelButton": "Hủy",
       "comingSoon": "Sắp ra mắt",
       "registerInterest": "Đăng ký quan tâm →",

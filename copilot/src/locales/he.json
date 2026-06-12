@@ -98,6 +98,7 @@
       "keyNetworkError": "לא ניתן היה ליצור קשר עם הספק כדי לאמת את המפתח. בדקו את החיבור ונסו שוב.",
       "applyButton": "השתמשו בבינה המלאכותית הזו",
       "validatingButton": "מאמת מפתח…",
+      "forgetKey": "שכח את ההגדרות",
       "cancelButton": "ביטול",
       "comingSoon": "בקרוב",
       "registerInterest": "הירשמו לעניין →",

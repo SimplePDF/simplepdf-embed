@@ -130,10 +130,13 @@ const concatChunks = ({
   total: number
 }): Uint8Array<ArrayBuffer> => {
   const out = new Uint8Array(total)
-  chunks.reduce((offset, chunk) => {
+  // Plain offset-tracking copy (not `reduce`, whose accumulator we'd discard):
+  // `let` is the natural form for a perf-path buffer fill.
+  let offset = 0
+  for (const chunk of chunks) {
     out.set(chunk, offset)
-    return offset + chunk.byteLength
-  }, 0)
+    offset += chunk.byteLength
+  }
   return out
 }
 

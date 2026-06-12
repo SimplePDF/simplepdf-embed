@@ -98,6 +98,7 @@
       "keyNetworkError": "Não foi possível contactar o fornecedor para verificar a chave. Verifique a sua ligação e tente novamente.",
       "applyButton": "Usar esta IA",
       "validatingButton": "A verificar a chave…",
+      "forgetKey": "Esquecer configuração",
       "cancelButton": "Cancelar",
       "comingSoon": "Brevemente",
       "registerInterest": "Registe o seu interesse →",

@@ -41,6 +41,7 @@ import {
   type ToolInput,
   type ToolMiddleware,
 } from '../../lib/embed-bridge-adapters/client-tools'
+import { classifyError } from '../../lib/error-classifier'
 import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
@@ -1088,6 +1089,9 @@ export const ChatPane = ({
         return
       }
       void sendMessage({ text: trimmed })
+      // Moving forward clears any stale voice error (incl. the rate-limit
+      // panel) so it doesn't linger after the user resumes typing.
+      voice.dismissError()
       // Genuine activity: refresh the vault's lastUsed so the 30-day idle
       // expiry only fires for users who actually stop coming back.
       if (byokConfigRef.current !== null) {
@@ -1095,7 +1099,7 @@ export const ChatPane = ({
       }
       setDraft('')
     },
-    [sendMessage],
+    [sendMessage, voice.dismissError],
   )
 
   return (
@@ -1122,11 +1126,33 @@ export const ChatPane = ({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div ref={contentRef} className="flex min-h-full flex-col">
           {((): ReactElement => {
+            // A voice rate-limit is the shared demo cap (transcribe charges the
+            // same share bucket as chat, P070), so surface the SAME demo-limit +
+            // share entry regardless of message count — a fresh visitor whose
+            // first action is a mic recording would otherwise hit the cap with
+            // zero feedback (the inline composer error excludes `rate_limited`).
+            // Suppressed when the chat error already renders a demo-limit panel,
+            // so the two can never stack.
+            const chatShowsDemoLimit = error !== undefined && classifyError(error) === 'demo_rate_limited'
+            const showVoiceRateLimit = voice.lastError === 'rate_limited' && !chatShowsDemoLimit
+            const voiceRateLimitPanel = showVoiceRateLimit ? (
+              <RateLimitPanel onSwitchModel={openModelPicker} />
+            ) : null
             if (serverLocked) {
-              return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
+              return (
+                <>
+                  <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
+                  {voiceRateLimitPanel}
+                </>
+              )
             }
             if (messages.length === 0) {
-              return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+              return (
+                <>
+                  <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+                  {voiceRateLimitPanel}
+                </>
+              )
             }
             return (
               <div className="space-y-4 p-4">
@@ -1173,13 +1199,7 @@ export const ChatPane = ({
                     }}
                   />
                 ) : null}
-                {/* Voice transcription charges the same demo share bucket as
-                    chat (P070), so a voice rate-limit IS the demo cap: surface
-                    the SAME demo-limit + share entry in the chat rather than an
-                    inline composer error (P070-03). */}
-                {voice.lastError === 'rate_limited' ? (
-                  <RateLimitPanel onSwitchModel={openModelPicker} />
-                ) : null}
+                {voiceRateLimitPanel}
               </div>
             )
           })()}

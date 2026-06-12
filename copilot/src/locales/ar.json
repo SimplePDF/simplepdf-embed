@@ -98,6 +98,7 @@
       "keyNetworkError": "تعذّر الوصول إلى المزود للتحقق من المفتاح. تحقق من اتصالك وأعد المحاولة.",
       "applyButton": "استخدم هذا الذكاء الاصطناعي",
       "validatingButton": "جارٍ التحقق من المفتاح…",
+      "forgetKey": "نسيان الإعدادات",
       "cancelButton": "إلغاء",
       "comingSoon": "قريبًا",
       "registerInterest": "سجّل اهتمامك →",

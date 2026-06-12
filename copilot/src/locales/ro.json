@@ -98,6 +98,7 @@
       "keyNetworkError": "Nu s-a putut contacta furnizorul pentru a verifica cheia. Verifică conexiunea și încearcă din nou.",
       "applyButton": "Folosește acest AI",
       "validatingButton": "Se verifică cheia…",
+      "forgetKey": "Uită configurația",
       "cancelButton": "Anulează",
       "comingSoon": "În curând",
       "registerInterest": "Înregistrează-ți interesul →",

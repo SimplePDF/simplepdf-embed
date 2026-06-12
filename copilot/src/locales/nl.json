@@ -98,6 +98,7 @@
       "keyNetworkError": "De provider kon niet worden bereikt om de sleutel te verifiëren. Controleer uw verbinding en probeer het opnieuw.",
       "applyButton": "Deze AI gebruiken",
       "validatingButton": "Sleutel verifiëren…",
+      "forgetKey": "Configuratie vergeten",
       "cancelButton": "Annuleren",
       "comingSoon": "Binnenkort beschikbaar",
       "registerInterest": "Meld uw interesse aan →",

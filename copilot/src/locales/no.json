@@ -98,6 +98,7 @@
       "keyNetworkError": "Kunne ikke nå leverandøren for å verifisere nøkkelen. Sjekk tilkoblingen din og prøv igjen.",
       "applyButton": "Bruk denne AI-en",
       "validatingButton": "Verifiserer nøkkel…",
+      "forgetKey": "Glem konfigurasjon",
       "cancelButton": "Avbryt",
       "comingSoon": "Kommer snart",
       "registerInterest": "Meld din interesse →",

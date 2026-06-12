@@ -98,6 +98,7 @@
       "keyNetworkError": "Tarjoajaan ei saatu yhteyttä avaimen vahvistamiseksi. Tarkista yhteytesi ja yritä uudelleen.",
       "applyButton": "Käytä tätä tekoälyä",
       "validatingButton": "Vahvistetaan avainta…",
+      "forgetKey": "Unohda määritykset",
       "cancelButton": "Peruuta",
       "comingSoon": "Tulossa pian",
       "registerInterest": "Ilmoita kiinnostuksesi →",

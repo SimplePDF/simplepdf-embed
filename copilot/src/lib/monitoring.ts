@@ -79,7 +79,6 @@ export type EventPayloads = {
     ip_hash: string
     bytes: number
     elapsed_ms: number
-    language: string
   }
 
   // chat_pane.tsx (client)

@@ -98,6 +98,7 @@
       "keyNetworkError": "Nie można połączyć się z dostawcą, aby zweryfikować klucz. Sprawdź połączenie i spróbuj ponownie.",
       "applyButton": "Użyj tej AI",
       "validatingButton": "Weryfikowanie klucza…",
+      "forgetKey": "Zapomnij konfigurację",
       "cancelButton": "Anuluj",
       "comingSoon": "Wkrótce",
       "registerInterest": "Zgłoś zainteresowanie →",

@@ -98,6 +98,7 @@
       "keyNetworkError": "Anahtarı doğrulamak için sağlayıcıya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
       "applyButton": "Bu yapay zekayı kullan",
       "validatingButton": "Anahtar doğrulanıyor…",
+      "forgetKey": "Yapılandırmayı unut",
       "cancelButton": "İptal",
       "comingSoon": "Yakında",
       "registerInterest": "İlginizi kaydedin →",

@@ -98,6 +98,7 @@
       "keyNetworkError": "Der Anbieter konnte zur Überprüfung des Schlüssels nicht erreicht werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "applyButton": "Diese KI verwenden",
       "validatingButton": "Schlüssel wird überprüft…",
+      "forgetKey": "Konfiguration vergessen",
       "cancelButton": "Abbrechen",
       "comingSoon": "Demnächst verfügbar",
       "registerInterest": "Interesse bekunden →",

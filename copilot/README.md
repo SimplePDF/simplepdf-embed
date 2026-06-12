@@ -69,10 +69,10 @@ Browser
 - SimplePDF Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
 - Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
-- **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; on an explicit Record it is transcribed and the editable transcript drops into the textarea. Two routes, each disclosed in the recorder before recording:
+- **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; recording starts when you tap the mic, and when you confirm it (✓) the clip is transcribed and the editable transcript drops into the textarea. Two routes, each named in the recorder before the audio is sent:
   - **Demo (server):** with an invited `?share=` session, the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
   - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault — a demo/reference feature (a browser-held key is exposed to anything on the page).
-  - In both cases PDF bytes still stay on-device, and audio is sent only on an explicit Record (never automatically). The **BYOK** recorder names the exact recipient ("directly to OpenAI / your endpoint — not to SimplePDF"); the **demo** recorder shows an actionable record prompt (its server→OpenAI flow is the one described above, and "What is this demo?" documents it).
+  - In both cases PDF bytes still stay on-device, and audio is sent only when you confirm the recording (never automatically). The recorder prompt names the actual audio recipient before you confirm: the **demo** prompt reads "Speak to SimplePDF Copilot…" (its server→OpenAI flow is the one described above, and "What is this demo?" documents it); the **BYOK** prompt reads "Speak to OpenAI…" or "Speak to &lt;your endpoint&gt;…" (sent directly to that provider, not to SimplePDF).
 
 ## Built with
 

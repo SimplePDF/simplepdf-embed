@@ -45,11 +45,15 @@ const STALE_AFTER_MS = STALE_DAYS * 24 * 60 * 60 * 1000
 
 export type CredentialKey = string
 
-export const credentialKey = (config: ByokConfig): CredentialKey =>
+// Single owner of the vault key format, shared by Chat and STT so the two
+// capability slots can never drift apart (a lookup must produce the same key on
+// save and on read). The thin typed wrappers keep each call site's narrowing.
+const credentialKeyFor = (config: { provider: string; model: string }): CredentialKey =>
   config.provider === 'custom' ? 'custom' : `${config.provider}:${config.model}`
 
-export const sttCredentialKey = (config: ByokSttConfig): CredentialKey =>
-  config.provider === 'custom' ? 'custom' : `${config.provider}:${config.model}`
+export const credentialKey = (config: ByokConfig): CredentialKey => credentialKeyFor(config)
+
+export const sttCredentialKey = (config: ByokSttConfig): CredentialKey => credentialKeyFor(config)
 
 export type Vault = {
   // Chat capability (unchanged wire fields).
@@ -84,7 +88,7 @@ export const EMPTY_VAULT: Vault = Object.freeze({
   credentials: Object.freeze({}),
   sttActive: null,
   sttCredentials: Object.freeze({}),
-}) as Vault
+})
 
 const freshEmpty = (): Vault => ({ active: null, credentials: {}, sttActive: null, sttCredentials: {} })
 
@@ -298,11 +302,22 @@ const readVaultState = async (): Promise<{ result: LoadResult; needsClear: boole
 // deadlock behind the held lock. Callers inside the lock use
 // `readVaultStateUnlocked` instead (the request gate's shared-lock dispatch).
 export const loadVault = async (): Promise<LoadResult> => {
-  const { result, needsClear } = await readVaultState()
-  if (needsClear) {
-    await withExclusiveLock(clearVault)
+  const first = await readVaultState()
+  if (!first.needsClear) {
+    return first.result
   }
-  return result
+  // Re-classify INSIDE the exclusive lock before clearing: a concurrent
+  // cross-tab `saveCredential` may have written a fresh credential in the
+  // lock-free read → lock-acquire gap, and an unconditional clear would drop it
+  // (TOCTOU lost update). Only clear if the record is STILL stale/undecryptable
+  // under the lock — mirrors `commitMutation`'s read-inside-lock invariant.
+  return withExclusiveLock(async (): Promise<LoadResult> => {
+    const fresh = await readVaultState()
+    if (fresh.needsClear) {
+      await clearVault()
+    }
+    return fresh.result
+  })
 }
 
 // Lock-free variant for callers ALREADY holding the vault lock (the request
