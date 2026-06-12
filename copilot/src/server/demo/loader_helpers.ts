@@ -1,45 +1,23 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeader } from '@tanstack/react-start/server'
 import type { DemoModel } from '../../lib/demo/demo_model'
-import { resolveShareModel } from './shared_keys'
+import { resolveDemoModel } from './demo_config'
 
-// Demo-only loader server fns. The home route imports them when
-// IS_DEMO_MODE is true; a customer-fork's loader skips this module
-// entirely (DemoGate is hardcoded to 'byok', the welcome cookie path
-// becomes inert because the WelcomeModal isn't rendered, etc.).
+// Demo-only loader server fns for the home route.
 
-// Two-state gate: either the invite is valid and the chat runs against
-// the per-share demo model, or the visitor has to bring their own key.
+// Two-state gate: either the deployment is in demo mode (operator chat +
+// transcription keys configured) and the chat runs against the demo model, or
+// the visitor has to bring their own key. Derived purely from server config —
+// no invite shares, no `?share=`.
 export type DemoGate = { kind: 'byok' } | { kind: 'demo'; model: DemoModel }
 
-// The share id lives directly in `?share=<id>` on the page URL — no
-// cookie round-trip, no URL stripping — so an invite link can be
-// copy-pasted and reused verbatim. The loader forwards the id to this
-// server fn, which treats a blank / missing id as "no invite".
-//
-// No same-origin gate here: a direct address-bar navigation doesn't send
-// Origin or Referer, so a strict check would collapse every paste of an
-// invite link into the 'byok' branch. Cross-origin JS fetches to this
-// server-fn endpoint can't read the response under the browser's default
-// CORS policy, so an attacker can't enumerate shares from another site.
-export const readDemoGate = createServerFn({ method: 'GET' })
-  .inputValidator((raw: unknown): { shareId: string | null } => {
-    if (typeof raw !== 'object' || raw === null || !('shareId' in raw)) {
-      return { shareId: null }
-    }
-    const value: unknown = raw.shareId
-    if (typeof value !== 'string' || value === '') {
-      return { shareId: null }
-    }
-    return { shareId: value }
-  })
-  .handler(async ({ data }): Promise<DemoGate> => {
-    const model = resolveShareModel(data.shareId)
-    if (model === null) {
-      return { kind: 'byok' }
-    }
-    return { kind: 'demo', model }
-  })
+// Reads demo mode straight from server config (same source the server routes
+// gate on), so the client and the routes never disagree on `isDemo`. No input
+// from the page URL.
+export const readDemoGate = createServerFn({ method: 'GET' }).handler(async (): Promise<DemoGate> => {
+  const model = resolveDemoModel()
+  return model === null ? { kind: 'byok' } : { kind: 'demo', model }
+})
 
 // Cookie that records the user dismissing the first-load splash. Read
 // server-side so the modal HTML is included (or omitted) directly in

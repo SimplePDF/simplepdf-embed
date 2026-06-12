@@ -1,5 +1,6 @@
 import type { ZodType, z } from 'zod'
 import type { ServerErrorBody } from '../lib/api_envelope'
+import type { ContainerSignature } from '../lib/voice/recording_format'
 
 // The exact ServerErrorBody variants this module can produce. Extracting
 // them by `error` keeps each variant's full shape (including `message`),
@@ -19,6 +20,11 @@ export type BodyReadFailure = {
 }
 
 export type BodyReadSuccess = { success: true; text: string }
+
+// `bytes` is a freshly-allocated, ArrayBuffer-backed view (concatChunks), so
+// it is precisely typed for callers that need a `BlobPart` (the streaming
+// transcription relay builds a Blob from it).
+export type BinaryBodySuccess = { success: true; bytes: Uint8Array<ArrayBuffer> }
 
 const encoder = new TextEncoder()
 
@@ -97,6 +103,110 @@ export const parseJsonBody = async <TSchema extends ZodType>({
     }
   }
   return { success: true, data: schemaParsed.data }
+}
+
+const emptyBody = (): BodyReadFailure => ({
+  success: false,
+  status: 400,
+  body: { error: 'bad_request', message: 'Empty request body' },
+})
+
+const matchesContainer = ({
+  bytes,
+  signature,
+}: {
+  bytes: Uint8Array
+  signature: ContainerSignature
+}): boolean =>
+  // `bytes[outOfRange]` is `undefined`, which never equals a numeric byte, so
+  // a too-short buffer fails the match without an explicit length guard.
+  signature.magic.every((value, index) => bytes[signature.offset + index] === value)
+
+const concatChunks = ({
+  chunks,
+  total,
+}: {
+  chunks: Uint8Array[]
+  total: number
+}): Uint8Array<ArrayBuffer> => {
+  const out = new Uint8Array(total)
+  // Plain offset-tracking copy (not `reduce`, whose accumulator we'd discard):
+  // `let` is the natural form for a perf-path buffer fill.
+  let offset = 0
+  for (const chunk of chunks) {
+    out.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return out
+}
+
+// Streaming capped read for raw binary uploads (used by /api/transcribe).
+// Unlike readBodyText it NEVER trusts Content-Length and NEVER calls an
+// unbounded `arrayBuffer()`: it drains `request.body` chunk by chunk and
+// aborts the moment the running total exceeds `maxBytes`, so memory stays
+// bounded even when a caller lies about the length. After a successful read
+// it rejects an empty body and enforces the container allowlist on the
+// leading bytes before the caller hands the audio to any paid provider.
+export const parseBinaryBody = async ({
+  request,
+  maxBytes,
+  allowedContainers,
+}: {
+  request: Request
+  maxBytes: number
+  allowedContainers: readonly ContainerSignature[]
+}): Promise<BinaryBodySuccess | BodyReadFailure> => {
+  if (request.body === null) {
+    return emptyBody()
+  }
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  const drained = await (async (): Promise<
+    { ok: true; total: number } | { ok: false; failure: BodyReadFailure }
+  > => {
+    let total = 0
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+          return { ok: true, total }
+        }
+        total += value.byteLength
+        if (total > maxBytes) {
+          await reader.cancel()
+          return { ok: false, failure: tooLarge(maxBytes) }
+        }
+        chunks.push(value)
+      }
+    } catch {
+      // Client disconnect or a torn stream mid-read. The response is moot if
+      // the socket is gone; 400 is a safe, sanitized fallback otherwise.
+      return {
+        ok: false,
+        failure: {
+          success: false,
+          status: 400,
+          body: { error: 'bad_request', message: 'Failed to read request body' },
+        },
+      }
+    }
+  })()
+  if (!drained.ok) {
+    return drained.failure
+  }
+  if (drained.total === 0) {
+    return emptyBody()
+  }
+  const bytes = concatChunks({ chunks, total: drained.total })
+  const isAllowed = allowedContainers.some((signature) => matchesContainer({ bytes, signature }))
+  if (!isAllowed) {
+    return {
+      success: false,
+      status: 415,
+      body: { error: 'unsupported_media_type', message: 'Unsupported audio container' },
+    }
+  }
+  return { success: true, bytes }
 }
 
 // Abuse guard: an attacker can craft a messages array ending in a fake

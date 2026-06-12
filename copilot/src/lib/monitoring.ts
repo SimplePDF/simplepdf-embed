@@ -25,12 +25,9 @@ type RateLimitReason = 'lifetime' | 'system_failure'
 // serialisable; Errors are normalised to `{ detail: string }` or similar at
 // the call site before being passed in.
 export type EventPayloads = {
-  // shared_keys.ts (server)
-  'shared_keys.parse_failed': {
-    reason: 'empty_env' | 'invalid_json' | 'schema_mismatch' | 'empty_map'
-    detail: string
-  }
-  'shared_keys.reserved_id_rejected': { share_id: string }
+  // demo_config.ts (server)
+  'demo_config.invalid': { detail: string }
+  'demo_config.transcription_key_missing': Record<string, never>
 
   // rate_limit.ts (server)
   'rate_limit.check_threw': { ip_hash: string; detail: string }
@@ -67,6 +64,18 @@ export type EventPayloads = {
     input_chars: number
     output_chars: number
     language: string
+  }
+
+  // transcribe.ts (server)
+  'transcribe.missing_key': { ip_hash: string }
+  'transcribe.blocked_system_failure': { ip_hash: string | null; detail: string }
+  'transcribe.rate_limit_threw': { ip_hash: string; detail: string }
+  'transcribe.empty': { ip_hash: string; bytes: number }
+  'transcribe.failed': { ip_hash: string; detail: string }
+  'transcribe.done': {
+    ip_hash: string
+    bytes: number
+    elapsed_ms: number
   }
 
   // chat_pane.tsx (client)
@@ -110,6 +119,7 @@ export type EventPayloads = {
     instructions_mode: 'append' | 'replace' | null
     instructions_length: number
   }
+  'byok_vault.stt_saved': { key: string }
   'byok_vault.load_failed': { detail: string }
   'byok_vault.save_failed': { detail: string }
   'byok_vault.clear_failed': { detail: string }

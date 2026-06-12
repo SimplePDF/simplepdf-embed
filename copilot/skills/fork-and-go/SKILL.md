@@ -128,15 +128,15 @@ Use `AskUserQuestion`:
   - `Custom OpenAI-compatible (Ollama, LM Studio, vLLM)`: _"Local or self-hosted endpoint. The browser-direct BYOK path covers this; your server isn't in the loop."_
   - `BYOK only: let users bring their own key`: _"No server-side provider. Visitors paste their own key in the in-app Model Picker. Lowest ops surface."_
 
-### Q5: invite-link mode
+### Q5: demo mode
 
 ONLY ask if they didn't pick `BYOK only` in Q4. Use `AskUserQuestion`:
 
-- **Question:** Want to enable invite-link mode (`?share=<id>`) so non-technical users can chat without pasting a key?
-- **Header:** `Sharing`
+- **Question:** Want **demo mode** — your keys power chat + voice for every visitor (no key-paste needed), rate-limited per IP?
+- **Header:** `Demo mode`
 - **Options:**
-  - `Yes, set up SHARED_API_KEYS`: _"Share a URL like `https://your-app.com/?share=preview-alice` and visitors land already wired up. Per-share rate limits keep cost bounded."_
-  - `No, BYOK only`: _"Every visitor brings their own key. No server-side LLM cost from your account."_
+  - `Yes, enable demo mode`: _"Set `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` and `DEMO_STT_OPENAI_API_KEY`. Demo mode is on whenever all four are set: every visitor uses the demo on your keys (no invite links), and the per-IP turn cap bounds cost. Voice + chat share the same demo entitlement, so both keys are required."_
+  - `No, BYOK only`: _"Leave the demo vars unset. Every visitor brings their own key in the Model Picker. No server-side LLM cost from your account."_
 
 ### Q6: customization
 
@@ -153,7 +153,7 @@ Demo code is grouped under `demo/` directories specifically so the strip is mech
 - `src/components/demo/` — welcome modal, info modal, download modal, social share
 - `src/components/easter-eggs/` — Cerfa d'Or French easter egg
 - `src/lib/demo/` — sample-form catalogue, demo model registry
-- `src/server/demo/` — preflight gate, share-key resolution, misbehavior detector, loader server fns
+- `src/server/demo/` — preflight gate, demo-config resolution, misbehavior detector, loader server fns
 
 ---
 
@@ -201,7 +201,7 @@ cp .env.example .env
 Then edit `.env`:
 
 - Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `spdf-copilot`.
-- If they answered `Yes, set up SHARED_API_KEYS` in Q5, paste a JSON map per the format in `.env.example`. The base64 fallback works if their host mangles JSON quotes.
+- If they answered `Yes, enable demo mode` in Q5, set all four demo vars per `.env.example`: `DEMO_CHAT_API_KEY`, `DEMO_CHAT_MODEL` (`anthropic_haiku_4_5` or `deepseek_v4_flash`), `DEMO_RATE_LIMIT_TURNS` (per-IP turn cap), and `DEMO_STT_OPENAI_API_KEY`. Demo mode turns on only when all four are present.
 - For multi-container hosted deploys (DO App Platform with auto-scaling), recommend setting `REDIS_URL` (any Redis-compatible URL: DO Managed Caching for Valkey works) and `IP_HASH_SALT` (generate with `openssl rand -hex 32`). Required pair when `REDIS_URL` is set; the server refuses to boot otherwise.
 
 Wait for confirmation that `.env` is filled in.
@@ -215,7 +215,7 @@ npm run dev
 Open http://localhost:3001. Expected:
 
 - The iframe loads with a demo sample form.
-- The chat sidebar shows the Model Picker (if BYOK) or is ready to send (if `?share=<id>`).
+- The chat sidebar shows the Model Picker (BYOK) or is ready to send (demo mode, when the demo vars are configured).
 
 The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the `companyIdentifier` whitelists exactly the origin `http://localhost:3001` and only that origin: any other port (3000, 5173) or any other host gets refused at iframe load. Don't override the port with `--port` flags.
 
@@ -230,11 +230,11 @@ Wait for them to confirm the editor renders.
 
 Open `src/server/language_model.ts`. The current dispatch handles Anthropic and DeepSeek by name. Per their Q4 choice:
 
-- **Anthropic Claude:** set `ANTHROPIC_API_KEY` in `.env` (or per-share inside `SHARED_API_KEYS.<id>.api_key`). No code change needed.
+- **Anthropic Claude:** for demo mode set `DEMO_CHAT_API_KEY` (Anthropic key) + `DEMO_CHAT_MODEL=anthropic_haiku_4_5` in `.env`. No code change needed.
 - **OpenAI:** set `OPENAI_API_KEY` in `.env`. Add an OpenAI branch to `language_model.ts` (`@ai-sdk/openai` is already installed; create a model handle in `src/lib/demo_model.ts` and wire the dispatch).
-- **DeepSeek:** set `DEEPSEEK_API_KEY` in `.env`. Already wired.
+- **DeepSeek:** for demo mode set `DEMO_CHAT_API_KEY` (DeepSeek key) + `DEMO_CHAT_MODEL=deepseek_v4_flash`. Already wired.
 - **Custom OpenAI-compatible:** the browser-direct BYOK path in `src/lib/byok/` already supports any OpenAI-compatible endpoint. Defaults are in `src/lib/byok/providers.ts` (Ollama URL + a default model name). Update if you want different defaults.
-- **BYOK only:** nothing to wire on the server. Make sure `SHARED_API_KEYS` is empty in `.env`. Visitors will see the Model Picker on first load.
+- **BYOK only:** nothing to wire on the server. Leave the `DEMO_CHAT_*` + `DEMO_STT_OPENAI_API_KEY` vars unset in `.env` so the deployment stays out of demo mode. Visitors will see the Model Picker on first load.
 
 After the wiring, restart `npm run dev` and send a chat message. Expected: the AI responds, and any tool calls (focus a field, set a value) reflect in the editor.
 
@@ -252,7 +252,7 @@ If `Strip the demo`, walk the user through these mechanical steps. They run in o
 rm -rf src/components/demo src/components/easter-eggs src/lib/demo src/server/demo
 ```
 
-That removes: welcome modal, info modal, download modal (with the Pro upsell), social-share component, Cerfa d'Or easter egg, sample-form catalogue, demo model registry, share-key resolver, misbehavior detector, preflight gate, demo-only loader server fns.
+That removes: welcome modal, info modal, download modal (with the Pro upsell), social-share component, Cerfa d'Or easter egg, sample-form catalogue, demo model registry, demo-config resolver, misbehavior detector, preflight gate, demo-only loader server fns.
 
 **6b — Replace the sample-form catalogue**
 
@@ -282,7 +282,7 @@ Or wire a runtime loader (your own storage) — but the static one is fine for m
 
 **6c — Replace the demo gates with a single static resolution**
 
-Two callers (`src/routes/api/chat.ts` and `src/routes/api/summarize.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env:
+Three callers (`src/routes/api/chat.ts`, `src/routes/api/summarize.ts`, and `src/routes/api/transcribe.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env (transcribe also reads `DEMO_STT_OPENAI_API_KEY` directly, so it keeps working once the preflight is replaced):
 
 ```ts
 // at the top of chat.ts / summarize.ts, replace the demo import with:
@@ -320,7 +320,7 @@ loader: async () => ({ demoGate: { kind: 'byok' as const }, welcomeDismissed: tr
 
 `welcomeDismissed: true` keeps the welcome modal off forever — but since `WelcomeModal` is also deleted in step 6a, the field becomes unused. Delete the prop and references too.
 
-Also remove the `WelcomeModal` import + JSX (`<WelcomeModal ... />`), the `dismissWelcome` callback, the `WELCOME_DISMISSED_COOKIE` reference, and the `?share=` validation in `validateSearch` (the share param has nothing to gate against now).
+Also remove the `WelcomeModal` import + JSX (`<WelcomeModal ... />`), the `dismissWelcome` callback, and the `WELCOME_DISMISSED_COOKIE` reference.
 
 **6e — Drop demo references in `src/components/layout.tsx`**
 
@@ -328,7 +328,7 @@ Layout currently imports the (deleted) `InfoModal` from `./demo/info_modal` and 
 
 **6f — Drop the rate-limit panel + social share from the error banner**
 
-`src/components/error_banner.tsx` references `SocialShare` from `./demo/social_share` (deleted). Delete the import and the `RateLimitPanel` definition (it's only useful when the demo's per-share cap fires, which can't happen without the gate).
+`src/components/error_banner.tsx` references `SocialShare` from `./demo/social_share` (deleted). Delete the import and the `RateLimitPanel` definition (it's only useful when the demo's per-IP cap fires, which can't happen without the gate).
 
 **6g — Strip demo-flavoured locale keys**
 
@@ -368,8 +368,8 @@ If `Custom: walk me through each`: ask them which feature they want to address f
 
 Per their Q1 choice:
 
-- **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) `SHARED_API_KEYS` / `REDIS_URL` / `IP_HASH_SALT`.
-- **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put SHARED_API_KEYS` etc. Cloudflare's edge sits in front for free WAF + caching.
+- **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) the demo vars (`DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` / `DEMO_STT_OPENAI_API_KEY`) / `REDIS_URL` / `IP_HASH_SALT`.
+- **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put DEMO_CHAT_API_KEY` (and the other demo vars) etc. Cloudflare's edge sits in front for free WAF + caching.
 - **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
 - **Render / fly.io:** point the service at this repo, set build command `npm run build`, start command `npm start`, and configure env vars in the host's dashboard. fly.io needs a `Dockerfile` (build the production output, run `node .output/server/index.mjs`).
 - **Custom Docker:** `npm run build` produces `.output/`. Bundle it in your Dockerfile, expose port 3000, run `node .output/server/index.mjs`.
@@ -399,7 +399,7 @@ Wait for them to confirm the iframe loads.
 Walk through one full chat turn on the deployed URL:
 
 1. Open the chat sidebar.
-2. (BYOK) Open the Model Picker, paste a key, send a message. (Server-paid) Just send a message after appending `?share=<id>` to the URL.
+2. (BYOK) Open the Model Picker, paste a key, send a message. (Demo mode) Just send a message — demo mode is on whenever your keys are configured, no URL params needed.
 3. Confirm the AI responds and any tool calls reflect in the editor (e.g. a field gets focused, a value gets filled).
 
 Once that's confirmed, you're done.

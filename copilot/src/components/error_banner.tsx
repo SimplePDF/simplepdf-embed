@@ -129,7 +129,9 @@ const ResumePanel = ({ modelLabel, onResume }: ResumePanelProps): ReactElement =
   )
 }
 
-const RateLimitPanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
+// Exported so the voice flow can surface the SAME demo-limit + share entry in
+// the chat when transcription hits the shared demo rate-limit bucket (P070-03).
+export const RateLimitPanel = ({ onSwitchModel }: SwitchModelProps): ReactElement => {
   const { t } = useTranslation()
   return (
     <div className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">

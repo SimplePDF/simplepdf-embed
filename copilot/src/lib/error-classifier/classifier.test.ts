@@ -175,11 +175,6 @@ describe(classifyError.name, () => {
     expect(classifyError(error)).toBe('demo_rate_limited')
   })
 
-  it('classifies a { error: "share_required" } body as "authentication"', () => {
-    const error = new Error(JSON.stringify({ error: 'share_required', message: 'Invite link required' }))
-    expect(classifyError(error)).toBe('authentication')
-  })
-
   it('returns null for statuses we do not handle explicitly', () => {
     for (const status of [400, 403, 404]) {
       const error = Object.assign(new Error('x'), { statusCode: status })

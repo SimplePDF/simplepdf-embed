@@ -1,20 +1,25 @@
 import { useChat } from '@ai-sdk/react'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp, Mic, X } from 'lucide-react'
 import { type ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import {
   type ByokConfig,
+  type ByokSttConfig,
   type CredentialKey,
   credentialKey,
+  dispatchSttUnderFreshCredential,
   EMPTY_VAULT,
   findProvider,
   loadVault,
   removeCredential,
+  removeSttCredential,
   runByokStream,
   saveCredential,
+  saveSttCredential,
+  sttCredentialKey,
   touchLastUsed,
   type Vault,
 } from '../../lib/byok'
@@ -36,23 +41,56 @@ import {
   type ToolInput,
   type ToolMiddleware,
 } from '../../lib/embed-bridge-adapters/client-tools'
+import { classifyError } from '../../lib/error-classifier'
 import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
-import type { DemoGate } from '../../routes/index'
+import type { TranscribeClientErrorCode, TranscribeFnResult } from '../../lib/voice/error_codes'
+import { isAcceptedRecordingMime, RECORDING_MAX_BYTES } from '../../lib/voice/recording_format'
+import {
+  resolveChat,
+  resolveMicAction,
+  resolveStt,
+  type SttResolution,
+  sttDestination,
+  type TranscriptionDestination,
+} from '../../lib/voice/resolve_capability'
+import { transcribeByokStreaming } from '../../lib/voice/transcribe_byok_streaming'
+import { transcribeClient } from '../../lib/voice/transcribe_client'
+import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
+import type { DemoGate, ModelTab } from '../../routes/index'
 import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
-import { ErrorBanner } from '../error_banner'
+import { ErrorBanner, RateLimitPanel } from '../error_banner'
 import { ChatLLMMessage } from './chat_llm_message'
 import { ChatPaneHeader } from './chat_pane_header'
 import { ChatUserMessage } from './chat_user_message'
+import { useAudioRecorder } from './hooks/use_audio_recorder'
 import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
+import { useVoiceInputSupport } from './hooks/use_voice_input_support'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
+import { VoiceInputBar } from './voice_input_bar'
 
 const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
+
+// Client-side UX cap on recording length. Paid cost is bounded by the
+// per-share turn charge, not this timer (see plan D10); on reaching it the
+// recorder auto-stops and transcribes exactly as if Stop was pressed.
+const VOICE_MAX_DURATION_MS = 120_000
+
+const voiceFailure = (code: TranscribeClientErrorCode): TranscribeFnResult => ({
+  success: false,
+  error: { code, message: code },
+})
+
+// The draft during/after dictation = whatever the user had typed before
+// recording (the prefix) + the transcript. Streaming deltas keep replacing the
+// transcript part; the prefix is never clobbered.
+const joinVoiceDraft = (prefix: string, transcript: string): string =>
+  prefix.trim() === '' ? transcript : `${prefix} ${transcript}`
 
 const homeRoute = getRouteApi('/')
 
@@ -382,9 +420,9 @@ export const ChatPane = ({
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
   const isDownloadModalOpen = search.show === 'download'
-  const shareIdRef = useRef<string | null>(search.share ?? null)
-  shareIdRef.current = search.share ?? null
   const [draft, setDraft] = useState('')
+  const draftRef = useRef(draft)
+  draftRef.current = draft
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
   const bridgeRef = useRef(bridge)
   bridgeRef.current = bridge
@@ -396,6 +434,83 @@ export const ChatPane = ({
   // scrolls back to the bottom. No manual scrollTo juggling in this file.
   const { scrollRef, contentRef } = useStickToBottom()
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const voiceInputSupported = useVoiceInputSupport()
+  // Recipient of the frozen recording, for the recording-view disclosure (V1 #7).
+  const [voiceDestination, setVoiceDestination] = useState<TranscriptionDestination | null>(null)
+  // The STT route is resolved ONCE when recording starts and frozen here, so a
+  // recording can't silently change destination and the request gate can detect
+  // a mid-recording revoke (P070-02 V4/V5). Set by handleVoiceRecord below.
+  const frozenSttRef = useRef<SttResolution | null>(null)
+  // The user's typed text at record-start, so streaming deltas + the final
+  // transcript compose onto it instead of clobbering it.
+  const voiceDraftPrefixRef = useRef('')
+  const handleVoiceTranscribe = useCallback(
+    async ({
+      blob,
+      signal,
+      onDelta,
+    }: {
+      blob: Blob
+      signal: AbortSignal
+      onDelta: (textSoFar: string) => void
+    }): Promise<TranscribeFnResult> => {
+      const frozen = frozenSttRef.current
+      if (frozen === null || frozen.kind === 'none') {
+        return voiceFailure('unauthorized')
+      }
+      if (frozen.kind === 'demo') {
+        // The demo server route streams the transcript as SSE deltas (P070-02
+        // Phase 5), same as BYOK — `onDelta` fills the draft live. Demo mode is
+        // config-gated server-side, so no entitlement token rides along.
+        return transcribeClient({ blob, signal, onDelta })
+      }
+      // BYOK browser-direct streaming: bounded conversion (single
+      // recording-format owner), then dispatch through the request gate so a
+      // forgotten key is never used. Deltas stream into the draft as produced.
+      if (!isAcceptedRecordingMime(blob.type)) {
+        return voiceFailure('unsupported_media_type')
+      }
+      if (blob.size > RECORDING_MAX_BYTES) {
+        return voiceFailure('too_large')
+      }
+      const audioBytes = new Uint8Array(await blob.arrayBuffer())
+      const dispatch = await dispatchSttUnderFreshCredential({
+        frozenKey: frozen.key,
+        signal,
+        run: (config) =>
+          transcribeByokStreaming({ audioBytes, mimeType: blob.type, signal, config, onDelta }),
+      })
+      switch (dispatch.kind) {
+        case 'ran':
+          return dispatch.result
+        case 'revoked':
+        case 'unavailable':
+          return voiceFailure('service_unavailable')
+        case 'cancelled':
+          return voiceFailure('cancelled')
+        default:
+          dispatch satisfies never
+          return voiceFailure('service_unavailable')
+      }
+    },
+    [],
+  )
+  const handleVoiceTranscriptDelta = useCallback((textSoFar: string) => {
+    setDraft(joinVoiceDraft(voiceDraftPrefixRef.current, textSoFar))
+  }, [])
+  const handleVoiceTranscript = useCallback((text: string) => {
+    setDraft(joinVoiceDraft(voiceDraftPrefixRef.current, text))
+    // The textarea only re-mounts once status returns to idle, so focus must
+    // wait for the commit — focusing synchronously here would no-op (the
+    // composer is still showing the voice bar).
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }, [])
+  const voice = useAudioRecorder({
+    transcribe: handleVoiceTranscribe,
+    onTranscript: handleVoiceTranscript,
+    onTranscriptDelta: handleVoiceTranscriptDelta,
+    maxDurationMs: VOICE_MAX_DURATION_MS,
+  })
   const toolExecutionQueueRef = useRef<Promise<void>>(Promise.resolve())
   // BYOK state machine. ByokState is hoisted at module scope above; here we
   // derive the two consumer-facing reads (current active config + full
@@ -448,6 +563,7 @@ export const ChatPane = ({
     setByokState((current) => {
       const baseVault = current.kind === 'loading' ? EMPTY_VAULT : current.vault
       const vault: Vault = {
+        ...baseVault,
         active: key,
         credentials: { ...baseVault.credentials, [key]: next },
       }
@@ -470,13 +586,61 @@ export const ChatPane = ({
       delete remaining[key]
       const nextActiveKey = baseVault.active === key ? null : baseVault.active
       const nextActive: ByokConfig | null = nextActiveKey === null ? null : (remaining[nextActiveKey] ?? null)
-      const nextVault: Vault = { active: nextActiveKey, credentials: remaining }
+      const nextVault: Vault = { ...baseVault, active: nextActiveKey, credentials: remaining }
       return nextActive === null
         ? { kind: 'absent', vault: nextVault }
         : { kind: 'present', active: nextActive, vault: nextVault }
     })
     void removeCredential(key)
   }, [])
+
+  // STT BYOK lives in its own vault slot; saving/forgetting it never touches
+  // the Chat credential. The durable write goes through the serialized vault
+  // mutation (same as Chat's saveCredential/removeCredential); the local
+  // byokState is updated optimistically so the picker reflects it immediately.
+  const handleApplyStt = useCallback((config: ByokSttConfig): void => {
+    const key = sttCredentialKey(config)
+    setByokState((current) => {
+      if (current.kind === 'loading') {
+        return current
+      }
+      return {
+        ...current,
+        vault: {
+          ...current.vault,
+          sttActive: key,
+          sttCredentials: { ...current.vault.sttCredentials, [key]: config },
+        },
+      }
+    })
+    void saveSttCredential(config)
+  }, [])
+
+  const handleForgetStt = useCallback((): void => {
+    const key = byokVault.sttActive
+    if (key === null) {
+      return
+    }
+    setByokState((current) => {
+      if (current.kind === 'loading') {
+        return current
+      }
+      const remaining = { ...current.vault.sttCredentials }
+      delete remaining[key]
+      return { ...current, vault: { ...current.vault, sttActive: null, sttCredentials: remaining } }
+    })
+    void removeSttCredential(key)
+  }, [byokVault.sttActive])
+
+  const sttActive: ByokSttConfig | null =
+    byokVault.sttActive !== null ? (byokVault.sttCredentials[byokVault.sttActive] ?? null) : null
+  const modelTab: ModelTab = search.tab ?? 'chat'
+  const handleModelTabChange = useCallback(
+    (next: ModelTab): void => {
+      void navigate({ search: (prev) => ({ ...prev, tab: next }) })
+    },
+    [navigate],
+  )
 
   // Plain function: identity-stability does not matter for the picker (no
   // dependency-array consumer), and the body is a one-liner. Per the global
@@ -584,30 +748,9 @@ export const ChatPane = ({
         if (activeConfig !== null) {
           return runByokStream({ config: activeConfig, init })
         }
-        // Forward the share id on the fetch URL so the server reads the
-        // same invite that's visible in the address bar. The input coming
-        // in from the AI SDK is either a string or a URL-like Request; we
-        // rebuild it through URL to handle both and to keep an existing
-        // query string intact.
-        const activeShare = shareIdRef.current
-        const rawUrl = ((): string => {
-          if (typeof input === 'string') {
-            return input
-          }
-          if (input instanceof URL) {
-            return input.toString()
-          }
-          return input.url
-        })()
-        const target = ((): string => {
-          if (activeShare === null) {
-            return rawUrl
-          }
-          const url = new URL(rawUrl, window.location.origin)
-          url.searchParams.set('share', activeShare)
-          return url.toString()
-        })()
-        return window.fetch(target, init)
+        // Demo mode: hit /api/chat directly. Demo entitlement is config-gated
+        // server-side (no `?share=` token rides on the request).
+        return window.fetch(input, init)
       },
     })
   }, [])
@@ -839,6 +982,25 @@ export const ChatPane = ({
   // the byokState block above. Race window is sub-millisecond on warm IDB
   // but the cost of holding is invisible.
   const canSend = isReady && !isStreaming && !serverLocked && !isVaultLoading
+  // Mic is VISIBLE whenever the browser can record; DISABLED (not hidden) while
+  // the composer isn't usable. Clicking it resolves Chat-first then STT: open
+  // the picker on a missing capability, else freeze the route + destination and
+  // record immediately (P070-03 dropped the armed step — getUserMedia prompts on
+  // click; the recipient disclosure now shows in the recording view, before ✓).
+  const micVisible = voiceInputSupported
+  const handleMicClick = useCallback(() => {
+    const chat = resolveChat({ vault: byokVault, demoGate })
+    const stt = resolveStt({ vault: byokVault, demoGate })
+    const action = resolveMicAction({ chat, stt })
+    if (action.kind === 'configure') {
+      void navigate({ search: (prev) => ({ ...prev, show: 'model', tab: action.tab }) })
+      return
+    }
+    frozenSttRef.current = stt
+    voiceDraftPrefixRef.current = draftRef.current
+    setVoiceDestination(sttDestination(stt))
+    void voice.record()
+  }, [byokVault, demoGate, navigate, voice.record])
   const hasUserMessage = messages.some((message) => message.role === 'user')
   const chatStatusMessage = useMemo((): string => {
     if (!hasActiveModel) {
@@ -901,6 +1063,9 @@ export const ChatPane = ({
         return
       }
       void sendMessage({ text: trimmed })
+      // Moving forward clears any stale voice error (incl. the rate-limit
+      // panel) so it doesn't linger after the user resumes typing.
+      voice.dismissError()
       // Genuine activity: refresh the vault's lastUsed so the 30-day idle
       // expiry only fires for users who actually stop coming back.
       if (byokConfigRef.current !== null) {
@@ -908,7 +1073,7 @@ export const ChatPane = ({
       }
       setDraft('')
     },
-    [sendMessage],
+    [sendMessage, voice.dismissError],
   )
 
   return (
@@ -935,11 +1100,33 @@ export const ChatPane = ({
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div ref={contentRef} className="flex min-h-full flex-col">
           {((): ReactElement => {
+            // A voice rate-limit is the shared demo cap (transcribe charges the
+            // same share bucket as chat, P070), so surface the SAME demo-limit +
+            // share entry regardless of message count — a fresh visitor whose
+            // first action is a mic recording would otherwise hit the cap with
+            // zero feedback (the inline composer error excludes `rate_limited`).
+            // Suppressed when the chat error already renders a demo-limit panel,
+            // so the two can never stack.
+            const chatShowsDemoLimit = error !== undefined && classifyError(error) === 'demo_rate_limited'
+            const showVoiceRateLimit = voice.lastError === 'rate_limited' && !chatShowsDemoLimit
+            const voiceRateLimitPanel = showVoiceRateLimit ? (
+              <RateLimitPanel onSwitchModel={openModelPicker} />
+            ) : null
             if (serverLocked) {
-              return <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
+              return (
+                <>
+                  <WelcomeBanner onSwitchModel={openModelPicker} onOpenInfo={openInfoModal} />
+                  {voiceRateLimitPanel}
+                </>
+              )
             }
             if (messages.length === 0) {
-              return <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+              return (
+                <>
+                  <SuggestedPrompts onSelect={handleSend} disabled={!canSend} />
+                  {voiceRateLimitPanel}
+                </>
+              )
             }
             return (
               <div className="space-y-4 p-4">
@@ -986,12 +1173,31 @@ export const ChatPane = ({
                     }}
                   />
                 ) : null}
+                {voiceRateLimitPanel}
               </div>
             )
           })()}
         </div>
       </div>
       <div className="p-3">
+        {/* `rate_limited` is the shared demo cap — shown as the demo-limit +
+            share entry in the chat above, not as an inline composer error. */}
+        {voice.lastError !== null && voice.lastError !== 'rate_limited' ? (
+          <div
+            className="mb-2 flex items-start gap-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700"
+            role="alert"
+          >
+            <span className="flex-1">{t(voiceErrorTranslationKey(voice.lastError))}</span>
+            <button
+              type="button"
+              onClick={voice.dismissError}
+              aria-label={t('voice.dismissError')}
+              className="flex-none text-rose-400 transition-colors hover:text-rose-600"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -999,36 +1205,73 @@ export const ChatPane = ({
           }}
           className="flex items-end gap-2"
         >
-          <textarea
-            ref={inputRef}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              // Enter sends; Shift+Enter inserts a newline. Mirrors the
-              // pattern users already know from Slack / iMessage / vercel
-              // AI chatbot.
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
-                handleSend(draft)
-              }
-            }}
-            disabled={!canSend}
-            placeholder={inputPlaceholder}
-            rows={1}
-            className="block flex-1 resize-none overflow-y-auto rounded-3xl border border-solid border-slate-200 bg-white px-4 py-2 text-sm leading-5 text-slate-800 placeholder-slate-400 focus:border-sky-600 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
-            // Inline `borderWidth` survives Tailwind's reset; height is
-            // managed by the auto-resize useLayoutEffect, with a short
-            // transition so growth feels intentional rather than jumpy.
-            style={{ borderWidth: '1px', transition: 'height 120ms ease-out' }}
-          />
-          <button
-            type="submit"
-            disabled={!canSend || draft.trim() === ''}
-            aria-label={t('chat.send')}
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          {/* One composer box (P070-03) shared by every voice state, so
+              clicking the mic causes NO layout shift: the textarea ↔
+              recording prompt swap in the top row and the mic+send ↔ recording
+              controls swap in the same action row. The container owns the
+              border / 12px radius / focus ring / uniform padding; its children
+              are borderless. Inline `borderWidth` survives the embed's Tailwind
+              reset. */}
+          <div
+            className="flex flex-1 flex-col gap-1 rounded-xl border border-solid border-slate-200 bg-white p-3 transition-colors focus-within:border-sky-600"
+            style={{ borderWidth: '1px' }}
           >
-            <ArrowUp size={18} strokeWidth={3} aria-hidden="true" />
-          </button>
+            {voice.status === 'idle' ? (
+              <>
+                <textarea
+                  ref={inputRef}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    // Enter sends; Shift+Enter inserts a newline. Mirrors the
+                    // pattern users already know from Slack / iMessage / vercel
+                    // AI chatbot.
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      handleSend(draft)
+                    }
+                  }}
+                  disabled={!canSend}
+                  placeholder={inputPlaceholder}
+                  rows={1}
+                  className="block w-full resize-none overflow-y-auto border-0 bg-transparent text-sm leading-5 text-slate-800 placeholder-slate-400 focus:outline-none disabled:text-slate-400"
+                  // Height is managed by the auto-resize useLayoutEffect, with a
+                  // short transition so growth feels intentional rather than jumpy.
+                  style={{ transition: 'height 120ms ease-out' }}
+                />
+                <div className="flex items-center justify-end gap-1">
+                  {micVisible ? (
+                    <button
+                      type="button"
+                      onClick={handleMicClick}
+                      disabled={!canSend}
+                      aria-label={t('voice.micLabel')}
+                      className="flex h-9 w-9 flex-none items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+                    >
+                      <Mic size={18} aria-hidden="true" />
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={!canSend || draft.trim() === ''}
+                    aria-label={t('chat.send')}
+                    className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-sky-600 text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    <ArrowUp size={18} strokeWidth={3} aria-hidden="true" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <VoiceInputBar
+                status={voice.status}
+                level={voice.level}
+                elapsedMs={voice.elapsedMs}
+                destination={voiceDestination}
+                onStop={voice.stop}
+                onCancel={voice.cancel}
+              />
+            )}
+          </div>
         </form>
       </div>
       <ModelPickerModal
@@ -1039,6 +1282,11 @@ export const ChatPane = ({
         onApply={handleApplyByok}
         onForget={handleForgetByok}
         lookupSavedCredential={lookupSavedCredential}
+        tab={modelTab}
+        onTabChange={handleModelTabChange}
+        sttActive={sttActive}
+        onApplyStt={handleApplyStt}
+        onForgetStt={handleForgetStt}
       />
       <DownloadModal
         open={isDownloadModalOpen}

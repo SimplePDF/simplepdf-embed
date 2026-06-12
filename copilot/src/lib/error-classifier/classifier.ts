@@ -12,8 +12,6 @@ import type { ServerErrorBody } from '../api_envelope'
 const SERVER_ERROR_TO_STATUS = {
   forbidden_blocked: 403,
   forbidden_origin: 403,
-  misconfigured_environment: 500,
-  share_required: 401,
   rate_limited: 429,
   service_unavailable: 503,
   bad_request: 400,

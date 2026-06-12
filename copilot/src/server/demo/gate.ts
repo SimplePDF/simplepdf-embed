@@ -1,24 +1,22 @@
 import type { ServerErrorBody } from '../../lib/api_envelope'
 import { getClientIp, hashIp, isSameOrigin, looksLikeBrowserFetch } from '../rate_limit'
+import { type DemoResolution, resolveDemoConfig } from './demo_config'
 import { isMisbehaving, markMisbehavior } from './misbehavior'
-import { readShareIdFromUrl } from './share_query'
-import { resolveApiKey, type SharedKeyResolution } from './shared_keys'
 
-// Demo-only preflight gate shared by /api/chat and /api/summarize. Bundles
-// every request-level check that is specific to the SimplePDF-hosted
-// demo: misbehavior detection, same-origin enforcement (paired with the
-// Sec-Fetch-* second-chance lane), invite-share resolution, and the
-// shared-key catalogue lookup that produces the model + API key + bucket
-// the rate limiter needs.
+// Demo-only preflight gate shared by /api/chat, /api/summarize, and
+// /api/transcribe. Bundles the request-level checks specific to the demo:
+// misbehavior detection, same-origin enforcement (paired with the Sec-Fetch-*
+// second-chance lane), and the single demo-config lookup that produces the
+// model + API key + per-IP bucket the rate limiter needs.
 //
-// A customer-fork (IS_DEMO_MODE === false) does NOT call this — it
-// reads its single API key from env and skips every gate here. The
-// route handler picks one path or the other; nothing in the file system
-// outside `server/demo/` references this module.
+// Demo mode is config-driven (`isDemo`): the deployment is "in demo mode" iff
+// the operator configured both a chat key/model/turn-cap and a transcription
+// key. There are no invite shares and no `?share=`. A deployment without that
+// config runs BYOK-only and never reaches the `allowed` branch.
 
 type DemoPreflightResult =
   | { kind: 'response'; response: Response }
-  | { kind: 'allowed'; ipHash: string; resolution: Extract<SharedKeyResolution, { kind: 'shared' }> }
+  | { kind: 'allowed'; ipHash: string; resolution: Extract<DemoResolution, { kind: 'demo' }> }
 
 export const applyDemoPreflight = async (request: Request): Promise<DemoPreflightResult> => {
   const ip = getClientIp(request)
@@ -40,31 +38,24 @@ export const applyDemoPreflight = async (request: Request): Promise<DemoPrefligh
       response: Response.json({ error: 'forbidden_origin' } satisfies ServerErrorBody, { status: 403 }),
     }
   }
-  const shareId = readShareIdFromUrl(request)
-  const resolution = resolveApiKey(shareId)
+  const resolution = resolveDemoConfig()
   switch (resolution.kind) {
-    case 'misconfigured':
+    case 'not_demo':
+      // The deployment isn't in demo mode (no operator chat + transcription
+      // keys). A real demo client never calls these routes when `isDemo` is
+      // false — its `demoGate` is derived from the same config — so this is
+      // pure defense-in-depth against a non-demo/script caller.
       return {
         kind: 'response',
         response: Response.json(
-          {
-            error: 'misconfigured_environment',
-            message: 'Misconfigured environment',
-          } satisfies ServerErrorBody,
-          { status: 500 },
+          { error: 'service_unavailable', reason: 'demo_not_configured' } satisfies ServerErrorBody,
+          { status: 503 },
         ),
       }
-    case 'share_required':
-      // Message omitted on purpose — the client's ErrorBanner renders
-      // localised chat.errorAuth* strings for the authentication kind.
-      return {
-        kind: 'response',
-        response: Response.json({ error: 'share_required' } satisfies ServerErrorBody, { status: 401 }),
-      }
-    case 'shared':
+    case 'demo':
       return { kind: 'allowed', ipHash, resolution }
     default:
       resolution satisfies never
-      throw new Error('unreachable: unhandled SharedKeyResolution kind')
+      throw new Error('unreachable: unhandled DemoResolution kind')
   }
 }

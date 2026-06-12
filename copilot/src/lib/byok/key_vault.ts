@@ -4,19 +4,29 @@
 // vault is encrypted with a non-extractable AES-GCM key bound to this
 // browser.
 //
-// Threat model honestly stated: the AES-GCM key is non-extractable, so the
-// raw key bits never leave the browser sandbox in any plaintext form. This
-// hardens against an attacker who exfiltrates the IndexedDB blob (browser
-// profile dump on a stolen / shared device). XSS on the copilot origin
-// is NOT mitigated. an XSS payload can still call crypto.subtle.decrypt and
-// recover the cleartext at runtime. Modal copy reflects this honestly.
+// Two independent capability namespaces (P070-02): Chat (`active`/
+// `credentials`) and Speech-to-Text (`sttActive`/`sttCredentials`). An STT
+// write never touches Chat state and vice versa. The wire shape stays
+// backward-readable: an older release's `z.object({active, credentials})`
+// parser strips the additive STT/version fields, so a code rollback keeps
+// every Chat credential (STT config is lost on the first old-version write —
+// an accepted trade-off, P070-02 V3 #2).
 //
-// Stale entries are auto-cleared after 30 days of inactivity. Each successful
-// chat send touches lastUsed so frequent users never expire.
+// Threat model honestly stated: the AES-GCM key is non-extractable, so the
+// raw key bits never leave the browser sandbox. This hardens against an
+// attacker who exfiltrates the IndexedDB blob. XSS on the copilot origin is
+// NOT mitigated — an XSS payload can call crypto.subtle.decrypt at runtime.
+//
+// Every write is serialized through one exclusive Web Lock with a fresh read
+// inside the lock, so concurrent same-tab/cross-tab writes cannot lose
+// updates (P070-02 V2 #2). The vault is fail-closed: if IndexedDB, Web Crypto,
+// or Web Locks are unavailable, the vault refuses reads and writes (P070-02
+// V4 #2) — a stored BYOK credential is never decrypted when it can't be
+// reliably revoked.
 
 import { z } from 'zod'
 import { monitoring, normalizeError } from '../monitoring'
-import { type ByokConfig, ByokConfigSchema } from './providers'
+import { type ByokConfig, ByokConfigSchema, type ByokSttConfig, ByokSttConfigSchema } from './providers'
 
 // Kept as `form-copilot-vault` after the rename so existing users don't lose
 // their stored BYOK credentials on first reload.
@@ -25,38 +35,68 @@ const DB_VERSION = 1
 const STORE_NAME = 'records'
 const CRYPTO_KEY_RECORD_ID = 'cryptoKey'
 const VAULT_RECORD_ID = 'vault'
+// Origin-wide name for the serialized-mutation lock; the request gate uses the
+// same name in shared mode for provider dispatch (see request_gate.ts).
+export const VAULT_LOCK_NAME = 'byok-vault'
+const VAULT_WIRE_VERSION = 2
 
 export const STALE_DAYS = 30
 const STALE_AFTER_MS = STALE_DAYS * 24 * 60 * 60 * 1000
 
-// Catalog providers carry a model slot per credential so a user can save one
-// key per (provider, model) pair. The custom branch collapses to a single
-// slot since baseUrl + key + model are all editable for one logical "custom
-// endpoint" credential.
 export type CredentialKey = string
 
-export const credentialKey = (config: ByokConfig): CredentialKey =>
+// Single owner of the vault key format, shared by Chat and STT so the two
+// capability slots can never drift apart (a lookup must produce the same key on
+// save and on read). The thin typed wrappers keep each call site's narrowing.
+const credentialKeyFor = (config: { provider: string; model: string }): CredentialKey =>
   config.provider === 'custom' ? 'custom' : `${config.provider}:${config.model}`
 
+export const credentialKey = (config: ByokConfig): CredentialKey => credentialKeyFor(config)
+
+export const sttCredentialKey = (config: ByokSttConfig): CredentialKey => credentialKeyFor(config)
+
 export type Vault = {
-  // The credential currently driving the BYOK chat AND the credential the
-  // modal auto-opens to on next visit. One field, one source of truth.
+  // Chat capability (unchanged wire fields).
   active: CredentialKey | null
   credentials: Record<CredentialKey, ByokConfig>
+  // Speech-to-Text capability (additive). Lives in its own slots/pointer.
+  sttActive: CredentialKey | null
+  sttCredentials: Record<CredentialKey, ByokSttConfig>
 }
 
-const VaultSchema: z.ZodType<Vault> = z.object({
+// Reads tolerate an old (version-less, STT-less) record by defaulting the new
+// fields; writes always emit the full v2 shape. The old fields keep their
+// exact names so an old-code rollback still parses Chat. Exported for the
+// wire-compat test.
+export const VaultWireSchema = z.object({
   active: z.string().nullable(),
   credentials: z.record(z.string(), ByokConfigSchema),
+  version: z.number().optional(),
+  sttActive: z.string().nullable().optional(),
+  sttCredentials: z.record(z.string(), ByokSttConfigSchema).optional(),
 })
 
-// Frozen so accidental mutation by a future caller (e.g. forgetting the
-// spread in a setState updater) fails loudly in dev rather than silently
-// corrupting the singleton across consumers.
+const normalizeVault = (parsed: z.infer<typeof VaultWireSchema>): Vault => ({
+  active: parsed.active,
+  credentials: parsed.credentials,
+  sttActive: parsed.sttActive ?? null,
+  sttCredentials: parsed.sttCredentials ?? {},
+})
+
 export const EMPTY_VAULT: Vault = Object.freeze({
   active: null,
   credentials: Object.freeze({}),
-}) as Vault
+  sttActive: null,
+  sttCredentials: Object.freeze({}),
+})
+
+const freshEmpty = (): Vault => ({ active: null, credentials: {}, sttActive: null, sttCredentials: {} })
+
+const isEmptyVault = (vault: Vault): boolean =>
+  vault.active === null &&
+  Object.keys(vault.credentials).length === 0 &&
+  vault.sttActive === null &&
+  Object.keys(vault.sttCredentials).length === 0
 
 type StoredCryptoKey = { id: typeof CRYPTO_KEY_RECORD_ID; key: CryptoKey }
 type StoredVault = {
@@ -74,9 +114,28 @@ export type LoadResult =
   | { kind: 'error'; detail: string }
 
 export type SaveResult = { kind: 'saved' } | { kind: 'unavailable' } | { kind: 'error'; detail: string }
+export type RemoveResult = { kind: 'removed' } | { kind: 'unavailable' } | { kind: 'error'; detail: string }
 
-const isAvailable = (): boolean =>
-  typeof indexedDB !== 'undefined' && typeof crypto !== 'undefined' && typeof crypto.subtle !== 'undefined'
+// Fail-closed gate: the vault needs IndexedDB + Web Crypto to store secrets and
+// Web Locks to serialize mutations and order revocation against in-flight
+// dispatch (request_gate.ts). Missing any of them means a stored credential
+// could not be reliably changed or forgotten, so we treat the BYOK vault as
+// entirely unavailable.
+export const isVaultAvailable = (): boolean =>
+  typeof indexedDB !== 'undefined' &&
+  typeof crypto !== 'undefined' &&
+  typeof crypto.subtle !== 'undefined' &&
+  typeof navigator !== 'undefined' &&
+  typeof navigator.locks !== 'undefined'
+
+// Holds the origin-wide exclusive lock for the duration of `fn` (Web Locks
+// release when the callback's promise settles). All writes go through this so
+// a read-modify-write can never interleave with another mutation.
+// `navigator.locks.request` holds the lock until the callback's promise
+// settles. Its lib typing nests the promise (Promise<Promise<T>>);
+// Promise.resolve flattens it back to Promise<T> without a cast.
+const withExclusiveLock = <TResult>(fn: () => Promise<TResult>): Promise<TResult> =>
+  Promise.resolve(navigator.locks.request(VAULT_LOCK_NAME, { mode: 'exclusive' }, fn))
 
 const openDb = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
@@ -156,13 +215,10 @@ const decryptVault = async (record: StoredVault): Promise<Vault | null> => {
     await crypto.subtle.decrypt({ name: 'AES-GCM', iv: record.iv }, key, record.ciphertext),
   )
   const json = new TextDecoder().decode(plaintext)
-  const parsed = VaultSchema.safeParse(JSON.parse(json))
+  const parsed = VaultWireSchema.safeParse(JSON.parse(json))
   if (parsed.success) {
-    return parsed.data
+    return normalizeVault(parsed.data)
   }
-  // Schema mismatch is the silent-data-loss path. Log it loudly so a future
-  // schema evolution that drops user credentials is visible in telemetry
-  // instead of presenting as "my key disappeared".
   monitoring.error('byok_vault.schema_mismatch', { detail: z.prettifyError(parsed.error) })
   return null
 }
@@ -172,7 +228,15 @@ const encryptVault = async (
 ): Promise<{ iv: Uint8Array<ArrayBuffer>; ciphertext: Uint8Array<ArrayBuffer> }> => {
   const key = await getOrCreateCryptoKey()
   const iv = crypto.getRandomValues(new Uint8Array(12))
-  const plaintext = new TextEncoder().encode(JSON.stringify(vault))
+  // Always write the full v2 wire shape (version + both capabilities).
+  const wire = {
+    version: VAULT_WIRE_VERSION,
+    active: vault.active,
+    credentials: vault.credentials,
+    sttActive: vault.sttActive,
+    sttCredentials: vault.sttCredentials,
+  }
+  const plaintext = new TextEncoder().encode(JSON.stringify(wire))
   const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext))
   return { iv, ciphertext }
 }
@@ -180,37 +244,41 @@ const encryptVault = async (
 const writeVault = async (vault: Vault): Promise<void> => {
   const { iv, ciphertext } = await encryptVault(vault)
   await withStore('readwrite', (store) =>
-    putRecord(store, {
-      id: VAULT_RECORD_ID,
-      iv,
-      ciphertext,
-      lastUsed: Date.now(),
-    } satisfies StoredVault),
+    putRecord(store, { id: VAULT_RECORD_ID, iv, ciphertext, lastUsed: Date.now() } satisfies StoredVault),
   )
 }
 
-// Returns the persisted vault, or `empty` when nothing is stored, or `stale`
-// when the blob is older than the inactivity window (in which case it is
-// also cleared).
-export const loadVault = async (): Promise<LoadResult> => {
-  if (!isAvailable()) {
-    return { kind: 'unavailable' }
+const clearVault = async (): Promise<void> => {
+  await withStore('readwrite', (store) => deleteRecord(store, VAULT_RECORD_ID))
+}
+
+const readVaultOrEmpty = async (): Promise<Vault> => {
+  const record = await withStore('readonly', (store) => getRecord<StoredVault>(store, VAULT_RECORD_ID))
+  if (record === null) {
+    return freshEmpty()
+  }
+  return (await decryptVault(record)) ?? freshEmpty()
+}
+
+// Lock-free read + decrypt + classify. Does NOT self-clear (clearing re-locks
+// exclusively), so it is safe to call while already holding the vault lock.
+// `needsClear` tells a top-level caller to drop a stale/undecryptable record
+// under the exclusive lock.
+const readVaultState = async (): Promise<{ result: LoadResult; needsClear: boolean }> => {
+  if (!isVaultAvailable()) {
+    return { result: { kind: 'unavailable' }, needsClear: false }
   }
   try {
     const record = await withStore('readonly', (store) => getRecord<StoredVault>(store, VAULT_RECORD_ID))
     if (record === null) {
-      return { kind: 'empty' }
+      return { result: { kind: 'empty' }, needsClear: false }
     }
     if (Date.now() - record.lastUsed > STALE_AFTER_MS) {
-      await clearVault()
-      return { kind: 'stale' }
+      return { result: { kind: 'stale' }, needsClear: true }
     }
     const vault = await decryptVault(record)
     if (vault === null) {
-      // Schema mismatch (older format, manual tampering). Clear so the next
-      // save lands cleanly.
-      await clearVault()
-      return { kind: 'empty' }
+      return { result: { kind: 'empty' }, needsClear: true }
     }
     const activeCred = vault.active === null ? null : (vault.credentials[vault.active] ?? null)
     monitoring.info('byok_vault.loaded', {
@@ -220,37 +288,69 @@ export const loadVault = async (): Promise<LoadResult> => {
       active_instructions_mode: activeCred?.customInstructions?.mode ?? null,
       active_instructions_length: activeCred?.customInstructions?.text.length ?? 0,
     })
-    return { kind: 'loaded', vault }
+    return { result: { kind: 'loaded', vault }, needsClear: false }
   } catch (e) {
     const detail = normalizeError(e)
     monitoring.error('byok_vault.load_failed', { detail })
-    return { kind: 'error', detail }
+    return { result: { kind: 'error', detail }, needsClear: false }
   }
 }
 
-const readVaultOrEmpty = async (): Promise<Vault> => {
-  const record = await withStore('readonly', (store) => getRecord<StoredVault>(store, VAULT_RECORD_ID))
-  if (record === null) {
-    return { ...EMPTY_VAULT, credentials: {} }
+// Top-level load (mount / store reload): self-clears a stale/undecryptable
+// record under the exclusive lock. MUST NOT run while already holding the vault
+// lock — Web Locks are non-reentrant, so the nested exclusive request would
+// deadlock behind the held lock. Callers inside the lock use
+// `readVaultStateUnlocked` instead (the request gate's shared-lock dispatch).
+export const loadVault = async (): Promise<LoadResult> => {
+  const first = await readVaultState()
+  if (!first.needsClear) {
+    return first.result
   }
-  const vault = await decryptVault(record)
-  return vault ?? { ...EMPTY_VAULT, credentials: {} }
+  // Re-classify INSIDE the exclusive lock before clearing: a concurrent
+  // cross-tab `saveCredential` may have written a fresh credential in the
+  // lock-free read → lock-acquire gap, and an unconditional clear would drop it
+  // (TOCTOU lost update). Only clear if the record is STILL stale/undecryptable
+  // under the lock — mirrors `commitMutation`'s read-inside-lock invariant.
+  return withExclusiveLock(async (): Promise<LoadResult> => {
+    const fresh = await readVaultState()
+    if (fresh.needsClear) {
+      await clearVault()
+    }
+    return fresh.result
+  })
 }
 
-// Adds or updates the credential at `credentialKey(config)` and sets it
-// active. Other saved credentials are preserved.
+// Lock-free variant for callers ALREADY holding the vault lock (the request
+// gate's shared lock): reads the current state without clearing — a
+// stale/undecryptable record is left for the next top-level loadVault to drop.
+export const readVaultStateUnlocked = async (): Promise<LoadResult> => (await readVaultState()).result
+
+// Every mutation: take the exclusive lock, fresh-read inside it, apply, then
+// commit durably (clearing the whole record only when BOTH capabilities are
+// empty). Returns the committed vault so a caller/store can update its
+// snapshot AFTER the durable write (commit → snapshot → notify, V5 #1).
+const commitMutation = async (apply: (current: Vault) => Vault): Promise<Vault> =>
+  withExclusiveLock(async () => {
+    const next = apply(await readVaultOrEmpty())
+    if (isEmptyVault(next)) {
+      await clearVault()
+    } else {
+      await writeVault(next)
+    }
+    return next
+  })
+
 export const saveCredential = async (config: ByokConfig): Promise<SaveResult> => {
-  if (!isAvailable()) {
+  if (!isVaultAvailable()) {
     return { kind: 'unavailable' }
   }
   try {
-    const current = await readVaultOrEmpty()
     const key = credentialKey(config)
-    const next: Vault = {
+    await commitMutation((current) => ({
+      ...current,
       active: key,
       credentials: { ...current.credentials, [key]: config },
-    }
-    await writeVault(next)
+    }))
     monitoring.info('byok_vault.credential_saved', {
       key,
       has_custom_instructions: config.customInstructions !== null,
@@ -265,54 +365,90 @@ export const saveCredential = async (config: ByokConfig): Promise<SaveResult> =>
   }
 }
 
-// Removes the credential at the given key. If that credential was active,
-// `active` is cleared too. Other credentials stay so the user can switch
-// back. When the vault becomes empty, the entire blob is dropped.
-export const removeCredential = async (key: CredentialKey): Promise<void> => {
-  if (!isAvailable()) {
-    return
+export const removeCredential = async (key: CredentialKey): Promise<RemoveResult> => {
+  if (!isVaultAvailable()) {
+    return { kind: 'unavailable' }
   }
   try {
-    const current = await readVaultOrEmpty()
-    if (!(key in current.credentials)) {
-      return
-    }
-    const remaining = { ...current.credentials }
-    delete remaining[key]
-    if (Object.keys(remaining).length === 0) {
-      await clearVault()
-      return
-    }
-    const next: Vault = {
-      active: current.active === key ? null : current.active,
-      credentials: remaining,
-    }
-    await writeVault(next)
-  } catch (e) {
-    monitoring.error('byok_vault.clear_failed', { detail: normalizeError(e) })
-  }
-}
-
-const clearVault = async (): Promise<void> => {
-  await withStore('readwrite', (store) => deleteRecord(store, VAULT_RECORD_ID))
-}
-
-// Updates the stored vault's `lastUsed` without re-encrypting the payload.
-// Called on every successful chat send so the 30-day idle expiry only fires
-// for genuinely abandoned credentials. Last-write-wins on `lastUsed` only;
-// safe because the field is monotonic (always Date.now()).
-export const touchLastUsed = async (): Promise<void> => {
-  if (!isAvailable()) {
-    return
-  }
-  try {
-    await withStore('readwrite', async (store) => {
-      const record = await getRecord<StoredVault>(store, VAULT_RECORD_ID)
-      if (record === null) {
-        return
+    await commitMutation((current) => {
+      if (!(key in current.credentials)) {
+        return current
       }
-      await putRecord(store, { ...record, lastUsed: Date.now() } satisfies StoredVault)
+      const remaining = { ...current.credentials }
+      delete remaining[key]
+      return { ...current, active: current.active === key ? null : current.active, credentials: remaining }
     })
+    return { kind: 'removed' }
+  } catch (e) {
+    const detail = normalizeError(e)
+    monitoring.error('byok_vault.clear_failed', { detail })
+    return { kind: 'error', detail }
+  }
+}
+
+export const saveSttCredential = async (config: ByokSttConfig): Promise<SaveResult> => {
+  if (!isVaultAvailable()) {
+    return { kind: 'unavailable' }
+  }
+  try {
+    const key = sttCredentialKey(config)
+    await commitMutation((current) => ({
+      ...current,
+      sttActive: key,
+      sttCredentials: { ...current.sttCredentials, [key]: config },
+    }))
+    monitoring.info('byok_vault.stt_saved', { key })
+    return { kind: 'saved' }
+  } catch (e) {
+    const detail = normalizeError(e)
+    monitoring.error('byok_vault.save_failed', { detail })
+    return { kind: 'error', detail }
+  }
+}
+
+export const removeSttCredential = async (key: CredentialKey): Promise<RemoveResult> => {
+  if (!isVaultAvailable()) {
+    return { kind: 'unavailable' }
+  }
+  try {
+    await commitMutation((current) => {
+      if (!(key in current.sttCredentials)) {
+        return current
+      }
+      const remaining = { ...current.sttCredentials }
+      delete remaining[key]
+      return {
+        ...current,
+        sttActive: current.sttActive === key ? null : current.sttActive,
+        sttCredentials: remaining,
+      }
+    })
+    return { kind: 'removed' }
+  } catch (e) {
+    const detail = normalizeError(e)
+    monitoring.error('byok_vault.clear_failed', { detail })
+    return { kind: 'error', detail }
+  }
+}
+
+// Metadata-only: bumps `lastUsed` so the 30-day idle expiry only fires for
+// genuinely abandoned credentials. Serialized under the same lock (so it can't
+// clobber a concurrent mutation's record) but it does NOT change usable
+// credentials, so it never publishes a cross-tab invalidation (V4 polish).
+export const touchLastUsed = async (): Promise<void> => {
+  if (!isVaultAvailable()) {
+    return
+  }
+  try {
+    await withExclusiveLock(() =>
+      withStore('readwrite', async (store) => {
+        const record = await getRecord<StoredVault>(store, VAULT_RECORD_ID)
+        if (record === null) {
+          return
+        }
+        await putRecord(store, { ...record, lastUsed: Date.now() } satisfies StoredVault)
+      }),
+    )
   } catch (e) {
     monitoring.error('byok_vault.touch_failed', { detail: normalizeError(e) })
   }

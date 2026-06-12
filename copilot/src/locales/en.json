@@ -72,16 +72,27 @@
     "useYourOwnAI": "Use your own AI",
     "modelPicker": {
       "title": "Use your own AI",
+      "tabChat": "Chat",
+      "tabSpeechToText": "Speech-to-Text",
+      "currentlyUsedNotSet": "Not set",
+      "stt": {
+        "intro": "Pick a provider and enter your credentials to dictate into the chat.",
+        "urlInvalid": "Enter a valid URL (e.g. https://host/v1).",
+        "urlScheme": "Only http:// and https:// are supported.",
+        "urlLoopback": "http:// is only allowed for localhost / 127.0.0.0/8 / [::1].",
+        "urlCredentials": "Don't put credentials in the URL.",
+        "urlExtras": "Remove the query string or # fragment from the URL.",
+        "save": "Save"
+      },
       "currentlyUsedSectionTitle": "Currently used",
       "demoRateLimitedBadge": "demo · capped usage",
-      "byokIntro": "Pick a provider and enter your credentials to chat through it instead.",
+      "byokIntro": "Pick a provider and enter your credentials to chat through it.",
       "byokSecurityTitle": "Stored on this device, encrypted.",
       "byokSecurityBody": "Your credentials are encrypted with a key that never leaves this browser and are sent straight from your browser to the AI provider, never to SimplePDF. Anyone with access to this device can still use them. Cleared automatically after 30 days of inactivity.",
       "forgetKey": "Forget configuration",
       "modelSectionTitle": "Model",
       "recommendedBadge": "Recommended",
       "keyInputPlaceholder": "Paste your {{provider}} API key",
-      "keyInputHint": "Encrypted in this browser. Never sent to SimplePDF.",
       "keyInvalid": "This API key was rejected by the provider.",
       "keyModelNotFound": "Model not found. Pick a different model or check that your plan includes it.",
       "keyNetworkError": "Could not reach the provider to verify the key. Check your connection and try again.",
@@ -249,5 +260,28 @@
       "ruptureConventionnelle": "HR (mutual agreement termination)"
     },
     "customSubtitle": "Any PDF works - kept on your device"
+  },
+  "voice": {
+    "micLabel": "Record a voice message",
+    "stopLabel": "Stop recording",
+    "cancelLabel": "Discard recording",
+    "promptDemo": "Speak to SimplePDF Copilot…",
+    "promptOpenaiByok": "Speak to OpenAI…",
+    "promptCustomByok": "Speak to {{host}}…",
+    "transcribing": "Transcribing…",
+    "statusRecording": "Recording",
+    "statusTranscribing": "Transcribing your recording",
+    "waveformLabel": "Microphone input level",
+    "dismissError": "Dismiss",
+    "errorPermissionDenied": "Microphone access was denied. Allow it in your browser to use voice input.",
+    "errorMicrophoneUnavailable": "No microphone was found. Connect one and try again.",
+    "errorRecordingFailed": "Recording failed. Please try again.",
+    "errorEncodingFailed": "Could not capture the audio. Please try again.",
+    "errorUnauthorized": "Voice input isn't available for this session.",
+    "errorRateLimited": "You've reached the voice input limit for this demo.",
+    "errorTooLarge": "That recording is too long. Try a shorter one.",
+    "errorUnsupportedMediaType": "Your browser produced an unsupported audio format.",
+    "errorBadRequest": "We couldn't transcribe that audio. Please try again.",
+    "errorServiceUnavailable": "Voice transcription is temporarily unavailable. Please try again."
   }
 }

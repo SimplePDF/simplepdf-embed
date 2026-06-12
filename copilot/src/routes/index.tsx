@@ -77,6 +77,14 @@ export type ShowParam = (typeof SHOW_PARAMS)[number]
 const isShowParam = (value: unknown): value is ShowParam =>
   typeof value === 'string' && SHOW_PARAMS.some((candidate) => candidate === value)
 
+// Sub-selection inside the `?show=model` picker. Absent / invalid normalizes
+// to 'chat' at read time (the modal defaults to the Chat tab).
+const MODEL_TABS = ['chat', 'speech-to-text'] as const
+export type ModelTab = (typeof MODEL_TABS)[number]
+
+const isModelTab = (value: unknown): value is ModelTab =>
+  typeof value === 'string' && MODEL_TABS.some((candidate) => candidate === value)
+
 // A `?url=` value is dropped straight into the iframe `src` AND its origin
 // becomes the postMessage bridge target, so it must be a valid SimplePDF
 // document URL on the editor's own base-domain family (e.g. any
@@ -106,7 +114,7 @@ type HomeSearch = {
   form: FormId
   lang: string
   show?: ShowParam
-  share?: string
+  tab?: ModelTab
   url?: string
 }
 
@@ -143,7 +151,7 @@ export const Route = createFileRoute('/')({
       form: isFormId(raw.form) ? raw.form : getDefaultFormIdForLocale(lang),
       lang,
       ...(isShowParam(raw.show) ? { show: raw.show } : {}),
-      ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
+      ...(isModelTab(raw.tab) ? { tab: raw.tab } : {}),
       ...(isEmbeddableUrl(raw.url) ? { url: raw.url } : {}),
     }
   },
@@ -180,17 +188,9 @@ export const Route = createFileRoute('/')({
       await i18n.changeLanguage(targetLocale)
     }
   },
-  // loaderDeps reads from the already-validated search, so `search.share`
-  // is typed as the `HomeSearch['share']` (`string | undefined`) and the
-  // loader gets a pre-normalised `shareId: string | null`.
-  loaderDeps: ({ search }) => ({
-    shareId: search.share !== undefined && search.share !== '' ? search.share : null,
-  }),
-  loader: async ({ deps }): Promise<HomeLoaderData> => {
-    const [demoGate, welcomeDismissed] = await Promise.all([
-      readDemoGate({ data: { shareId: deps.shareId } }),
-      readWelcomeDismissed(),
-    ])
+  loader: async (): Promise<HomeLoaderData> => {
+    // Demo mode is read straight from server config (no `?share=` input).
+    const [demoGate, welcomeDismissed] = await Promise.all([readDemoGate(), readWelcomeDismissed()])
     return { demoGate, welcomeDismissed }
   },
 })
@@ -282,7 +282,6 @@ function Home() {
         search: (prev) => ({
           form: prev.form ?? DEFAULT_FORM_ID,
           lang: nextLang,
-          ...(prev.share !== undefined ? { share: prev.share } : {}),
           ...(prev.url !== undefined ? { url: prev.url } : {}),
         }),
       })
@@ -311,7 +310,6 @@ function Home() {
         form: prev.form ?? DEFAULT_FORM_ID,
         lang: prev.lang ?? DEFAULT_LANGUAGE_CODE,
         show: 'info' as const,
-        ...(prev.share !== undefined ? { share: prev.share } : {}),
         ...(prev.url !== undefined ? { url: prev.url } : {}),
       }),
     })

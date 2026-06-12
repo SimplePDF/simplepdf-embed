@@ -1,11 +1,10 @@
 import { z } from 'zod'
 
-// Friendly handles for the models the demo is willing to run on a shared
-// invite key. Each handle maps to one provider + one specific model id so
-// the SHARED_API_KEYS config stays small (an operator sets
-// "model": "haiku_4_5" and never has to remember the fully-qualified
-// provider-model-id). The label is the string shown above "Switch AI
-// model" in the chat header.
+// Friendly handles for the models the demo is willing to run on the operator's
+// key. Each handle maps to one provider + one specific model id so the demo
+// config stays small (an operator sets `DEMO_CHAT_MODEL=anthropic_haiku_4_5`
+// and never has to remember the fully-qualified provider-model-id). The label
+// is the string shown above "Switch AI model" in the chat header.
 export type DemoModel = 'anthropic_haiku_4_5' | 'deepseek_v4_flash'
 
 export const DemoModelSchema = z.enum(['anthropic_haiku_4_5', 'deepseek_v4_flash'])
