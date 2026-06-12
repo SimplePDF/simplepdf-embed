@@ -1205,8 +1205,8 @@ export const ChatPane = ({
           }}
           className="flex items-end gap-2"
         >
-          {/* One Claude-style composer box (P070-03) shared by every voice
-              state, so clicking the mic causes NO layout shift: the textarea ↔
+          {/* One composer box (P070-03) shared by every voice state, so
+              clicking the mic causes NO layout shift: the textarea ↔
               recording prompt swap in the top row and the mic+send ↔ recording
               controls swap in the same action row. The container owns the
               border / 12px radius / focus ring / uniform padding; its children
