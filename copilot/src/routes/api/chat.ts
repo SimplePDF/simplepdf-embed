@@ -135,7 +135,15 @@ export const Route = createFileRoute('/api/chat')({
         // provider doesn't reject the request.
         const modelProvider = DEMO_MODELS[resolution.model].provider
         const useAnthropicCache = modelProvider === 'anthropic'
-        const convertedMessages = await convertToModelMessages(messages)
+        // Belt-and-suspenders: only user/assistant turns reach the model.
+        // ChatRequestSchema already rejects other roles (a `role:'system'` body
+        // message would be promoted to a system message and merged into the
+        // system prompt), but filtering at the spread keeps the route safe even
+        // if the schema is later loosened.
+        const userMessages = messages.filter(
+          (message) => message.role === 'user' || message.role === 'assistant',
+        )
+        const convertedMessages = await convertToModelMessages(userMessages)
         const modelMessages = useAnthropicCache
           ? tagLastMessageForCache(convertedMessages)
           : convertedMessages
@@ -145,6 +153,18 @@ export const Route = createFileRoute('/api/chat')({
 
         const result = streamText({
           model: buildLanguageModel({ model: resolution.model, apiKey: resolution.apiKey }),
+          // The ONLY system messages here are these two, both server-controlled:
+          // a constant prompt + a `languageInstruction` whose only variable is
+          // whitelisted by LanguageLabelSchema. The user-supplied `modelMessages`
+          // are role-allowlisted to user/assistant (ChatRequestSchema + the
+          // filter above), so no caller can smuggle a system message into the
+          // prompt. They live in `messages` (not the `system` option)
+          // deliberately, so the prompt carries an Anthropic `cacheControl`
+          // breakpoint that caches the large static prompt as its OWN prefix,
+          // shared across every demo conversation (the cheaper cross-conversation
+          // cache the `system` string can't express). `allowSystemInMessages`
+          // tells the AI SDK these intentional, sanitized system messages are OK.
+          allowSystemInMessages: true,
           messages: [
             useAnthropicCache
               ? {
