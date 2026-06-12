@@ -420,8 +420,6 @@ export const ChatPane = ({
   const navigate = homeRoute.useNavigate()
   const search = homeRoute.useSearch()
   const isDownloadModalOpen = search.show === 'download'
-  const shareIdRef = useRef<string | null>(search.share ?? null)
-  shareIdRef.current = search.share ?? null
   const [draft, setDraft] = useState('')
   const draftRef = useRef(draft)
   draftRef.current = draft
@@ -461,13 +459,10 @@ export const ChatPane = ({
         return voiceFailure('unauthorized')
       }
       if (frozen.kind === 'demo') {
-        // The demo server route now streams the transcript as SSE deltas
-        // (P070-02 Phase 5), same as BYOK — `onDelta` fills the draft live.
-        const shareId = demoGate.kind === 'demo' ? shareIdRef.current : null
-        if (shareId === null) {
-          return voiceFailure('unauthorized')
-        }
-        return transcribeClient({ blob, shareId, signal, onDelta })
+        // The demo server route streams the transcript as SSE deltas (P070-02
+        // Phase 5), same as BYOK — `onDelta` fills the draft live. Demo mode is
+        // config-gated server-side, so no entitlement token rides along.
+        return transcribeClient({ blob, signal, onDelta })
       }
       // BYOK browser-direct streaming: bounded conversion (single
       // recording-format owner), then dispatch through the request gate so a
@@ -498,7 +493,7 @@ export const ChatPane = ({
           return voiceFailure('service_unavailable')
       }
     },
-    [demoGate.kind],
+    [],
   )
   const handleVoiceTranscriptDelta = useCallback((textSoFar: string) => {
     setDraft(joinVoiceDraft(voiceDraftPrefixRef.current, textSoFar))
@@ -753,30 +748,9 @@ export const ChatPane = ({
         if (activeConfig !== null) {
           return runByokStream({ config: activeConfig, init })
         }
-        // Forward the share id on the fetch URL so the server reads the
-        // same invite that's visible in the address bar. The input coming
-        // in from the AI SDK is either a string or a URL-like Request; we
-        // rebuild it through URL to handle both and to keep an existing
-        // query string intact.
-        const activeShare = shareIdRef.current
-        const rawUrl = ((): string => {
-          if (typeof input === 'string') {
-            return input
-          }
-          if (input instanceof URL) {
-            return input.toString()
-          }
-          return input.url
-        })()
-        const target = ((): string => {
-          if (activeShare === null) {
-            return rawUrl
-          }
-          const url = new URL(rawUrl, window.location.origin)
-          url.searchParams.set('share', activeShare)
-          return url.toString()
-        })()
-        return window.fetch(target, init)
+        // Demo mode: hit /api/chat directly. Demo entitlement is config-gated
+        // server-side (no `?share=` token rides on the request).
+        return window.fetch(input, init)
       },
     })
   }, [])

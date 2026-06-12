@@ -1,11 +1,12 @@
 // Lives in src/server/ (not src/lib/) so server-only env/secret reads stay out
-// of the client bundle, mirroring language_model.ts. /api/transcribe (via
-// transcribe_stream.ts) is the only consumer.
+// of the client bundle, mirroring language_model.ts. Consumed by
+// /api/transcribe (for the key value) and by demo_config.ts (its presence is
+// part of `isDemo`).
 //
-// The transcription secret is deliberately separate from the chat/share
-// keys: share keys are Anthropic/DeepSeek (neither transcribes) and BYOK
-// keys live in the user's tab and never reach the server. Voice
-// transcription is a SimplePDF-paid OpenAI call gated behind a valid share.
+// The transcription secret is deliberately separate from the demo chat key:
+// the chat key is Anthropic/DeepSeek (neither transcribes) and BYOK keys live
+// in the user's tab and never reach the server. Voice transcription is a
+// SimplePDF-paid OpenAI call gated behind config-driven demo mode.
 
 // Fixed model, no fallback. The whisper-1 auto-fallback was removed per the
 // repo fallback policy: a silent model swap would change cost / accuracy /

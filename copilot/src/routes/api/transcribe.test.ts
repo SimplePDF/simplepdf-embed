@@ -10,7 +10,6 @@ import { transcribePostHandler } from './transcribe'
 // the security matrix exercises the true route order. The relay's own upstream
 // fetch + SSE sanitization is unit-tested in transcribe_stream.test.ts.
 
-const VALID_SHARE = 'validshare'
 // EBML/WebM magic + padding — passes the container allowlist.
 const VALID_WEBM = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 0x01, 0x02, 0x03, 0x04])
 
@@ -23,15 +22,11 @@ const sseOk = (text: string): Response =>
 
 const makeRequest = (opts: {
   ip: string
-  share?: string | null
   browser?: boolean
   body?: BodyInit | null
   signal?: AbortSignal
 }): Request => {
   const url = new URL('http://localhost/api/transcribe')
-  if (opts.share !== undefined && opts.share !== null) {
-    url.searchParams.set('share', opts.share)
-  }
   const headers = new Headers({ host: 'localhost', 'x-real-ip': opts.ip, 'content-type': 'audio/webm' })
   if (opts.browser ?? true) {
     headers.set('origin', 'http://localhost')
@@ -43,9 +38,11 @@ const makeRequest = (opts: {
 }
 
 beforeAll(() => {
-  process.env.SHARED_API_KEYS = JSON.stringify({
-    [VALID_SHARE]: { api_key: 'sk-share', rate_limit_turns_lifetime: 1000, model: 'anthropic_haiku_4_5' },
-  })
+  // Demo mode = chat config + transcription key both present (config-driven
+  // `isDemo`, no shares). Set here so the gate admits the security-matrix tests.
+  process.env.DEMO_CHAT_API_KEY = 'sk-demo-chat'
+  process.env.DEMO_CHAT_MODEL = 'anthropic_haiku_4_5'
+  process.env.DEMO_RATE_LIMIT_TURNS = '1000'
   process.env.TRANSCRIPTION_OPENAI_API_KEY = 'sk-transcribe-test'
 })
 
@@ -55,6 +52,11 @@ let bodySpy: MockInstance<typeof httpModule.parseBinaryBody>
 let streamSpy: MockInstance<typeof transcribeStreamModule.streamTranscription>
 
 beforeEach(() => {
+  // Restore the full demo config each test (some mutate it to exercise the
+  // not-demo / missing-key paths) so every test starts in demo mode.
+  process.env.DEMO_CHAT_API_KEY = 'sk-demo-chat'
+  process.env.DEMO_CHAT_MODEL = 'anthropic_haiku_4_5'
+  process.env.DEMO_RATE_LIMIT_TURNS = '1000'
   process.env.TRANSCRIPTION_OPENAI_API_KEY = 'sk-transcribe-test'
   checkSpy = vi.spyOn(rateLimiter, 'check').mockResolvedValue({ allowed: true, remaining: 999 })
   readySpy = vi.spyOn(rateLimiter, 'isReady').mockReturnValue(true)
@@ -69,10 +71,16 @@ afterEach(() => {
 })
 
 describe('transcribe preflight (defense-in-depth order preserved)', () => {
-  it('valid same-origin browser request with no ?share= → 401 share_required, no charge / body / upstream call', async () => {
+  it('deployment not in demo mode (no chat config) → 503 demo_not_configured, no charge / body / upstream call', async () => {
+    delete process.env.DEMO_CHAT_API_KEY
+    delete process.env.DEMO_CHAT_MODEL
+    delete process.env.DEMO_RATE_LIMIT_TURNS
     const response = await transcribePostHandler({ request: makeRequest({ ip: '10.0.0.1' }) })
-    expect(response.status).toBe(401)
-    await expect(response.json()).resolves.toEqual({ error: 'share_required' })
+    expect(response.status).toBe(503)
+    await expect(response.json()).resolves.toEqual({
+      error: 'service_unavailable',
+      reason: 'demo_not_configured',
+    })
     expect(checkSpy).not.toHaveBeenCalled()
     expect(bodySpy).not.toHaveBeenCalled()
     expect(streamSpy).not.toHaveBeenCalled()
@@ -81,14 +89,14 @@ describe('transcribe preflight (defense-in-depth order preserved)', () => {
   it('non-browser request (no Origin / Sec-Fetch) → 403 forbidden_origin and marks misbehavior', async () => {
     const ip = '10.0.0.2'
     const response = await transcribePostHandler({
-      request: makeRequest({ ip, share: VALID_SHARE, browser: false }),
+      request: makeRequest({ ip, browser: false }),
     })
     expect(response.status).toBe(403)
     await expect(response.json()).resolves.toEqual({ error: 'forbidden_origin' })
     expect(checkSpy).not.toHaveBeenCalled()
     expect(streamSpy).not.toHaveBeenCalled()
     // Marked → the same IP is now short-circuited as forbidden_blocked.
-    const followUp = await transcribePostHandler({ request: makeRequest({ ip, share: VALID_SHARE }) })
+    const followUp = await transcribePostHandler({ request: makeRequest({ ip }) })
     expect(followUp.status).toBe(403)
     await expect(followUp.json()).resolves.toEqual({ error: 'forbidden_blocked' })
   })
@@ -96,7 +104,7 @@ describe('transcribe preflight (defense-in-depth order preserved)', () => {
   it('already-misbehaving IP → 403 forbidden_blocked before any work', async () => {
     const ip = '10.0.0.3'
     markMisbehavior(await hashIp(ip), 'non_browser_origin')
-    const response = await transcribePostHandler({ request: makeRequest({ ip, share: VALID_SHARE }) })
+    const response = await transcribePostHandler({ request: makeRequest({ ip }) })
     expect(response.status).toBe(403)
     await expect(response.json()).resolves.toEqual({ error: 'forbidden_blocked' })
     expect(checkSpy).not.toHaveBeenCalled()
@@ -106,15 +114,17 @@ describe('transcribe preflight (defense-in-depth order preserved)', () => {
 })
 
 describe('transcribe fail-closed config (no charge, no body read)', () => {
-  it('missing TRANSCRIPTION_OPENAI_API_KEY → 503, no charge, no upstream call', async () => {
+  it('missing TRANSCRIPTION_OPENAI_API_KEY → not in demo mode → 503, no charge, no upstream call', async () => {
+    // The transcription key is part of `isDemo` (both keys required), so a
+    // missing key resolves to not-demo at the gate, before any charge/body.
     process.env.TRANSCRIPTION_OPENAI_API_KEY = ''
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.1.0.1', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.1.0.1' }),
     })
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({
       error: 'service_unavailable',
-      reason: 'transcription_unavailable',
+      reason: 'demo_not_configured',
     })
     expect(checkSpy).not.toHaveBeenCalled()
     expect(bodySpy).not.toHaveBeenCalled()
@@ -124,7 +134,7 @@ describe('transcribe fail-closed config (no charge, no body read)', () => {
   it('rateLimiter.isReady() === false → 503, no charge, request body NOT consumed', async () => {
     readySpy.mockReturnValue(false)
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.1.0.2', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.1.0.2' }),
     })
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({
@@ -141,7 +151,7 @@ describe('transcribe rate limiting', () => {
   it('lifetime exhausted → 429, no upstream call', async () => {
     checkSpy.mockResolvedValue({ allowed: false, reason: 'lifetime' })
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.2.0.1', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.2.0.1' }),
     })
     expect(response.status).toBe(429)
     await expect(response.json()).resolves.toEqual({ error: 'rate_limited', reason: 'lifetime' })
@@ -151,7 +161,7 @@ describe('transcribe rate limiting', () => {
   it('limiter check throws → 503 service_unavailable', async () => {
     checkSpy.mockRejectedValue(new Error('redis down'))
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.2.0.2', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.2.0.2' }),
     })
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({
@@ -165,7 +175,7 @@ describe('transcribe rate limiting', () => {
 describe('transcribe body validation (metered before validation)', () => {
   it('empty body → 400 bad_request, charged exactly once, no upstream call', async () => {
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.3.0.1', share: VALID_SHARE, body: null }),
+      request: makeRequest({ ip: '10.3.0.1', body: null }),
     })
     expect(response.status).toBe(400)
     expect(checkSpy).toHaveBeenCalledTimes(1)
@@ -176,7 +186,7 @@ describe('transcribe body validation (metered before validation)', () => {
     const oversize = new Uint8Array(5 * 1024 * 1024 + 16)
     oversize.set([0x1a, 0x45, 0xdf, 0xa3], 0)
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.3.0.2', share: VALID_SHARE, body: oversize }),
+      request: makeRequest({ ip: '10.3.0.2', body: oversize }),
     })
     expect(response.status).toBe(413)
     expect(checkSpy).toHaveBeenCalledTimes(1)
@@ -186,7 +196,7 @@ describe('transcribe body validation (metered before validation)', () => {
   it('container not in allowlist → 415, charged once, no upstream call', async () => {
     const notAudio = new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.3.0.3', share: VALID_SHARE, body: notAudio }),
+      request: makeRequest({ ip: '10.3.0.3', body: notAudio }),
     })
     expect(response.status).toBe(415)
     expect(checkSpy).toHaveBeenCalledTimes(1)
@@ -198,7 +208,7 @@ describe('transcribe body validation (metered before validation)', () => {
       .mockResolvedValueOnce({ allowed: true, remaining: 2 })
       .mockResolvedValueOnce({ allowed: true, remaining: 1 })
       .mockResolvedValueOnce({ allowed: false, reason: 'lifetime' })
-    const bad = { ip: '10.3.0.4', share: VALID_SHARE, body: null }
+    const bad = { ip: '10.3.0.4', body: null }
     const first = await transcribePostHandler({ request: makeRequest(bad) })
     const second = await transcribePostHandler({ request: makeRequest(bad) })
     const third = await transcribePostHandler({ request: makeRequest(bad) })
@@ -220,7 +230,7 @@ describe('transcribe upstream outcomes (sanitized pre-stream errors pass through
       },
     })
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.4.0.1', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.4.0.1' }),
     })
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({
@@ -239,7 +249,7 @@ describe('transcribe upstream outcomes (sanitized pre-stream errors pass through
       },
     })
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.4.0.2', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.4.0.2' }),
     })
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({
@@ -250,7 +260,7 @@ describe('transcribe upstream outcomes (sanitized pre-stream errors pass through
 
   it('client disconnect → 503 client_aborted, the request signal is forwarded to the relay', async () => {
     const controller = new AbortController()
-    const request = makeRequest({ ip: '10.4.0.6', share: VALID_SHARE, signal: controller.signal })
+    const request = makeRequest({ ip: '10.4.0.6', signal: controller.signal })
     streamSpy.mockImplementation(async () => {
       controller.abort()
       return {
@@ -274,7 +284,7 @@ describe('transcribe upstream outcomes (sanitized pre-stream errors pass through
 describe('transcribe happy path', () => {
   it('valid request → 200 streamed relay, charged exactly once, body parsed once, bytes + key forwarded', async () => {
     const response = await transcribePostHandler({
-      request: makeRequest({ ip: '10.5.0.1', share: VALID_SHARE }),
+      request: makeRequest({ ip: '10.5.0.1' }),
     })
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/event-stream')

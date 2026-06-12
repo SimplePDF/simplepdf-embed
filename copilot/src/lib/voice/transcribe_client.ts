@@ -10,17 +10,12 @@ import { drainTranscriptSse } from './transcript_sse'
 
 // Exhaustive map of every ServerErrorBody variant /api/transcribe (including
 // applyDemoPreflight) can return → the small UI-facing TranscribeErrorCode.
-// `misconfigured_environment` is an operator/server fault, not an entitlement
-// problem, so it maps to service_unavailable (never auth copy that blames the
-// invite). `default: body satisfies never` forces this to stay total.
+// `default: body satisfies never` forces this to stay total.
 export const mapServerErrorBodyToTranscribeErrorCode = (body: ServerErrorBody): TranscribeErrorCode => {
   switch (body.error) {
     case 'forbidden_blocked':
     case 'forbidden_origin':
-    case 'share_required':
       return 'unauthorized'
-    case 'misconfigured_environment':
-      return 'service_unavailable'
     case 'rate_limited':
       return 'rate_limited'
     case 'payload_too_large':
@@ -42,27 +37,24 @@ const failure = (code: TranscribeClientErrorCode, message: string): TranscribeFn
   error: { code, message },
 })
 
-// The injected transcribe implementation. Explicit args (no shareIdRef
-// reach-in) — `shareId` is a known-valid demo share captured by chat_pane.
-// POST the raw Blob with `?share=` and its content-type, mirroring the chat
-// transport. On success the route streams a `text/event-stream` of transcript
-// deltas (P070-02 Phase 5) drained by the shared owner — `onDelta` fills the
-// composer as text arrives, same as the BYOK path. AbortError → 'cancelled'
-// (the hook treats it as a silent discard); every other failure routes through
-// the sanitized server-error parser + exhaustive code map.
+// The injected transcribe implementation. POST the raw Blob with its
+// content-type, mirroring the chat transport (demo mode is config-gated
+// server-side, so no entitlement token rides on the request). On success the
+// route streams a `text/event-stream` of transcript deltas (P070-02 Phase 5)
+// drained by the shared owner — `onDelta` fills the composer as text arrives,
+// same as the BYOK path. AbortError → 'cancelled' (the hook treats it as a
+// silent discard); every other failure routes through the sanitized
+// server-error parser + exhaustive code map.
 export const transcribeClient = async ({
   blob,
-  shareId,
   signal,
   onDelta,
 }: {
   blob: Blob
-  shareId: string
   signal: AbortSignal
   onDelta: (textSoFar: string) => void
 }): Promise<TranscribeFnResult> => {
   const url = new URL('/api/transcribe', window.location.origin)
-  url.searchParams.set('share', shareId)
   const fetched = await (async (): Promise<
     { ok: true; response: Response } | { ok: false; code: TranscribeClientErrorCode }
   > => {

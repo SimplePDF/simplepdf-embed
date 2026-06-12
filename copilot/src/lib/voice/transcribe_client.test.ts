@@ -27,7 +27,7 @@ afterEach(() => {
 })
 
 describe('transcribeClient request shape', () => {
-  it('POSTs the blob with ?share, content-type, the abort signal, and streams deltas into the final text', async () => {
+  it('POSTs the blob to /api/transcribe with content-type + abort signal, and streams deltas into the final text', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
@@ -43,7 +43,6 @@ describe('transcribeClient request shape', () => {
     const deltas: string[] = []
     const result = await transcribeClient({
       blob,
-      shareId: 'share-123',
       signal: controller.signal,
       onDelta: (text) => deltas.push(text),
     })
@@ -51,7 +50,8 @@ describe('transcribeClient request shape', () => {
     expect(deltas).toEqual(['hel', 'hello'])
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url.toString()).toContain('/api/transcribe?share=share-123')
+    expect(url.toString()).toMatch(/\/api\/transcribe$/)
+    expect(url.toString()).not.toContain('share')
     expect(init.method).toBe('POST')
     expect(init.body).toBe(blob)
     expect(init.headers).toEqual({ 'content-type': 'audio/webm' })
@@ -65,7 +65,6 @@ describe('transcribeClient request shape', () => {
     )
     const result = await transcribeClient({
       blob,
-      shareId: 's',
       signal: new AbortController().signal,
       onDelta: noop,
     })
@@ -76,7 +75,6 @@ describe('transcribeClient request shape', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
     const result = await transcribeClient({
       blob,
-      shareId: 's',
       signal: new AbortController().signal,
       onDelta: noop,
     })
@@ -88,7 +86,6 @@ describe('transcribeClient request shape', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { status: 429 })))
     const result = await transcribeClient({
       blob,
-      shareId: 's',
       signal: new AbortController().signal,
       onDelta: noop,
     })
@@ -99,7 +96,6 @@ describe('transcribeClient request shape', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sseResponse(['data: [DONE]\n\n'])))
     const result = await transcribeClient({
       blob,
-      shareId: 's',
       signal: new AbortController().signal,
       onDelta: noop,
     })
@@ -111,8 +107,6 @@ describe('mapServerErrorBodyToTranscribeErrorCode (exhaustive)', () => {
   const cases: Array<[ServerErrorBody, TranscribeErrorCode]> = [
     [{ error: 'forbidden_blocked' }, 'unauthorized'],
     [{ error: 'forbidden_origin' }, 'unauthorized'],
-    [{ error: 'share_required' }, 'unauthorized'],
-    [{ error: 'misconfigured_environment', message: 'x' }, 'service_unavailable'],
     [{ error: 'rate_limited', reason: 'lifetime' }, 'rate_limited'],
     [{ error: 'payload_too_large', message: 'x' }, 'too_large'],
     [{ error: 'unsupported_media_type', message: 'x' }, 'unsupported_media_type'],

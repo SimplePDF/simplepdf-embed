@@ -24,8 +24,6 @@ import { z } from 'zod'
 export const ServerErrorBody = z.discriminatedUnion('error', [
   z.object({ error: z.literal('forbidden_blocked') }),
   z.object({ error: z.literal('forbidden_origin') }),
-  z.object({ error: z.literal('misconfigured_environment'), message: z.string() }),
-  z.object({ error: z.literal('share_required') }),
   z.object({ error: z.literal('rate_limited'), reason: z.string() }),
   z.object({ error: z.literal('service_unavailable'), reason: z.string() }),
   z.object({ error: z.literal('bad_request'), message: z.string() }),

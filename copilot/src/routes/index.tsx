@@ -115,7 +115,6 @@ type HomeSearch = {
   lang: string
   show?: ShowParam
   tab?: ModelTab
-  share?: string
   url?: string
 }
 
@@ -153,7 +152,6 @@ export const Route = createFileRoute('/')({
       lang,
       ...(isShowParam(raw.show) ? { show: raw.show } : {}),
       ...(isModelTab(raw.tab) ? { tab: raw.tab } : {}),
-      ...(typeof raw.share === 'string' && raw.share !== '' ? { share: raw.share } : {}),
       ...(isEmbeddableUrl(raw.url) ? { url: raw.url } : {}),
     }
   },
@@ -190,17 +188,9 @@ export const Route = createFileRoute('/')({
       await i18n.changeLanguage(targetLocale)
     }
   },
-  // loaderDeps reads from the already-validated search, so `search.share`
-  // is typed as the `HomeSearch['share']` (`string | undefined`) and the
-  // loader gets a pre-normalised `shareId: string | null`.
-  loaderDeps: ({ search }) => ({
-    shareId: search.share !== undefined && search.share !== '' ? search.share : null,
-  }),
-  loader: async ({ deps }): Promise<HomeLoaderData> => {
-    const [demoGate, welcomeDismissed] = await Promise.all([
-      readDemoGate({ data: { shareId: deps.shareId } }),
-      readWelcomeDismissed(),
-    ])
+  loader: async (): Promise<HomeLoaderData> => {
+    // Demo mode is read straight from server config (no `?share=` input).
+    const [demoGate, welcomeDismissed] = await Promise.all([readDemoGate(), readWelcomeDismissed()])
     return { demoGate, welcomeDismissed }
   },
 })
@@ -292,7 +282,6 @@ function Home() {
         search: (prev) => ({
           form: prev.form ?? DEFAULT_FORM_ID,
           lang: nextLang,
-          ...(prev.share !== undefined ? { share: prev.share } : {}),
           ...(prev.url !== undefined ? { url: prev.url } : {}),
         }),
       })
@@ -321,7 +310,6 @@ function Home() {
         form: prev.form ?? DEFAULT_FORM_ID,
         lang: prev.lang ?? DEFAULT_LANGUAGE_CODE,
         show: 'info' as const,
-        ...(prev.share !== undefined ? { share: prev.share } : {}),
         ...(prev.url !== undefined ? { url: prev.url } : {}),
       }),
     })

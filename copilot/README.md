@@ -70,7 +70,7 @@ Browser
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
 - Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
 - **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; recording starts when you tap the mic, and when you confirm it (✓) the clip is transcribed and the editable transcript drops into the textarea. Two routes, each named in the recorder before the audio is sent:
-  - **Demo (server):** with an invited `?share=` session, the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
+  - **Demo (server):** when the deployment is in demo mode (operator keys configured), the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
   - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault — a demo/reference feature (a browser-held key is exposed to anything on the page).
   - In both cases PDF bytes still stay on-device, and audio is sent only when you confirm the recording (never automatically). The recorder prompt names the actual audio recipient before you confirm: the **demo** prompt reads "Speak to SimplePDF Copilot…" (its server→OpenAI flow is the one described above, and "What is this demo?" documents it); the **BYOK** prompt reads "Speak to OpenAI…" or "Speak to &lt;your endpoint&gt;…" (sent directly to that provider, not to SimplePDF).
 
@@ -112,22 +112,27 @@ In the running app, open the chat sidebar, click **Bring your own provider**, pa
 > [!IMPORTANT]
 > **Keep the dev port at 3001.** The SimplePDF demo workspace whitelists exactly one local origin, `http://localhost:3001`, and the editor will only load on a parent page served from that exact host and port. The browser enforces this on iframe load: any other port (e.g. 3000, 5173) or any other host is refused. The `dev` script in `package.json` pins port 3001; don't override it with `--port` flags. To run on your own domain or a different port, you need a SimplePDF [Pro](https://simplepdf.com/pricing) account so you can set your own `companyIdentifier` and whitelist your origin in the SimplePDF dashboard.
 
-### Share it without asking viewers for a key
+### Run the demo without asking viewers for a key
 
-Sharing the demo with non-technical users (a teammate, a prospect, a friend) is friction-heavy if every visitor has to paste a provider key. To skip that step, set `SHARED_API_KEYS` in your `.env` and append `?share=<id>` to the URL: the server pays for the LLM under your account, the chat opens already wired up, and the Model Picker stays out of the way.
+Asking every visitor to paste a provider key is friction-heavy. To skip that, put the deployment **in demo mode**: configure a single chat key/model/turn-cap plus a transcription key in your `.env`, and the server pays for chat + voice under your account for every visitor. There are no invite links — demo mode is simply on whenever both are configured. The chat opens already wired up and the Model Picker stays out of the way (visitors can still bring their own key to override).
 
-Two providers are supported on the shared-key path:
+Demo mode requires **both**:
 
-- Anthropic Claude Haiku 4.5 (`model: "anthropic_haiku_4_5"`)
-- DeepSeek V4 Flash (`model: "deepseek_v4_flash"`)
+- `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` — the chat key, the model, and the per-IP turn cap.
+- `TRANSCRIPTION_OPENAI_API_KEY` — the voice transcription key (transcription-only, never your chat key).
 
-See [`.env.example`](./.env.example) for the JSON shape, the per-share rate-limit options, and the portable base64 one-liner for hosts that mangle embedded quotes (DigitalOcean App Platform, Render, fly.io). Then visit `http://localhost:3001/?share=<id>` and you're set.
+Two chat models are supported on the demo path:
+
+- Anthropic Claude Haiku 4.5 (`DEMO_CHAT_MODEL=anthropic_haiku_4_5`)
+- DeepSeek V4 Flash (`DEMO_CHAT_MODEL=deepseek_v4_flash`)
+
+Leave the demo vars unset and the deployment runs **BYOK-only**: every visitor brings their own key via the Model Picker. Note: with no invite gating, demo mode is open to anyone who can reach the page, so the **per-IP turn cap (`DEMO_RATE_LIMIT_TURNS`) is the cost control** — size it accordingly. See [`.env.example`](./.env.example) for the exact vars.
 
 ### Voice input (dictation)
 
 The chat composer shows a microphone whenever the browser can record. Clicking it needs **both** a Chat model and a Speech-to-Text provider configured (a transcript you can't send is useless), so it opens the model picker on whichever is missing, else it records. Two transcription routes:
 
-- **Demo (server):** in an invited `?share=<id>` session, set `TRANSCRIPTION_OPENAI_API_KEY` in your `.env` (transcription-only — never your chat key). The clip is transcribed via `/api/transcribe`; without the key that route fails closed with `503`.
+- **Demo (server):** when the deployment is in demo mode (the demo vars above are set, including `TRANSCRIPTION_OPENAI_API_KEY`), the clip is transcribed via `/api/transcribe` on the operator's key. Voice and chat share the same demo entitlement, so both require the keys to be configured; without the transcription key the deployment isn't in demo mode and voice + demo chat are unavailable (BYOK still works).
 - **BYOK (browser-direct):** in the picker's **Speech-to-Text** tab, configure OpenAI (`gpt-4o-mini-transcribe` / `gpt-4o-transcribe`) or a custom OpenAI-compatible endpoint. The clip is transcribed directly browser→provider, never touching SimplePDF's server. No env var needed.
 
 See the privacy notes above for the per-route audio-egress disclosure.
@@ -142,7 +147,7 @@ http://localhost:3001/?url=https%3A%2F%2Fdemo.simplepdf.com%2Fdocuments%2Fc28f06
 
 URL-encode the value whenever it carries its own query string (e.g. `?prefill=`), otherwise the nested params get parsed as part of the page URL and dropped.
 
-The value must be an absolute `http(s)` URL on your configured base-domain family (`*.simplepdf.com` by default, or whatever host `VITE_SIMPLEPDF_BASE_DOMAIN` resolves to). Third-party origins are rejected on purpose: the iframe is granted clipboard access and is wired to the `postMessage` bridge, so framing an arbitrary site would hand it both. A malformed or off-domain `?url=` silently falls back to the default demo form. `?url=` combines with `?lang=` and `?share=`; when set, it wins for what the editor loads.
+The value must be an absolute `http(s)` URL on your configured base-domain family (`*.simplepdf.com` by default, or whatever host `VITE_SIMPLEPDF_BASE_DOMAIN` resolves to). Third-party origins are rejected on purpose: the iframe is granted clipboard access and is wired to the `postMessage` bridge, so framing an arbitrary site would hand it both. A malformed or off-domain `?url=` silently falls back to the default demo form. `?url=` combines with `?lang=`; when set, it wins for what the editor loads.
 
 ### Ship it on your own domain
 
@@ -171,10 +176,10 @@ For multi-container deployments (or any deploy where you want per-IP rate-limit 
 The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/copilot`. DigitalOcean prompts you for the env vars at setup time:
 
 - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF company subdomain (Pro plan or higher)
-- `SHARED_API_KEYS` (optional secret): paste a JSON or base64 payload to enable the `?share=<id>` flow; leave empty for BYOK-only
+- `DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` + `TRANSCRIPTION_OPENAI_API_KEY` (optional secrets): set **all** of them to put the deployment in demo mode (the server pays for chat + voice, capped per IP by the turn count); leave unset for BYOK-only
 - `REDIS_URL` (optional secret): a Redis-protocol connection URL (Valkey on DO Managed Caching works as-is). Required for multi-container deployments where per-IP rate-limit counters must be shared. Leave empty for single-instance / BYOK-only.
 - `IP_HASH_SALT` (required when `REDIS_URL` is set): salts the SHA-256 IP hash so persisted snapshots aren't brute-forceable. Generate with `openssl rand -hex 32`.
-- `TRANSCRIPTION_OPENAI_API_KEY` (optional secret): an OpenAI key for the **demo** voice path only (`gpt-4o-transcribe` via `/api/transcribe`). Never the chat key, never a BYOK key. Leave empty to disable the demo voice route — it fails closed with `503` — while the rest of Copilot (and BYOK voice, which is browser-direct and needs no server key) keeps working.
+- `TRANSCRIPTION_OPENAI_API_KEY` (optional secret): an OpenAI key for the **demo** voice path only (`gpt-4o-transcribe` via `/api/transcribe`). Never the chat key, never a BYOK key. It is part of demo mode (see the combined bullet above): without it the deployment is **not** in demo mode, so demo chat **and** voice are both off and every visitor falls back to BYOK (which is browser-direct and needs no server key).
 
 Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 

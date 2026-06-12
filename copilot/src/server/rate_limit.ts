@@ -234,9 +234,9 @@ export const getClientIp = (request: Request): string => {
 
 // Same-origin enforcement for every browser-facing server route. The Origin /
 // Referer headers are trivially spoofable from curl, so this is not the last
-// line of defense (that is the per-IP rate limit + invite gate); it is an
-// extra barrier that keeps the legitimate browser path constrained to the
-// hosting origin. Requests with a mismatched or missing Origin/Referer are
+// line of defense (that is the per-IP rate limit); it is an extra barrier that
+// keeps the legitimate browser path constrained to the hosting origin.
+// Requests with a mismatched or missing Origin/Referer are
 // rejected with 403.
 const hostMatches = (candidate: string, host: string): boolean => {
   if (!candidate.startsWith('http://') && !candidate.startsWith('https://')) {
