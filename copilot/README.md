@@ -119,7 +119,7 @@ Asking every visitor to paste a provider key is friction-heavy. To skip that, pu
 Demo mode requires **both**:
 
 - `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` — the chat key, the model, and the per-IP turn cap.
-- `TRANSCRIPTION_OPENAI_API_KEY` — the voice transcription key (transcription-only, never your chat key).
+- `DEMO_STT_OPENAI_API_KEY` — the voice transcription key (transcription-only, never your chat key).
 
 Two chat models are supported on the demo path:
 
@@ -132,7 +132,7 @@ Leave the demo vars unset and the deployment runs **BYOK-only**: every visitor b
 
 The chat composer shows a microphone whenever the browser can record. Clicking it needs **both** a Chat model and a Speech-to-Text provider configured (a transcript you can't send is useless), so it opens the model picker on whichever is missing, else it records. Two transcription routes:
 
-- **Demo (server):** when the deployment is in demo mode (the demo vars above are set, including `TRANSCRIPTION_OPENAI_API_KEY`), the clip is transcribed via `/api/transcribe` on the operator's key. Voice and chat share the same demo entitlement, so both require the keys to be configured; without the transcription key the deployment isn't in demo mode and voice + demo chat are unavailable (BYOK still works).
+- **Demo (server):** when the deployment is in demo mode (the demo vars above are set, including `DEMO_STT_OPENAI_API_KEY`), the clip is transcribed via `/api/transcribe` on the operator's key. Voice and chat share the same demo entitlement, so both require the keys to be configured; without the transcription key the deployment isn't in demo mode and voice + demo chat are unavailable (BYOK still works).
 - **BYOK (browser-direct):** in the picker's **Speech-to-Text** tab, configure OpenAI (`gpt-4o-mini-transcribe` / `gpt-4o-transcribe`) or a custom OpenAI-compatible endpoint. The clip is transcribed directly browser→provider, never touching SimplePDF's server. No env var needed.
 
 See the privacy notes above for the per-route audio-egress disclosure.
@@ -176,10 +176,10 @@ For multi-container deployments (or any deploy where you want per-IP rate-limit 
 The button reads [`.do/deploy.template.yaml`](https://github.com/SimplePDF/simplepdf-embed/blob/main/.do/deploy.template.yaml) at the repo root: Node 24 buildpack, single instance, builds from `/copilot`. DigitalOcean prompts you for the env vars at setup time:
 
 - `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` (required, no default): your SimplePDF company subdomain (Pro plan or higher)
-- `DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` + `TRANSCRIPTION_OPENAI_API_KEY` (optional secrets): set **all** of them to put the deployment in demo mode (the server pays for chat + voice, capped per IP by the turn count); leave unset for BYOK-only
+- `DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` + `DEMO_STT_OPENAI_API_KEY` (optional secrets): set **all** of them to put the deployment in demo mode (the server pays for chat + voice, capped per IP by the turn count); leave unset for BYOK-only
 - `REDIS_URL` (optional secret): a Redis-protocol connection URL (Valkey on DO Managed Caching works as-is). Required for multi-container deployments where per-IP rate-limit counters must be shared. Leave empty for single-instance / BYOK-only.
 - `IP_HASH_SALT` (required when `REDIS_URL` is set): salts the SHA-256 IP hash so persisted snapshots aren't brute-forceable. Generate with `openssl rand -hex 32`.
-- `TRANSCRIPTION_OPENAI_API_KEY` (optional secret): an OpenAI key for the **demo** voice path only (`gpt-4o-transcribe` via `/api/transcribe`). Never the chat key, never a BYOK key. It is part of demo mode (see the combined bullet above): without it the deployment is **not** in demo mode, so demo chat **and** voice are both off and every visitor falls back to BYOK (which is browser-direct and needs no server key).
+- `DEMO_STT_OPENAI_API_KEY` (optional secret): an OpenAI key for the **demo** voice path only (`gpt-4o-transcribe` via `/api/transcribe`). Never the chat key, never a BYOK key. It is part of demo mode (see the combined bullet above): without it the deployment is **not** in demo mode, so demo chat **and** voice are both off and every visitor falls back to BYOK (which is browser-direct and needs no server key).
 
 Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add it to your SimplePDF dashboard's whitelist before opening the app.
 

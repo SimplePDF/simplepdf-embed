@@ -23,11 +23,11 @@ type ReadTranscriptionKeyResult =
 // secret must let /api/transcribe fail closed with 503 while the rest of
 // Copilot keeps working, so importing this module must never throw.
 export const readTranscriptionKey = (): ReadTranscriptionKeyResult => {
-  const apiKey = process.env.TRANSCRIPTION_OPENAI_API_KEY
+  const apiKey = process.env.DEMO_STT_OPENAI_API_KEY
   if (apiKey === undefined || apiKey.trim() === '') {
     return {
       success: false,
-      error: { code: 'missing_key', message: 'TRANSCRIPTION_OPENAI_API_KEY is not set' },
+      error: { code: 'missing_key', message: 'DEMO_STT_OPENAI_API_KEY is not set' },
     }
   }
   return { success: true, data: apiKey }

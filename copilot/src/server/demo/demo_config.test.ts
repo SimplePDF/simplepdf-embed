@@ -12,14 +12,14 @@ const DEMO_ENV_KEYS = [
   'DEMO_CHAT_API_KEY',
   'DEMO_CHAT_MODEL',
   'DEMO_RATE_LIMIT_TURNS',
-  'TRANSCRIPTION_OPENAI_API_KEY',
+  'DEMO_STT_OPENAI_API_KEY',
 ] as const
 
 const FULL_DEMO_ENV: Record<(typeof DEMO_ENV_KEYS)[number], string> = {
   DEMO_CHAT_API_KEY: 'sk-demo-chat',
   DEMO_CHAT_MODEL: 'anthropic_haiku_4_5',
   DEMO_RATE_LIMIT_TURNS: '20',
-  TRANSCRIPTION_OPENAI_API_KEY: 'sk-transcribe',
+  DEMO_STT_OPENAI_API_KEY: 'sk-transcribe',
 }
 
 const setEnv = (env: Partial<Record<(typeof DEMO_ENV_KEYS)[number], string>>): void => {
@@ -66,7 +66,7 @@ describe('demo_config', () => {
   })
 
   it('is not_demo when the chat config is present but the transcription key is missing (both required)', async () => {
-    setEnv({ ...FULL_DEMO_ENV, TRANSCRIPTION_OPENAI_API_KEY: undefined })
+    setEnv({ ...FULL_DEMO_ENV, DEMO_STT_OPENAI_API_KEY: undefined })
     const { resolveDemoConfig } = await importFresh()
     expect(resolveDemoConfig()).toEqual({ kind: 'not_demo' })
   })

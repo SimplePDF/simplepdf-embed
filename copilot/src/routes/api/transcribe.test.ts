@@ -43,7 +43,7 @@ beforeAll(() => {
   process.env.DEMO_CHAT_API_KEY = 'sk-demo-chat'
   process.env.DEMO_CHAT_MODEL = 'anthropic_haiku_4_5'
   process.env.DEMO_RATE_LIMIT_TURNS = '1000'
-  process.env.TRANSCRIPTION_OPENAI_API_KEY = 'sk-transcribe-test'
+  process.env.DEMO_STT_OPENAI_API_KEY = 'sk-transcribe-test'
 })
 
 let checkSpy: MockInstance<typeof rateLimiter.check>
@@ -57,7 +57,7 @@ beforeEach(() => {
   process.env.DEMO_CHAT_API_KEY = 'sk-demo-chat'
   process.env.DEMO_CHAT_MODEL = 'anthropic_haiku_4_5'
   process.env.DEMO_RATE_LIMIT_TURNS = '1000'
-  process.env.TRANSCRIPTION_OPENAI_API_KEY = 'sk-transcribe-test'
+  process.env.DEMO_STT_OPENAI_API_KEY = 'sk-transcribe-test'
   checkSpy = vi.spyOn(rateLimiter, 'check').mockResolvedValue({ allowed: true, remaining: 999 })
   readySpy = vi.spyOn(rateLimiter, 'isReady').mockReturnValue(true)
   bodySpy = vi.spyOn(httpModule, 'parseBinaryBody')
@@ -114,10 +114,10 @@ describe('transcribe preflight (defense-in-depth order preserved)', () => {
 })
 
 describe('transcribe fail-closed config (no charge, no body read)', () => {
-  it('missing TRANSCRIPTION_OPENAI_API_KEY → not in demo mode → 503, no charge, no upstream call', async () => {
+  it('missing DEMO_STT_OPENAI_API_KEY → not in demo mode → 503, no charge, no upstream call', async () => {
     // The transcription key is part of `isDemo` (both keys required), so a
     // missing key resolves to not-demo at the gate, before any charge/body.
-    process.env.TRANSCRIPTION_OPENAI_API_KEY = ''
+    process.env.DEMO_STT_OPENAI_API_KEY = ''
     const response = await transcribePostHandler({
       request: makeRequest({ ip: '10.1.0.1' }),
     })

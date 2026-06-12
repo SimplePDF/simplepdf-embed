@@ -135,7 +135,7 @@ ONLY ask if they didn't pick `BYOK only` in Q4. Use `AskUserQuestion`:
 - **Question:** Want **demo mode** — your keys power chat + voice for every visitor (no key-paste needed), rate-limited per IP?
 - **Header:** `Demo mode`
 - **Options:**
-  - `Yes, enable demo mode`: _"Set `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` and `TRANSCRIPTION_OPENAI_API_KEY`. Demo mode is on whenever all four are set: every visitor uses the demo on your keys (no invite links), and the per-IP turn cap bounds cost. Voice + chat share the same demo entitlement, so both keys are required."_
+  - `Yes, enable demo mode`: _"Set `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` and `DEMO_STT_OPENAI_API_KEY`. Demo mode is on whenever all four are set: every visitor uses the demo on your keys (no invite links), and the per-IP turn cap bounds cost. Voice + chat share the same demo entitlement, so both keys are required."_
   - `No, BYOK only`: _"Leave the demo vars unset. Every visitor brings their own key in the Model Picker. No server-side LLM cost from your account."_
 
 ### Q6: customization
@@ -201,7 +201,7 @@ cp .env.example .env
 Then edit `.env`:
 
 - Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `spdf-copilot`.
-- If they answered `Yes, enable demo mode` in Q5, set all four demo vars per `.env.example`: `DEMO_CHAT_API_KEY`, `DEMO_CHAT_MODEL` (`anthropic_haiku_4_5` or `deepseek_v4_flash`), `DEMO_RATE_LIMIT_TURNS` (per-IP turn cap), and `TRANSCRIPTION_OPENAI_API_KEY`. Demo mode turns on only when all four are present.
+- If they answered `Yes, enable demo mode` in Q5, set all four demo vars per `.env.example`: `DEMO_CHAT_API_KEY`, `DEMO_CHAT_MODEL` (`anthropic_haiku_4_5` or `deepseek_v4_flash`), `DEMO_RATE_LIMIT_TURNS` (per-IP turn cap), and `DEMO_STT_OPENAI_API_KEY`. Demo mode turns on only when all four are present.
 - For multi-container hosted deploys (DO App Platform with auto-scaling), recommend setting `REDIS_URL` (any Redis-compatible URL: DO Managed Caching for Valkey works) and `IP_HASH_SALT` (generate with `openssl rand -hex 32`). Required pair when `REDIS_URL` is set; the server refuses to boot otherwise.
 
 Wait for confirmation that `.env` is filled in.
@@ -234,7 +234,7 @@ Open `src/server/language_model.ts`. The current dispatch handles Anthropic and 
 - **OpenAI:** set `OPENAI_API_KEY` in `.env`. Add an OpenAI branch to `language_model.ts` (`@ai-sdk/openai` is already installed; create a model handle in `src/lib/demo_model.ts` and wire the dispatch).
 - **DeepSeek:** for demo mode set `DEMO_CHAT_API_KEY` (DeepSeek key) + `DEMO_CHAT_MODEL=deepseek_v4_flash`. Already wired.
 - **Custom OpenAI-compatible:** the browser-direct BYOK path in `src/lib/byok/` already supports any OpenAI-compatible endpoint. Defaults are in `src/lib/byok/providers.ts` (Ollama URL + a default model name). Update if you want different defaults.
-- **BYOK only:** nothing to wire on the server. Leave the `DEMO_CHAT_*` + `TRANSCRIPTION_OPENAI_API_KEY` vars unset in `.env` so the deployment stays out of demo mode. Visitors will see the Model Picker on first load.
+- **BYOK only:** nothing to wire on the server. Leave the `DEMO_CHAT_*` + `DEMO_STT_OPENAI_API_KEY` vars unset in `.env` so the deployment stays out of demo mode. Visitors will see the Model Picker on first load.
 
 After the wiring, restart `npm run dev` and send a chat message. Expected: the AI responds, and any tool calls (focus a field, set a value) reflect in the editor.
 
@@ -282,7 +282,7 @@ Or wire a runtime loader (your own storage) — but the static one is fine for m
 
 **6c — Replace the demo gates with a single static resolution**
 
-Three callers (`src/routes/api/chat.ts`, `src/routes/api/summarize.ts`, and `src/routes/api/transcribe.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env (transcribe also reads `TRANSCRIPTION_OPENAI_API_KEY` directly, so it keeps working once the preflight is replaced):
+Three callers (`src/routes/api/chat.ts`, `src/routes/api/summarize.ts`, and `src/routes/api/transcribe.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env (transcribe also reads `DEMO_STT_OPENAI_API_KEY` directly, so it keeps working once the preflight is replaced):
 
 ```ts
 // at the top of chat.ts / summarize.ts, replace the demo import with:
@@ -368,7 +368,7 @@ If `Custom: walk me through each`: ask them which feature they want to address f
 
 Per their Q1 choice:
 
-- **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) the demo vars (`DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` / `TRANSCRIPTION_OPENAI_API_KEY`) / `REDIS_URL` / `IP_HASH_SALT`.
+- **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) the demo vars (`DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` / `DEMO_STT_OPENAI_API_KEY`) / `REDIS_URL` / `IP_HASH_SALT`.
 - **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put DEMO_CHAT_API_KEY` (and the other demo vars) etc. Cloudflare's edge sits in front for free WAF + caching.
 - **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
 - **Render / fly.io:** point the service at this repo, set build command `npm run build`, start command `npm start`, and configure env vars in the host's dashboard. fly.io needs a `Dockerfile` (build the production output, run `node .output/server/index.mjs`).
