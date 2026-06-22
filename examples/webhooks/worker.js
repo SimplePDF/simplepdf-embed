@@ -43,6 +43,11 @@ const getAllEvents = async (env) => {
   return events;
 };
 
+const renderStructuredDataLink = (fieldDataUrl) =>
+  fieldDataUrl
+    ? `<a href="${fieldDataUrl}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary-dark underline font-medium">View JSON</a>`
+    : `<span class="text-gray-400">Not available</span>`;
+
 const renderHTML = (viewType, params) => {
   const baseLayout = (title, description, content) => `
 <!DOCTYPE html>
@@ -126,6 +131,7 @@ const renderHTML = (viewType, params) => {
             <td class="px-6 py-4"><a href="/submissions/${event.data.submission.id}" class="text-primary hover:text-primary-dark underline font-medium">View submission</a></td>
             <td class="px-6 py-4">${event.data.document.name}</td>
             <td class="px-6 py-4">${event.data.submission.submitted_at}</td>
+            <td class="px-6 py-4">${renderStructuredDataLink(event.data.submission.field_data_url)}</td>
             <td class="px-6 py-4"><code class="text-xs bg-gray-100 px-2 py-1 rounded">${JSON.stringify(event.data.context)}</code></td>
           </tr>
         `
@@ -176,6 +182,7 @@ const renderHTML = (viewType, params) => {
                 <th class="px-6 py-4">Submission</th>
                 <th class="px-6 py-4">Document</th>
                 <th class="px-6 py-4">Submitted at</th>
+                <th class="px-6 py-4">Structured data</th>
                 <th class="px-6 py-4">Submission context</th>
               </tr>
             </thead>
@@ -211,18 +218,16 @@ const renderHTML = (viewType, params) => {
           <thead class="bg-primary text-white font-medium">
             <tr>
               <th class="px-6 py-4">Document</th>
-              <th class="px-6 py-4">Document ID</th>
-              <th class="px-6 py-4">Submission ID</th>
               <th class="px-6 py-4">Submitted at</th>
+              <th class="px-6 py-4">Structured data</th>
               <th class="px-6 py-4">Submission context</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="px-6 py-4 font-medium">${submission.data.document.name}</td>
-              <td class="px-6 py-4 text-gray-600">${submission.data.document.id}</td>
-              <td class="px-6 py-4 text-gray-600">${submission.data.submission.id}</td>
               <td class="px-6 py-4">${submission.data.submission.submitted_at}</td>
+              <td class="px-6 py-4">${renderStructuredDataLink(submission.data.submission.field_data_url)}</td>
               <td class="px-6 py-4"><code class="text-xs bg-gray-100 px-2 py-1 rounded">${JSON.stringify(submission.data.context)}</code></td>
             </tr>
           </tbody>

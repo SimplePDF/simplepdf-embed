@@ -8,6 +8,8 @@ It saves in memory all "`submission.created`" events and surfaces the submission
 
 Clicking on each submission URL opens up the SimplePDF viewer for this specific submission
 
+Each submission also exposes its structured form data (every answer as JSON) via a `View JSON` link, surfaced both in the main table and the submission detail view.
+
 A live demo can be seen here: https://webhooks.simplepdf.com
 
 
