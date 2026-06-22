@@ -182,7 +182,7 @@ const renderHTML = (viewType, params) => {
                 <th class="px-6 py-4">Submission</th>
                 <th class="px-6 py-4">Document</th>
                 <th class="px-6 py-4">Submitted at</th>
-                <th class="px-6 py-4">Structured data</th>
+                <th class="px-6 py-4">Submission structured data</th>
                 <th class="px-6 py-4">Submission context</th>
               </tr>
             </thead>
@@ -219,7 +219,7 @@ const renderHTML = (viewType, params) => {
             <tr>
               <th class="px-6 py-4">Document</th>
               <th class="px-6 py-4">Submitted at</th>
-              <th class="px-6 py-4">Structured data</th>
+              <th class="px-6 py-4">Submission structured data</th>
               <th class="px-6 py-4">Submission context</th>
             </tr>
           </thead>
