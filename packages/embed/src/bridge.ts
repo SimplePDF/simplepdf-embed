@@ -273,12 +273,13 @@ export const createBridge = ({
       return
     }
     const probeId = generateRequestId()
-    probeRequestIds.add(probeId)
     try {
       iframe.contentWindow.postMessage(
         JSON.stringify({ type: 'GET_FIELDS', request_id: probeId, data: {} }),
         editorOrigin,
       )
+      // Track only successfully-posted probes (a failed post leaves no id to match).
+      probeRequestIds.add(probeId)
     } catch {
       // Best-effort liveness probe; a transient post failure just retries next tick.
     }
