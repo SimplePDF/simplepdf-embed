@@ -213,13 +213,13 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `focus_field` | Highlight + scroll to a field |
 | `set_field_value` | Write a value into a field |
 | `select_tool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
-| `go_to_page` | Navigate to a specific page (1-indexed) |
+| `go_to` | Navigate to a specific page (1-indexed) |
 | `move_page` | Reorder a visible page (`from_page` → `to_page`, both 1-indexed). Destructive — only fired on explicit user request |
 | `delete_page` | Remove a visible page and its fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |
 | `rotate_page` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
 | `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
-Tool input + output schemas live under `src/lib/embed-bridge-adapters/client-tools/`. System prompt: `src/server/tools.ts`. The bridge that posts these events into the iframe: `src/lib/embed-bridge/bridge.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
+Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../packages/embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
 
 ## Common fork points
 

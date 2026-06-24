@@ -222,17 +222,46 @@ describe(createBridge.name, () => {
     expect(harness.embed.getState().kind).toBe('document_loaded')
   })
 
-  it('does NOT drop document_loaded back to editor_ready on the readiness fallback', () => {
+  it('clears the readiness fallback once a document is loaded (no late warning or corruption)', () => {
     vi.useFakeTimers()
-    const harness = makeHarness()
-    const probe = harness.posted.find((message) => message.type === 'GET_FIELDS')
-    if (probe !== undefined) {
-      replyResult(harness, probe.request_id, { success: true, data: { fields: [] } })
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    const contentWindow = iframe.contentWindow
+    if (contentWindow === null) {
+      throw new Error('jsdom iframe has no contentWindow')
     }
-    expect(harness.embed.getState().kind).toBe('document_loaded')
-    // The 30s readiness fallback fires; it must not corrupt a loaded document.
+    const posted: Posted[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    const warn = vi.fn()
+    const embed = createBridge({
+      getIframe: () => iframe,
+      editorOrigin: EDITOR_ORIGIN,
+      logger: { debug: () => {}, info: () => {}, warn, error: () => {} },
+    })
+    const probe = posted.find((message) => message.type === 'GET_FIELDS')
+    if (probe !== undefined) {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: JSON.stringify({
+            type: 'REQUEST_RESULT',
+            data: { request_id: probe.request_id, result: { success: true, data: { fields: [] } } },
+          }),
+          origin: EDITOR_ORIGIN,
+          source: contentWindow,
+        }),
+      )
+    }
+    expect(embed.getState().kind).toBe('document_loaded')
+    // The fallback timer was cleared on load: advancing past it neither warns nor
+    // drops the loaded document back to editor_ready.
     vi.advanceTimersByTime(31_000)
-    expect(harness.embed.getState().kind).toBe('document_loaded')
+    expect(embed.getState().kind).toBe('document_loaded')
+    expect(warn).not.toHaveBeenCalled()
+    embed.dispose()
   })
 
   it('stops the readiness probe loop after the fallback window (bounded probing)', () => {
@@ -262,16 +291,10 @@ describe(createBridge.name, () => {
         posted.push(JSON.parse(message))
       }
     })
-    const throwingLogger = {
-      debug: () => {
-        throw new Error('log boom')
-      },
-      info: () => {
-        throw new Error('log boom')
-      },
-      warn: () => {},
-      error: () => {},
+    const boom = () => {
+      throw new Error('log boom')
     }
+    const throwingLogger = { debug: boom, info: boom, warn: boom, error: boom }
     const embed = createBridge({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, logger: throwingLogger })
     const promise = embed.getFields()
     const requestId = posted[posted.length - 1]?.request_id ?? ''
@@ -286,7 +309,8 @@ describe(createBridge.name, () => {
       }),
     )
     await expect(promise).resolves.toEqual({ success: true, data: { fields: [] } })
-    embed.dispose()
+    // Disposal (which logs + notifies the disposed event) must not throw either.
+    expect(() => embed.dispose()).not.toThrow()
   })
 
   it('ignores messages from a foreign origin', async () => {

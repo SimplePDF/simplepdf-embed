@@ -1,5 +1,5 @@
 import { INTERNAL_PROTOCOL } from './internal-protocol'
-import { type BridgeLogger, type LogPayload, NOOP_LOGGER } from './logger'
+import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
 import type {
@@ -43,22 +43,6 @@ const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 // no generated value (the OPERATIONS table) is pulled into the zero-dep root.
 const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
 const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
-
-// A consumer-provided logger must never affect bridge behavior: wrap every method
-// so a throwing logger can't, e.g., turn an already-posted (irreversible) request
-// into a failure result, or stop listener iteration / cleanup.
-const makeSafeLogger = (logger: BridgeLogger): BridgeLogger => {
-  const guard =
-    (method: (event: string, payload: LogPayload) => void) =>
-    (event: string, payload: LogPayload): void => {
-      try {
-        method(event, payload)
-      } catch {
-        // A logging failure is never allowed to surface.
-      }
-    }
-  return { debug: guard(logger.debug), info: guard(logger.info), warn: guard(logger.warn), error: guard(logger.error) }
-}
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {

@@ -1,5 +1,5 @@
 import { createBridge } from './bridge'
-import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { Embed } from './types'
 import type { Locale } from './generated/contract'
 
@@ -178,10 +178,12 @@ const fetchDocumentAsDataUrl = async (url: string, signal: AbortSignal): Promise
   try {
     const response = await fetch(url, { method: 'GET', credentials: 'same-origin', signal })
     if (!response.ok) {
+      await response.body?.cancel().catch(() => {})
       return null
     }
     const contentLength = response.headers.get('content-length')
     if (contentLength !== null && Number(contentLength) > DOCUMENT_SIZE_CAP_BYTES) {
+      await response.body?.cancel().catch(() => {})
       return null
     }
     const body = response.body
@@ -254,10 +256,12 @@ export const mountEmbed = ({
   // host-fetch so a disposed mount stops downloading.
   let mountDisposed = false
   const documentFetchController = new AbortController()
+  // mountEmbed's own logging must be just as throw-isolated as the bridge's.
+  const safeLogger = makeSafeLogger(logger)
   const embed = createBridge({
     getIframe: () => iframe,
     editorOrigin,
-    logger,
+    logger: safeLogger,
     onDispose: () => {
       mountDisposed = true
       documentFetchController.abort()
@@ -297,7 +301,7 @@ export const mountEmbed = ({
       const result = await embed.loadDocument({ data_url: dataUrl, name: documentName, page: mountDocument.page })
       if (!result.success) {
         // Surface the load failure (it would otherwise be silently dropped).
-        logger.error('mount.load_document_failed', { code: result.error.code, message: result.error.message })
+        safeLogger.error('mount.load_document_failed', { code: result.error.code, message: result.error.message })
       }
     }
 
