@@ -1,0 +1,256 @@
+import { createBridge } from './bridge'
+import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import type { Embed } from './types'
+import type { Locale } from './generated/contract'
+
+// Construction-time configuration error. mountEmbed validates its config
+// synchronously and THROWS this on programmer error (bad target/tenant/document
+// URL), surfaced at integration time. Runtime/op failures are BridgeResult and
+// never thrown.
+export class EmbedConfigError extends Error {
+  readonly code: 'invalid_target' | 'invalid_tenant' | 'invalid_document_url'
+  constructor(code: 'invalid_target' | 'invalid_tenant' | 'invalid_document_url', message: string) {
+    super(message)
+    this.name = 'EmbedConfigError'
+    this.code = code
+  }
+}
+
+// DNS-label tenant validator (lowercase letters, digits, internal hyphens; no
+// leading/trailing hyphen). The shared mountEmbed accepts reserved portal values
+// (e.g. the 'embed' default, the Chrome integration); reserved-portal rejection
+// is a WEM-customer-boundary concern, not enforced here.
+const DNS_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+
+const DEFAULT_TENANT = 'embed'
+const DEFAULT_BASE_DOMAIN = 'simplepdf.com'
+const DOCUMENT_SIZE_CAP_BYTES = 50 * 1024 * 1024
+
+export const buildEditorDomain = ({ tenant, baseDomain }: { tenant: string; baseDomain: string }): string => {
+  const isLocalDev = baseDomain.includes('.nil') || baseDomain.includes('localhost')
+  const protocol = isLocalDev ? 'http' : 'https'
+  return `${protocol}://${tenant}.${baseDomain}`
+}
+
+export const encodeContext = (context: Record<string, unknown> | undefined): string | null => {
+  if (context === undefined) {
+    return null
+  }
+  return encodeURIComponent(btoa(JSON.stringify(context)))
+}
+
+const extractDocumentName = (url: string): string => {
+  const [name] = url.substring(url.lastIndexOf('/') + 1).split('?')
+  return name ?? ''
+}
+
+export type EmbedDocument =
+  | { url: string; name?: string; page?: number }
+  | { dataUrl: string; name?: string; page?: number }
+
+type MountDocument = EmbedDocument
+
+export type MountEmbedArgs = {
+  target: string | HTMLElement
+  tenant?: string
+  baseDomain?: string
+  document?: MountDocument
+  locale?: Locale
+  context?: Record<string, unknown>
+  iframeAttrs?: {
+    title?: string
+    allow?: string
+    sandbox?: string
+    className?: string
+    style?: Partial<CSSStyleDeclaration>
+  }
+  logger?: BridgeLogger
+}
+
+const resolveTarget = (target: string | HTMLElement): HTMLElement => {
+  if (typeof target !== 'string') {
+    return target
+  }
+  const element = document.querySelector(target)
+  if (element === null || !(element instanceof HTMLElement)) {
+    throw new EmbedConfigError('invalid_target', `mountEmbed target '${target}' did not match an element`)
+  }
+  return element
+}
+
+const assertValidTenant = (tenant: string): void => {
+  if (!DNS_LABEL.test(tenant)) {
+    throw new EmbedConfigError(
+      'invalid_tenant',
+      `tenant '${tenant}' is not a valid DNS label (lowercase letters, digits, internal hyphens)`,
+    )
+  }
+}
+
+const assertValidDocumentUrl = (document: MountDocument | undefined): void => {
+  if (document === undefined || !('url' in document)) {
+    return
+  }
+  const parsed = ((): URL | null => {
+    try {
+      return new URL(document.url)
+    } catch {
+      return null
+    }
+  })()
+  if (parsed === null || parsed.protocol !== 'https:' || parsed.username !== '' || parsed.password !== '') {
+    throw new EmbedConfigError(
+      'invalid_document_url',
+      `document.url must be an https URL without credentials (received '${document.url}')`,
+    )
+  }
+}
+
+const buildEditorURL = ({
+  editorOrigin,
+  locale,
+  encodedContext,
+  hasDocumentUrl,
+  openFallbackUrl,
+}: {
+  editorOrigin: string
+  locale: Locale | undefined
+  encodedContext: string | null
+  hasDocumentUrl: boolean
+  openFallbackUrl: string | null
+}): string => {
+  const url = new URL(`/${locale ?? 'en'}/editor`, editorOrigin)
+  if (encodedContext !== null) {
+    url.searchParams.set('context', encodedContext)
+  }
+  if (hasDocumentUrl) {
+    url.searchParams.set('loadingPlaceholder', 'true')
+  }
+  if (openFallbackUrl !== null) {
+    url.searchParams.set('open', openFallbackUrl)
+  }
+  return url.href
+}
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onerror = () => reject(reader.error ?? new Error('Failed to read document'))
+    reader.readAsDataURL(blob)
+  })
+
+const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
+  try {
+    const response = await fetch(url, { method: 'GET', credentials: 'same-origin' })
+    if (!response.ok) {
+      return null
+    }
+    const contentLength = response.headers.get('content-length')
+    if (contentLength !== null && Number(contentLength) > DOCUMENT_SIZE_CAP_BYTES) {
+      return null
+    }
+    const blob = await response.blob()
+    if (blob.size > DOCUMENT_SIZE_CAP_BYTES) {
+      return null
+    }
+    return await blobToDataUrl(blob)
+  } catch {
+    return null
+  }
+}
+
+// Library-owned mount path: builds the iframe + URL, mounts it under `target`,
+// drives the standard document load (host-fetch -> LOAD_DOCUMENT, ?open fallback),
+// and returns the Embed handle. dispose() additionally removes the iframe.
+export const mountEmbed = ({
+  target,
+  tenant = DEFAULT_TENANT,
+  baseDomain = DEFAULT_BASE_DOMAIN,
+  document: mountDocument,
+  locale,
+  context,
+  iframeAttrs,
+  logger = NOOP_LOGGER,
+}: MountEmbedArgs): Embed => {
+  assertValidTenant(tenant)
+  assertValidDocumentUrl(mountDocument)
+  const container = resolveTarget(target)
+  const editorOrigin = buildEditorDomain({ tenant, baseDomain })
+  const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
+
+  const iframe = document.createElement('iframe')
+  iframe.title = iframeAttrs?.title ?? 'SimplePDF'
+  iframe.setAttribute('referrerPolicy', 'no-referrer-when-downgrade')
+  if (iframeAttrs?.allow !== undefined) {
+    iframe.setAttribute('allow', iframeAttrs.allow)
+  }
+  if (iframeAttrs?.sandbox !== undefined) {
+    iframe.setAttribute('sandbox', iframeAttrs.sandbox)
+  }
+  if (iframeAttrs?.className !== undefined) {
+    iframe.className = iframeAttrs.className
+  }
+  iframe.style.border = '0'
+  iframe.style.width = '100%'
+  iframe.style.height = '100%'
+  if (iframeAttrs?.style !== undefined) {
+    Object.assign(iframe.style, iframeAttrs.style)
+  }
+  iframe.src = buildEditorURL({
+    editorOrigin,
+    locale,
+    encodedContext: encodeContext(context),
+    hasDocumentUrl,
+    openFallbackUrl: null,
+  })
+  container.appendChild(iframe)
+
+  const embed = createBridge({
+    getIframe: () => iframe,
+    editorOrigin,
+    logger,
+    onDispose: () => iframe.remove(),
+  })
+
+  // Post LOAD_DOCUMENT once the editor is ready (it queues nothing before then).
+  // For url documents we host-fetch eagerly and fall back to ?open on failure.
+  if (mountDocument !== undefined) {
+    const dataUrlPromise =
+      'dataUrl' in mountDocument ? Promise.resolve(mountDocument.dataUrl) : fetchDocumentAsDataUrl(mountDocument.url)
+    const documentName =
+      mountDocument.name ?? ('url' in mountDocument ? extractDocumentName(mountDocument.url) : undefined)
+
+    const loadWhenReady = async (): Promise<void> => {
+      const dataUrl = await dataUrlPromise
+      if (dataUrl === null) {
+        // Host-fetch failed (CORS/size/network): re-navigate the iframe through
+        // the editor's ?open loader, which fetches the URL inside the editor.
+        if ('url' in mountDocument) {
+          iframe.src = buildEditorURL({
+            editorOrigin,
+            locale,
+            encodedContext: encodeContext(context),
+            hasDocumentUrl: false,
+            openFallbackUrl: mountDocument.url,
+          })
+        }
+        return
+      }
+      await embed.loadDocument({ data_url: dataUrl, name: documentName, page: mountDocument.page })
+    }
+
+    if (embed.getState().kind === 'booting') {
+      const unsubscribe = embed.on('state_change', (next) => {
+        if (next.kind !== 'booting') {
+          unsubscribe()
+          void loadWhenReady()
+        }
+      })
+    } else {
+      void loadWhenReady()
+    }
+  }
+
+  return embed
+}

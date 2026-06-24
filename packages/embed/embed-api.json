@@ -1,0 +1,752 @@
+{
+  "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (load_document is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
+  "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+  "protocol": {
+    "request_envelope_schema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The operation request_type to invoke (one of operations[].request_type)."
+        },
+        "request_id": {
+          "type": "string",
+          "description": "A correlation id you generate; the matching REQUEST_RESULT echoes it back."
+        },
+        "data": {
+          "description": "The operation's input payload, matching that operation's input_schema."
+        }
+      },
+      "required": ["type", "request_id", "data"]
+    },
+    "result_envelope_schema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "REQUEST_RESULT"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "request_id": {
+              "type": "string",
+              "description": "The same correlation id you sent on the request."
+            },
+            "result": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "description": "Matches the operation's output_schema; null for ops that return nothing."
+                    }
+                  },
+                  "required": ["success", "data"]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "error": {
+                      "description": "The error object when success is false: a `code` plus a human-readable `message` (with typed `details` for bad_request:missing_required_fields). Its full shape and code set are editor_error_schema, where each code const carries a description of its meaning."
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              ]
+            }
+          },
+          "required": ["request_id", "result"]
+        }
+      },
+      "required": ["type", "data"]
+    },
+    "correlation": {
+      "id_field": "request_id",
+      "generated_by": "consumer"
+    }
+  },
+  "operations": [
+    {
+      "request_type": "create_field",
+      "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"],
+            "description": "Field type to create."
+          },
+          "x": {
+            "type": "number",
+            "description": "Field x position, in PDF points."
+          },
+          "y": {
+            "type": "number",
+            "description": "Field y position, in PDF points."
+          },
+          "width": {
+            "type": "number",
+            "description": "Field width, in PDF points."
+          },
+          "height": {
+            "type": "number",
+            "description": "Field height, in PDF points."
+          },
+          "page": {
+            "type": "integer",
+            "description": "1-based page to place the field on."
+          },
+          "value": {
+            "description": "Optional initial value. A string for text/checkbox fields, or a data URL for signature/picture fields.",
+            "type": "string"
+          }
+        },
+        "required": ["type", "x", "y", "width", "height", "page"],
+        "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string"
+          }
+        },
+        "required": ["field_id"]
+      },
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:invalid_page",
+        "bad_request:invalid_dimensions",
+        "bad_request:invalid_value",
+        "bad_request:page_out_of_range",
+        "bad_request:page_not_found",
+        "bad_request:invalid_field_type",
+        "bad_request:invalid_signature_url"
+      ]
+    },
+    {
+      "request_type": "delete_fields",
+      "description": "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "field_ids": {
+            "description": "IDs of the fields to delete. Omit to delete every field on the target page.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "page": {
+            "description": "1-based page to scope the deletion to. Omit to target all pages.",
+            "type": "integer"
+          }
+        },
+        "description": "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "deleted_count": {
+            "type": "integer"
+          }
+        },
+        "required": ["deleted_count"]
+      },
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:invalid_field_ids",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range",
+        "bad_request:page_not_found"
+      ]
+    },
+    {
+      "request_type": "delete_pages",
+      "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "1-based page numbers to delete."
+          }
+        },
+        "required": ["pages"],
+        "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range",
+        "bad_request:no_document_loaded",
+        "bad_request:page_not_found"
+      ]
+    },
+    {
+      "request_type": "detect_fields",
+      "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "detected_count": {
+            "type": "integer"
+          }
+        },
+        "required": ["detected_count"]
+      },
+      "error_codes": ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"]
+    },
+    {
+      "request_type": "download",
+      "description": "Generate and download the current document as a PDF. Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "description": "Generate and download the current document as a PDF. Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": ["bad_request:no_document_loaded", "bad_request:missing_required_fields"]
+    },
+    {
+      "request_type": "focus_field",
+      "description": "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "description": "ID of the field to focus and scroll into view."
+          }
+        },
+        "required": ["field_id"],
+        "description": "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "hint": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "user_action_expected"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": ["type", "message"]
+          }
+        },
+        "required": ["hint"]
+      },
+      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"]
+    },
+    {
+      "request_type": "get_document_content",
+      "description": "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "extraction_mode": {
+            "description": "Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.",
+            "type": "string",
+            "enum": ["auto", "ocr"]
+          }
+        },
+        "description": "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "page": {
+                  "type": "integer"
+                },
+                "content": {
+                  "type": "string"
+                }
+              },
+              "required": ["page", "content"]
+            }
+          }
+        },
+        "required": ["name", "pages"]
+      },
+      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded"]
+    },
+    {
+      "request_type": "get_fields",
+      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"]
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "The field's current value, or null if unset."
+                },
+                "options": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Valid values for this field (a DROPDOWN/RADIO's choices), or null. When set, the value passed to set_field_value or create_field must be one of these."
+                }
+              },
+              "required": ["field_id", "name", "type", "page", "value", "options"]
+            }
+          }
+        },
+        "required": ["fields"]
+      },
+      "error_codes": ["bad_request:no_document_loaded"]
+    },
+    {
+      "request_type": "go_to",
+      "description": "Scroll the editor to a specific 1-based page. Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "1-based page to navigate to."
+          }
+        },
+        "required": ["page"],
+        "description": "Scroll the editor to a specific 1-based page. Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": ["bad_request:invalid_page", "bad_request:page_out_of_range"]
+    },
+    {
+      "request_type": "load_document",
+      "description": "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "data_url": {
+            "type": "string",
+            "description": "The document to load, as a data URL."
+          },
+          "name": {
+            "description": "Optional display name for the document.",
+            "type": "string"
+          },
+          "page": {
+            "description": "Optional 1-based page to open the document on.",
+            "type": "integer"
+          }
+        },
+        "required": ["data_url"],
+        "description": "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": ["bad_request:invalid_value", "bad_request:invalid_page"]
+    },
+    {
+      "request_type": "move_page",
+      "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "from_page": {
+            "type": "integer",
+            "description": "1-based current position of the page to move."
+          },
+          "to_page": {
+            "type": "integer",
+            "description": "1-based destination position for the page."
+          }
+        },
+        "required": ["from_page", "to_page"],
+        "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range",
+        "bad_request:no_document_loaded",
+        "bad_request:page_not_found"
+      ]
+    },
+    {
+      "request_type": "rotate_page",
+      "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "1-based page to rotate 90 degrees clockwise."
+          }
+        },
+        "required": ["page"],
+        "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range",
+        "bad_request:no_document_loaded",
+        "bad_request:page_not_found"
+      ]
+    },
+    {
+      "request_type": "select_tool",
+      "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tool to activate, or null to deselect."
+          }
+        },
+        "required": ["tool"],
+        "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": ["bad_request:invalid_tool"]
+    },
+    {
+      "request_type": "set_field_value",
+      "description": "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "description": "ID of the field to update."
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL (signature/picture)."
+          }
+        },
+        "required": ["field_id", "value"],
+        "description": "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:invalid_signature_url",
+        "bad_request:no_document_loaded",
+        "bad_request:read_only",
+        "bad_request:field_not_found"
+      ]
+    },
+    {
+      "request_type": "submit",
+      "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "download_copy": {
+            "type": "boolean",
+            "description": "When true, the signer also receives a downloaded copy on submit."
+          }
+        },
+        "required": ["download_copy"],
+        "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": ["bad_request:invalid_value", "bad_request:missing_required_fields"]
+    }
+  ],
+  "events": [
+    {
+      "event_type": "PAGE_FOCUSED",
+      "description": "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page.",
+      "payload_schema": {
+        "type": "object",
+        "properties": {
+          "previous_page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_page": {
+            "type": "integer"
+          },
+          "total_pages": {
+            "type": "integer"
+          }
+        },
+        "required": ["previous_page", "current_page", "total_pages"]
+      }
+    },
+    {
+      "event_type": "SUBMISSION_SENT",
+      "description": "Pushed after a SUBMIT completes successfully. This is how you confirm a submission landed: the SUBMIT operation itself resolves with data: null, so listen for this event to get the resulting document_id and submission_id.",
+      "payload_schema": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "submission_id": {
+            "type": "string"
+          }
+        },
+        "required": ["document_id", "submission_id"]
+      }
+    }
+  ],
+  "locales": ["fr", "en", "it", "de", "pt", "es", "ja", "nl"],
+  "editor_error_schema": {
+    "anyOf": [
+      {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "bad_request:missing_required_fields",
+            "description": "Submission was blocked because required fields are unfilled. details.unfilled_required_fields_count reports how many remain."
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "unfilled_required_fields_count": {
+                "type": "integer"
+              }
+            },
+            "required": ["unfilled_required_fields_count"]
+          }
+        },
+        "required": ["code", "message", "details"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "bad_request:editor_not_ready",
+                "description": "The editor is still initializing and cannot accept this operation yet. Retry the operation shortly."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:event_not_allowed",
+                "description": "This operation is disabled for the current portal configuration."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:field_not_found",
+                "description": "No field on the loaded document matches the provided field_id."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_dimensions",
+                "description": "The provided x, y, width, or height is missing or not a valid number."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_event_type",
+                "description": "The posted message `type` is not a supported operation request_type."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_field_ids",
+                "description": "field_ids is missing or is not an array of field id strings."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_field_type",
+                "description": "The provided field type is not one of the supported overlay tool types."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_page",
+                "description": "page is missing or is not a positive integer."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_signature_url",
+                "description": "The signature value is not a valid, reachable image URL."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_tool",
+                "description": "The provided tool is not one of the selectable tools."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:invalid_value",
+                "description": "The provided value is missing or not valid for this operation or field type."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:no_document_loaded",
+                "description": "No document is loaded. Load a document before calling this operation."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:page_not_found",
+                "description": "The referenced page does not exist in the document."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:page_out_of_range",
+                "description": "page is outside the document range (1 to the document page_count)."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:plan_upgrade_required",
+                "description": "The tenant's plan does not include this operation. Upgrade the plan in the SimplePDF admin dashboard."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:read_only",
+                "description": "The document or field is read-only and cannot be modified."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:signup_required",
+                "description": "This operation requires the end user to sign up or authenticate first at https://simplepdf.com/auth/signup."
+              },
+              {
+                "type": "string",
+                "const": "forbidden:editing_not_allowed",
+                "description": "Editing is disabled for this document or configuration; field-mutating operations are rejected."
+              },
+              {
+                "type": "string",
+                "const": "forbidden:origin_not_whitelisted",
+                "description": "The embedding origin is not allowlisted for this tenant. Allowlist it in the SimplePDF admin dashboard."
+              },
+              {
+                "type": "string",
+                "const": "forbidden:whitelist_required",
+                "description": "This tenant requires the embedding origin to be allowlisted before any operation is accepted. Configure it in the admin dashboard."
+              },
+              {
+                "type": "string",
+                "const": "unexpected:internal_error",
+                "description": "An unexpected internal error occurred. Try again, and if the issue persists, reach out to support@simplepdf.com."
+              }
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["code", "message"]
+      }
+    ]
+  }
+}

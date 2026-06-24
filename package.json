@@ -2,6 +2,7 @@
   "name": "simplepdf-embed",
   "private": true,
   "workspaces": [
+    "packages/embed",
     "react",
     "web"
   ],
