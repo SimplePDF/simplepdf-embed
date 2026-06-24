@@ -7,6 +7,7 @@ import type {
   FieldRecord,
 } from '@simplepdf/embed'
 import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
+import { OVERLAY_TOOL_TYPES } from '@simplepdf/embed/protocol'
 import { isSimplePDFToolName } from '@simplepdf/embed/tools'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
@@ -171,12 +172,7 @@ type CompactedField = {
 type CompactedDocumentContent = { name: string | null; pages: DocumentContentPage[] }
 
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
-  value === null ||
-  value === 'TEXT' ||
-  value === 'COMB_TEXT' ||
-  value === 'CHECKBOX' ||
-  value === 'SIGNATURE' ||
-  value === 'PICTURE'
+  value === null || (typeof value === 'string' && OVERLAY_TOOL_TYPES.some((candidate) => candidate === value))
 
 type PlacementTool = Exclude<ToolbarTool, null>
 
@@ -191,7 +187,9 @@ type PlacementTool = Exclude<ToolbarTool, null>
 // dedupes for icon rendering.
 type NewFieldHintMetadata = { kind: 'new_field_hint'; tools: PlacementTool[]; delta: number }
 
-const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'COMB_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
+// Derived from the package's overlay-tool vocabulary so a new editor overlay type
+// flows through without restating the literal set here.
+const PLACEMENT_TOOLS: readonly PlacementTool[] = OVERLAY_TOOL_TYPES
 const isPlacementTool = (value: unknown): value is PlacementTool =>
   typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 

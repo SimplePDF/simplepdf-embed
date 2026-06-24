@@ -36,7 +36,15 @@ export const encodeContext = (context: Record<string, unknown> | undefined): str
   if (context === undefined) {
     return null
   }
-  return encodeURIComponent(btoa(JSON.stringify(context)))
+  // btoa throws on non-Latin1 chars (accents/emoji/CJK) and JSON.stringify throws
+  // on a circular object. Context is best-effort metadata, so drop it on failure
+  // rather than crash mountEmbed — matching the shipped web/react encoders (and
+  // the editor decodes this exact `btoa(JSON.stringify(...))` shape).
+  try {
+    return encodeURIComponent(btoa(JSON.stringify(context)))
+  } catch {
+    return null
+  }
 }
 
 const extractDocumentName = (url: string): string => {
@@ -140,9 +148,36 @@ const blobToDataUrl = (blob: Blob): Promise<string> =>
     reader.readAsDataURL(blob)
   })
 
+// Read the body stream with a running byte cap so an over-sized (or
+// Content-Length-less) response is aborted mid-stream instead of buffered whole.
+const readStreamCapped = async (
+  body: ReadableStream<Uint8Array>,
+  capBytes: number,
+): Promise<BlobPart[] | null> => {
+  const reader = body.getReader()
+  const chunks: BlobPart[] = []
+  // Streaming accumulation: the running counter must mutate as chunks arrive.
+  let receivedBytes = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) {
+      return chunks
+    }
+    receivedBytes += value.byteLength
+    if (receivedBytes > capBytes) {
+      await reader.cancel()
+      return null
+    }
+    // Copy into a fresh ArrayBuffer-backed view so it is a valid BlobPart
+    // (the reader yields ArrayBufferLike-backed chunks).
+    chunks.push(new Uint8Array(value))
+  }
+}
+
 const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
+  const controller = new AbortController()
   try {
-    const response = await fetch(url, { method: 'GET', credentials: 'same-origin' })
+    const response = await fetch(url, { method: 'GET', credentials: 'same-origin', signal: controller.signal })
     if (!response.ok) {
       return null
     }
@@ -150,11 +185,18 @@ const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
     if (contentLength !== null && Number(contentLength) > DOCUMENT_SIZE_CAP_BYTES) {
       return null
     }
-    const blob = await response.blob()
-    if (blob.size > DOCUMENT_SIZE_CAP_BYTES) {
+    const body = response.body
+    if (body === null) {
+      const blob = await response.blob()
+      return blob.size > DOCUMENT_SIZE_CAP_BYTES ? null : await blobToDataUrl(blob)
+    }
+    const chunks = await readStreamCapped(body, DOCUMENT_SIZE_CAP_BYTES)
+    if (chunks === null) {
+      controller.abort()
       return null
     }
-    return await blobToDataUrl(blob)
+    const contentType = response.headers.get('content-type') ?? 'application/pdf'
+    return await blobToDataUrl(new Blob(chunks, { type: contentType }))
   } catch {
     return null
   }

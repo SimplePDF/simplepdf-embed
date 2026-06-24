@@ -1,7 +1,7 @@
 import { INTERNAL_PROTOCOL } from './internal-protocol'
 import { type BridgeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
-import type { WireType } from './generated/contract'
+import type { OutboundEventType, WireType } from './generated/contract'
 import type {
   BridgeEventMap,
   BridgeEventName,
@@ -40,6 +40,13 @@ const HEAVY_WIRE_TYPES: ReadonlySet<WireType> = new Set<WireType>(['DETECT_FIELD
 
 const getRequestTimeoutMs = (wireType: WireType): number =>
   HEAVY_WIRE_TYPES.has(wireType) ? HEAVY_REQUEST_TIMEOUT_MS : DEFAULT_REQUEST_TIMEOUT_MS
+
+// Compile-time drift guards: the outbound-event literals the bridge matches must
+// remain members of the generated vocabulary, or `tsc` fails (an editor rename
+// would otherwise silently stop the bridge emitting that event). Type-only, so
+// no generated value (the OPERATIONS table) is pulled into the zero-dep root.
+const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
+const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -206,14 +213,19 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
   }
 
   const markEditorReady = (): void => {
-    if (state.kind === 'document_loaded') {
-      // A fresh EDITOR_READY after a document was loaded means the iframe is
-      // re-mounting for a new document cycle. Drop back and await DOCUMENT_LOADED.
-      transitionTo({ kind: 'editor_ready' })
-      return
-    }
-    if (state.kind === 'booting') {
-      transitionTo({ kind: 'editor_ready' })
+    switch (state.kind) {
+      case 'document_loaded':
+        // A fresh EDITOR_READY after a document was loaded means the iframe is
+        // re-mounting for a new document cycle. Drop back and await DOCUMENT_LOADED.
+        transitionTo({ kind: 'editor_ready' })
+        return
+      case 'booting':
+        transitionTo({ kind: 'editor_ready' })
+        return
+      case 'editor_ready':
+        return
+      default:
+        state satisfies never
     }
   }
 
@@ -297,7 +309,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
       return
     }
 
-    if (payload.type === 'SUBMISSION_SENT') {
+    if (payload.type === SUBMISSION_SENT_EVENT) {
       const submission = asSubmissionSent(payload.data)
       if (submission !== null) {
         emit.submission_sent(submission)
@@ -305,7 +317,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
       return
     }
 
-    if (payload.type === 'PAGE_FOCUSED') {
+    if (payload.type === PAGE_FOCUSED_EVENT) {
       const pageFocused = asPageFocused(payload.data)
       if (pageFocused !== null) {
         emit.page_focused(pageFocused)

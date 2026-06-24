@@ -26,6 +26,10 @@ export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknow
     if (!('code' in error) || !('message' in error)) {
       return false
     }
+    // We validate only the code+message discriminant. The typed `details` carried
+    // by bad_request:missing_required_fields is trusted to the same-origin editor
+    // (the same trust boundary that covers the success `data`); we don't re-derive
+    // it at runtime.
     return typeof error.code === 'string' && typeof error.message === 'string'
   }
   return false

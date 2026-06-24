@@ -110,9 +110,19 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
     logger,
   }
 
-  // Serialize the editor-config inputs so the effect only remounts the iframe when
-  // the actual configuration changes (not on every render / callback identity).
-  const documentKey = React.useMemo(() => JSON.stringify(embedDocument ?? null), [embedDocument])
+  // Derive cheap keys so the effect only remounts the iframe when the editor
+  // config actually changes (not on every render / inline-prop identity). The
+  // document key keys a data URL on its length (never re-serializing a multi-MB
+  // string each render); context is bounded (<= 8 KiB) so stringifying is cheap.
+  const documentKey = React.useMemo((): string => {
+    if (embedDocument === undefined) {
+      return ''
+    }
+    const suffix = `:${embedDocument.name ?? ''}:${embedDocument.page ?? ''}`
+    return 'url' in embedDocument
+      ? `url:${embedDocument.url}${suffix}`
+      : `data:${embedDocument.dataUrl.length}${suffix}`
+  }, [embedDocument])
   const contextKey = React.useMemo(() => JSON.stringify(context ?? null), [context])
 
   React.useEffect(() => {

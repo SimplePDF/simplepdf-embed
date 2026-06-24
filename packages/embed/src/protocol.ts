@@ -7,11 +7,25 @@
 import { OPERATIONS, OUTBOUND_EVENTS } from './generated/contract'
 
 export type {
+  ExtractionMode,
+  FieldType,
+  Locale,
   OutboundEventType,
+  OverlayToolType,
   RequestType,
   WireType,
 } from './generated/contract'
 export { OPERATIONS, OUTBOUND_EVENTS } from './generated/contract'
+// Contract vocabulary as runtime const arrays (their derived types are exported
+// above). Lets consumers iterate the editor's field-type / overlay-tool / locale
+// / error-code sets instead of restating the literals.
+export {
+  EDITOR_ERROR_CODES,
+  EXTRACTION_MODES,
+  FIELD_TYPES,
+  LOCALES,
+  OVERLAY_TOOL_TYPES,
+} from './generated/contract'
 // The internal protocol constants live in their own module (so the bridge / root
 // entry never pulls the OPERATIONS table); the public /protocol surface re-exports them.
 export { INTERNAL_PROTOCOL } from './internal-protocol'

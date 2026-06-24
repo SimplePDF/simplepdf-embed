@@ -24,6 +24,10 @@ describe(encodeContext.name, () => {
     const decoded = JSON.parse(atob(decodeURIComponent(encoded ?? '')))
     expect(decoded).toEqual({ ref: 'abc', n: 1 })
   })
+
+  it('returns null (does not throw) on a non-Latin1 context (btoa limitation)', () => {
+    expect(encodeContext({ name: 'café 😀 日本' })).toBeNull()
+  })
 })
 
 describe(mountEmbed.name, () => {
