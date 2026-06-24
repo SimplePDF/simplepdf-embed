@@ -80,6 +80,29 @@ const assertKnownKeywords = (node) => {
   }
 }
 
+// Recursively assert every node in a schema tree carries only known keywords, so
+// a new constraint anywhere in the manifest (op I/O, events, the error schema, or
+// the protocol envelopes) fails the build instead of being silently ignored.
+const preflightSchema = (node) => {
+  if (typeof node !== 'object' || node === null) {
+    return
+  }
+  assertKnownKeywords(node)
+  if (node.properties !== undefined) {
+    for (const sub of Object.values(node.properties)) {
+      preflightSchema(sub)
+    }
+  }
+  if (node.items !== undefined) {
+    preflightSchema(node.items)
+  }
+  if (Array.isArray(node.anyOf)) {
+    for (const sub of node.anyOf) {
+      preflightSchema(sub)
+    }
+  }
+}
+
 const tsForEnum = (members) => {
   const named = NAMED_ENUMS.get(enumSignature(members))
   if (named !== undefined) {
@@ -226,6 +249,18 @@ const collectErrorCodes = (schema) => {
 // ---------------------------------------------------------------------------
 // Resolve the named enum aliases against the real contract, then build outputs.
 // ---------------------------------------------------------------------------
+
+// Fail-loud preflight over every JSON Schema root in the manifest.
+for (const op of contract.operations) {
+  preflightSchema(op.input_schema)
+  preflightSchema(op.output_schema)
+}
+for (const event of contract.events) {
+  preflightSchema(event.payload_schema)
+}
+preflightSchema(contract.editor_error_schema)
+preflightSchema(contract.protocol.request_envelope_schema)
+preflightSchema(contract.protocol.result_envelope_schema)
 
 const operationsByType = Object.fromEntries(contract.operations.map((op) => [op.request_type, op]))
 

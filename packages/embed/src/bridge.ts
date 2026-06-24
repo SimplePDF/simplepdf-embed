@@ -1,5 +1,5 @@
 import { INTERNAL_PROTOCOL } from './internal-protocol'
-import { type BridgeLogger, NOOP_LOGGER } from './logger'
+import { type BridgeLogger, type LogPayload, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
 import type {
@@ -43,6 +43,22 @@ const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 // no generated value (the OPERATIONS table) is pulled into the zero-dep root.
 const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
 const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
+
+// A consumer-provided logger must never affect bridge behavior: wrap every method
+// so a throwing logger can't, e.g., turn an already-posted (irreversible) request
+// into a failure result, or stop listener iteration / cleanup.
+const makeSafeLogger = (logger: BridgeLogger): BridgeLogger => {
+  const guard =
+    (method: (event: string, payload: LogPayload) => void) =>
+    (event: string, payload: LogPayload): void => {
+      try {
+        method(event, payload)
+      } catch {
+        // A logging failure is never allowed to surface.
+      }
+    }
+  return { debug: guard(logger.debug), info: guard(logger.info), warn: guard(logger.warn), error: guard(logger.error) }
+}
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -89,7 +105,13 @@ const asPageFocused = (data: Record<string, unknown> | undefined): PageFocusedPa
   return null
 }
 
-export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, onDispose }: CreateBridgeArgs): Embed => {
+export const createBridge = ({
+  getIframe,
+  editorOrigin,
+  logger: providedLogger = NOOP_LOGGER,
+  onDispose,
+}: CreateBridgeArgs): Embed => {
+  const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
   let state: BridgeState = { kind: 'booting' }
   let documentId: string | null = null
@@ -193,7 +215,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
       try {
         const outbound = JSON.stringify({ type: wireType, request_id: requestId, data })
         iframe.contentWindow.postMessage(outbound, editorOrigin)
-        logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, byte_count: outbound.length })
+        logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, char_count: outbound.length })
       } catch (error) {
         clearTimeout(timeoutId)
         pending.delete(requestId)
@@ -244,10 +266,19 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
   }
 
+  let readyTimeout: ReturnType<typeof setTimeout> | null = null
+  const clearReadyTimeout = (): void => {
+    if (readyTimeout !== null) {
+      clearTimeout(readyTimeout)
+      readyTimeout = null
+    }
+  }
+
   const markDocumentLoaded = (): void => {
     if (state.kind === 'document_loaded') {
       return
     }
+    clearReadyTimeout()
     stopProbing()
     transitionTo({ kind: 'document_loaded', documentId })
   }
@@ -269,12 +300,18 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
   }
 
-  // Fallback only for editor readiness, never for document-loaded: a doc-loaded
-  // fallback would wrongly flip consumers to "ready" on the custom-PDF path where
-  // the user has not picked a file yet.
-  const readyTimeout = setTimeout(() => {
-    logger.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
+  // Hard readiness fallback. It only WARNS if we are still booting (the editor
+  // never confirmed readiness), and it stops the 500ms probe loop: by this point
+  // either a document loaded (probing already stopped) or none has, in which case
+  // we rely on the DOCUMENT_LOADED event rather than probing — and accumulating
+  // probe ids — indefinitely.
+  readyTimeout = setTimeout(() => {
+    readyTimeout = null
+    if (state.kind === 'booting') {
+      logger.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
+    }
     markEditorReady('fallback')
+    stopProbing()
   }, EDITOR_READY_HARD_FALLBACK_MS)
 
   sendProbe()
@@ -364,7 +401,9 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
     const entry = pending.get(requestId)
     if (entry === undefined) {
-      logger.error('iframe.request_missing_pending', { request_id: requestId })
+      // Not a tracked request: a late/stale reply, or a probe reply received after
+      // the probe loop was torn down. Not an error.
+      logger.debug('iframe.request_unmatched', { request_id: requestId })
       return
     }
     pending.delete(requestId)
@@ -423,7 +462,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
     disposed = true
     window.removeEventListener('message', onMessage)
-    clearTimeout(readyTimeout)
+    clearReadyTimeout()
     stopProbing()
     for (const { timeoutId, resolve } of pending.values()) {
       clearTimeout(timeoutId)

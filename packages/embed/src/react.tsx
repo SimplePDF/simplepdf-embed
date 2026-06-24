@@ -8,7 +8,7 @@
 import * as React from 'react'
 import { createBridge } from './bridge'
 import { type EmbedDocument, mountEmbed } from './mount'
-import type { BridgeLogger } from './logger'
+import type { BridgeLogger, LogPayload } from './logger'
 import type { Locale } from './generated/contract'
 import type { BridgeState, Embed, PageFocusedPayload, SubmissionSentPayload } from './types'
 
@@ -110,24 +110,25 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
     logger,
   }
 
-  // Derive cheap keys so the effect only remounts the iframe when the editor
-  // config actually changes (not on every render / inline-prop identity). The
-  // document key keys a data URL on its length (never re-serializing a multi-MB
-  // string each render); context is bounded (<= 8 KiB) so stringifying is cheap.
-  const documentKey = React.useMemo((): string => {
-    if (embedDocument === undefined) {
-      return ''
-    }
-    const suffix = `:${embedDocument.name ?? ''}:${embedDocument.page ?? ''}`
-    if ('url' in embedDocument) {
-      return `url:${embedDocument.url}${suffix}`
-    }
-    // A data URL is identified by length + a head/tail sample (cheap; avoids
-    // re-serializing a multi-MB string each render, while length-alone collisions
-    // between two distinct same-size documents would otherwise skip a remount).
-    const { dataUrl } = embedDocument
-    return `data:${dataUrl.length}:${dataUrl.slice(0, 64)}:${dataUrl.slice(-64)}${suffix}`
-  }, [embedDocument])
+  // A stable logger that always delegates to the latest `logger` prop, so a
+  // changed logger reaches the already-mounted bridge without a remount.
+  const stableLogger = React.useMemo<BridgeLogger>(() => {
+    const delegate =
+      (level: 'debug' | 'info' | 'warn' | 'error') =>
+      (event: string, payload: LogPayload): void => {
+        callbacksRef.current.logger?.[level](event, payload)
+      }
+    return { debug: delegate('debug'), info: delegate('info'), warn: delegate('warn'), error: delegate('error') }
+  }, [])
+
+  // Remount the iframe only when the editor config actually changes. Key on the
+  // document's identifying PRIMITIVES (the url, or the data-URL string itself —
+  // not a sample, so two distinct same-size data URLs never collide, and no
+  // re-serialization since these are read, not stringified, each render).
+  const documentSource =
+    embedDocument === undefined ? null : 'url' in embedDocument ? embedDocument.url : embedDocument.dataUrl
+  const documentName = embedDocument?.name ?? null
+  const documentPage = embedDocument?.page ?? null
   const contextKey = React.useMemo((): string => {
     if (context === undefined) {
       return 'null'
@@ -153,7 +154,7 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
       document: embedDocument,
       locale,
       context,
-      logger: callbacksRef.current.logger,
+      logger: stableLogger,
     })
     assignRef(ref, embed)
     const unsubscribers = [
@@ -168,8 +169,9 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
       embed.dispose()
       assignRef(ref, null)
     }
-    // ref is stable for the component's lifetime; config keys drive remounts.
-  }, [tenant, baseDomain, locale, documentKey, contextKey, ref])
+    // embedDocument/context are read here but fully determined by the document
+    // primitives + contextKey deps below; ref + stableLogger are stable.
+  }, [tenant, baseDomain, locale, documentSource, documentName, documentPage, contextKey, ref, stableLogger])
 
   return <div ref={containerRef} className={className} style={style} />
 })

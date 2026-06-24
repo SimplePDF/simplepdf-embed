@@ -235,6 +235,60 @@ describe(createBridge.name, () => {
     expect(harness.embed.getState().kind).toBe('document_loaded')
   })
 
+  it('stops the readiness probe loop after the fallback window (bounded probing)', () => {
+    vi.useFakeTimers()
+    const harness = makeHarness()
+    // The editor never confirms readiness; probes fire every 500ms until the
+    // 30s fallback, then stop.
+    vi.advanceTimersByTime(30_000)
+    const countAtFallback = harness.posted.filter((message) => message.type === 'GET_FIELDS').length
+    expect(countAtFallback).toBeGreaterThan(1)
+    vi.advanceTimersByTime(30_000)
+    const countLater = harness.posted.filter((message) => message.type === 'GET_FIELDS').length
+    expect(countLater).toBe(countAtFallback)
+    expect(harness.embed.getState().kind).toBe('editor_ready')
+  })
+
+  it('a throwing logger never affects bridge behavior', async () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    const contentWindow = iframe.contentWindow
+    if (contentWindow === null) {
+      throw new Error('jsdom iframe has no contentWindow')
+    }
+    const posted: Posted[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    const throwingLogger = {
+      debug: () => {
+        throw new Error('log boom')
+      },
+      info: () => {
+        throw new Error('log boom')
+      },
+      warn: () => {},
+      error: () => {},
+    }
+    const embed = createBridge({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, logger: throwingLogger })
+    const promise = embed.getFields()
+    const requestId = posted[posted.length - 1]?.request_id ?? ''
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: JSON.stringify({
+          type: 'REQUEST_RESULT',
+          data: { request_id: requestId, result: { success: true, data: { fields: [] } } },
+        }),
+        origin: EDITOR_ORIGIN,
+        source: contentWindow,
+      }),
+    )
+    await expect(promise).resolves.toEqual({ success: true, data: { fields: [] } })
+    embed.dispose()
+  })
+
   it('ignores messages from a foreign origin', async () => {
     const harness = makeHarness()
     const promise = harness.embed.getFields()

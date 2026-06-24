@@ -174,10 +174,9 @@ const readStreamCapped = async (
   }
 }
 
-const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
-  const controller = new AbortController()
+const fetchDocumentAsDataUrl = async (url: string, signal: AbortSignal): Promise<string | null> => {
   try {
-    const response = await fetch(url, { method: 'GET', credentials: 'same-origin', signal: controller.signal })
+    const response = await fetch(url, { method: 'GET', credentials: 'same-origin', signal })
     if (!response.ok) {
       return null
     }
@@ -192,9 +191,9 @@ const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
       // loader fetch it instead.
       return null
     }
+    // readStreamCapped cancels the reader (stopping the download) if the cap is hit.
     const chunks = await readStreamCapped(body, DOCUMENT_SIZE_CAP_BYTES)
     if (chunks === null) {
-      controller.abort()
       return null
     }
     const contentType = response.headers.get('content-type') ?? 'application/pdf'
@@ -251,14 +250,17 @@ export const mountEmbed = ({
   container.appendChild(iframe)
 
   // Tracks teardown so the async document load below doesn't post / re-navigate
-  // after the consumer has disposed the embed.
+  // after the consumer has disposed the embed; the controller aborts an in-flight
+  // host-fetch so a disposed mount stops downloading.
   let mountDisposed = false
+  const documentFetchController = new AbortController()
   const embed = createBridge({
     getIframe: () => iframe,
     editorOrigin,
     logger,
     onDispose: () => {
       mountDisposed = true
+      documentFetchController.abort()
       iframe.remove()
     },
   })
@@ -267,7 +269,9 @@ export const mountEmbed = ({
   // For url documents we host-fetch eagerly and fall back to ?open on failure.
   if (mountDocument !== undefined) {
     const dataUrlPromise =
-      'dataUrl' in mountDocument ? Promise.resolve(mountDocument.dataUrl) : fetchDocumentAsDataUrl(mountDocument.url)
+      'dataUrl' in mountDocument
+        ? Promise.resolve(mountDocument.dataUrl)
+        : fetchDocumentAsDataUrl(mountDocument.url, documentFetchController.signal)
     const documentName =
       mountDocument.name ?? ('url' in mountDocument ? extractDocumentName(mountDocument.url) : undefined)
 
