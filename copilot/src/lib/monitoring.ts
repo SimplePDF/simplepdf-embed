@@ -134,22 +134,9 @@ export type EventPayloads = {
     instructions_length: number
   }
 
-  // iframe_bridge.ts (client)
-  'iframe.request_sent': { request_id: string; type: string; timeout_ms: number }
-  'iframe.request_timed_out': { request_id: string; type: string; elapsed_ms: number }
-  'iframe.request_received': {
-    request_id: string
-    type: string
-    elapsed_ms: number
-    success: boolean
-  }
-  'iframe.request_missing_pending': { request_id: string }
-  'iframe.ignored_cross_origin_message': { origin: string; expected: string }
-  'editor.ready_via_event': Record<string, never>
-  'editor.ready_via_probe': Record<string, never>
-  'editor.ready_fallback_timeout': { timeout_ms: number }
-  'document.loaded_via_probe': Record<string, never>
-  'document.loaded_via_event': Record<string, never>
+  // The @simplepdf/embed bridge logs its own iframe.* / editor.* events through
+  // `bridgeLogger` below (the BridgeLogger contract, with free-form event names),
+  // not through this typed monitoring map.
 
   // routes/index.tsx (client)
   'base_domain.invalid': { raw: string }

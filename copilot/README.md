@@ -102,10 +102,19 @@ Browser
 Then:
 
 ```sh
+# Copilot depends on the @simplepdf/embed bridge via a local dev-link
+# (file:../packages/embed) until that package is published to npm. Build it
+# first so its dist/ exists, then install copilot:
+( cd ../packages/embed && npm install && npm run build )
+
 npm install
 cp .env.example .env      # then set VITE_SIMPLEPDF_COMPANY_IDENTIFIER as above
 npm run dev               # http://localhost:3001
 ```
+
+> The `( cd ../packages/embed && ... )` step is only needed for a local checkout
+> while `@simplepdf/embed` is dev-linked. Once it is published to npm, copilot will
+> depend on the published version and `npm install` alone will suffice.
 
 In the running app, open the chat sidebar, click **Bring your own provider**, paste a key from Anthropic / OpenAI / DeepSeek (or point at any OpenAI-compatible endpoint like Ollama / LM Studio), and you're filling forms.
 

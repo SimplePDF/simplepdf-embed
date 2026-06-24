@@ -309,9 +309,9 @@ const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => bo
   }
 }
 
-// Runtime narrowing over BridgeResult payloads. The dispatcher returns
+// Runtime narrowing over BridgeResult payloads. The executor returns
 // `BridgeResult<unknown>` by design (the bridge itself doesn't validate
-// per-tool shapes. that's the client-tools / middleware concern), so the
+// per-tool shapes. that's the tools-router / middleware concern), so the
 // compaction middleware verifies the expected shape before touching the
 // data. A future middleware that rewrites the payload simply bypasses
 // compaction instead of crashing on undefined .fields / .pages.
@@ -777,9 +777,10 @@ export const ChatPane = ({
     onFieldAddedRef,
   })
 
-  // Build the client-tools adapter per bridge instance. The bridge itself
-  // comes from useIframeBridge and swaps on form / locale reset; everything
-  // the middleware needs is read via closures over stable refs or callbacks,
+  // Build the tool executor (package executor wrapped in copilot middleware) per
+  // bridge instance. The bridge itself comes from useIframeBridge and swaps on
+  // form / locale reset; everything the middleware needs is read via closures over
+  // stable refs or callbacks,
   // so one factory call per bridge lifetime is enough.
   const tools = useMemo((): ((context: MiddlewareContext) => Promise<BridgeResult<unknown>>) | null => {
     if (bridge === null) {

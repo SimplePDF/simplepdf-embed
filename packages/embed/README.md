@@ -2,7 +2,7 @@
 
 A typed, zero-dependency client for embedding and programmatically driving the [SimplePDF](https://simplepdf.com) editor over its iframe/`postMessage` contract.
 
-The editor's interface contract (operations, events, locales, error codes) is published as a machine-readable manifest. This package is a thin, typed wrapper over that contract — its types, schemas, and tools are **generated from the manifest**, so the client can never drift from the editor.
+The editor's interface contract (operations, events, locales, error codes) is published as a machine-readable manifest. This package is a thin, typed wrapper over that contract — its types, schemas, and tools are **generated from a pinned copy of the manifest** (`embed-api.json`), so the generated client cannot drift from that pinned contract. (The pinned copy is re-synced from the editor on each release — see "Generated code & the pinned contract" below.)
 
 ## Install
 

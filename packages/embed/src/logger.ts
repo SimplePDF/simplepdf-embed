@@ -28,9 +28,12 @@ export const makeSafeLogger = (logger: BridgeLogger): BridgeLogger => {
     (level: 'debug' | 'info' | 'warn' | 'error') =>
     (event: string, payload: LogPayload): void => {
       try {
-        logger[level](event, payload)
+        // A logger method is typed () => void, but an async one is still
+        // assignable; coerce the (possibly-promise) return so a rejection can't
+        // escape as an unhandled rejection either.
+        void Promise.resolve(logger[level](event, payload)).catch(() => {})
       } catch {
-        // A logging failure is never allowed to surface.
+        // A synchronous logging failure is never allowed to surface.
       }
     }
   return { debug: guard('debug'), info: guard('info'), warn: guard('warn'), error: guard('error') }

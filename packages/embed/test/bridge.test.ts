@@ -309,8 +309,49 @@ describe(createBridge.name, () => {
       }),
     )
     await expect(promise).resolves.toEqual({ success: true, data: { fields: [] } })
-    // Disposal (which logs + notifies the disposed event) must not throw either.
+    // Disposal must not throw either.
     expect(() => embed.dispose()).not.toThrow()
+  })
+
+  it('an async-rejecting logger never surfaces as an unhandled rejection', async () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    const contentWindow = iframe.contentWindow
+    if (contentWindow === null) {
+      throw new Error('jsdom iframe has no contentWindow')
+    }
+    const posted: Posted[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    const unhandled = vi.fn()
+    process.on('unhandledRejection', unhandled)
+    const rejecting = () => Promise.reject(new Error('async log boom'))
+    const embed = createBridge({
+      getIframe: () => iframe,
+      editorOrigin: EDITOR_ORIGIN,
+      logger: { debug: rejecting, info: rejecting, warn: rejecting, error: rejecting },
+    })
+    const promise = embed.getFields()
+    const requestId = posted[posted.length - 1]?.request_id ?? ''
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: JSON.stringify({
+          type: 'REQUEST_RESULT',
+          data: { request_id: requestId, result: { success: true, data: { fields: [] } } },
+        }),
+        origin: EDITOR_ORIGIN,
+        source: contentWindow,
+      }),
+    )
+    await expect(promise).resolves.toEqual({ success: true, data: { fields: [] } })
+    // Let any microtask-queued rejections flush.
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(unhandled).not.toHaveBeenCalled()
+    process.off('unhandledRejection', unhandled)
+    embed.dispose()
   })
 
   it('ignores messages from a foreign origin', async () => {
