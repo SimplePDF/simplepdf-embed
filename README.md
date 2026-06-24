@@ -39,6 +39,7 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 
 # Get started
 
+- 🧩 [Typed bridge](./packages/embed/README.md) - `@simplepdf/embed` (typed client + React hook + AI SDK adapter, generated from the editor manifest)
 - ⚛️ [React component](./react/README.md) - `@simplepdf/react-embed-pdf`
 - 🚀 [Script tag](./web/README.md) - `@simplepdf/web-embed-pdf`
 - 🛠 [Iframe API](./documentation/IFRAME.md) - `postMessage` events

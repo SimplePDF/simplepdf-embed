@@ -20,5 +20,5 @@ export default defineConfig({
   splitting: true,
   sourcemap: true,
   clean: true,
-  external: ['ai', 'react', 'react-dom', 'react/jsx-runtime', 'zod'],
+  external: ['react', 'react-dom', 'react/jsx-runtime', 'zod'],
 })

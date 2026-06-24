@@ -11,7 +11,6 @@ import type {
   DeletePagesInput,
   DetectFieldsOutput,
   EditorErrorCode,
-  FieldType,
   FocusFieldInput,
   FocusFieldOutput,
   GetDocumentContentInput,
@@ -20,7 +19,6 @@ import type {
   GoToInput,
   LoadDocumentInput,
   MovePageInput,
-  OverlayToolType,
   PageFocusedPayload,
   RotatePageInput,
   SelectToolInput,
@@ -152,9 +150,3 @@ export type Embed = IframeBridge & {
   dispose: () => void
   readonly iframe: HTMLIFrameElement | null
 }
-
-// Field types the drop-a-field tool palette can activate (the 5 overlay types).
-// Native AcroField-only types (DROPDOWN/RADIO) are reported by get_fields but
-// are not selectable tools.
-export type { FieldType as SupportedFieldType }
-export type ToolType = OverlayToolType

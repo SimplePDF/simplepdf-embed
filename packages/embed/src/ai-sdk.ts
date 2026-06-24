@@ -4,8 +4,9 @@
 //
 // The definitions are plain { description, inputSchema } objects (the shape
 // streamText({ tools }) and the model SDKs consume directly) rather than the
-// `ai` `tool()` helper, so the adapter stays decoupled from the SDK's exact
-// version. `ai` is a declared (optional) peer: it is the SDK these shapes target.
+// `ai` `tool()` helper, so the adapter is fully decoupled from the SDK — the
+// package never imports `ai`. The consumer brings their own `ai` install and
+// passes these shapes to streamText / useChat.
 
 import { TOOL_DEFINITIONS } from './generated/tools'
 import { isSimplePDFToolName, routeToolCall } from './tools'
