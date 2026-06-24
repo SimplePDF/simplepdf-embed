@@ -205,7 +205,7 @@
       "get_document_content": "Leyendo el documento",
       "detect_fields": "Detectando los campos",
       "focus_field": "Resaltando el campo",
-      "go_to_page": "Yendo a la página",
+      "go_to": "Yendo a la página",
       "set_field_value": "Completando el campo",
       "select_tool": "Cambiando de herramienta",
       "delete_fields": "Eliminando campos",

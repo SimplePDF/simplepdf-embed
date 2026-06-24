@@ -21,4 +21,3 @@ export const TOOL_DEFINITIONS = {
 } as const
 
 export type SimplePDFToolName = keyof typeof TOOL_DEFINITIONS
-

@@ -205,7 +205,7 @@
       "get_document_content": "Document lezen",
       "detect_fields": "Velden detecteren",
       "focus_field": "Veld markeren",
-      "go_to_page": "Naar de pagina gaan",
+      "go_to": "Naar de pagina gaan",
       "set_field_value": "Veld invullen",
       "select_tool": "Tool wisselen",
       "delete_fields": "Velden verwijderen",

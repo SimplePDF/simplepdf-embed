@@ -187,8 +187,10 @@ const fetchDocumentAsDataUrl = async (url: string): Promise<string | null> => {
     }
     const body = response.body
     if (body === null) {
-      const blob = await response.blob()
-      return blob.size > DOCUMENT_SIZE_CAP_BYTES ? null : await blobToDataUrl(blob)
+      // No readable stream (e.g. an opaque response): we can't enforce the cap
+      // without buffering the whole body, so decline and let the editor's ?open
+      // loader fetch it instead.
+      return null
     }
     const chunks = await readStreamCapped(body, DOCUMENT_SIZE_CAP_BYTES)
     if (chunks === null) {
@@ -248,11 +250,17 @@ export const mountEmbed = ({
   })
   container.appendChild(iframe)
 
+  // Tracks teardown so the async document load below doesn't post / re-navigate
+  // after the consumer has disposed the embed.
+  let mountDisposed = false
   const embed = createBridge({
     getIframe: () => iframe,
     editorOrigin,
     logger,
-    onDispose: () => iframe.remove(),
+    onDispose: () => {
+      mountDisposed = true
+      iframe.remove()
+    },
   })
 
   // Post LOAD_DOCUMENT once the editor is ready (it queues nothing before then).
@@ -265,6 +273,9 @@ export const mountEmbed = ({
 
     const loadWhenReady = async (): Promise<void> => {
       const dataUrl = await dataUrlPromise
+      if (mountDisposed) {
+        return
+      }
       if (dataUrl === null) {
         // Host-fetch failed (CORS/size/network): re-navigate the iframe through
         // the editor's ?open loader, which fetches the URL inside the editor.
@@ -279,7 +290,11 @@ export const mountEmbed = ({
         }
         return
       }
-      await embed.loadDocument({ data_url: dataUrl, name: documentName, page: mountDocument.page })
+      const result = await embed.loadDocument({ data_url: dataUrl, name: documentName, page: mountDocument.page })
+      if (!result.success) {
+        // Surface the load failure (it would otherwise be silently dropped).
+        logger.error('mount.load_document_failed', { code: result.error.code, message: result.error.message })
+      }
     }
 
     if (embed.getState().kind === 'booting') {

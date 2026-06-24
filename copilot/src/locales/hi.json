@@ -205,7 +205,7 @@
       "get_document_content": "दस्तावेज़ पढ़ रहा है",
       "detect_fields": "फ़ील्ड का पता लगा रहा है",
       "focus_field": "फ़ील्ड को हाइलाइट कर रहा है",
-      "go_to_page": "पृष्ठ पर जा रहा है",
+      "go_to": "पृष्ठ पर जा रहा है",
       "set_field_value": "फ़ील्ड भर रहा है",
       "select_tool": "टूल बदल रहा है",
       "delete_fields": "फ़ील्ड हटा रहा है",

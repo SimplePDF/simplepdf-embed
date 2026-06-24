@@ -1,4 +1,5 @@
 import { simplePDFToolDefinitions } from '@simplepdf/embed/ai-sdk'
+import type { SimplePDFToolName } from '@simplepdf/embed/tools'
 import type { FinalisationAction } from '../../server/tools'
 import { IS_DEMO_MODE } from '../mode'
 
@@ -34,3 +35,13 @@ export const buildCopilotToolDefinitions = (): Record<string, ToolDefinition> =>
   }
   return Object.fromEntries(Object.entries(all).filter(([name]) => isExposed(name)))
 }
+
+// The exact set of tool names copilot exposes to the model — the executable
+// allowlist. The browser-side executor is gated on this (defense in depth: the
+// model only ever sees this set in its server tool definitions, but the executor
+// must not run anything outside it either, e.g. create_field or the inactive
+// finalisation tool).
+const COPILOT_TOOL_NAMES: ReadonlySet<string> = new Set(Object.keys(buildCopilotToolDefinitions()))
+
+export const isCopilotToolName = (value: unknown): value is SimplePDFToolName =>
+  typeof value === 'string' && COPILOT_TOOL_NAMES.has(value)

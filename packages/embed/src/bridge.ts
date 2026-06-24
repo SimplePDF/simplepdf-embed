@@ -28,18 +28,14 @@ export type CreateBridgeArgs = {
   onDispose?: () => void
 }
 
-// Only DETECT_FIELDS and GET_DOCUMENT_CONTENT do real work on the editor side
-// (auto-detection, OCR, whole-document scan) that can legitimately exceed a few
-// seconds. Every other request is a postMessage round-trip or a targeted DOM op
-// and should resolve well inside the default budget.
-const DEFAULT_REQUEST_TIMEOUT_MS = 6_000
-const HEAVY_REQUEST_TIMEOUT_MS = 30_000
+// One uniform request/response timeout. The editor is proven alive (EDITOR_READY
+// + the readiness probe), so this is purely a dead-iframe safety net — deliberately
+// generous so a request posted behind a slow FIFO op (auto-detection / OCR) is not
+// starved by a per-op budget that starts at enqueue, not at dispatch. Dependent
+// calls should be awaited rather than fired concurrently.
+const REQUEST_TIMEOUT_MS = 60_000
 const EDITOR_READY_PROBE_INTERVAL_MS = 500
 const EDITOR_READY_HARD_FALLBACK_MS = 30_000
-const HEAVY_WIRE_TYPES: ReadonlySet<WireType> = new Set<WireType>(['DETECT_FIELDS', 'GET_DOCUMENT_CONTENT'])
-
-const getRequestTimeoutMs = (wireType: WireType): number =>
-  HEAVY_WIRE_TYPES.has(wireType) ? HEAVY_REQUEST_TIMEOUT_MS : DEFAULT_REQUEST_TIMEOUT_MS
 
 // Compile-time drift guards: the outbound-event literals the bridge matches must
 // remain members of the generated vocabulary, or `tsc` fails (an editor rename
@@ -126,27 +122,21 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
       return () => subscribers.disposed.delete(listener)
     },
   }
+  // One listener throwing must not stop the others or break cleanup.
+  const notifyListeners = <TPayload>(listeners: Set<(payload: TPayload) => void>, payload: TPayload): void => {
+    for (const listener of listeners) {
+      try {
+        listener(payload)
+      } catch (error) {
+        logger.error('iframe.listener_threw', { message: error instanceof Error ? error.message : String(error) })
+      }
+    }
+  }
   const emit: { [E in BridgeEventName]: (payload: BridgeEventMap[E]) => void } = {
-    state_change: (payload) => {
-      for (const listener of subscribers.state_change) {
-        listener(payload)
-      }
-    },
-    submission_sent: (payload) => {
-      for (const listener of subscribers.submission_sent) {
-        listener(payload)
-      }
-    },
-    page_focused: (payload) => {
-      for (const listener of subscribers.page_focused) {
-        listener(payload)
-      }
-    },
-    disposed: (payload) => {
-      for (const listener of subscribers.disposed) {
-        listener(payload)
-      }
-    },
+    state_change: (payload) => notifyListeners(subscribers.state_change, payload),
+    submission_sent: (payload) => notifyListeners(subscribers.submission_sent, payload),
+    page_focused: (payload) => notifyListeners(subscribers.page_focused, payload),
+    disposed: (payload) => notifyListeners(subscribers.disposed, payload),
   }
   const on = <E extends BridgeEventName>(event: E, listener: Listener<E>): (() => void) => register[event](listener)
 
@@ -157,6 +147,13 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
 
   const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
     new Promise<BridgeResult<TData>>((resolve) => {
+      if (disposed) {
+        resolve({
+          success: false,
+          error: { code: 'unexpected:bridge_disposed', message: 'Editor bridge was disposed' },
+        })
+        return
+      }
       const iframe = getIframe()
       if (iframe === null || iframe.contentWindow === null) {
         resolve({
@@ -167,22 +164,22 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
       }
 
       const requestId = generateRequestId()
-      const timeoutMs = getRequestTimeoutMs(wireType)
       const startedAtMs = Date.now()
-      logger.info('iframe.request_sent', { request_id: requestId, type: wireType, timeout_ms: timeoutMs })
+      // Log identifiers + timing only — never the payload body (it can carry the
+      // document data URL, field values, signatures, or other PII).
+      logger.info('iframe.request_sent', { request_id: requestId, type: wireType, timeout_ms: REQUEST_TIMEOUT_MS })
       const timeoutId = setTimeout(() => {
         pending.delete(requestId)
         logger.error('iframe.request_timed_out', {
           request_id: requestId,
           type: wireType,
           elapsed_ms: Date.now() - startedAtMs,
-          timeout_ms: timeoutMs,
         })
         resolve({
           success: false,
-          error: { code: 'unexpected:timeout', message: `Editor request '${wireType}' timed out after ${timeoutMs}ms` },
+          error: { code: 'unexpected:timeout', message: `Editor request '${wireType}' timed out after ${REQUEST_TIMEOUT_MS}ms` },
         })
-      }, timeoutMs)
+      }, REQUEST_TIMEOUT_MS)
 
       pending.set(requestId, {
         resolve: (result) => resolve(relabelResult<TData>(result)),
@@ -191,9 +188,23 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
         timeoutId,
       })
 
-      const outbound = { type: wireType, request_id: requestId, data }
-      logger.debug('iframe.raw_sent', { payload: outbound })
-      iframe.contentWindow.postMessage(JSON.stringify(outbound), editorOrigin)
+      // Serializing (circular / BigInt input) or posting (dead contentWindow) can
+      // throw; convert that into a Result rather than rejecting the promise.
+      try {
+        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data })
+        iframe.contentWindow.postMessage(outbound, editorOrigin)
+        logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, byte_count: outbound.length })
+      } catch (error) {
+        clearTimeout(timeoutId)
+        pending.delete(requestId)
+        resolve({
+          success: false,
+          error: {
+            code: 'unexpected:unknown',
+            message: `Failed to post '${wireType}': ${error instanceof Error ? error.message : String(error)}`,
+          },
+        })
+      }
     })
 
   // --- Editor-readiness probing ---------------------------------------------
@@ -212,12 +223,16 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     probeRequestIds.clear()
   }
 
-  const markEditorReady = (): void => {
+  // `editor_ready_event` = a real EDITOR_READY message (iframe re-mounting for a
+  // fresh document cycle). `probe`/`fallback` only prove liveness and must NEVER
+  // drop a loaded document back to editor_ready.
+  type EditorReadySource = 'editor_ready_event' | 'probe' | 'fallback'
+  const markEditorReady = (source: EditorReadySource): void => {
     switch (state.kind) {
       case 'document_loaded':
-        // A fresh EDITOR_READY after a document was loaded means the iframe is
-        // re-mounting for a new document cycle. Drop back and await DOCUMENT_LOADED.
-        transitionTo({ kind: 'editor_ready' })
+        if (source === 'editor_ready_event') {
+          transitionTo({ kind: 'editor_ready' })
+        }
         return
       case 'booting':
         transitionTo({ kind: 'editor_ready' })
@@ -244,10 +259,14 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
     const probeId = generateRequestId()
     probeRequestIds.add(probeId)
-    iframe.contentWindow.postMessage(
-      JSON.stringify({ type: 'GET_FIELDS', request_id: probeId, data: {} }),
-      editorOrigin,
-    )
+    try {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ type: 'GET_FIELDS', request_id: probeId, data: {} }),
+        editorOrigin,
+      )
+    } catch {
+      // Best-effort liveness probe; a transient post failure just retries next tick.
+    }
   }
 
   // Fallback only for editor readiness, never for document-loaded: a doc-loaded
@@ -255,7 +274,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
   // the user has not picked a file yet.
   const readyTimeout = setTimeout(() => {
     logger.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
-    markEditorReady()
+    markEditorReady('fallback')
   }, EDITOR_READY_HARD_FALLBACK_MS)
 
   sendProbe()
@@ -287,10 +306,11 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     if (payload === null) {
       return
     }
-    logger.debug('iframe.raw_received', { payload })
+    // Log the message type + correlation id only — never the body (PII).
+    logger.debug('iframe.message_received', { type: payload.type, request_id: payload.request_id })
 
     if (payload.type === INTERNAL_PROTOCOL.EDITOR_READY) {
-      markEditorReady()
+      markEditorReady('editor_ready_event')
       return
     }
 
@@ -335,7 +355,7 @@ export const createBridge = ({ getIframe, editorOrigin, logger = NOOP_LOGGER, on
     }
     if (probeRequestIds.has(requestId)) {
       probeRequestIds.delete(requestId)
-      markEditorReady()
+      markEditorReady('probe')
       const probeResult = payload.data?.result
       if (isBridgeResultLike(probeResult) && probeResult.success === true) {
         markDocumentLoaded()

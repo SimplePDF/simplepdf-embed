@@ -25,6 +25,10 @@ const GENERATED_DIR = join(PKG_ROOT, 'src', 'generated')
 
 const contract = JSON.parse(readFileSync(join(PKG_ROOT, 'embed-api.json'), 'utf8'))
 
+// Join lines with exactly one trailing newline (no trailing blank lines that
+// `git diff --check` would flag).
+const renderFile = (lines) => `${lines.join('\n').replace(/\n+$/, '')}\n`
+
 // Operations that exist on the wire but are NOT exposed as agentic tools.
 // load_document is a host/setup action (the contract description says so).
 const NON_AGENTIC_OPERATIONS = new Set(['load_document'])
@@ -52,6 +56,30 @@ const NAMED_ENUMS = new Map()
 // JSON Schema -> TypeScript type
 // ---------------------------------------------------------------------------
 
+// The closed vocabulary the emitter understands. A node carrying any other
+// keyword (minLength, pattern, format, minimum, additionalProperties, oneOf,
+// allOf, $ref, ...) fails loud so a new manifest constraint can never be
+// silently dropped from the generated types/schemas.
+const KNOWN_SCHEMA_KEYWORDS = new Set([
+  'type',
+  'enum',
+  'const',
+  'anyOf',
+  'properties',
+  'required',
+  'items',
+  'description',
+])
+const assertKnownKeywords = (node) => {
+  for (const keyword of Object.keys(node)) {
+    if (!KNOWN_SCHEMA_KEYWORDS.has(keyword)) {
+      throw new Error(
+        `Unsupported JSON Schema keyword '${keyword}' in ${JSON.stringify(node)} — extend the generator to honor it`,
+      )
+    }
+  }
+}
+
 const tsForEnum = (members) => {
   const named = NAMED_ENUMS.get(enumSignature(members))
   if (named !== undefined) {
@@ -61,6 +89,7 @@ const tsForEnum = (members) => {
 }
 
 const tsForNode = (node) => {
+  assertKnownKeywords(node)
   if (node.const !== undefined) {
     return JSON.stringify(node.const)
   }
@@ -113,6 +142,7 @@ const describe = (expr, node) =>
   typeof node.description === 'string' ? `${expr}.describe(${JSON.stringify(node.description)})` : expr
 
 const zodForNode = (node, { withDescription }) => {
+  assertKnownKeywords(node)
   const base = (() => {
     if (node.const !== undefined) {
       return `z.literal(${JSON.stringify(node.const)})`
@@ -244,6 +274,19 @@ contractLines.push('export type DocumentContentResult = GetDocumentContentOutput
 contractLines.push("export type DocumentContentPage = GetDocumentContentOutput['pages'][number]")
 contractLines.push('')
 
+// The typed `details` payload carried by the one error code that has them, derived
+// from editor_error_schema so the package's BridgeError never restates it.
+const missingFieldsVariant = (contract.editor_error_schema.anyOf ?? []).find(
+  (variant) => variant.properties?.code?.const === 'bad_request:missing_required_fields',
+)
+if (missingFieldsVariant?.properties?.details === undefined) {
+  throw new Error('embed-api.json: the bad_request:missing_required_fields variant lacks a details schema')
+}
+contractLines.push(
+  `export type MissingRequiredFieldsDetails = ${tsForNode(missingFieldsVariant.properties.details)}`,
+)
+contractLines.push('')
+
 // Outbound event payload types.
 for (const event of contract.events) {
   const stem = event.event_type
@@ -288,7 +331,7 @@ contractLines.push('export type OutboundEventType = (typeof OUTBOUND_EVENTS)[num
 contractLines.push('')
 
 mkdirSync(GENERATED_DIR, { recursive: true })
-writeFileSync(join(GENERATED_DIR, 'contract.ts'), `${contractLines.join('\n')}\n`)
+writeFileSync(join(GENERATED_DIR, 'contract.ts'), renderFile(contractLines))
 
 // --- schemas.ts (zod peer dep + compile-time drift guards) -----------------
 
@@ -305,7 +348,7 @@ for (const op of contract.operations) {
 }
 schemaLines.push('')
 
-writeFileSync(join(GENERATED_DIR, 'schemas.ts'), `${schemaLines.join('\n')}\n`)
+writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
 
 // --- drift.ts (compile-time drift guards; type-checked, not bundled) --------
 // One exported tuple gathers every guard so noUnusedLocals stays happy while the
@@ -332,7 +375,7 @@ for (const op of contract.operations) {
 driftLines.push(']')
 driftLines.push('')
 
-writeFileSync(join(GENERATED_DIR, 'drift.ts'), `${driftLines.join('\n')}\n`)
+writeFileSync(join(GENERATED_DIR, 'drift.ts'), renderFile(driftLines))
 
 // --- tools.ts (agentic tool registry: name -> { description, inputSchema }) --
 
@@ -355,7 +398,7 @@ toolLines.push('')
 toolLines.push('export type SimplePDFToolName = keyof typeof TOOL_DEFINITIONS')
 toolLines.push('')
 
-writeFileSync(join(GENERATED_DIR, 'tools.ts'), `${toolLines.join('\n')}\n`)
+writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +

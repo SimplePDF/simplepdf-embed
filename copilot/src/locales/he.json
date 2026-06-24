@@ -208,7 +208,7 @@
       "get_document_content": "קריאת המסמך",
       "detect_fields": "זיהוי שדות",
       "focus_field": "הדגשת שדה",
-      "go_to_page": "מעבר לעמוד",
+      "go_to": "מעבר לעמוד",
       "set_field_value": "מילוי שדה",
       "select_tool": "החלפת כלי",
       "delete_fields": "מחיקת שדות",

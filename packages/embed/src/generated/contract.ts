@@ -50,6 +50,8 @@ export type SubmitOutput = null
 export type DocumentContentResult = GetDocumentContentOutput
 export type DocumentContentPage = GetDocumentContentOutput['pages'][number]
 
+export type MissingRequiredFieldsDetails = { unfilled_required_fields_count: number }
+
 export type PageFocusedPayload = { previous_page: number | null; current_page: number; total_pages: number }
 export type SubmissionSentPayload = { document_id: string; submission_id: string }
 
@@ -201,4 +203,3 @@ export const OUTBOUND_EVENTS = [
   { event_type: "SUBMISSION_SENT", description: "Pushed after a SUBMIT completes successfully. This is how you confirm a submission landed: the SUBMIT operation itself resolves with data: null, so listen for this event to get the resulting document_id and submission_id." },
 ] as const
 export type OutboundEventType = (typeof OUTBOUND_EVENTS)[number]["event_type"]
-

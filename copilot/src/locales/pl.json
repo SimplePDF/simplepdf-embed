@@ -211,7 +211,7 @@
       "get_document_content": "Odczytywanie dokumentu",
       "detect_fields": "Wykrywanie pól",
       "focus_field": "Podświetlanie pola",
-      "go_to_page": "Przechodzenie do strony",
+      "go_to": "Przechodzenie do strony",
       "set_field_value": "Wypełnianie pola",
       "select_tool": "Zmiana narzędzia",
       "delete_fields": "Usuwanie pól",

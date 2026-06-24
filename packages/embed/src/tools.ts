@@ -10,8 +10,11 @@ import {
   CreateFieldInput,
   DeleteFieldsInput,
   DeletePagesInput,
+  DetectFieldsInput,
+  DownloadInput,
   FocusFieldInput,
   GetDocumentContentInput,
+  GetFieldsInput,
   GoToInput,
   MovePageInput,
   RotatePageInput,
@@ -55,16 +58,19 @@ export const routeToolCall = (embed: Embed, toolName: SimplePDFToolName, input: 
       return dispatch(DeleteFieldsInput, input, (value) => embed.deleteFields(value))
     case 'delete_pages':
       return dispatch(DeletePagesInput, input, (value) => embed.deletePages(value))
+    // No-input + all-optional tools coerce a missing input to {} (the AI SDK
+    // sends {} for them); required-input tools below keep `input` so a missing
+    // payload fails validation.
     case 'detect_fields':
-      return embed.detectFields()
+      return dispatch(DetectFieldsInput, input ?? {}, () => embed.detectFields())
     case 'download':
-      return embed.download()
+      return dispatch(DownloadInput, input ?? {}, () => embed.download())
     case 'focus_field':
       return dispatch(FocusFieldInput, input, (value) => embed.focusField(value))
     case 'get_document_content':
-      return dispatch(GetDocumentContentInput, input, (value) => embed.getDocumentContent(value))
+      return dispatch(GetDocumentContentInput, input ?? {}, (value) => embed.getDocumentContent(value))
     case 'get_fields':
-      return embed.getFields()
+      return dispatch(GetFieldsInput, input ?? {}, () => embed.getFields())
     case 'go_to':
       return dispatch(GoToInput, input, (value) => embed.goTo(value))
     case 'move_page':

@@ -18,6 +18,7 @@ import type {
   GetFieldsOutput,
   GoToInput,
   LoadDocumentInput,
+  MissingRequiredFieldsDetails,
   MovePageInput,
   PageFocusedPayload,
   RotatePageInput,
@@ -47,6 +48,7 @@ export type {
   GoToInput,
   Locale,
   LoadDocumentInput,
+  MissingRequiredFieldsDetails,
   MovePageInput,
   OverlayToolType,
   PageFocusedPayload,
@@ -73,6 +75,7 @@ export type BridgeOwnedErrorCode =
   | 'unexpected:iframe_not_mounted'
   | 'unexpected:bridge_disposed'
   | 'unexpected:malformed_result'
+  | 'unexpected:unknown'
 
 // The complete, closed error union: package-owned transport codes UNION the
 // generated editor codes (the customer-facing set already redacted at the wire
@@ -85,7 +88,7 @@ export type BridgeError =
   | {
       code: 'bad_request:missing_required_fields'
       message: string
-      details: { unfilled_required_fields_count: number }
+      details: MissingRequiredFieldsDetails
     }
   | { code: Exclude<BridgeErrorCode, 'bad_request:missing_required_fields'>; message: string }
 

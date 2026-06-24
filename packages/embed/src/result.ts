@@ -26,11 +26,15 @@ export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknow
     if (!('code' in error) || !('message' in error)) {
       return false
     }
-    // We validate only the code+message discriminant. The typed `details` carried
-    // by bad_request:missing_required_fields is trusted to the same-origin editor
-    // (the same trust boundary that covers the success `data`); we don't re-derive
-    // it at runtime.
-    return typeof error.code === 'string' && typeof error.message === 'string'
+    if (typeof error.code !== 'string' || typeof error.message !== 'string') {
+      return false
+    }
+    // The code must carry one of the closed category prefixes. We deliberately do
+    // NOT enumerate the full closed set here: that would pull the generated code
+    // list into the zero-dep root and reject any newly-added editor code before a
+    // manifest re-sync. The exact code (like `data` and the typed `details`) is
+    // trusted to the same-origin editor; the prefix check rejects garbage frames.
+    return /^(bad_request|forbidden|unexpected):/.test(error.code)
   }
   return false
 }

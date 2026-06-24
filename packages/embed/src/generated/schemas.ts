@@ -66,4 +66,3 @@ export const SubmitInput = z.object({
   download_copy: z.boolean().describe("When true, the signer also receives a downloaded copy on submit."),
 }).describe("Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.")
 export type SubmitInput = z.infer<typeof SubmitInput>
-

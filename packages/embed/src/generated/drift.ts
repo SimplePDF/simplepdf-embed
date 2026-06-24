@@ -26,4 +26,3 @@ export type DriftGuards = [
   AssertTrue<Exact<Schemas.SetFieldValueInput, Contract.SetFieldValueInput>>,
   AssertTrue<Exact<Schemas.SubmitInput, Contract.SubmitInput>>,
 ]
-

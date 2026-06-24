@@ -205,7 +205,7 @@
       "get_document_content": "Leser dokumentet",
       "detect_fields": "Registrerer felt",
       "focus_field": "Uthever feltet",
-      "go_to_page": "Går til siden",
+      "go_to": "Går til siden",
       "set_field_value": "Fyller ut feltet",
       "select_tool": "Bytter verktøy",
       "delete_fields": "Sletter felt",

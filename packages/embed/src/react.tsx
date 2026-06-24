@@ -19,7 +19,7 @@ type UseIframeBridgeArgs = {
   editorOrigin: string
   // When this key changes, the bridge is disposed and re-created. Use it to force
   // a full reset (state machine + pending requests) when the iframe remounts.
-  resetKey: string
+  resetKey?: string
   logger?: BridgeLogger
 }
 
@@ -119,11 +119,27 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
       return ''
     }
     const suffix = `:${embedDocument.name ?? ''}:${embedDocument.page ?? ''}`
-    return 'url' in embedDocument
-      ? `url:${embedDocument.url}${suffix}`
-      : `data:${embedDocument.dataUrl.length}${suffix}`
+    if ('url' in embedDocument) {
+      return `url:${embedDocument.url}${suffix}`
+    }
+    // A data URL is identified by length + a head/tail sample (cheap; avoids
+    // re-serializing a multi-MB string each render, while length-alone collisions
+    // between two distinct same-size documents would otherwise skip a remount).
+    const { dataUrl } = embedDocument
+    return `data:${dataUrl.length}:${dataUrl.slice(0, 64)}:${dataUrl.slice(-64)}${suffix}`
   }, [embedDocument])
-  const contextKey = React.useMemo(() => JSON.stringify(context ?? null), [context])
+  const contextKey = React.useMemo((): string => {
+    if (context === undefined) {
+      return 'null'
+    }
+    try {
+      return JSON.stringify(context)
+    } catch {
+      // Circular / non-serializable context (a programmer error; encodeContext
+      // drops it too). Key on the top-level shape so render never throws.
+      return `unserializable:${Object.keys(context).sort().join(',')}`
+    }
+  }, [context])
 
   React.useEffect(() => {
     const container = containerRef.current

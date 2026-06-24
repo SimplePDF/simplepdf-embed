@@ -8,7 +8,7 @@ import type {
 } from '@simplepdf/embed'
 import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
 import { OVERLAY_TOOL_TYPES } from '@simplepdf/embed/protocol'
-import { isSimplePDFToolName } from '@simplepdf/embed/tools'
+import type { SimplePDFToolName } from '@simplepdf/embed/tools'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp, Mic, X } from 'lucide-react'
@@ -39,6 +39,7 @@ import { classifyError } from '../../lib/error-classifier'
 import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
+import { isCopilotToolName } from '../../lib/tools/definitions'
 import {
   composeMiddleware,
   type MiddlewareContext,
@@ -784,7 +785,14 @@ export const ChatPane = ({
     if (bridge === null) {
       return null
     }
-    const executor = createSimplePDFExecutor({ embed: bridge })
+    const rawExecutor = createSimplePDFExecutor({ embed: bridge })
+    // Force download_copy:false on submit: copilot never has the agent also
+    // download a copy (preserves pre-migration behavior — the model would
+    // otherwise control this flag).
+    const executor = (toolName: SimplePDFToolName, input: ToolInput): Promise<BridgeResult<unknown>> =>
+      toolName === 'submit'
+        ? rawExecutor(toolName, { ...input, download_copy: false })
+        : rawExecutor(toolName, input)
     const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
@@ -812,7 +820,7 @@ export const ChatPane = ({
       }
       void enqueueToolExecution(async () => {
         const toolName = toolCall.toolName
-        if (!isSimplePDFToolName(toolName)) {
+        if (!isCopilotToolName(toolName)) {
           await Promise.resolve(
             addToolOutput({
               tool: toolName,

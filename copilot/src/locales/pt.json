@@ -205,7 +205,7 @@
       "get_document_content": "A ler o documento",
       "detect_fields": "A detectar os campos",
       "focus_field": "A destacar o campo",
-      "go_to_page": "A ir para a página",
+      "go_to": "A ir para a página",
       "set_field_value": "A preencher o campo",
       "select_tool": "A mudar de ferramenta",
       "delete_fields": "A eliminar campos",
