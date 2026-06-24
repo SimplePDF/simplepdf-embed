@@ -10,13 +10,13 @@
 // the env literal at build time, so the gated branches tree-shake in
 // production.
 //
-// The lib/embed-bridge package needs a BridgeLogger it can call
+// The @simplepdf/embed bridge needs a BridgeLogger it can call
 // unconditionally (it doesn't know about the devtools flag). `bridgeLogger`
 // below is the adapter: same always-on-error / gated-chatty behaviour as
 // `monitoring`, reshaped into the BridgeLogger contract. That keeps the
 // gating decision in one file.
 
-import type { BridgeLogger, LogPayload } from './embed-bridge'
+import type { BridgeLogger, LogPayload } from '@simplepdf/embed'
 
 type RateLimitReason = 'lifetime' | 'system_failure'
 
@@ -196,7 +196,7 @@ export const normalizeError = (error: unknown): string => {
   return String(error)
 }
 
-// Adapter so the lib/embed-bridge package can call a logger unconditionally
+// Adapter so the @simplepdf/embed bridge can call a logger unconditionally
 // without knowing about the devtools flag. Same gating policy: error always
 // prints, info / warn / debug only when VITE_ENABLE_DEVTOOLS is on. The
 // `[copilot:bridge]` prefix keeps bridge-sourced logs visually distinct

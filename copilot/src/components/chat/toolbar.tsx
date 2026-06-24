@@ -1,12 +1,12 @@
+import type { OverlayToolType } from '@simplepdf/embed'
 import { Check, Download, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { SupportedFieldType } from '../../lib/embed-bridge'
 import { IS_DEMO_MODE } from '../../lib/mode'
 
-// Equivalent to SupportedFieldType | null. Kept as a named alias so the
-// toolbar's five buttons + cursor state read cleanly at call sites.
-export type ToolbarTool = SupportedFieldType | null
+// Equivalent to OverlayToolType | null. Kept as a named alias so the toolbar's
+// five placement buttons + cursor state read cleanly at call sites.
+export type ToolbarTool = OverlayToolType | null
 
 type ToolbarProps = {
   selected: ToolbarTool

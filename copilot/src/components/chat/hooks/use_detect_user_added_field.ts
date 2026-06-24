@@ -1,5 +1,5 @@
+import type { FieldType, IframeBridge, OverlayToolType } from '@simplepdf/embed'
 import { type MutableRefObject, useEffect, useRef } from 'react'
-import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge'
 
 // WORKAROUND: the SimplePDF editor does not currently emit an outbound
 // FIELD_ADDED event when the user drops a field via the toolbar. Until it
@@ -37,12 +37,14 @@ import type { IframeBridge, SupportedFieldType } from '../../../lib/embed-bridge
 
 const POLL_INTERVAL_MS = 200
 
-export type FieldAddedEvent = { tools: SupportedFieldType[]; delta: number }
+// The added fields' types as get_fields reports them (the full FieldType set).
+// The consumer narrows to the placement-tool subset before rendering the hint.
+export type FieldAddedEvent = { tools: FieldType[]; delta: number }
 
 type UseDetectUserAddedFieldArgs = {
   bridge: IframeBridge | null
   isReady: boolean
-  toolbarTool: SupportedFieldType | null
+  toolbarTool: OverlayToolType | null
   isCursorOverEditor: boolean
   isStreamingRef: MutableRefObject<boolean>
   onFieldAddedRef: MutableRefObject<(event: FieldAddedEvent) => void>

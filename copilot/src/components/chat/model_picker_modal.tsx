@@ -17,8 +17,8 @@ import {
   validateApiKey,
 } from '../../lib/byok'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
-import { FINALISATION_ACTION } from '../../lib/embed-bridge-adapters/client-tools'
 import { buildSimplepdfUrl } from '../../lib/simplepdf_url'
+import { FINALISATION_ACTION } from '../../lib/tools/definitions'
 import type { DemoGate, ModelTab } from '../../routes/index'
 import { getDefaultSystemPrompt } from '../../server/tools'
 import { LabeledField } from '../ui/labeled_field'

@@ -51,6 +51,7 @@
     "generate": "node scripts/generate.mjs",
     "prebuild": "npm run generate",
     "build": "tsup",
+    "prepare": "npm run build",
     "pretest:types": "npm run generate",
     "test:types": "tsc --noEmit",
     "pretest": "npm run generate",
