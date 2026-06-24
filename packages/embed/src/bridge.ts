@@ -1,5 +1,5 @@
+import { INTERNAL_PROTOCOL } from './internal-protocol'
 import { type BridgeLogger, NOOP_LOGGER } from './logger'
-import { INTERNAL_PROTOCOL } from './protocol'
 import { isBridgeResultLike } from './result'
 import type { WireType } from './generated/contract'
 import type {

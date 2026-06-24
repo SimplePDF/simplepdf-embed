@@ -12,17 +12,10 @@ export type {
   WireType,
 } from './generated/contract'
 export { OPERATIONS, OUTBOUND_EVENTS } from './generated/contract'
-
-// Internal protocol message types (editor-owned, hand-authored). These drive the
-// bridge lifecycle and request correlation; they are intentionally excluded from
-// the public operation/event vocabulary and from embed-api.json.
-export const INTERNAL_PROTOCOL = {
-  EDITOR_READY: 'EDITOR_READY',
-  DOCUMENT_LOADED: 'DOCUMENT_LOADED',
-  REQUEST_RESULT: 'REQUEST_RESULT',
-} as const
-
-export type InternalProtocolType = (typeof INTERNAL_PROTOCOL)[keyof typeof INTERNAL_PROTOCOL]
+// The internal protocol constants live in their own module (so the bridge / root
+// entry never pulls the OPERATIONS table); the public /protocol surface re-exports them.
+export { INTERNAL_PROTOCOL } from './internal-protocol'
+export type { InternalProtocolType } from './internal-protocol'
 
 // Convenience derived constants (the wire type each op posts; the request_type
 // that doubles as the agentic tool name).

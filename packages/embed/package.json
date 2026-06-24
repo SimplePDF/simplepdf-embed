@@ -56,7 +56,8 @@
     "test:types": "tsc --noEmit",
     "pretest": "npm run generate",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:size": "npm run build && node scripts/check-bundle-size.mjs"
   },
   "peerDependencies": {
     "ai": ">=4",
