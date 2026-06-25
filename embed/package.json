@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/embed",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Typed bridge for embedding and programmatically driving the SimplePDF editor",
   "type": "module",
   "private": false,
@@ -18,8 +18,7 @@
     "node": ">=18"
   },
   "files": [
-    "dist",
-    "embed-api.json"
+    "dist"
   ],
   "exports": {
     ".": {
