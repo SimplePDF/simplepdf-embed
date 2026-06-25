@@ -189,4 +189,14 @@ describe(createEmbed.name, () => {
     // @ts-expect-error exercising the runtime guard for untyped JS callers
     expect(() => mount({ target: '#root', document: null })).toThrow(/document must be an object/)
   })
+
+  it('rejects a non-object args with a clean error', () => {
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed(null)).toThrow(/config object/)
+  })
+
+  it('rejects a non-string baseDomain with a clean error', () => {
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed({ target: '#root', tenant: 'acme', baseDomain: 123 })).toThrow(/baseDomain must be a string/)
+  })
 })

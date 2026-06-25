@@ -147,7 +147,7 @@ off() // unsubscribe (all subscriptions also clear on dispose)
 
 ## Errors
 
-- **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_target | invalid_tenant | invalid_document`.
+- **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_config | invalid_target | invalid_tenant | invalid_document`.
 - **Operations**: never throw; resolve to `BridgeResult`. `error.code` is a closed `BridgeErrorCode` (the bridge's transport / lifecycle codes union the editor's redacted set). `bad_request:missing_required_fields` carries typed `details`.
 
 Prefer exceptions? `unwrap` returns `data` or throws:

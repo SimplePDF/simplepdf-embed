@@ -8,8 +8,8 @@ import type { Locale } from './generated/contract'
 // URL), surfaced at integration time. Runtime/op failures are BridgeResult and
 // never thrown.
 export class EmbedConfigError extends Error {
-  readonly code: 'invalid_target' | 'invalid_tenant' | 'invalid_document'
-  constructor(code: 'invalid_target' | 'invalid_tenant' | 'invalid_document', message: string) {
+  readonly code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_tenant'
+  constructor(code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_tenant', message: string) {
     super(message)
     this.name = 'EmbedConfigError'
     this.code = code
@@ -522,7 +522,18 @@ const mountIntoContainer = (
 // (already showing the editor) and we bridge to it instead. Either way you get the
 // same typed `Embed` handle. Throws `EmbedConfigError` synchronously on bad config.
 export const createEmbed = (args: CreateEmbedArgs): Embed => {
+  // Runtime guard for untyped JS callers passing a non-object (null / undefined /
+  // a primitive) where TS would require the config object.
+  if (typeof args !== 'object' || !args) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `createEmbed expects a config object { target, tenant, ... } (received ${describeValue(args)}).`,
+    )
+  }
   assertValidTenant(args.tenant)
+  if (args.baseDomain !== undefined && typeof args.baseDomain !== 'string') {
+    throw new EmbedConfigError('invalid_config', `baseDomain must be a string (received ${describeValue(args.baseDomain)}).`)
+  }
   assertValidDocument(args.document)
   const editorOrigin = buildEditorDomain({ tenant: args.tenant, baseDomain: args.baseDomain ?? DEFAULT_BASE_DOMAIN })
   const element = resolveTarget(args.target)

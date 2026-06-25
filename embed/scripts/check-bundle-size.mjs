@@ -45,18 +45,14 @@ const closureOf = (entry) => {
 const gzipBytes = (files) =>
   files.reduce((total, file) => total + gzipSync(readFileSync(join(DIST, file))).length, 0)
 
-let failed = false
-for (const [entry, budget] of Object.entries(BUDGETS)) {
+const allWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
   if (!existsSync(join(DIST, entry))) {
     console.error(`✗ ${entry}: missing from dist (run \`npm run build\` first)`)
-    failed = true
-    continue
+    return false
   }
   const size = gzipBytes(closureOf(entry))
   const ok = size <= budget
   console.log(`${ok ? '✓' : '✗'} ${entry}: ${size} B gzip (budget ${budget} B)`)
-  if (!ok) {
-    failed = true
-  }
-}
-process.exit(failed ? 1 : 0)
+  return ok
+})
+process.exit(allWithinBudget.every(Boolean) ? 0 : 1)
