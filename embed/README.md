@@ -25,10 +25,19 @@ The root entry has **zero runtime dependencies**. The optional peers (`zod`, `re
 
 ## Quick start
 
+`mountEmbed` builds the editor iframe and appends it to a container element you provide:
+
+```html
+<div id="editor" style="height: 100vh"></div>
+```
+
 ```ts
 import { mountEmbed } from '@simplepdf/embed'
 
 const embed = mountEmbed({
+  // The container to mount the iframe into: a CSS selector resolved with
+  // document.querySelector, OR the HTMLElement itself
+  // (e.g. document.getElementById('editor') or a React ref.current).
   target: '#editor',
   tenant: 'acme', // your companyIdentifier
   document: { url: 'https://example.com/form.pdf' },
@@ -43,6 +52,8 @@ if (fields.success) {
   // fields.data.fields: typed FieldRecord[]
 }
 ```
+
+`target` is `string | HTMLElement` and is resolved **once**, at call time. If you render the iframe yourself, or need the element resolved lazily on every access (a callback), use the lower-level `createEmbed({ getIframe: () => el, editorOrigin })` instead, where `getIframe` is called each time the bridge reaches the editor.
 
 Every method returns a typed `BridgeResult<T>` (a `{ success: true; data }` / `{ success: false; error }` union) and never throws. `mountEmbed` validates its construction config synchronously and throws an `EmbedConfigError` on programmer error (bad target/tenant/document URL).
 
