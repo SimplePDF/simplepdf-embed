@@ -8,8 +8,8 @@ import type { Locale } from './generated/contract'
 // URL), surfaced at integration time. Runtime/op failures are BridgeResult and
 // never thrown.
 export class EmbedConfigError extends Error {
-  readonly code: 'invalid_target' | 'invalid_tenant' | 'invalid_document_url'
-  constructor(code: 'invalid_target' | 'invalid_tenant' | 'invalid_document_url', message: string) {
+  readonly code: 'invalid_target' | 'invalid_tenant' | 'invalid_document'
+  constructor(code: 'invalid_target' | 'invalid_tenant' | 'invalid_document', message: string) {
     super(message)
     this.name = 'EmbedConfigError'
     this.code = code
@@ -55,6 +55,7 @@ const extractDocumentName = (url: string): string => {
 export type EmbedDocument =
   | { url: string; name?: string; page?: number }
   | { dataUrl: string; name?: string; page?: number }
+  | { file: Blob; name?: string; page?: number }
 
 type MountDocument = EmbedDocument
 
@@ -95,23 +96,103 @@ const assertValidTenant = (tenant: string): void => {
   }
 }
 
-const assertValidDocumentUrl = (document: MountDocument | undefined): void => {
-  if (document === undefined || !('url' in document)) {
-    return
+// Describe a runtime value for an actionable error. The document source is the
+// most common integration mistake, so every message names the value you passed
+// and points to the arm you almost certainly meant.
+const describeValue = (value: unknown): string => {
+  if (value instanceof File) {
+    return 'a File'
+  }
+  if (value instanceof Blob) {
+    return 'a Blob'
+  }
+  if (value === null) {
+    return 'null'
+  }
+  if (Array.isArray(value)) {
+    return 'an array'
+  }
+  return `a ${typeof value}`
+}
+
+const assertValidUrlArm = (url: unknown): void => {
+  if (typeof url !== 'string') {
+    const hint = url instanceof Blob ? ' To embed a Blob or File, use document: { file } instead.' : ''
+    throw new EmbedConfigError('invalid_document', `document.url must be a string (received ${describeValue(url)}).${hint}`)
   }
   const parsed = ((): URL | null => {
     try {
-      return new URL(document.url)
+      return new URL(url)
     } catch {
       return null
     }
   })()
-  if (parsed === null || parsed.protocol !== 'https:' || parsed.username !== '' || parsed.password !== '') {
+  if (parsed === null) {
+    throw new EmbedConfigError('invalid_document', `document.url must be a valid absolute URL (received '${url}').`)
+  }
+  if (parsed.protocol === 'data:') {
+    throw new EmbedConfigError('invalid_document', 'document.url is a data URL. Use document: { dataUrl } instead.')
+  }
+  if (parsed.protocol === 'blob:') {
+    throw new EmbedConfigError('invalid_document', 'document.url is a blob: URL. Pass the Blob itself via document: { file } instead.')
+  }
+  // Beyond http(s) we do NOT gatekeep: credentials (`user:pass@`) are allowed
+  // (the host-fetch can't use them per the Fetch spec, so the URL just routes to
+  // the editor's ?open loader), and on an https page the browser's mixed-content
+  // policy is the real gate on http, not us.
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new EmbedConfigError('invalid_document', `document.url must be an http(s) URL (received '${url}').`)
+  }
+}
+
+const assertValidDataUrlArm = (dataUrl: unknown): void => {
+  if (typeof dataUrl !== 'string') {
+    const hint = dataUrl instanceof Blob ? ' To embed a Blob or File, use document: { file } instead.' : ''
     throw new EmbedConfigError(
-      'invalid_document_url',
-      `document.url must be an https URL without credentials (received '${document.url}')`,
+      'invalid_document',
+      `document.dataUrl must be a string (received ${describeValue(dataUrl)}).${hint}`,
     )
   }
+  if (/^https?:\/\//i.test(dataUrl)) {
+    throw new EmbedConfigError('invalid_document', 'document.dataUrl looks like an http(s) URL. Use document: { url } instead.')
+  }
+  if (!dataUrl.startsWith('data:')) {
+    throw new EmbedConfigError('invalid_document', "document.dataUrl must be a data URL (it should start with 'data:').")
+  }
+}
+
+const assertValidFileArm = (file: unknown): void => {
+  if (!(file instanceof Blob)) {
+    const hint = typeof file === 'string' ? ' For a URL or a data URL, use document: { url } or document: { dataUrl }.' : ''
+    throw new EmbedConfigError('invalid_document', `document.file must be a Blob or File (received ${describeValue(file)}).${hint}`)
+  }
+}
+
+const assertValidDocument = (document: MountDocument | undefined): void => {
+  if (document === undefined) {
+    return
+  }
+  const present = [
+    'url' in document ? 'url' : null,
+    'dataUrl' in document ? 'dataUrl' : null,
+    'file' in document ? 'file' : null,
+  ].filter((key): key is string => key !== null)
+  if (present.length !== 1) {
+    const got = present.length === 0 ? 'none' : present.join(' + ')
+    throw new EmbedConfigError(
+      'invalid_document',
+      `document needs exactly one source: { url: string }, { dataUrl: string }, or { file: Blob } (got ${got}).`,
+    )
+  }
+  if ('url' in document) {
+    assertValidUrlArm(document.url)
+    return
+  }
+  if ('dataUrl' in document) {
+    assertValidDataUrlArm(document.dataUrl)
+    return
+  }
+  assertValidFileArm(document.file)
 }
 
 const buildEditorURL = ({
@@ -219,7 +300,7 @@ export const mountEmbed = ({
   logger = NOOP_LOGGER,
 }: MountEmbedArgs): Embed => {
   assertValidTenant(tenant)
-  assertValidDocumentUrl(mountDocument)
+  assertValidDocument(mountDocument)
   const container = resolveTarget(target)
   const editorOrigin = buildEditorDomain({ tenant, baseDomain })
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
@@ -271,12 +352,27 @@ export const mountEmbed = ({
   // Post LOAD_DOCUMENT once the editor is ready (it queues nothing before then).
   // For url documents we host-fetch eagerly and fall back to ?open on failure.
   if (mountDocument !== undefined) {
-    const dataUrlPromise =
-      'dataUrl' in mountDocument
-        ? Promise.resolve(mountDocument.dataUrl)
-        : fetchDocumentAsDataUrl(mountDocument.url, documentFetchController.signal)
-    const documentName =
-      mountDocument.name ?? ('url' in mountDocument ? extractDocumentName(mountDocument.url) : undefined)
+    const dataUrlPromise: Promise<string | null> = ((): Promise<string | null> => {
+      if ('dataUrl' in mountDocument) {
+        return Promise.resolve(mountDocument.dataUrl)
+      }
+      if ('file' in mountDocument) {
+        return blobToDataUrl(mountDocument.file).catch(() => null)
+      }
+      return fetchDocumentAsDataUrl(mountDocument.url, documentFetchController.signal)
+    })()
+    const documentName = ((): string | undefined => {
+      if (mountDocument.name !== undefined) {
+        return mountDocument.name
+      }
+      if ('url' in mountDocument) {
+        return extractDocumentName(mountDocument.url)
+      }
+      if ('file' in mountDocument && mountDocument.file instanceof File) {
+        return mountDocument.file.name
+      }
+      return undefined
+    })()
 
     const loadWhenReady = async (): Promise<void> => {
       const dataUrl = await dataUrlPromise

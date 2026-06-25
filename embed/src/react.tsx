@@ -124,9 +124,22 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
   // Remount the iframe only when the editor config actually changes. Key on the
   // document's identifying PRIMITIVES (the url, or the data-URL string itself —
   // not a sample, so two distinct same-size data URLs never collide, and no
-  // re-serialization since these are read, not stringified, each render).
-  const documentSource =
-    embedDocument === undefined ? null : 'url' in embedDocument ? embedDocument.url : embedDocument.dataUrl
+  // re-serialization since these are read, not stringified, each render). A Blob
+  // has no stable string identity, so it is keyed on its descriptors (distinct
+  // blobs sharing size+type+name will not remount, an acceptable edge).
+  const documentSource = ((): string | null => {
+    if (embedDocument === undefined) {
+      return null
+    }
+    if ('url' in embedDocument) {
+      return embedDocument.url
+    }
+    if ('dataUrl' in embedDocument) {
+      return embedDocument.dataUrl
+    }
+    const fileName = embedDocument.file instanceof File ? embedDocument.file.name : ''
+    return `file:${embedDocument.file.size}:${embedDocument.file.type}:${fileName}`
+  })()
   const documentName = embedDocument?.name ?? null
   const documentPage = embedDocument?.page ?? null
   const contextKey = React.useMemo((): string => {
