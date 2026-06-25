@@ -1,3 +1,4 @@
+import { useIframeBridge } from '@simplepdf/embed/react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeader, getRequestUrl } from '@tanstack/react-start/server'
@@ -14,7 +15,6 @@ import {
   getFormsForLocale,
   isFormId,
 } from '../lib/demo/forms'
-import { useIframeBridge } from '../lib/embed-bridge-adapters/react'
 import { i18n, i18nReady, matchLocaleFromAcceptLanguage } from '../lib/i18n'
 import { DEFAULT_LANGUAGE_CODE, isLanguageCode } from '../lib/languages'
 import { bridgeLogger } from '../lib/monitoring'

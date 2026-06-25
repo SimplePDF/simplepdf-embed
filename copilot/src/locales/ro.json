@@ -208,7 +208,7 @@
       "get_document_content": "Se citește documentul",
       "detect_fields": "Se detectează câmpurile",
       "focus_field": "Se evidențiază câmpul",
-      "go_to_page": "Se trece la pagină",
+      "go_to": "Se trece la pagină",
       "set_field_value": "Se completează câmpul",
       "select_tool": "Se schimbă instrumentul",
       "delete_fields": "Se șterg câmpurile",

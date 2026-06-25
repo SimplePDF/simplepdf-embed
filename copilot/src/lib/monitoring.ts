@@ -10,13 +10,13 @@
 // the env literal at build time, so the gated branches tree-shake in
 // production.
 //
-// The lib/embed-bridge package needs a BridgeLogger it can call
+// The @simplepdf/embed bridge needs a BridgeLogger it can call
 // unconditionally (it doesn't know about the devtools flag). `bridgeLogger`
 // below is the adapter: same always-on-error / gated-chatty behaviour as
 // `monitoring`, reshaped into the BridgeLogger contract. That keeps the
 // gating decision in one file.
 
-import type { BridgeLogger, LogPayload } from './embed-bridge'
+import type { BridgeLogger, LogPayload } from '@simplepdf/embed'
 
 type RateLimitReason = 'lifetime' | 'system_failure'
 
@@ -134,22 +134,9 @@ export type EventPayloads = {
     instructions_length: number
   }
 
-  // iframe_bridge.ts (client)
-  'iframe.request_sent': { request_id: string; type: string; timeout_ms: number }
-  'iframe.request_timed_out': { request_id: string; type: string; elapsed_ms: number }
-  'iframe.request_received': {
-    request_id: string
-    type: string
-    elapsed_ms: number
-    success: boolean
-  }
-  'iframe.request_missing_pending': { request_id: string }
-  'iframe.ignored_cross_origin_message': { origin: string; expected: string }
-  'editor.ready_via_event': Record<string, never>
-  'editor.ready_via_probe': Record<string, never>
-  'editor.ready_fallback_timeout': { timeout_ms: number }
-  'document.loaded_via_probe': Record<string, never>
-  'document.loaded_via_event': Record<string, never>
+  // The @simplepdf/embed bridge logs its own iframe.* / editor.* events through
+  // `bridgeLogger` below (the BridgeLogger contract, with free-form event names),
+  // not through this typed monitoring map.
 
   // routes/index.tsx (client)
   'base_domain.invalid': { raw: string }
@@ -196,7 +183,7 @@ export const normalizeError = (error: unknown): string => {
   return String(error)
 }
 
-// Adapter so the lib/embed-bridge package can call a logger unconditionally
+// Adapter so the @simplepdf/embed bridge can call a logger unconditionally
 // without knowing about the devtools flag. Same gating policy: error always
 // prints, info / warn / debug only when VITE_ENABLE_DEVTOOLS is on. The
 // `[copilot:bridge]` prefix keeps bridge-sourced logs visually distinct

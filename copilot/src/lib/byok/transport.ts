@@ -1,12 +1,8 @@
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import { buildSystemPrompt } from '../../server/tools'
-import {
-  FINALISATION_ACTION,
-  LLM_STATIC_TOOLS,
-  withFinalisationTool,
-} from '../embed-bridge-adapters/client-tools'
 import { formatStreamError } from '../error-classifier'
 import { monitoring, normalizeError } from '../monitoring'
+import { buildCopilotToolDefinitions, FINALISATION_ACTION } from '../tools/definitions'
 import { buildBrowserModel, getRequestTuning } from './model'
 import type { ByokConfig } from './providers'
 
@@ -87,7 +83,7 @@ export const runByokStream = async ({ config, init }: RunByokStreamArgs): Promis
     maxRetries: 0,
     maxOutputTokens,
     providerOptions: tuning.providerOptions,
-    tools: withFinalisationTool(LLM_STATIC_TOOLS),
+    tools: buildCopilotToolDefinitions(),
     onError: ({ error }) => {
       monitoring.error('byok.stream_error', { detail: normalizeError(error) })
     },

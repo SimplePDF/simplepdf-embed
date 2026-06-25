@@ -205,7 +205,7 @@
       "get_document_content": "Dokumendi lugemine",
       "detect_fields": "Väljade tuvastamine",
       "focus_field": "Välja esiletoomine",
-      "go_to_page": "Lehele minemine",
+      "go_to": "Lehele minemine",
       "set_field_value": "Välja täitmine",
       "select_tool": "Tööriista vahetamine",
       "delete_fields": "Väljade kustutamine",

@@ -94,6 +94,8 @@ _Programmatic control is only available with a SimplePDF account_
 
 The iframe communicates using the `postMessage` API. All messages are JSON strings that must be parsed with `JSON.parse()`.
 
+> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` gives you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
+
 ### Implementation
 
 ```javascript
@@ -218,180 +220,15 @@ await sendEvent("ROTATE_PAGE", { page: 1 });
 
 ---
 
-## Events Reference
+## Reference: the editor contract (the spec)
 
-### Outgoing Events (sent by the iframe)
+The single source of truth for the available operations and events can be found at **[`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json)**.
 
-| Event             | Data                                                                                                          | Description                                        |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `EDITOR_READY`    | `{}`                                                                                                          | Editor has loaded and is ready to receive commands |
-| `DOCUMENT_LOADED` | `{ document_id: string }`                                                                                     | A document has been loaded into the editor         |
-| `PAGE_FOCUSED`    | `{ previous_page: number \| null, current_page: number, total_pages: number }`                                | User navigated to a different page                 |
-| `SUBMISSION_SENT` | `{ document_id: string, submission_id: string }`                                                              | Document was successfully submitted                |
-| `REQUEST_RESULT`  | `{ request_id: string, result: { success: boolean, data?: any, error?: { code: string, message: string } } }` | Response to an incoming event                      |
+It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes** — each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
 
-### Incoming Events (sent to the iframe)
+- **Typed access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its typed client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
+- **Agents / LLMs:** point the model at `/embed/json` (or `@simplepdf/embed/ai-sdk`) to discover and drive the editor programmatically.
 
-All incoming events require a `request_id` field and return a `REQUEST_RESULT` response.
+### Wire shape
 
-#### LOAD_DOCUMENT
-
-Load a PDF document into the editor.
-
-| Field      | Type     | Required | Description                         |
-| ---------- | -------- | -------- | ----------------------------------- |
-| `data_url` | `string` | Yes      | URL or data URL (base64) of the PDF |
-| `name`     | `string` | No       | Display name for the document       |
-| `page`     | `number` | No       | Initial page to display (1-indexed) |
-
-**Complete loading examples:**
-
-```javascript
-// Public URL
-await sendEvent("LOAD_DOCUMENT", {
-  data_url: "https://example.com/public/document.pdf",
-  name: "my-document.pdf",
-});
-
-// Pre-signed S3 URL (must encode!)
-const presignedUrl =
-  "https://bucket.s3.amazonaws.com/doc.pdf?AWSAccessKeyId=...";
-await sendEvent("LOAD_DOCUMENT", {
-  data_url: encodeURIComponent(presignedUrl),
-  name: "my-document.pdf",
-});
-
-// Base64 data URL
-await sendEvent("LOAD_DOCUMENT", {
-  data_url: "data:application/pdf;base64,JVBERi0xLjQK...",
-  name: "my-document.pdf",
-});
-
-// Blob URL (created from File input)
-const file = document.getElementById("fileInput").files[0];
-const blobUrl = URL.createObjectURL(file);
-await sendEvent("LOAD_DOCUMENT", {
-  data_url: blobUrl,
-  name: file.name,
-});
-```
-
-#### GO_TO
-
-Navigate to a specific page.
-
-| Field  | Type     | Required | Description                            |
-| ------ | -------- | -------- | -------------------------------------- |
-| `page` | `number` | Yes      | Page number to navigate to (1-indexed) |
-
-#### SELECT_TOOL
-
-Select a drawing tool or return to cursor mode.
-
-| Field  | Type             | Required | Description                                                                              |
-| ------ | ---------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `tool` | `string \| null` | Yes      | `"TEXT"`, `"COMB_TEXT"`, `"CHECKBOX"`, `"SIGNATURE"`, `"PICTURE"`, or `null` for cursor |
-
-#### DETECT_FIELDS
-
-Automatically detect form fields in the document.
-
-_No data fields required._
-
-#### DELETE_FIELDS
-
-Delete fields from the document.
-
-| Field       | Type       | Required | Description                                       |
-| ----------- | ---------- | -------- | ------------------------------------------------- |
-| `field_ids` | `string[]` | No       | Specific field IDs to delete (omit to delete all) |
-| `page`      | `number`   | No       | Only delete fields on this page                   |
-
-**Response data:**
-
-```json
-{
-  "deleted_count": 5
-}
-```
-
-#### GET_DOCUMENT_CONTENT
-
-Extract text content from the loaded document.
-
-| Field             | Type     | Required | Description                                           |
-| ----------------- | -------- | -------- | ----------------------------------------------------- |
-| `extraction_mode` | `string` | No       | `"auto"` (default) or `"ocr"` to force OCR processing |
-
-**Response data:**
-
-```json
-{
-  "name": "document.pdf",
-  "pages": [
-    { "page": 1, "content": "Text content from page 1..." },
-    { "page": 2, "content": "Text content from page 2..." }
-  ]
-}
-```
-
-`content` is reading-order plain text with line breaks preserved between visual lines. Embedded images are represented by an `[image]` marker placed in reading order. Only visible pages are returned (deleted pages are excluded), in their current order.
-
-#### SUBMIT
-
-Submit the document for processing.
-
-| Field           | Type      | Required | Description                                     |
-| --------------- | --------- | -------- | ----------------------------------------------- |
-| `download_copy` | `boolean` | Yes      | Whether to trigger a download of the filled PDF |
-
-See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for server-side storage and webhook integration options.
-
-#### MOVE_PAGE
-
-Reorder a visible page. Both positions are 1-indexed visible-page numbers (matching the `current_page` reported by `PAGE_FOCUSED`).
-
-| Field       | Type     | Required | Description                                  |
-| ----------- | -------- | -------- | -------------------------------------------- |
-| `from_page` | `number` | Yes      | Visible page to move (1-indexed)             |
-| `to_page`   | `number` | Yes      | Target visible position (1-indexed)          |
-
-#### DELETE_PAGES
-
-Delete one or more visible pages and any fields placed on them. Visible-page positions are resolved to absolute page numbers before any deletion runs, so passing multiple pages in one call is safe regardless of intermediate index shifts.
-
-| Field   | Type       | Required | Description                                          |
-| ------- | ---------- | -------- | ---------------------------------------------------- |
-| `pages` | `number[]` | Yes      | Non-empty array of visible pages to delete (1-indexed) |
-
-Validation:
-
-- Empty `pages` returns `bad_request:invalid_page`.
-- Any out-of-range or non-integer value returns `bad_request:page_out_of_range` / `bad_request:invalid_page`.
-- `pages.length >= total_visible_pages` returns `bad_request:event_not_allowed` — at least one visible page must remain.
-
-#### ROTATE_PAGE
-
-Rotate a visible page 90° clockwise. Call repeatedly to reach 180° / 270°.
-
-| Field  | Type     | Required | Description                          |
-| ------ | -------- | -------- | ------------------------------------ |
-| `page` | `number` | Yes      | Visible page to rotate (1-indexed)   |
-
----
-
-## Error Codes
-
-| Code                               | Description                                     |
-| ---------------------------------- | ----------------------------------------------- |
-| `bad_request:signup_required`      | Feature requires a SimplePDF account            |
-| `bad_request:editor_not_ready`     | Editor is not ready to handle the event         |
-| `bad_request:invalid_page`         | Page must be an integer                         |
-| `bad_request:page_out_of_range`    | Requested page does not exist                   |
-| `bad_request:page_not_found`       | Could not get dimensions for the requested page |
-| `bad_request:invalid_field_type`   | Unknown field type                              |
-| `bad_request:invalid_tool`         | Unknown tool type                               |
-| `bad_request:event_not_allowed`    | Event is not allowed for your configuration     |
-| `forbidden:editing_not_allowed`    | Editing is disabled                             |
-| `forbidden:origin_not_whitelisted` | Origin is not in your allowed origins list      |
-| `forbidden:whitelist_required`     | Event requires origin whitelisting              |
+Every request you post is `{ "type": <request_type>, "request_id": <your id>, "data": <input> }`; the editor replies with `{ "type": "REQUEST_RESULT", "data": { "request_id": <same id>, "result": <result> } }`, where `result` is `{ "success": true, "data": … }` or `{ "success": false, "error": { "code", "message" } }`. Outbound events (`EDITOR_READY`, `DOCUMENT_LOADED`, `PAGE_FOCUSED`, `SUBMISSION_SENT`) are pushed the same way. `request_type` is the operation name (e.g. `get_fields`, `set_field_value`, `submit`) and is accepted case-insensitively (the historical `SCREAMING_SNAKE` forms still work). The full set of `code` values is in the contract's `editor_error_schema`.

@@ -203,7 +203,7 @@
       "get_document_content": "正在读取文档",
       "detect_fields": "正在检测字段",
       "focus_field": "正在高亮字段",
-      "go_to_page": "正在跳转页面",
+      "go_to": "正在跳转页面",
       "set_field_value": "正在填写字段",
       "select_tool": "正在切换工具",
       "delete_fields": "正在删除字段",

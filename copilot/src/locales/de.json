@@ -205,7 +205,7 @@
       "get_document_content": "Dokument wird gelesen",
       "detect_fields": "Felder werden erkannt",
       "focus_field": "Feld wird hervorgehoben",
-      "go_to_page": "Wechsel zur Seite",
+      "go_to": "Wechsel zur Seite",
       "set_field_value": "Feld wird ausgefüllt",
       "select_tool": "Werkzeug wird gewechselt",
       "delete_fields": "Felder werden gelöscht",

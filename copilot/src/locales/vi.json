@@ -203,7 +203,7 @@
       "get_document_content": "Đang đọc tài liệu",
       "detect_fields": "Đang phát hiện các trường",
       "focus_field": "Đang làm nổi bật trường",
-      "go_to_page": "Đang chuyển đến trang",
+      "go_to": "Đang chuyển đến trang",
       "set_field_value": "Đang điền trường",
       "select_tool": "Đang chuyển công cụ",
       "delete_fields": "Đang xóa các trường",

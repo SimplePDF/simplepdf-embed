@@ -222,7 +222,7 @@
       "get_document_content": "Reading the document",
       "detect_fields": "Detecting the fields",
       "focus_field": "Highlighting the field",
-      "go_to_page": "Going to the page",
+      "go_to": "Going to the page",
       "set_field_value": "Filling the field",
       "select_tool": "Switching tool",
       "delete_fields": "Deleting fields",

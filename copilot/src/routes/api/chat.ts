@@ -2,12 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { convertToModelMessages, streamText, type UIMessage } from 'ai'
 import type { ServerErrorBody } from '../../lib/api_envelope'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
-import {
-  FINALISATION_ACTION,
-  LLM_STATIC_TOOLS,
-  withFinalisationTool,
-} from '../../lib/embed-bridge-adapters/client-tools'
 import { monitoring, normalizeError } from '../../lib/monitoring'
+import { buildCopilotToolDefinitions, FINALISATION_ACTION } from '../../lib/tools/definitions'
 import { applyDemoPreflight } from '../../server/demo/gate'
 import { parseJsonBody, shouldChargeAgainstLimit } from '../../server/http'
 import { buildLanguageModel } from '../../server/language_model'
@@ -178,7 +174,7 @@ export const Route = createFileRoute('/api/chat')({
           ],
           maxRetries: 0,
           maxOutputTokens: 500,
-          tools: withFinalisationTool(LLM_STATIC_TOOLS),
+          tools: buildCopilotToolDefinitions(),
           abortSignal: AbortSignal.timeout(MAX_DURATION_MS),
           onFinish: ({ usage }) => {
             monitoring.info('chat.finished', {

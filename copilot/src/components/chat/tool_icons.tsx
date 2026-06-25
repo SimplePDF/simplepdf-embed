@@ -5,7 +5,7 @@ const READING_TOOL_NAMES = new Set<string>([
   'get_document_content',
   'detect_fields',
   'focus_field',
-  'go_to_page',
+  'go_to',
 ])
 
 export const getToolKind = (toolName: string): ToolKind =>

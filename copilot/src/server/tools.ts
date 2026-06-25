@@ -3,10 +3,10 @@ import { z } from 'zod'
 import type { CustomInstructions } from '../lib/byok'
 import { LANGUAGES } from '../lib/languages'
 
-// Iframe tool Zod schemas + client tool-name union live in
-// lib/embed-bridge-adapters/client-tools (re-exported as the public surface).
-// This file keeps the server-boundary request schemas, the system prompt, and
-// the language-label whitelist.
+// Iframe tool Zod schemas + the agentic tool-name set live in the
+// @simplepdf/embed package (generated from embed-api.json). This file keeps the
+// server-boundary request schemas, the system prompt, and the language-label
+// whitelist.
 
 const KNOWN_LANGUAGE_LABELS: readonly string[] = LANGUAGES.map((language) => language.label)
 

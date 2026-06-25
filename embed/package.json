@@ -1,0 +1,88 @@
+{
+  "name": "@simplepdf/embed",
+  "version": "0.4.0",
+  "description": "Typed bridge for embedding and programmatically driving the SimplePDF editor",
+  "type": "module",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SimplePDF/simplepdf-embed",
+    "directory": "embed"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "import": "./dist/protocol.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "import": "./dist/schemas.js"
+    },
+    "./tools": {
+      "types": "./dist/tools.d.ts",
+      "import": "./dist/tools.js"
+    },
+    "./ai-sdk": {
+      "types": "./dist/ai-sdk.d.ts",
+      "import": "./dist/ai-sdk.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    }
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "prebuild": "npm run generate",
+    "build": "tsup",
+    "prepare": "npm run build",
+    "pretest:types": "npm run generate",
+    "test:types": "tsc --noEmit",
+    "pretest": "npm run generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:size": "npm run build && node scripts/check-bundle-size.mjs"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17",
+    "zod": "^4.4.3"
+  }
+}

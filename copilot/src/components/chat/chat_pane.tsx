@@ -1,4 +1,14 @@
 import { useChat } from '@ai-sdk/react'
+import type {
+  BridgeResult,
+  DocumentContentPage,
+  DocumentContentResult,
+  Embed,
+  FieldRecord,
+} from '@simplepdf/embed'
+import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
+import { OVERLAY_TOOL_TYPES } from '@simplepdf/embed/protocol'
+import type { SimplePDFToolName } from '@simplepdf/embed/tools'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp, Mic, X } from 'lucide-react'
@@ -25,26 +35,17 @@ import {
 } from '../../lib/byok'
 import { DEMO_MODELS } from '../../lib/demo/demo_model'
 import type { FormId } from '../../lib/demo/forms'
-import type {
-  BridgeResult,
-  DocumentContentPage,
-  DocumentContentResult,
-  FieldRecord,
-  IframeBridge,
-  SupportedFieldType,
-} from '../../lib/embed-bridge'
-import {
-  type ClientTools,
-  createClientTools,
-  FINALISATION_ACTION,
-  isClientToolName,
-  type ToolInput,
-  type ToolMiddleware,
-} from '../../lib/embed-bridge-adapters/client-tools'
 import { classifyError } from '../../lib/error-classifier'
 import { getLanguageByCode } from '../../lib/languages'
 import { IS_DEMO_MODE } from '../../lib/mode'
 import { monitoring, normalizeError } from '../../lib/monitoring'
+import { isCopilotToolName } from '../../lib/tools/definitions'
+import {
+  composeMiddleware,
+  type MiddlewareContext,
+  type ToolInput,
+  type ToolMiddleware,
+} from '../../lib/tools/middleware'
 import type { TranscribeClientErrorCode, TranscribeFnResult } from '../../lib/voice/error_codes'
 import { isAcceptedRecordingMime, RECORDING_MAX_BYTES } from '../../lib/voice/recording_format'
 import {
@@ -59,22 +60,20 @@ import { transcribeByokStreaming } from '../../lib/voice/transcribe_byok_streami
 import { transcribeClient } from '../../lib/voice/transcribe_client'
 import { voiceErrorTranslationKey } from '../../lib/voice/voice_error_translation_key'
 import type { DemoGate, ModelTab } from '../../routes/index'
-import { buildSystemPrompt, type ChatRequest } from '../../server/tools'
+import type { ChatRequest } from '../../server/tools'
 import { DownloadModal } from '../demo/download_modal'
 import { ErrorBanner, RateLimitPanel } from '../error_banner'
 import { ChatLLMMessage } from './chat_llm_message'
 import { ChatPaneHeader } from './chat_pane_header'
 import { ChatUserMessage } from './chat_user_message'
 import { useAudioRecorder } from './hooks/use_audio_recorder'
-import { useDetectUserAddedField } from './hooks/use_detect_user_added_field'
+import { type FieldAddedEvent, useDetectUserAddedField } from './hooks/use_detect_user_added_field'
 import { useVoiceInputSupport } from './hooks/use_voice_input_support'
 import { ModelPickerModal } from './model_picker_modal'
 import { SuggestedPrompts } from './suggested_prompts'
 import { ThinkingIndicator } from './thinking_indicator'
 import { TOOLBAR_OPTIONS, Toolbar, type ToolbarTool } from './toolbar'
 import { VoiceInputBar } from './voice_input_bar'
-
-const SYSTEM_PROMPT = buildSystemPrompt({ action: FINALISATION_ACTION })
 
 // Client-side UX cap on recording length. Paid cost is bounded by the
 // per-share turn charge, not this timer (see plan D10); on reaching it the
@@ -95,7 +94,7 @@ const joinVoiceDraft = (prefix: string, transcript: string): string =>
 const homeRoute = getRouteApi('/')
 
 type ChatPaneProps = {
-  bridge: IframeBridge | null
+  bridge: Embed | null
   isReady: boolean
   requiresUserUpload: boolean
   language: string
@@ -174,12 +173,7 @@ type CompactedField = {
 type CompactedDocumentContent = { name: string | null; pages: DocumentContentPage[] }
 
 const isToolbarTool = (value: unknown): value is ToolbarTool =>
-  value === null ||
-  value === 'TEXT' ||
-  value === 'COMB_TEXT' ||
-  value === 'CHECKBOX' ||
-  value === 'SIGNATURE' ||
-  value === 'PICTURE'
+  value === null || (typeof value === 'string' && OVERLAY_TOOL_TYPES.some((candidate) => candidate === value))
 
 type PlacementTool = Exclude<ToolbarTool, null>
 
@@ -194,7 +188,9 @@ type PlacementTool = Exclude<ToolbarTool, null>
 // dedupes for icon rendering.
 type NewFieldHintMetadata = { kind: 'new_field_hint'; tools: PlacementTool[]; delta: number }
 
-const PLACEMENT_TOOLS: readonly PlacementTool[] = ['TEXT', 'COMB_TEXT', 'CHECKBOX', 'SIGNATURE', 'PICTURE']
+// Derived from the package's overlay-tool vocabulary so a new editor overlay type
+// flows through without restating the literal set here.
+const PLACEMENT_TOOLS: readonly PlacementTool[] = OVERLAY_TOOL_TYPES
 const isPlacementTool = (value: unknown): value is PlacementTool =>
   typeof value === 'string' && PLACEMENT_TOOLS.some((candidate) => candidate === value)
 
@@ -259,10 +255,10 @@ const wrapToolResult = (result: BridgeResult<unknown>): unknown => {
   }
 }
 
-// --- Middleware factories for the client-tools dispatcher ---------------
-// Each layer is demo-specific; none of them live inside the
-// lib/embed-bridge-adapters/ packages. Adding / removing / replacing them is
-// a one-line change to the `createClientTools` call below.
+// --- Middleware factories for the tool executor -------------------------
+// Each layer is host policy (demo-specific); none of them live inside the
+// @simplepdf/embed package. Adding / removing / replacing them is a one-line
+// change to the `composeMiddleware` call below.
 
 // Compresses get_fields output to drop noise (redundant name == field_id,
 // empty values), and truncates get_document_content to stay inside the
@@ -313,9 +309,9 @@ const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => bo
   }
 }
 
-// Runtime narrowing over BridgeResult payloads. The dispatcher returns
+// Runtime narrowing over BridgeResult payloads. The executor returns
 // `BridgeResult<unknown>` by design (the bridge itself doesn't validate
-// per-tool shapes. that's the client-tools / middleware concern), so the
+// per-tool shapes. that's the tools-router / middleware concern), so the
 // compaction middleware verifies the expected shape before touching the
 // data. A future middleware that rewrites the payload simply bypasses
 // compaction instead of crashing on undefined .fields / .pages.
@@ -369,7 +365,7 @@ const toUnexpectedToolResult = (error: unknown): BridgeResult<null> => {
   return {
     success: false,
     error: {
-      code: 'unexpected:tool_execution_failed',
+      code: 'unexpected:internal_error',
       message: `Unexpected tool execution failure: ${errorMessage}`,
     },
   }
@@ -771,7 +767,7 @@ export const ChatPane = ({
   // cycle; they are synced once useChat's output is in scope (a bit further
   // down in this component).
   const isStreamingRef = useRef(false)
-  const onFieldAddedRef = useRef<(event: { tools: SupportedFieldType[]; delta: number }) => void>(() => {})
+  const onFieldAddedRef = useRef<(event: FieldAddedEvent) => void>(() => {})
   useDetectUserAddedField({
     bridge,
     isReady,
@@ -781,14 +777,23 @@ export const ChatPane = ({
     onFieldAddedRef,
   })
 
-  // Build the client-tools adapter per bridge instance. The bridge itself
-  // comes from useIframeBridge and swaps on form / locale reset; everything
-  // the middleware needs is read via closures over stable refs or callbacks,
+  // Build the tool executor (package executor wrapped in copilot middleware) per
+  // bridge instance. The bridge itself comes from useIframeBridge and swaps on
+  // form / locale reset; everything the middleware needs is read via closures over
+  // stable refs or callbacks,
   // so one factory call per bridge lifetime is enough.
-  const tools = useMemo((): ClientTools | null => {
+  const tools = useMemo((): ((context: MiddlewareContext) => Promise<BridgeResult<unknown>>) | null => {
     if (bridge === null) {
       return null
     }
+    const rawExecutor = createSimplePDFExecutor({ embed: bridge })
+    // Force download_copy:false on submit: copilot never has the agent also
+    // download a copy (preserves pre-migration behavior — the model would
+    // otherwise control this flag).
+    const executor = (toolName: SimplePDFToolName, input: ToolInput): Promise<BridgeResult<unknown>> =>
+      toolName === 'submit'
+        ? rawExecutor(toolName, { ...input, download_copy: false })
+        : rawExecutor(toolName, input)
     const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
@@ -800,11 +805,7 @@ export const ChatPane = ({
     const middleware: ToolMiddleware[] = IS_DEMO_MODE
       ? [createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }), ...sharedMiddleware]
       : sharedMiddleware
-    return createClientTools({
-      bridge,
-      systemPrompt: SYSTEM_PROMPT,
-      middleware,
-    })
+    return composeMiddleware(middleware, ({ toolName, input }) => executor(toolName, input))
   }, [bridge, handleDownloadRequested])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
@@ -820,7 +821,7 @@ export const ChatPane = ({
       }
       void enqueueToolExecution(async () => {
         const toolName = toolCall.toolName
-        if (!isClientToolName(toolName)) {
+        if (!isCopilotToolName(toolName)) {
           await Promise.resolve(
             addToolOutput({
               tool: toolName,
@@ -848,7 +849,7 @@ export const ChatPane = ({
         monitoring.info('chat.tool_call', { tool_name: toolName, input: callInput })
         const result = await (async (): Promise<BridgeResult<unknown>> => {
           try {
-            return await activeTools.execute(toolName, callInput)
+            return await activeTools({ toolName, input: callInput })
           } catch (error) {
             return toUnexpectedToolResult(error)
           }
@@ -941,7 +942,13 @@ export const ChatPane = ({
   // values these refs carry come from useChat itself).
   isStreamingRef.current = isStreaming
   onFieldAddedRef.current = ({ tools }) => {
-    const payload = buildNewFieldMessage({ tools })
+    // get_fields reports the full FieldType set; the hint only renders the
+    // placement-tool subset (the types a user can drop via the toolbar).
+    const placementTools = tools.filter(isPlacementTool)
+    if (placementTools.length === 0) {
+      return
+    }
+    const payload = buildNewFieldMessage({ tools: placementTools })
     void sendMessage({ text: payload.text, metadata: payload.metadata })
   }
 

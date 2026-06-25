@@ -211,7 +211,7 @@
       "get_document_content": "Читання документа",
       "detect_fields": "Виявлення полів",
       "focus_field": "Виділення поля",
-      "go_to_page": "Перехід на сторінку",
+      "go_to": "Перехід на сторінку",
       "set_field_value": "Заповнення поля",
       "select_tool": "Зміна інструмента",
       "delete_fields": "Видалення полів",
