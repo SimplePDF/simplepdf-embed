@@ -178,4 +178,15 @@ describe(createEmbed.name, () => {
     // @ts-expect-error tenant is required; exercise the runtime guard for untyped JS callers
     expect(() => createEmbed({ target: '#root' })).toThrow(/tenant is required/)
   })
+
+  it('rejects a non-element, non-string target with a clean error', () => {
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed({ target: 123, tenant: 'acme' })).toThrow(/target must be/)
+  })
+
+  it('rejects a non-object document with a clean error', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => mount({ target: '#root', document: null })).toThrow(/document must be an object/)
+  })
 })

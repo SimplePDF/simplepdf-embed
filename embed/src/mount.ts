@@ -80,9 +80,15 @@ export type CreateEmbedArgs = {
   logger?: BridgeLogger
 }
 
-const resolveTarget = (target: string | HTMLElement): HTMLElement => {
-  if (typeof target !== 'string') {
+const resolveTarget = (target: unknown): HTMLElement => {
+  if (target instanceof HTMLElement) {
     return target
+  }
+  if (typeof target !== 'string') {
+    throw new EmbedConfigError(
+      'invalid_target',
+      `target must be a CSS selector or an HTMLElement (received ${describeValue(target)}).`,
+    )
   }
   const element = document.querySelector(target)
   if (element === null || !(element instanceof HTMLElement)) {
@@ -180,9 +186,15 @@ const assertValidFileArm = (file: unknown): void => {
   }
 }
 
-const assertValidDocument = (document: MountDocument | undefined): void => {
+const assertValidDocument = (document: unknown): void => {
   if (document === undefined) {
     return
+  }
+  if (typeof document !== 'object' || document === null || Array.isArray(document)) {
+    throw new EmbedConfigError(
+      'invalid_document',
+      `document must be an object with one of url / dataUrl / file (received ${describeValue(document)}).`,
+    )
   }
   const present = [
     'url' in document ? 'url' : null,
@@ -204,7 +216,9 @@ const assertValidDocument = (document: MountDocument | undefined): void => {
     assertValidDataUrlArm(document.dataUrl)
     return
   }
-  assertValidFileArm(document.file)
+  if ('file' in document) {
+    assertValidFileArm(document.file)
+  }
 }
 
 const buildEditorURL = ({
