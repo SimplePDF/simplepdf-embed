@@ -1,15 +1,18 @@
 {
   "name": "@simplepdf/embed",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Typed bridge for embedding and programmatically driving the SimplePDF editor",
   "type": "module",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": false,
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/SimplePDF/simplepdf-embed",
-    "directory": "packages/embed"
+    "directory": "embed"
   },
   "engines": {
     "node": ">=18"

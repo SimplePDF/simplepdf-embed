@@ -102,19 +102,15 @@ Browser
 Then:
 
 ```sh
-# Copilot depends on the @simplepdf/embed bridge via a local dev-link
-# (file:../packages/embed) until that package is published to npm. Build it
-# first so its dist/ exists, then install copilot:
-( cd ../packages/embed && npm install && npm run build )
-
-npm install
+npm install               # pulls @simplepdf/embed from npm
 cp .env.example .env      # then set VITE_SIMPLEPDF_COMPANY_IDENTIFIER as above
 npm run dev               # http://localhost:3001
 ```
 
-> The `( cd ../packages/embed && ... )` step is only needed for a local checkout
-> while `@simplepdf/embed` is dev-linked. Once it is published to npm, copilot will
-> depend on the published version and `npm install` alone will suffice.
+> Copilot depends on the published [`@simplepdf/embed`](https://www.npmjs.com/package/@simplepdf/embed)
+> package (see `package.json`). To develop against unreleased changes to it inside
+> this monorepo, build the package (`npm --prefix ../embed run build`) and point the
+> dependency at `file:../embed` (or `npm link`) locally.
 
 In the running app, open the chat sidebar, click **Bring your own provider**, paste a key from Anthropic / OpenAI / DeepSeek (or point at any OpenAI-compatible endpoint like Ollama / LM Studio), and you're filling forms.
 
@@ -228,7 +224,7 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `rotate_page` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
 | `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
-Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../packages/embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
+Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
 
 ## Common fork points
 

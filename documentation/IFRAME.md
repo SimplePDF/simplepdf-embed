@@ -94,7 +94,7 @@ _Programmatic control is only available with a SimplePDF account_
 
 The iframe communicates using the `postMessage` API. All messages are JSON strings that must be parsed with `JSON.parse()`.
 
-> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/packages/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` / `mountEmbed` give you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
+> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` / `mountEmbed` give you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
 
 ### Implementation
 
@@ -228,7 +228,7 @@ Rather than re-list every operation and event here (where the copy drifts), the 
 
 It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes** — each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
 
-- **Typed access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/packages/embed) generates its typed client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
+- **Typed access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its typed client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
 - **Agents / LLMs:** point the model at `/embed/json` (or `@simplepdf/embed/ai-sdk`) to discover and drive the editor programmatically.
 
 ### Wire shape
