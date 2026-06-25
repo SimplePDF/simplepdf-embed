@@ -61,20 +61,31 @@ if (fields.success) {
 
 ## Mounting
 
-| You want | Use |
-| --- | --- |
-| We create + insert the iframe | `mountEmbed({ target, … })` |
-| You render the iframe yourself | `createEmbed({ getIframe, editorOrigin })` |
-| React | `@simplepdf/embed/react` (below) |
+The only difference is **who creates the `<iframe>`**. Use `mountEmbed` unless you have a reason not to.
+
+- **`mountEmbed`** creates the iframe for you: give it a container (`target`) + config, and it builds the editor URL, inserts the `<iframe>`, loads your document, and returns the handle.
+- **`createEmbed`** bridges to an iframe **you** render (you set its `src`): give it a `getIframe` callback + `editorOrigin`. It creates no DOM and builds no URL, just the typed `postMessage` bridge. Reach for it only when you must own the element (custom framework render, SSR, a modal you control, multiple instances). `mountEmbed` calls it internally.
 
 ```ts
-import { createEmbed } from '@simplepdf/embed'
+import { mountEmbed, createEmbed } from '@simplepdf/embed'
 
-const embed = createEmbed({
-  getIframe: () => document.querySelector('iframe'), // re-read on every access
+// You give a container, the library makes the iframe:
+mountEmbed({ target: '#editor', tenant: 'acme', document: { url } })
+
+// You make the iframe, the library makes the bridge:
+// <iframe id="ed" src="https://acme.simplepdf.com/editor?open=…"></iframe>
+createEmbed({
+  getIframe: () => document.getElementById('ed'), // re-read on every access
   editorOrigin: 'https://acme.simplepdf.com',
 })
 ```
+
+|  | creates the iframe | builds the editor URL | loads the document |
+| --- | --- | --- | --- |
+| `mountEmbed` | the library | yes | yes |
+| `createEmbed` | **you** | you | you |
+
+In React, `<EmbedPDF>` is the `mountEmbed` equivalent and `useIframeBridge` is the `createEmbed` equivalent (see [React](#react)).
 
 ### `mountEmbed` options
 
