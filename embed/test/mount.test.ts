@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { buildEditorDomain, EmbedConfigError, encodeContext, mountEmbed } from '../src/mount'
+import { buildEditorDomain, createEmbed, EmbedConfigError, encodeContext } from '../src/mount'
 import type { Embed } from '../src/types'
 
 describe(buildEditorDomain.name, () => {
@@ -30,7 +30,7 @@ describe(encodeContext.name, () => {
   })
 })
 
-describe(mountEmbed.name, () => {
+describe(createEmbed.name, () => {
   const mounted: Embed[] = []
 
   afterEach(() => {
@@ -41,8 +41,9 @@ describe(mountEmbed.name, () => {
     document.body.innerHTML = ''
   })
 
-  const mount = (args: Parameters<typeof mountEmbed>[0]): Embed => {
-    const embed = mountEmbed(args)
+  // Defaults tenant so the document/target tests stay terse; pass tenant to override.
+  const mount = (args: Omit<Parameters<typeof createEmbed>[0], 'tenant'> & { tenant?: string }): Embed => {
+    const embed = createEmbed({ tenant: 'acme', ...args })
     mounted.push(embed)
     return embed
   }
@@ -58,7 +59,7 @@ describe(mountEmbed.name, () => {
 
   // Mount with a document source against a fresh root (most document tests only
   // care that construction does/doesn't throw synchronously).
-  const mountWith = (doc: Parameters<typeof mountEmbed>[0]['document']): Embed => {
+  const mountWith = (doc: Parameters<typeof createEmbed>[0]['document']): Embed => {
     document.body.innerHTML = '<div id="root"></div>'
     return mount({ target: '#root', document: doc })
   }
@@ -144,9 +145,20 @@ describe(mountEmbed.name, () => {
 
   it('removes the iframe it created on dispose', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    const embed = mountEmbed({ target: '#root', tenant: 'acme' })
+    const embed = createEmbed({ target: '#root', tenant: 'acme' })
     expect(document.querySelector('#root iframe')).not.toBeNull()
     embed.dispose()
     expect(document.querySelector('#root iframe')).toBeNull()
+  })
+
+  it('attaches to an existing <iframe> target instead of creating one, and leaves it on dispose', () => {
+    document.body.innerHTML = '<iframe id="ed" src="https://acme.simplepdf.com/editor"></iframe>'
+    const iframeCountBefore = document.querySelectorAll('iframe').length
+    const embed = mount({ target: '#ed', tenant: 'acme' })
+    // No new iframe is created: we bridge to the one you rendered.
+    expect(document.querySelectorAll('iframe').length).toBe(iframeCountBefore)
+    // dispose() must NOT remove an iframe the consumer owns.
+    embed.dispose()
+    expect(document.querySelector('#ed')).not.toBeNull()
   })
 })

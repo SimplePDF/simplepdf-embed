@@ -1,9 +1,9 @@
-import { createEmbed } from './bridge'
+import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { Embed } from './types'
 import type { Locale } from './generated/contract'
 
-// Construction-time configuration error. mountEmbed validates its config
+// Construction-time configuration error. createEmbed validates its config
 // synchronously and THROWS this on programmer error (bad target/tenant/document
 // URL), surfaced at integration time. Runtime/op failures are BridgeResult and
 // never thrown.
@@ -17,12 +17,11 @@ export class EmbedConfigError extends Error {
 }
 
 // DNS-label tenant validator (lowercase letters, digits, internal hyphens; no
-// leading/trailing hyphen). The shared mountEmbed accepts reserved portal values
+// leading/trailing hyphen). The shared createEmbed accepts reserved portal values
 // (e.g. the 'embed' default, the Chrome integration); reserved-portal rejection
 // is a WEM-customer-boundary concern, not enforced here.
 const DNS_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
 
-const DEFAULT_TENANT = 'embed'
 const DEFAULT_BASE_DOMAIN = 'simplepdf.com'
 const DOCUMENT_SIZE_CAP_BYTES = 50 * 1024 * 1024
 
@@ -38,7 +37,7 @@ export const encodeContext = (context: Record<string, unknown> | undefined): str
   }
   // btoa throws on non-Latin1 chars (accents/emoji/CJK) and JSON.stringify throws
   // on a circular object. Context is best-effort metadata, so drop it on failure
-  // rather than crash mountEmbed — matching the shipped web/react encoders (and
+  // rather than crash createEmbed — matching the shipped web/react encoders (and
   // the editor decodes this exact `btoa(JSON.stringify(...))` shape).
   try {
     return encodeURIComponent(btoa(JSON.stringify(context)))
@@ -59,9 +58,14 @@ export type EmbedDocument =
 
 type MountDocument = EmbedDocument
 
-export type MountEmbedArgs = {
+export type CreateEmbedArgs = {
+  // Where the editor goes. A container (selector or element) we create the iframe
+  // inside, OR an existing <iframe> you rendered (already pointed at the editor)
+  // that we bridge to instead.
   target: string | HTMLElement
-  tenant?: string
+  // Your companyIdentifier: the `<tenant>.simplepdf.com` subdomain (`'embed'` is
+  // the no-account public editor).
+  tenant: string
   baseDomain?: string
   document?: MountDocument
   locale?: Locale
@@ -82,7 +86,7 @@ const resolveTarget = (target: string | HTMLElement): HTMLElement => {
   }
   const element = document.querySelector(target)
   if (element === null || !(element instanceof HTMLElement)) {
-    throw new EmbedConfigError('invalid_target', `mountEmbed target '${target}' did not match an element`)
+    throw new EmbedConfigError('invalid_target', `createEmbed target '${target}' did not match an element`)
   }
   return element
 }
@@ -286,22 +290,124 @@ const fetchDocumentAsDataUrl = async (url: string, signal: AbortSignal): Promise
   }
 }
 
-// Library-owned mount path: builds the iframe + URL, mounts it under `target`,
-// drives the standard document load (host-fetch -> LOAD_DOCUMENT, ?open fallback),
-// and returns the Embed handle. dispose() additionally removes the iframe.
-export const mountEmbed = ({
-  target,
-  tenant = DEFAULT_TENANT,
-  baseDomain = DEFAULT_BASE_DOMAIN,
-  document: mountDocument,
-  locale,
-  context,
-  iframeAttrs,
-  logger = NOOP_LOGGER,
-}: MountEmbedArgs): Embed => {
-  assertValidTenant(tenant)
-  assertValidDocument(mountDocument)
-  const container = resolveTarget(target)
+// --- Document loading (shared by the create + attach paths) -----------------
+
+const resolveDataUrl = (embedDocument: EmbedDocument, signal: AbortSignal): Promise<string | null> => {
+  if ('dataUrl' in embedDocument) {
+    return Promise.resolve(embedDocument.dataUrl)
+  }
+  if ('file' in embedDocument) {
+    return blobToDataUrl(embedDocument.file).catch(() => null)
+  }
+  return fetchDocumentAsDataUrl(embedDocument.url, signal)
+}
+
+const documentNameOf = (embedDocument: EmbedDocument): string | undefined => {
+  if (embedDocument.name !== undefined) {
+    return embedDocument.name
+  }
+  if ('url' in embedDocument) {
+    return extractDocumentName(embedDocument.url)
+  }
+  if ('file' in embedDocument && embedDocument.file instanceof File) {
+    return embedDocument.file.name
+  }
+  return undefined
+}
+
+const runWhenReady = (embed: Embed, run: () => Promise<void>): void => {
+  if (embed.getState().kind !== 'booting') {
+    void run()
+    return
+  }
+  const unsubscribe = embed.on('state_change', (next) => {
+    if (next.kind !== 'booting') {
+      unsubscribe()
+      void run()
+    }
+  })
+}
+
+// Loads `document` into the editor once it is ready. `onHostFetchFail` is the
+// create path's ?open fallback (re-navigate the iframe we own); the attach path
+// passes none, because it must never touch an iframe the consumer rendered.
+const loadDocumentWhenReady = (params: {
+  embed: Embed
+  embedDocument: EmbedDocument
+  signal: AbortSignal
+  safeLogger: BridgeLogger
+  onHostFetchFail: (() => void) | undefined
+}): void => {
+  const { embed, embedDocument, signal, safeLogger, onHostFetchFail } = params
+  const dataUrlPromise = resolveDataUrl(embedDocument, signal)
+  const documentName = documentNameOf(embedDocument)
+  const run = async (): Promise<void> => {
+    const dataUrl = await dataUrlPromise
+    if (signal.aborted) {
+      return
+    }
+    if (dataUrl === null) {
+      if (onHostFetchFail !== undefined) {
+        onHostFetchFail()
+        return
+      }
+      safeLogger.error('load_document_failed', {
+        code: 'unexpected:unknown',
+        message: 'could not host-fetch the document; ?open fallback is unavailable on an attached iframe',
+      })
+      return
+    }
+    const result = await embed.loadDocument({ data_url: dataUrl, name: documentName, page: embedDocument.page })
+    if (!result.success) {
+      safeLogger.error('load_document_failed', { code: result.error.code, message: result.error.message })
+    }
+  }
+  runWhenReady(embed, run)
+}
+
+// --- Attach to an existing iframe -------------------------------------------
+
+const attachToIframe = (
+  iframe: HTMLIFrameElement,
+  { tenant, baseDomain = DEFAULT_BASE_DOMAIN, document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
+): Embed => {
+  const editorOrigin = buildEditorDomain({ tenant, baseDomain })
+  const documentFetchController = new AbortController()
+  const safeLogger = makeSafeLogger(logger)
+  // The consumer owns this iframe, so dispose() does NOT remove it; it only
+  // aborts an in-flight document host-fetch.
+  const embed = attachEmbed({
+    getIframe: () => iframe,
+    editorOrigin,
+    logger: safeLogger,
+    onDispose: () => documentFetchController.abort(),
+  })
+  if (embedDocument !== undefined) {
+    loadDocumentWhenReady({
+      embed,
+      embedDocument,
+      signal: documentFetchController.signal,
+      safeLogger,
+      onHostFetchFail: undefined,
+    })
+  }
+  return embed
+}
+
+// --- Create the iframe inside a container -----------------------------------
+
+const mountIntoContainer = (
+  container: HTMLElement,
+  {
+    tenant,
+    baseDomain = DEFAULT_BASE_DOMAIN,
+    document: mountDocument,
+    locale,
+    context,
+    iframeAttrs,
+    logger = NOOP_LOGGER,
+  }: CreateEmbedArgs,
+): Embed => {
   const editorOrigin = buildEditorDomain({ tenant, baseDomain })
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
 
@@ -337,9 +443,9 @@ export const mountEmbed = ({
   // host-fetch so a disposed mount stops downloading. The controller's signal also
   // doubles as the disposal indicator the async load checks before it posts.
   const documentFetchController = new AbortController()
-  // mountEmbed's own logging must be just as throw-isolated as the bridge's.
+  // createEmbed's own logging must be just as throw-isolated as the bridge's.
   const safeLogger = makeSafeLogger(logger)
-  const embed = createEmbed({
+  const embed = attachEmbed({
     getIframe: () => iframe,
     editorOrigin,
     logger: safeLogger,
@@ -349,39 +455,15 @@ export const mountEmbed = ({
     },
   })
 
-  // Post LOAD_DOCUMENT once the editor is ready (it queues nothing before then).
-  // For url documents we host-fetch eagerly and fall back to ?open on failure.
   if (mountDocument !== undefined) {
-    const dataUrlPromise: Promise<string | null> = ((): Promise<string | null> => {
-      if ('dataUrl' in mountDocument) {
-        return Promise.resolve(mountDocument.dataUrl)
-      }
-      if ('file' in mountDocument) {
-        return blobToDataUrl(mountDocument.file).catch(() => null)
-      }
-      return fetchDocumentAsDataUrl(mountDocument.url, documentFetchController.signal)
-    })()
-    const documentName = ((): string | undefined => {
-      if (mountDocument.name !== undefined) {
-        return mountDocument.name
-      }
-      if ('url' in mountDocument) {
-        return extractDocumentName(mountDocument.url)
-      }
-      if ('file' in mountDocument && mountDocument.file instanceof File) {
-        return mountDocument.file.name
-      }
-      return undefined
-    })()
-
-    const loadWhenReady = async (): Promise<void> => {
-      const dataUrl = await dataUrlPromise
-      if (documentFetchController.signal.aborted) {
-        return
-      }
-      if (dataUrl === null) {
-        // Host-fetch failed (CORS/size/network): re-navigate the iframe through
-        // the editor's ?open loader, which fetches the URL inside the editor.
+    loadDocumentWhenReady({
+      embed,
+      embedDocument: mountDocument,
+      signal: documentFetchController.signal,
+      safeLogger,
+      // Host-fetch failed (CORS/size/network): re-navigate the iframe we own
+      // through the editor's ?open loader, which fetches the URL inside the editor.
+      onHostFetchFail: () => {
         if ('url' in mountDocument) {
           iframe.src = buildEditorURL({
             editorOrigin,
@@ -391,26 +473,23 @@ export const mountEmbed = ({
             openFallbackUrl: mountDocument.url,
           })
         }
-        return
-      }
-      const result = await embed.loadDocument({ data_url: dataUrl, name: documentName, page: mountDocument.page })
-      if (!result.success) {
-        // Surface the load failure (it would otherwise be silently dropped).
-        safeLogger.error('mount.load_document_failed', { code: result.error.code, message: result.error.message })
-      }
-    }
-
-    if (embed.getState().kind === 'booting') {
-      const unsubscribe = embed.on('state_change', (next) => {
-        if (next.kind !== 'booting') {
-          unsubscribe()
-          void loadWhenReady()
-        }
-      })
-    } else {
-      void loadWhenReady()
-    }
+      },
+    })
   }
 
   return embed
+}
+
+// The single way to embed the SimplePDF editor. Point `target` at a container and
+// we create the iframe inside it; point it at an existing <iframe> you rendered
+// (already showing the editor) and we bridge to it instead. Either way you get the
+// same typed `Embed` handle. Throws `EmbedConfigError` synchronously on bad config.
+export const createEmbed = (args: CreateEmbedArgs): Embed => {
+  assertValidTenant(args.tenant)
+  assertValidDocument(args.document)
+  const element = resolveTarget(args.target)
+  if (element instanceof HTMLIFrameElement) {
+    return attachToIframe(element, args)
+  }
+  return mountIntoContainer(element, args)
 }

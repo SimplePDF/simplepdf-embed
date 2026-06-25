@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createEmbed } from '../src/bridge'
+import { attachEmbed } from '../src/bridge'
 import type { Embed } from '../src/types'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
@@ -28,7 +28,7 @@ const makeHarness = (): Harness => {
       posted.push(JSON.parse(message))
     }
   })
-  const embed = createEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN })
+  const embed = attachEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN })
   const reply = (message: unknown): void => {
     window.dispatchEvent(
       new MessageEvent('message', { data: JSON.stringify(message), origin: EDITOR_ORIGIN, source: contentWindow }),
@@ -49,7 +49,7 @@ const makeHarness = (): Harness => {
 const replyResult = (harness: Harness, requestId: string, result: unknown): void =>
   harness.reply({ type: 'REQUEST_RESULT', data: { request_id: requestId, result } })
 
-describe(createEmbed.name, () => {
+describe(attachEmbed.name, () => {
   afterEach(() => {
     for (const harness of harnesses) {
       harness.embed.dispose()
@@ -95,7 +95,7 @@ describe(createEmbed.name, () => {
   })
 
   it('returns unexpected:iframe_not_mounted when the iframe is gone', async () => {
-    const embed = createEmbed({ getIframe: () => null, editorOrigin: EDITOR_ORIGIN })
+    const embed = attachEmbed({ getIframe: () => null, editorOrigin: EDITOR_ORIGIN })
     const result = await embed.getFields()
     expect(result).toEqual({
       success: false,
@@ -237,7 +237,7 @@ describe(createEmbed.name, () => {
       }
     })
     const warn = vi.fn()
-    const embed = createEmbed({
+    const embed = attachEmbed({
       getIframe: () => iframe,
       editorOrigin: EDITOR_ORIGIN,
       logger: { debug: () => {}, info: () => {}, warn, error: () => {} },
@@ -295,7 +295,7 @@ describe(createEmbed.name, () => {
       throw new Error('log boom')
     }
     const throwingLogger = { debug: boom, info: boom, warn: boom, error: boom }
-    const embed = createEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, logger: throwingLogger })
+    const embed = attachEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, logger: throwingLogger })
     const promise = embed.getFields()
     const requestId = posted[posted.length - 1]?.request_id ?? ''
     window.dispatchEvent(
@@ -329,7 +329,7 @@ describe(createEmbed.name, () => {
     const unhandled = vi.fn()
     process.on('unhandledRejection', unhandled)
     const rejecting = () => Promise.reject(new Error('async log boom'))
-    const embed = createEmbed({
+    const embed = attachEmbed({
       getIframe: () => iframe,
       editorOrigin: EDITOR_ORIGIN,
       logger: { debug: rejecting, info: rejecting, warn: rejecting, error: rejecting },

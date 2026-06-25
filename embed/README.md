@@ -16,7 +16,7 @@ Zero runtime dependencies at the root. Optional peers (`zod`, `react`, `react-do
 
 | Import | Purpose | Peer |
 | --- | --- | --- |
-| `@simplepdf/embed` | `mountEmbed`, `createEmbed`, the `Embed` handle, the closed error model + `BridgeResult` types, `unwrap`, `NOOP_LOGGER` | none |
+| `@simplepdf/embed` | `createEmbed`, the `Embed` handle, the closed error model + `BridgeResult` types, `unwrap`, `NOOP_LOGGER` | none |
 | `@simplepdf/embed/protocol` | wire operation/event constants | none |
 | `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
 | `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
@@ -27,23 +27,23 @@ Zero runtime dependencies at the root. Optional peers (`zod`, `react`, `react-do
 
 One deliberate naming boundary, so nothing surprises you:
 
-- **Package config is camelCase** (the JS idiom): `mountEmbed` / `createEmbed` options and callbacks. `tenant`, `baseDomain`, `iframeAttrs`, `getIframe`, `onDispose`, the `document` arms.
+- **Package config is camelCase** (the JS idiom): `createEmbed`'s options. `target`, `tenant`, `baseDomain`, `locale`, `context`, `iframeAttrs`, the `document` arms.
 - **Editor operations are snake_case**, verbatim from the contract: every method input/output on the `embed` handle and every event payload. `data_url`, `download_copy`, `field_ids`, `document_id`.
 
 The operation surface is byte-for-byte [`/embed/json`](https://simplepdf.com/embed/json) and the raw `postMessage` wire, so what you (or an agent) read in the spec is exactly what you send. The editor owns all validation and FIFO ordering; the bridge just posts, correlates by `request_id`, and times out a dead iframe. Every method resolves to a `BridgeResult<T>` and never throws; only construction errors (bad config) throw, synchronously.
 
 ## Quick start
 
-`mountEmbed` builds the editor iframe and appends it to a container you provide:
+`createEmbed` builds the editor iframe and appends it to a container you provide:
 
 ```html
 <div id="editor" style="height: 100vh"></div>
 ```
 
 ```ts
-import { mountEmbed } from '@simplepdf/embed'
+import { createEmbed } from '@simplepdf/embed'
 
-const embed = mountEmbed({
+const embed = createEmbed({
   target: '#editor', // a CSS selector, or the HTMLElement itself
   tenant: 'acme', // your companyIdentifier
   document: { url: 'https://example.com/form.pdf' },
@@ -59,57 +59,45 @@ if (fields.success) {
 }
 ```
 
-## Mounting
+## Where the editor goes
 
-The only difference is **who creates the `<iframe>`**. Use `mountEmbed` unless you have a reason not to.
+One function. It does the right thing based on what `target` points at:
 
-- **`mountEmbed`** creates the iframe for you: give it a container (`target`) + config, and it builds the editor URL, inserts the `<iframe>`, loads your document, and returns the handle.
-- **`createEmbed`** bridges to an iframe **you** render (you set its `src`): give it a `getIframe` callback + `editorOrigin`. It creates no DOM and builds no URL, just the typed `postMessage` bridge. Reach for it only when you must own the element (custom framework render, SSR, a modal you control, multiple instances). `mountEmbed` calls it internally.
+- **A container** (a `<div>`, etc.) → it **creates** the iframe inside it, builds the editor URL, loads your document, and `dispose()` removes the iframe. This is the common case.
+- **An existing `<iframe>`** you rendered (already pointed at the editor) → it **attaches** to it: no DOM is created, and `dispose()` leaves your iframe in place. Use this when you must own the element (a custom framework render, SSR, a modal you control).
 
 ```ts
-import { mountEmbed, createEmbed } from '@simplepdf/embed'
+// Point at a container, we make the iframe:
+createEmbed({ target: '#editor', tenant: 'acme', document: { url } })
 
-// You give a container, the library makes the iframe:
-mountEmbed({ target: '#editor', tenant: 'acme', document: { url } })
-
-// You make the iframe, the library makes the bridge:
-// <iframe id="ed" src="https://acme.simplepdf.com/editor?open=…"></iframe>
-createEmbed({
-  getIframe: () => document.getElementById('ed'), // re-read on every access
-  editorOrigin: 'https://acme.simplepdf.com',
-})
+// Point at your own iframe, we bridge to it:
+// <iframe id="ed" src="https://acme.simplepdf.com/editor"></iframe>
+createEmbed({ target: '#ed', tenant: 'acme' })
 ```
 
-|  | creates the iframe | builds the editor URL | loads the document |
-| --- | --- | --- | --- |
-| `mountEmbed` | the library | yes | yes |
-| `createEmbed` | **you** | you | you |
+Either way you get the same typed `Embed` handle. In React, `<EmbedPDF>` is the container case and `useIframeBridge` is the own-iframe case (see [React](#react)).
 
-In React, `<EmbedPDF>` is the `mountEmbed` equivalent and `useIframeBridge` is the `createEmbed` equivalent (see [React](#react)).
-
-### `mountEmbed` options
+### Options
 
 | Option | Type | Notes |
 | --- | --- | --- |
-| `target` | `string \| HTMLElement` | **required**: container selector or element, resolved once |
-| `tenant` | `string` | your companyIdentifier (the `<tenant>.simplepdf.com` subdomain) |
+| `target` | `string \| HTMLElement` | **required**: a container to fill, or an `<iframe>` to attach to |
+| `tenant` | `string` | **required**: your companyIdentifier (`<tenant>.simplepdf.com`; `'embed'` is the free no-account editor) |
 | `document` | `{ url } \| { dataUrl } \| { file }` | initial document (see below) |
-| `baseDomain` | `string` | editor base domain (default `https://simplepdf.com`) |
+| `baseDomain` | `string` | editor base domain (default `simplepdf.com`); set for staging / self-hosting |
 | `locale` | `Locale` | editor UI language |
 | `context` | `object` | opaque data echoed back on submissions |
-| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes |
+| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only) |
 | `logger` | `BridgeLogger` | structured logs (ids + timing only, never payloads) |
-
-`createEmbed` takes `{ getIframe, editorOrigin, logger?, onDispose? }` instead.
 
 ## Document source
 
 `document` takes exactly one source, plus optional `name` and `page`:
 
 ```ts
-mountEmbed({ target, tenant: 'acme', document: { url: 'https://…/form.pdf' } })
-mountEmbed({ target, tenant: 'acme', document: { dataUrl: 'data:application/pdf;base64,…' } })
-mountEmbed({ target, tenant: 'acme', document: { file: pdfFileOrBlob } })
+createEmbed({ target, tenant: 'acme', document: { url: 'https://…/form.pdf' } })
+createEmbed({ target, tenant: 'acme', document: { dataUrl: 'data:application/pdf;base64,…' } })
+createEmbed({ target, tenant: 'acme', document: { file: pdfFileOrBlob } })
 ```
 
 - **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`, since `fetch()` can't use them).
@@ -159,7 +147,7 @@ off() // unsubscribe (all subscriptions also clear on dispose)
 
 ## Errors
 
-- **Construction** (programmer error): `mountEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_target | invalid_tenant | invalid_document`.
+- **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_target | invalid_tenant | invalid_document`.
 - **Operations**: never throw; resolve to `BridgeResult`. `error.code` is a closed `BridgeErrorCode` (the bridge's transport / lifecycle codes union the editor's redacted set). `bad_request:missing_required_fields` carries typed `details`.
 
 Prefer exceptions? `unwrap` returns `data` or throws:

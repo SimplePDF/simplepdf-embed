@@ -94,7 +94,7 @@ _Programmatic control is only available with a SimplePDF account_
 
 The iframe communicates using the `postMessage` API. All messages are JSON strings that must be parsed with `JSON.parse()`.
 
-> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` / `mountEmbed` give you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
+> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` gives you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
 
 ### Implementation
 

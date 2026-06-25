@@ -13,7 +13,7 @@ import type {
   SubmissionSentPayload,
 } from './types'
 
-export type CreateEmbedArgs = {
+export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
   // reach the editor (postMessage send, probe, identity check on incoming
   // messages). Framework-agnostic: React callers pass `() => ref.current`,
@@ -24,7 +24,7 @@ export type CreateEmbedArgs = {
   editorOrigin: string
   logger?: BridgeLogger
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
-  // up (mountEmbed uses it to remove the iframe it created).
+  // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
 }
 
@@ -89,12 +89,12 @@ const asPageFocused = (data: Record<string, unknown> | undefined): PageFocusedPa
   return null
 }
 
-export const createEmbed = ({
+export const attachEmbed = ({
   getIframe,
   editorOrigin,
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
-}: CreateEmbedArgs): Embed => {
+}: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
   let state: BridgeState = { kind: 'booting' }

@@ -1,13 +1,13 @@
 // React adapter. `react`/`react-dom` are peer dependencies.
 //   - useIframeBridge: the host renders its own <iframe>; the hook drives the bridge.
-//   - EmbedPDF: the library renders the iframe (via mountEmbed) and forwards the Embed.
+//   - EmbedPDF: the library renders the iframe (via createEmbed) and forwards the Embed.
 //   - useEmbed: a typed ref to attach to <EmbedPDF ref={...} /> for imperative calls.
 // useEffect is used deliberately here: mounting/driving the editor iframe is exactly
 // the "synchronize with an external system" case effects exist for.
 
 import * as React from 'react'
-import { createEmbed } from './bridge'
-import { type EmbedDocument, mountEmbed } from './mount'
+import { attachEmbed } from './bridge'
+import { createEmbed, type EmbedDocument } from './mount'
 import type { BridgeLogger, LogPayload } from './logger'
 import type { Locale } from './generated/contract'
 import type { BridgeState, Embed, PageFocusedPayload, SubmissionSentPayload } from './types'
@@ -39,7 +39,7 @@ export const useIframeBridge = ({
         listener()
       }
     }
-    const embed = createEmbed({ getIframe: () => iframeRef.current, editorOrigin, logger })
+    const embed = attachEmbed({ getIframe: () => iframeRef.current, editorOrigin, logger })
     const unsubscribe = embed.on('state_change', (next) => {
       stateRef.current = next
       notifyReact()
@@ -71,7 +71,7 @@ export const useIframeBridge = ({
 }
 
 type EmbedPDFProps = {
-  tenant?: string
+  tenant: string
   baseDomain?: string
   document?: EmbedDocument
   locale?: Locale
@@ -160,7 +160,7 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
     if (container === null) {
       return
     }
-    const embed = mountEmbed({
+    const embed = createEmbed({
       target: container,
       tenant,
       baseDomain,

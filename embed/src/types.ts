@@ -145,7 +145,7 @@ export type IframeBridge = {
 // IframeBridge's method set is drift-guarded against the generated operation set
 // in ./generated/drift.ts (a new operation fails the build until added above).
 
-// The full handle returned by mountEmbed/createEmbed. Convention: name the
+// The full handle returned by createEmbed. Convention: name the
 // variable `embed`.
 export type Embed = IframeBridge & {
   readonly state: BridgeState

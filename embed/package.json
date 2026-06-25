@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/embed",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Typed bridge for embedding and programmatically driving the SimplePDF editor",
   "type": "module",
   "private": false,
