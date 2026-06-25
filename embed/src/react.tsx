@@ -10,7 +10,7 @@ import { attachEmbed } from './bridge'
 import { createEmbed, type EmbedDocument } from './mount'
 import type { BridgeLogger, LogPayload } from './logger'
 import type { Locale } from './generated/contract'
-import type { BridgeState, Embed, PageFocusedPayload, SubmissionSentPayload } from './types'
+import type { BridgeResult, BridgeState, Embed, IframeBridge, PageFocusedPayload, SubmissionSentPayload } from './types'
 
 const BOOTING_STATE: BridgeState = { kind: 'booting' }
 
@@ -190,6 +190,47 @@ export const EmbedPDF = React.forwardRef<Embed | null, EmbedPDFProps>((props, re
 })
 EmbedPDF.displayName = 'EmbedPDF'
 
-// A typed ref to attach to <EmbedPDF ref={embed} /> for imperative method calls
-// (embed.current?.getFields(), etc.).
-export const useEmbed = (): React.RefObject<Embed | null> => React.useRef<Embed | null>(null)
+// The async-action subset of the handle (everything except the sync getState).
+// Derived from IframeBridge, so a new editor operation fails the build here until
+// it is added to `actions` below.
+export type EmbedActions = Omit<IframeBridge, 'getState'>
+
+// Calls made before <EmbedPDF> has mounted resolve to a real Result (not undefined),
+// keeping the "every method returns a BridgeResult" contract uniform at every call
+// site. Reuses the bridge's own not-mounted code rather than minting a new one.
+const notMounted = (): Promise<BridgeResult<never>> =>
+  Promise.resolve({
+    success: false,
+    error: {
+      code: 'unexpected:iframe_not_mounted',
+      message: 'the editor is not mounted yet: attach embedRef to <EmbedPDF ref={embedRef} /> and call after it renders',
+    },
+  })
+
+// Returns a ref to attach to <EmbedPDF ref={embedRef} /> plus a stable `actions`
+// object: every method is the same typed `Embed` method, but a call before mount
+// returns the not-mounted Result instead of dereferencing a null ref.
+export const useEmbed = (): { embedRef: React.RefObject<Embed | null>; actions: EmbedActions } => {
+  const embedRef = React.useRef<Embed | null>(null)
+  const actions = React.useMemo<EmbedActions>(
+    () => ({
+      createField: (input) => embedRef.current?.createField(input) ?? notMounted(),
+      deleteFields: (input) => embedRef.current?.deleteFields(input) ?? notMounted(),
+      deletePages: (input) => embedRef.current?.deletePages(input) ?? notMounted(),
+      detectFields: () => embedRef.current?.detectFields() ?? notMounted(),
+      download: () => embedRef.current?.download() ?? notMounted(),
+      focusField: (input) => embedRef.current?.focusField(input) ?? notMounted(),
+      getDocumentContent: (input) => embedRef.current?.getDocumentContent(input) ?? notMounted(),
+      getFields: () => embedRef.current?.getFields() ?? notMounted(),
+      goTo: (input) => embedRef.current?.goTo(input) ?? notMounted(),
+      loadDocument: (input) => embedRef.current?.loadDocument(input) ?? notMounted(),
+      movePage: (input) => embedRef.current?.movePage(input) ?? notMounted(),
+      rotatePage: (input) => embedRef.current?.rotatePage(input) ?? notMounted(),
+      selectTool: (input) => embedRef.current?.selectTool(input) ?? notMounted(),
+      setFieldValue: (input) => embedRef.current?.setFieldValue(input) ?? notMounted(),
+      submit: (input) => embedRef.current?.submit(input) ?? notMounted(),
+    }),
+    [],
+  )
+  return { embedRef, actions }
+}

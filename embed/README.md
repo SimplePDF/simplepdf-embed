@@ -162,7 +162,7 @@ const { fields } = unwrap(await embed.getFields())
 ```tsx
 import { EmbedPDF, useEmbed } from '@simplepdf/embed/react'
 
-const embedRef = useEmbed() // RefObject<Embed | null>, for imperative calls
+const { embedRef, actions } = useEmbed() // attach embedRef; call actions.*
 
 <EmbedPDF
   ref={embedRef}
@@ -173,7 +173,10 @@ const embedRef = useEmbed() // RefObject<Embed | null>, for imperative calls
   style={{ height: '100vh' }}
 />
 
-await embedRef.current?.submit({ download_copy: true })
+// actions.* are the same typed Embed methods, but always return a BridgeResult:
+// a call before the editor has mounted resolves to a not-mounted error Result
+// rather than `undefined`, so every call site has one uniform shape to handle.
+const result = await actions.submit({ download_copy: true })
 ```
 
 Rendering the iframe yourself? `useIframeBridge({ iframeRef, editorOrigin })` returns `{ bridge, bridgeState }`.
