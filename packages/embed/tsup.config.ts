@@ -12,7 +12,6 @@ export default defineConfig({
     tools: 'src/tools.ts',
     'ai-sdk': 'src/ai-sdk.ts',
     react: 'src/react.tsx',
-    unwrap: 'src/unwrap.ts',
   },
   format: ['esm'],
   dts: true,

@@ -16,9 +16,9 @@ export type { SimplePDFToolName } from './generated/tools'
 
 // Server-side: execute-less tool definitions for streamText({ tools }). The model
 // generates the calls; the browser executes them via createSimplePDFExecutor.
-// Mode-gating (e.g. exposing submit XOR download) is the host's concern: pick the
-// subset you want from the returned record.
-export const simplePDFToolDefinitions = (): typeof TOOL_DEFINITIONS => TOOL_DEFINITIONS
+// Returns a FRESH record each call so the host can safely pick/omit tools (e.g.
+// mode-gate submit XOR download) without mutating the shared registry.
+export const simplePDFToolDefinitions = (): typeof TOOL_DEFINITIONS => ({ ...TOOL_DEFINITIONS })
 
 // Browser-side: a bridge-bound dispatcher for useChat({ onToolCall }). Validates
 // the tool name + input and routes to the bridge, returning a typed BridgeResult.

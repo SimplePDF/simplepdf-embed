@@ -101,54 +101,47 @@ export const createEmbed = ({
   let documentId: string | null = null
   let disposed = false
 
-  // Typed event emitter. The mapped-type annotations make `on`/`emit` exact per
-  // event without any cast.
-  type Listener<E extends BridgeEventName> = (payload: BridgeEventMap[E]) => void
-  const subscribers = {
-    state_change: new Set<Listener<'state_change'>>(),
-    submission_sent: new Set<Listener<'submission_sent'>>(),
-    page_focused: new Set<Listener<'page_focused'>>(),
-    disposed: new Set<Listener<'disposed'>>(),
+  // Per-event channels. Each owns its listener Set + subscribe/emit/clear, and a
+  // throwing listener can't stop the others or break cleanup. The mapped type
+  // keeps `on` and the emit call sites exact per event without any cast.
+  type Channel<T> = {
+    subscribe: (listener: (payload: T) => void) => () => void
+    emit: (payload: T) => void
+    clear: () => void
   }
-  const register: { [E in BridgeEventName]: (listener: Listener<E>) => () => void } = {
-    state_change: (listener) => {
-      subscribers.state_change.add(listener)
-      return () => subscribers.state_change.delete(listener)
-    },
-    submission_sent: (listener) => {
-      subscribers.submission_sent.add(listener)
-      return () => subscribers.submission_sent.delete(listener)
-    },
-    page_focused: (listener) => {
-      subscribers.page_focused.add(listener)
-      return () => subscribers.page_focused.delete(listener)
-    },
-    disposed: (listener) => {
-      subscribers.disposed.add(listener)
-      return () => subscribers.disposed.delete(listener)
-    },
-  }
-  // One listener throwing must not stop the others or break cleanup.
-  const notifyListeners = <TPayload>(listeners: Set<(payload: TPayload) => void>, payload: TPayload): void => {
-    for (const listener of listeners) {
-      try {
-        listener(payload)
-      } catch (error) {
-        logger.error('iframe.listener_threw', { message: error instanceof Error ? error.message : String(error) })
-      }
+  const reportListenerError = (error: unknown): void =>
+    logger.error('iframe.listener_threw', { message: error instanceof Error ? error.message : String(error) })
+  const makeChannel = <T>(): Channel<T> => {
+    const listeners = new Set<(payload: T) => void>()
+    return {
+      subscribe: (listener) => {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      },
+      emit: (payload) => {
+        for (const listener of listeners) {
+          try {
+            listener(payload)
+          } catch (error) {
+            reportListenerError(error)
+          }
+        }
+      },
+      clear: () => listeners.clear(),
     }
   }
-  const emit: { [E in BridgeEventName]: (payload: BridgeEventMap[E]) => void } = {
-    state_change: (payload) => notifyListeners(subscribers.state_change, payload),
-    submission_sent: (payload) => notifyListeners(subscribers.submission_sent, payload),
-    page_focused: (payload) => notifyListeners(subscribers.page_focused, payload),
-    disposed: (payload) => notifyListeners(subscribers.disposed, payload),
+  const channels: { [E in BridgeEventName]: Channel<BridgeEventMap[E]> } = {
+    state_change: makeChannel(),
+    submission_sent: makeChannel(),
+    page_focused: makeChannel(),
+    disposed: makeChannel(),
   }
-  const on = <E extends BridgeEventName>(event: E, listener: Listener<E>): (() => void) => register[event](listener)
+  const on = <E extends BridgeEventName>(event: E, listener: (payload: BridgeEventMap[E]) => void): (() => void) =>
+    channels[event].subscribe(listener)
 
   const transitionTo = (next: BridgeState): void => {
     state = next
-    emit.state_change(state)
+    channels.state_change.emit(state)
   }
 
   const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
@@ -354,7 +347,7 @@ export const createEmbed = ({
     if (payload.type === SUBMISSION_SENT_EVENT) {
       const submission = asSubmissionSent(payload.data)
       if (submission !== null) {
-        emit.submission_sent(submission)
+        channels.submission_sent.emit(submission)
       }
       return
     }
@@ -362,7 +355,7 @@ export const createEmbed = ({
     if (payload.type === PAGE_FOCUSED_EVENT) {
       const pageFocused = asPageFocused(payload.data)
       if (pageFocused !== null) {
-        emit.page_focused(pageFocused)
+        channels.page_focused.emit(pageFocused)
       }
       return
     }
@@ -457,11 +450,10 @@ export const createEmbed = ({
       })
     }
     pending.clear()
-    emit.disposed(undefined)
-    subscribers.state_change.clear()
-    subscribers.submission_sent.clear()
-    subscribers.page_focused.clear()
-    subscribers.disposed.clear()
+    channels.disposed.emit(undefined)
+    for (const channel of Object.values(channels)) {
+      channel.clear()
+    }
     onDispose?.()
   }
 

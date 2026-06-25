@@ -41,10 +41,6 @@
     "./react": {
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"
-    },
-    "./unwrap": {
-      "types": "./dist/unwrap.d.ts",
-      "import": "./dist/unwrap.js"
     }
   },
   "scripts": {

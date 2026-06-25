@@ -16,13 +16,12 @@ The root entry has **zero runtime dependencies**. The optional peers (`zod`, `re
 
 | Import | Purpose | Peer |
 | --- | --- | --- |
-| `@simplepdf/embed` | `mountEmbed`, `createEmbed`, the `Embed` handle, the closed error model, `unwrap`-free `BridgeResult` types, `isBridgeResultLike`, `NOOP_LOGGER` | none |
+| `@simplepdf/embed` | `mountEmbed`, `createEmbed`, the `Embed` handle, the closed error model + `BridgeResult` types, `isBridgeResultLike`, `unwrap` (opt-in `Result`→throw), `NOOP_LOGGER` | none |
 | `@simplepdf/embed/protocol` | wire operation/event constants + the internal protocol frames | none |
 | `@simplepdf/embed/schemas` | zod schemas for every operation input | `zod` |
 | `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + router + `isSimplePDFToolName` | `zod` |
 | `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server, execute-less) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
 | `@simplepdf/embed/react` | `useIframeBridge`, `<EmbedPDF>`, `useEmbed` | `react`, `react-dom` |
-| `@simplepdf/embed/unwrap` | opt-in `Result` → throw helper | none |
 
 ## Quick start
 

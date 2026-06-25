@@ -253,8 +253,8 @@ export const mountEmbed = ({
 
   // Tracks teardown so the async document load below doesn't post / re-navigate
   // after the consumer has disposed the embed; the controller aborts an in-flight
-  // host-fetch so a disposed mount stops downloading.
-  let mountDisposed = false
+  // host-fetch so a disposed mount stops downloading. The controller's signal also
+  // doubles as the disposal indicator the async load checks before it posts.
   const documentFetchController = new AbortController()
   // mountEmbed's own logging must be just as throw-isolated as the bridge's.
   const safeLogger = makeSafeLogger(logger)
@@ -263,7 +263,6 @@ export const mountEmbed = ({
     editorOrigin,
     logger: safeLogger,
     onDispose: () => {
-      mountDisposed = true
       documentFetchController.abort()
       iframe.remove()
     },
@@ -281,7 +280,7 @@ export const mountEmbed = ({
 
     const loadWhenReady = async (): Promise<void> => {
       const dataUrl = await dataUrlPromise
-      if (mountDisposed) {
+      if (documentFetchController.signal.aborted) {
         return
       }
       if (dataUrl === null) {

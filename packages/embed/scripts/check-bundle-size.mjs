@@ -18,7 +18,6 @@ const BUDGETS = {
   'tools.js': 8 * 1024,
   'ai-sdk.js': 8 * 1024,
   'react.js': 10 * 1024,
-  'unwrap.js': 2 * 1024,
 }
 
 const localImports = (file) => {
