@@ -361,7 +361,7 @@ const loadDocumentWhenReady = (params: {
       }
       safeLogger.error('load_document_failed', {
         code: 'unexpected:unknown',
-        message: 'could not host-fetch the document; ?open fallback is unavailable on an attached iframe',
+        message: 'could not resolve the document to a data URL; ?open fallback is unavailable on an attached iframe',
       })
       return
     }
@@ -383,9 +383,15 @@ const attachToIframe = (
   // The consumer set this iframe's src. If it points at a different origin than
   // the one we derived from `tenant`, the bridge would post into the void and
   // time out 60s later; catch the mismatch up front instead.
+  // Read the raw attribute, not iframe.src: the property resolves an empty/relative
+  // src against the page URL, which would false-positive on an iframe with no src.
+  const srcAttr = iframe.getAttribute('src')
   const iframeOrigin = ((): string | null => {
+    if (srcAttr === null || srcAttr.trim() === '') {
+      return null
+    }
     try {
-      const url = new URL(iframe.src)
+      const url = new URL(srcAttr)
       return url.protocol === 'https:' || url.protocol === 'http:' ? url.origin : null
     } catch {
       return null

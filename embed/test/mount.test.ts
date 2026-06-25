@@ -167,6 +167,13 @@ describe(createEmbed.name, () => {
     expect(() => mount({ target: '#ed', tenant: 'acme' })).toThrow('https://other.simplepdf.com')
   })
 
+  it('does not false-positive the origin guard when the iframe has no usable src', () => {
+    for (const html of ['<iframe id="x"></iframe>', '<iframe id="x" src=""></iframe>', '<iframe id="x" src="about:blank"></iframe>']) {
+      document.body.innerHTML = html
+      expect(() => mount({ target: '#x', tenant: 'acme' })).not.toThrow()
+    }
+  })
+
   it('rejects a missing tenant', () => {
     // @ts-expect-error tenant is required; exercise the runtime guard for untyped JS callers
     expect(() => createEmbed({ target: '#root' })).toThrow(/tenant is required/)
