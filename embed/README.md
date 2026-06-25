@@ -53,9 +53,9 @@ Every method returns a typed `BridgeResult<T>` (a `{ success: true; data }` / `{
 
 ## Generated code & the pinned contract
 
-`embed-api.json` is a **pinned copy** of the editor's published interface manifest (`client/lib/iframe/embed-api.json` in the SimplePDF monorepo). `scripts/generate.mjs` derives `src/generated/{contract,schemas,tools,drift}.ts` from it; the codegen runs automatically on `prebuild` and `pretest`. `src/generated/drift.ts` holds compile-time guards that fail `tsc` the moment a generated representation diverges from another.
+`embed-api.json` is a **pinned copy** of the editor's published interface manifest, served at [`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json). `scripts/generate.mjs` derives `src/generated/{contract,schemas,tools,drift}.ts` from it; the codegen runs automatically on `prebuild` and `pretest`. `src/generated/drift.ts` holds compile-time guards that fail `tsc` the moment a generated representation diverges from another.
 
-When the editor contract changes, re-sync the pinned `embed-api.json` from the editor and run `npm run generate`. Do not hand-edit anything under `src/generated/`.
+When the editor contract changes, re-sync the pinned `embed-api.json` from [`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json) and run `npm run generate`. Do not hand-edit anything under `src/generated/`.
 
 ## Scripts
 
