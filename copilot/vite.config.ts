@@ -13,7 +13,11 @@ const config = defineConfig({
     devtools(),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      // Co-located *.test.ts / *.spec.ts files under src/routes are tests, not
+      // routes; skip them so the generator stops warning "does not export a Route".
+      router: { routeFileIgnorePattern: '\\.(test|spec)\\.' },
+    }),
     viteReact(),
   ],
 })
