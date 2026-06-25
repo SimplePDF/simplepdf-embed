@@ -11,9 +11,10 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 
 // Gzip budget (bytes) per entry's local closure. Each cap is the current size plus
 // ~1 KB of headroom, so any non-trivial growth trips the gate and gets reviewed.
-// The zero-dep root carries the bridge + mountEmbed + its actionable validation.
+// The zero-dep root carries the bridge + createEmbed (create + attach paths) + its
+// actionable config validation.
 const BUDGETS = {
-  'index.js': 7 * 1024,
+  'index.js': 8 * 1024,
   'protocol.js': 3.5 * 1024,
   'schemas.js': 3 * 1024,
   'tools.js': 5 * 1024,

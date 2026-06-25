@@ -161,4 +161,14 @@ describe(createEmbed.name, () => {
     embed.dispose()
     expect(document.querySelector('#ed')).not.toBeNull()
   })
+
+  it('rejects an attached iframe whose src origin does not match the tenant', () => {
+    document.body.innerHTML = '<iframe id="ed" src="https://other.simplepdf.com/editor"></iframe>'
+    expect(() => mount({ target: '#ed', tenant: 'acme' })).toThrow('https://other.simplepdf.com')
+  })
+
+  it('rejects a missing tenant', () => {
+    // @ts-expect-error tenant is required; exercise the runtime guard for untyped JS callers
+    expect(() => createEmbed({ target: '#root' })).toThrow(/tenant is required/)
+  })
 })

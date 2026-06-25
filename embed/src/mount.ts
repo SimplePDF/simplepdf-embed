@@ -91,7 +91,15 @@ const resolveTarget = (target: string | HTMLElement): HTMLElement => {
   return element
 }
 
-const assertValidTenant = (tenant: string): void => {
+const assertValidTenant = (tenant: unknown): void => {
+  // Runtime guard, not just a type: an untyped JS caller passing `undefined`
+  // would otherwise coerce to the string 'undefined', which passes DNS_LABEL.
+  if (typeof tenant !== 'string' || tenant === '') {
+    throw new EmbedConfigError(
+      'invalid_tenant',
+      'tenant is required: your companyIdentifier (the <tenant>.simplepdf.com subdomain).',
+    )
+  }
   if (!DNS_LABEL.test(tenant)) {
     throw new EmbedConfigError(
       'invalid_tenant',
@@ -369,9 +377,26 @@ const loadDocumentWhenReady = (params: {
 
 const attachToIframe = (
   iframe: HTMLIFrameElement,
-  { tenant, baseDomain = DEFAULT_BASE_DOMAIN, document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  editorOrigin: string,
+  { document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
 ): Embed => {
-  const editorOrigin = buildEditorDomain({ tenant, baseDomain })
+  // The consumer set this iframe's src. If it points at a different origin than
+  // the one we derived from `tenant`, the bridge would post into the void and
+  // time out 60s later; catch the mismatch up front instead.
+  const iframeOrigin = ((): string | null => {
+    try {
+      const url = new URL(iframe.src)
+      return url.protocol === 'https:' || url.protocol === 'http:' ? url.origin : null
+    } catch {
+      return null
+    }
+  })()
+  if (iframeOrigin !== null && iframeOrigin !== editorOrigin) {
+    throw new EmbedConfigError(
+      'invalid_target',
+      `the iframe at this target points at ${iframeOrigin}, but the editor origin derived from tenant is ${editorOrigin}. Point the iframe at ${editorOrigin}, or fix the tenant.`,
+    )
+  }
   const documentFetchController = new AbortController()
   const safeLogger = makeSafeLogger(logger)
   // The consumer owns this iframe, so dispose() does NOT remove it; it only
@@ -398,17 +423,9 @@ const attachToIframe = (
 
 const mountIntoContainer = (
   container: HTMLElement,
-  {
-    tenant,
-    baseDomain = DEFAULT_BASE_DOMAIN,
-    document: mountDocument,
-    locale,
-    context,
-    iframeAttrs,
-    logger = NOOP_LOGGER,
-  }: CreateEmbedArgs,
+  editorOrigin: string,
+  { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER }: CreateEmbedArgs,
 ): Embed => {
-  const editorOrigin = buildEditorDomain({ tenant, baseDomain })
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
 
   const iframe = document.createElement('iframe')
@@ -487,9 +504,10 @@ const mountIntoContainer = (
 export const createEmbed = (args: CreateEmbedArgs): Embed => {
   assertValidTenant(args.tenant)
   assertValidDocument(args.document)
+  const editorOrigin = buildEditorDomain({ tenant: args.tenant, baseDomain: args.baseDomain ?? DEFAULT_BASE_DOMAIN })
   const element = resolveTarget(args.target)
   if (element instanceof HTMLIFrameElement) {
-    return attachToIframe(element, args)
+    return attachToIframe(element, editorOrigin, args)
   }
-  return mountIntoContainer(element, args)
+  return mountIntoContainer(element, editorOrigin, args)
 }
