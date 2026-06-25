@@ -9,16 +9,16 @@ import { gzipSync } from 'node:zlib'
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 
-// Gzip budget (bytes) per entry's local closure. The zero-dep root is the tight
-// one (≤ 7 KB; it carries the bridge + mountEmbed + its actionable config
-// validation); the rest get generous caps that still catch accidental bloat.
+// Gzip budget (bytes) per entry's local closure. Each cap is the current size plus
+// ~1 KB of headroom, so any non-trivial growth trips the gate and gets reviewed.
+// The zero-dep root carries the bridge + mountEmbed + its actionable validation.
 const BUDGETS = {
   'index.js': 7 * 1024,
-  'protocol.js': 4 * 1024,
-  'schemas.js': 6 * 1024,
-  'tools.js': 8 * 1024,
-  'ai-sdk.js': 8 * 1024,
-  'react.js': 10 * 1024,
+  'protocol.js': 3.5 * 1024,
+  'schemas.js': 3 * 1024,
+  'tools.js': 5 * 1024,
+  'ai-sdk.js': 5.5 * 1024,
+  'react.js': 9 * 1024,
 }
 
 const localImports = (file) => {
