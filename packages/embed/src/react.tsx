@@ -6,7 +6,7 @@
 // the "synchronize with an external system" case effects exist for.
 
 import * as React from 'react'
-import { createBridge } from './bridge'
+import { createEmbed } from './bridge'
 import { type EmbedDocument, mountEmbed } from './mount'
 import type { BridgeLogger, LogPayload } from './logger'
 import type { Locale } from './generated/contract'
@@ -39,7 +39,7 @@ export const useIframeBridge = ({
         listener()
       }
     }
-    const embed = createBridge({ getIframe: () => iframeRef.current, editorOrigin, logger })
+    const embed = createEmbed({ getIframe: () => iframeRef.current, editorOrigin, logger })
     const unsubscribe = embed.on('state_change', (next) => {
       stateRef.current = next
       notifyReact()

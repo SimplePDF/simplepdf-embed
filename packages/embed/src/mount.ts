@@ -1,4 +1,4 @@
-import { createBridge } from './bridge'
+import { createEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { Embed } from './types'
 import type { Locale } from './generated/contract'
@@ -258,7 +258,7 @@ export const mountEmbed = ({
   const documentFetchController = new AbortController()
   // mountEmbed's own logging must be just as throw-isolated as the bridge's.
   const safeLogger = makeSafeLogger(logger)
-  const embed = createBridge({
+  const embed = createEmbed({
     getIframe: () => iframe,
     editorOrigin,
     logger: safeLogger,

@@ -13,7 +13,7 @@ import type {
   SubmissionSentPayload,
 } from './types'
 
-export type CreateBridgeArgs = {
+export type CreateEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
   // reach the editor (postMessage send, probe, identity check on incoming
   // messages). Framework-agnostic: React callers pass `() => ref.current`,
@@ -89,12 +89,12 @@ const asPageFocused = (data: Record<string, unknown> | undefined): PageFocusedPa
   return null
 }
 
-export const createBridge = ({
+export const createEmbed = ({
   getIframe,
   editorOrigin,
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
-}: CreateBridgeArgs): Embed => {
+}: CreateEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
   let state: BridgeState = { kind: 'booting' }
