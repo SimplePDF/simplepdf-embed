@@ -222,9 +222,7 @@ await sendEvent("ROTATE_PAGE", { page: 1 });
 
 ## Reference: the editor contract (the spec)
 
-Rather than re-list every operation and event here (where the copy drifts), the **single source of truth is the machine-readable contract the editor publishes**:
-
-### [`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json)
+The single source of truth for the available operations and events can be found at **[`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json)**.
 
 It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes** — each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
 
