@@ -76,7 +76,7 @@ type PendingRequest = {
 
 // Validates + returns the editor's outbound event payload VERBATIM (snake_case):
 // these are forwarded to onEmbedEvent unchanged, so they keep the wire shape (the
-// 1.x EmbedEvent contract). Op method payloads, by contrast, are camelCased.
+// established EmbedEvent contract). Op method payloads, by contrast, are camelCased.
 const asSubmissionSent = (data: Record<string, unknown> | undefined): SubmissionSentPayload | null => {
   const documentId = data?.document_id
   const submissionId = data?.submission_id
@@ -110,8 +110,8 @@ export const attachEmbed = ({
   let documentId: string | null = null
   let disposed = false
 
-  // A single channel for the editor's outbound events, forwarded verbatim (the 1.x
-  // EmbedEvent contract). A throwing listener can't stop the others or break cleanup.
+  // Per-type channels for the editor's outbound events, forwarded verbatim (the
+  // established EmbedEvent contract). A throwing listener can't stop the others or break cleanup.
   // The lifecycle state machine below is INTERNAL (readiness probing + createEmbed's
   // load-when-ready gate), not an event: consumers observe readiness via the
   // EDITOR_READY / DOCUMENT_LOADED events.
@@ -448,7 +448,7 @@ export const attachEmbed = ({
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
     createField: (input) => sendRequest('CREATE_FIELD', input),
-    // All-optional input: 1.x allowed deleteFields() to clear every field.
+    // All-optional input: deleteFields() with no args clears every field.
     deleteFields: (input) => sendRequest('DELETE_FIELDS', input ?? {}),
     deletePages: (input) => sendRequest('DELETE_PAGES', input),
     detectFields: () => sendRequest('DETECT_FIELDS', {}),

@@ -10,7 +10,7 @@
 // Config + actions are camelCase (JS/TS idiom); the bridge transforms to the
 // snake_case wire. ONE deliberate exception: onEmbedEvent forwards the editor's
 // outbound events VERBATIM (SCREAMING_SNAKE `type` + snake_case `data`) — the stable
-// 1.x EmbedEvent contract. useEffect is deliberate: mounting / driving the editor
+// EmbedEvent contract. useEffect is deliberate: mounting / driving the editor
 // iframe is exactly the "synchronize with an external system" case.
 
 import * as React from 'react';
@@ -42,15 +42,15 @@ const assignRef = (ref: React.ForwardedRef<EmbedActions | null>, value: EmbedAct
   }
 };
 
-// 1.x backward-compat for the two imperative actions whose argument shape changed.
-// Defined once and applied at the single boundary to the (pure camelCase) core, so
+// Deprecated argument shapes for the two imperative actions whose shape changed (the new
+// shapes supersede them). Defined once at the single boundary to the (pure camelCase) core, so
 // BOTH the forwarded ref handle and useEmbed().actions accept the deprecated forms.
 const normalizeSelectTool = (input: SelectToolInput | SelectToolInput['tool']): SelectToolInput =>
   typeof input === 'object' && input !== null ? input : { tool: input };
 const normalizeSubmit = (input: SubmitInput | { downloadCopyOnDevice: boolean }): SubmitInput =>
   'downloadCopyOnDevice' in input ? { downloadCopy: input.downloadCopyOnDevice } : input;
 
-// 1.x accepted a relative `documentURL` / trigger href (it fetched the URL, which resolves
+// Earlier published versions accepted a relative `documentURL` / trigger href (it fetched the URL, which resolves
 // against the page); the core now requires an absolute URL, so resolve relative values here
 // to stay backward-compatible. Absolute URLs pass through unchanged; under SSR (no window)
 // or an unusable base (e.g. about:blank), the raw value is kept — the core then validates it.
@@ -65,10 +65,10 @@ const toAbsoluteUrl = (url: string): string => {
   }
 };
 
-// The forwarded ref is the FLAT 1.x EmbedActions (`embedRef.current.selectTool(...)`), not
-// the core's grouped handle — so existing 1.x ref consumers keep working (1.11 stays a
+// The forwarded ref is the FLAT EmbedActions (`embedRef.current.selectTool(...)`), not
+// the core's grouped handle — so existing ref consumers keep working (this stays a
 // non-breaking minor). It flattens the core's `embed.actions` group and overloads
-// selectTool/submit for the deprecated 1.x argument shapes.
+// selectTool/submit for the deprecated argument shapes.
 const toEmbedActions = (embed: Embed): EmbedActions => ({
   ...embed.actions,
   selectTool: (input) => embed.actions.selectTool(normalizeSelectTool(input)),
@@ -78,7 +78,7 @@ const toEmbedActions = (embed: Embed): EmbedActions => ({
 // --- EmbedPDF ---------------------------------------------------------------
 
 // The editor's outbound events, forwarded to onEmbedEvent VERBATIM — the stable,
-// 1.x-compatible event contract (SCREAMING_SNAKE `type` + snake_case `data`). It is
+// established event contract (SCREAMING_SNAKE `type` + snake_case `data`). It is
 // the core's EditorEvent re-exported (single owner; no restated copy).
 export type EmbedEvent = EditorEvent;
 
@@ -90,7 +90,7 @@ type CommonEmbedPDFProps = {
   // The document to open, same typed shape as createEmbed: one of { url } |
   // { dataUrl } | { file }. A SimplePDF documents URL loads directly (prefill etc.).
   document?: EmbedDocument;
-  /** @deprecated Use `document={{ url: '…' }}` instead. Kept for 1.x compatibility. */
+  /** @deprecated Use `document={{ url: '…' }}` instead (still accepted). */
   documentURL?: string;
   context?: Record<string, unknown>;
   locale?: Locale;
@@ -206,7 +206,7 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
       logger: stableLogger,
     });
     assignRef(ref, toEmbedActions(embed));
-    // Forward each editor event to onEmbedEvent as the verbatim 1.x { type, data }. The
+    // Forward each editor event to onEmbedEvent as the verbatim { type, data }. The
     // `forwarders` map is exhaustiveness-checked (satisfies) so a NEW editor event is a
     // compile error here until it is forwarded; the explicit per-type subscriptions below
     // keep each payload typed (no cast). The consumer callback is isolated so a throw /
@@ -263,7 +263,7 @@ const isTriggerElement = (
   node: React.ReactNode,
 ): node is React.ReactElement<{ href?: string; onClick?: React.MouseEventHandler }> => React.isValidElement(node);
 
-// The trigger child's href, the modal document fallback (1.x pattern: a
+// The trigger child's href, the modal document fallback (the established pattern: a
 // <a href="doc.pdf"> trigger opens that PDF). The `document` prop takes precedence.
 const hrefOf = (node: React.ReactNode): string | undefined => (isTriggerElement(node) ? node.props.href : undefined);
 
@@ -308,15 +308,15 @@ const ModalChrome = ({
 };
 
 // The single React entry point for embedding the editor: a click-to-open modal by
-// default (1.x), or inline with `mode="inline"`. Forwards the typed Embed handle.
+// default, or inline with `mode="inline"`. Forwards the typed Embed handle.
 export const EmbedPDF = React.forwardRef<EmbedActions | null, EmbedPDFProps>((props, ref) => {
   const companyIdentifier = props.companyIdentifier ?? DEFAULT_COMPANY_IDENTIFIER;
-  // `document` wins; otherwise the deprecated `documentURL` (1.x), resolved if relative.
+  // `document` wins; otherwise the deprecated `documentURL`, resolved if relative.
   const propDocument =
     props.document ?? (props.documentURL !== undefined ? { url: toAbsoluteUrl(props.documentURL) } : undefined);
   if (props.mode !== 'inline') {
     // Modal is the default. Document: `document` / `documentURL`, else the trigger
-    // child's href (the 1.x pattern). On click, open the editor in a portal.
+    // child's href (the established pattern). On click, open the editor in a portal.
     const triggerHref = hrefOf(props.children);
     const modalDocument = propDocument ?? (triggerHref !== undefined ? { url: toAbsoluteUrl(triggerHref) } : undefined);
     return (
@@ -356,16 +356,16 @@ EmbedPDF.displayName = 'EmbedPDF';
 // --- useEmbed ---------------------------------------------------------------
 
 // The editor operations (the `embed.actions` group), derived from IframeActions so a new
-// editor operation fails the build here until it is added. Two methods carry 1.x
-// backward-compat overloads (the imperative API shipped in 1.x): `selectTool` also
+// editor operation fails the build here until it is added. Two methods carry deprecated
+// argument-shape overloads (their shapes changed this release): `selectTool` also
 // accepts the old positional tool, and `submit` also accepts the old
 // `{ downloadCopyOnDevice }`. Both normalize to the new shape before hitting the (pure
-// camelCase) core — the deprecated forms keep 1.x callers working, so 1.11 stays a
+// camelCase) core — the deprecated forms keep existing callers working, so this stays a
 // non-breaking minor.
 export type EmbedActions = Omit<IframeActions, 'selectTool' | 'submit'> & {
-  /** Pass `{ tool }`. The bare tool value is the deprecated 1.x positional form. */
+  /** Pass `{ tool }`. The bare tool value is the deprecated positional form. */
   selectTool: (input: SelectToolInput | SelectToolInput['tool']) => Promise<BridgeResult>;
-  /** Pass `{ downloadCopy }`. `{ downloadCopyOnDevice }` is the deprecated 1.x form. */
+  /** Pass `{ downloadCopy }`. `{ downloadCopyOnDevice }` is the deprecated form. */
   submit: (input: SubmitInput | { downloadCopyOnDevice: boolean }) => Promise<BridgeResult>;
 };
 
@@ -394,7 +394,7 @@ export const useEmbed = (): {
       loadDocument: (input) => embedRef.current?.loadDocument(input) ?? notMounted(),
       movePage: (input) => embedRef.current?.movePage(input) ?? notMounted(),
       rotatePage: (input) => embedRef.current?.rotatePage(input) ?? notMounted(),
-      // selectTool/submit normalize the deprecated 1.x arg shapes inside
+      // selectTool/submit normalize the deprecated arg shapes inside
       // embedRef.current (the flat EmbedActions), so actions just delegate.
       selectTool: (input) => embedRef.current?.selectTool(input) ?? notMounted(),
       setFieldValue: (input) => embedRef.current?.setFieldValue(input) ?? notMounted(),

@@ -50,5 +50,5 @@ export const toWireData = (input: unknown): unknown => transformKeysDeep(input, 
 
 // wire (snake_case) -> SDK (camelCase), applied to every inbound operation RESULT
 // payload. Editor EVENTS are NOT transformed — they are forwarded verbatim (snake) to
-// keep the 1.x EmbedEvent contract.
+// keep the established EmbedEvent contract.
 export const fromWireData = (data: unknown): unknown => transformKeysDeep(data, snakeToCamelKey)

@@ -29,7 +29,7 @@ Zero runtime dependencies at the root. `zod` is an optional peer, needed only by
 The SDK is **camelCase** (the JS/TS idiom); the editor's snake_case wire stays behind a transform the bridge owns, so you never type it:
 
 - **Methods, their arguments + results, and the agentic tool names/args are camelCase**: `embed.actions.getFields()`, `embed.actions.setFieldValue({ fieldId, value })`, `embed.actions.submit({ downloadCopy })`. They are generated from the contract and lowered to the snake_case wire (`field_id`, `download_copy`) at the `postMessage` boundary — automatically.
-- **Events are the one exception — delivered VERBATIM**: `embed.events.on(type, handler)` hands the handler the editor's outbound payload unchanged (snake_case fields like `document_id`), so events stay byte-for-byte compatible with the published manifest and with `@simplepdf/react-embed-pdf`'s 1.x `onEmbedEvent`.
+- **Events are the one exception — delivered VERBATIM**: `embed.events.on(type, handler)` hands the handler the editor's outbound payload unchanged (snake_case fields like `document_id`), so events stay byte-for-byte compatible with the published manifest and with `@simplepdf/react-embed-pdf`'s existing `onEmbedEvent`.
 
 The editor owns all validation and FIFO ordering; the bridge just posts, correlates by `request_id`, and times out a dead iframe. Every method resolves to a `BridgeResult<T>` and never throws; only construction errors (bad config) throw, synchronously.
 
@@ -151,7 +151,7 @@ await embed.actions.selectTool({ tool: 'SIGNATURE' })
 
 ## Events
 
-`embed.events.on(type, handler)` subscribes to one editor event and hands the handler that event's payload VERBATIM (snake_case) — the stable, 1.x-compatible contract. It returns an unsubscribe function:
+`embed.events.on(type, handler)` subscribes to one editor event and hands the handler that event's payload VERBATIM (snake_case) — the stable, established contract. It returns an unsubscribe function:
 
 ```ts
 const off = embed.events.on('SUBMISSION_SENT', (data) => {

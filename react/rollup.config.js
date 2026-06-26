@@ -4,7 +4,7 @@ import autoprefixer from 'autoprefixer';
 import typescript from 'rollup-plugin-typescript2';
 import terser from '@rollup/plugin-terser';
 
-// Dual CJS + ESM (kept from 1.x so the minor stays non-breaking for require() consumers).
+// Dual CJS + ESM (so existing require() consumers keep working — this is a non-breaking minor).
 // react / react-dom / zod / the core are external (peer or dependency), resolved at the
 // consumer rather than bundled in.
 const isExternal = (id) =>

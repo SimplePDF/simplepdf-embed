@@ -223,7 +223,7 @@ const CopilotEditor = () => {
 };
 ```
 
-For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle — every camelCase operation, with the 1.x `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
+For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle — every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
 

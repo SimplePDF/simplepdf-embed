@@ -108,7 +108,7 @@ export type BridgeState =
   | { kind: 'documentLoaded'; documentId: string | null }
 
 // The editor's outbound events, forwarded to onEmbedEvent VERBATIM: SCREAMING_SNAKE
-// `type` + snake_case `data` (the stable, 1.x-compatible contract — deliberately NOT
+// `type` + snake_case `data` (the stable, established contract — deliberately NOT
 // camelCased, unlike op payloads). EDITOR_READY / DOCUMENT_LOADED are the lifecycle
 // wire events; PAGE_FOCUSED / SUBMISSION_SENT take their payloads from the manifest.
 export type EditorEvent =

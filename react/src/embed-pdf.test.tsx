@@ -9,7 +9,7 @@ import { EmbedPDF, useEmbed, type EmbedActions } from './index';
 // scss is a build concern; in tests it is irrelevant to behavior.
 vi.mock('./styles.scss', () => ({}));
 
-// User-facing behavior only: what renders, how the modal opens/closes, the 1.x
+// User-facing behavior only: what renders, how the modal opens/closes, the
 // onEmbedEvent contract, and the useEmbed contract (null-safe before mount).
 
 describe('EmbedPDF (inline)', () => {
@@ -51,7 +51,7 @@ describe('EmbedPDF (inline)', () => {
     expect(src.searchParams.get('prefill')).toBe('p1');
   });
 
-  it('accepts the deprecated documentURL as an alias for document (1.x compatibility)', () => {
+  it('accepts the deprecated documentURL as an alias for document (deprecated alias)', () => {
     const { container } = render(
       <EmbedPDF mode="inline" companyIdentifier="acme" documentURL="https://demo.simplepdf.com/documents/abc" />,
     );
@@ -64,8 +64,8 @@ describe('EmbedPDF (inline)', () => {
     expect(src.pathname).toBe('/documents/abc');
   });
 
-  it('accepts a relative documentURL (1.x) by resolving it against the page URL', () => {
-    // 1.x fetched the documentURL (relative resolves against the page); the core now
+  it('accepts a relative documentURL by resolving it against the page URL', () => {
+    // Earlier versions fetched the documentURL (relative resolves against the page); the core now
     // requires an absolute URL, so the compat boundary resolves it — the editor must
     // still mount (the old core would throw in createEmbed and render no iframe).
     const { container } = render(<EmbedPDF mode="inline" companyIdentifier="acme" documentURL="/form.pdf" />);
@@ -76,7 +76,7 @@ describe('EmbedPDF (inline)', () => {
     expect(new URL(iframe.getAttribute('src') ?? '').origin).toBe('https://acme.simplepdf.com');
   });
 
-  it('forwards editor events to onEmbedEvent verbatim (the 1.x EmbedEvent contract)', async () => {
+  it('forwards editor events to onEmbedEvent verbatim (the established EmbedEvent contract)', async () => {
     const onEmbedEvent = vi.fn();
     const { container } = render(<EmbedPDF mode="inline" companyIdentifier="acme" onEmbedEvent={onEmbedEvent} />);
     const iframe = container.querySelector('iframe');
@@ -113,7 +113,7 @@ describe('EmbedPDF (modal, default)', () => {
     expect(document.querySelector('iframe')).toBeNull();
   });
 
-  it("falls back to the trigger's href as the document when no document prop is given (1.x)", async () => {
+  it("falls back to the trigger's href as the document when no document prop is given", async () => {
     const user = userEvent.setup();
     render(
       <EmbedPDF companyIdentifier="acme">
@@ -152,9 +152,9 @@ describe('useEmbed', () => {
   });
 });
 
-describe('useEmbed action backward-compat (1.x)', () => {
+describe('useEmbed action backward-compat (deprecated arg shapes)', () => {
   // Mount <EmbedPDF ref={embedRef}>, capture the live handle + actions, and spy the
-  // iframe's postMessage — so a test can assert the deprecated 1.x argument shapes are
+  // iframe's postMessage — so a test can assert the deprecated argument shapes are
   // normalized all the way to the wire, BOTH through the forwarded ref handle and
   // through useEmbed().actions (the ref must carry the overloads, not just actions).
   const mountAndCapture = async (): Promise<{
