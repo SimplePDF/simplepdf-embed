@@ -41,8 +41,7 @@ const TrimmedOptionalString = z.preprocess((val) => {
 // with the demo's shared identifier (which would either succeed and bill the
 // demo workspace, or fail at iframe-load time with a confusing whitelist
 // error). Base domain is optional with a default of https://simplepdf.com;
-// override for staging, alternate prod tenants, or a local SimplePDF dev
-// checkout.
+// override it to point at a different SimplePDF domain.
 const ClientEnvSchema = z.object({
   VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
     (val) => (typeof val === 'string' ? val.trim() : val),

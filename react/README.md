@@ -272,7 +272,7 @@ See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction,
     <td>baseDomain</td>
     <td>string</td>
     <td>No</td>
-    <td>Override the base domain for self-hosted deployments (e.g., "yourdomain.com"). Contact sales@simplepdf.com for enterprise self-hosting</td>
+    <td>Override the editor's base domain (defaults to <code>simplepdf.com</code>)</td>
   </tr>
   <tr>
     <td>context</td>

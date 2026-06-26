@@ -1,7 +1,7 @@
 {
   "name": "@simplepdf/embed",
   "version": "0.4.0",
-  "description": "Typed bridge for embedding and programmatically driving the SimplePDF editor",
+  "description": "Embed and programmatically drive the SimplePDF editor over its iframe bridge",
   "type": "module",
   "private": false,
   "publishConfig": {

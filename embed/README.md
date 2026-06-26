@@ -1,6 +1,6 @@
 # @simplepdf/embed
 
-A typed, zero-dependency client for embedding and programmatically driving the [SimplePDF](https://simplepdf.com) editor over its iframe / `postMessage` contract.
+Embed and programmatically drive the [SimplePDF](https://simplepdf.com) editor over its iframe / `postMessage` bridge — from any framework, with zero runtime dependencies.
 
 Types, schemas, and tools are **generated from a pinned copy of the editor's published manifest** ([`/embed/json`](https://simplepdf.com/embed/json)), so the client cannot drift from the contract.
 
@@ -87,7 +87,7 @@ Either way you get the same typed `Embed` handle.
 | `target` | `string \| HTMLElement` | **required**: a container to fill, or an `<iframe>` to attach to |
 | `companyIdentifier` | `string` | **required**: your `<companyIdentifier>.simplepdf.com` subdomain (`'embed'` is the free no-account editor) |
 | `document` | `{ url } \| { dataUrl } \| { file }` | initial document (see below) |
-| `baseDomain` | `string` | editor base domain (default `simplepdf.com`); set for staging / self-hosting |
+| `baseDomain` | `string` | the editor's base domain (defaults to `simplepdf.com`) |
 | `locale` | `Locale` | editor UI language |
 | `context` | `object` | opaque data echoed back on submissions |
 | `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write` |

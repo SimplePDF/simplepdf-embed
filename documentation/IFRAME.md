@@ -96,7 +96,7 @@ See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentif
 
 _Programmatic control is only available with a SimplePDF account_
 
-The iframe communicates over the `postMessage` API. Use **[`@simplepdf/embed`](../embed/README.md)** — a typed, zero-dependency client **generated from the editor contract**, so it can't drift. It wraps everything for you: request/response correlation, timeouts, the editor-ready / document-loaded lifecycle, typed events, and the closed error model. Methods + arguments are camelCase; the editor's `snake_case` wire is handled behind the scenes. (If you'd rather add no dependency, the raw protocol is documented under [Wire shape](#wire-shape).)
+The iframe communicates over the `postMessage` API. Use **[`@simplepdf/embed`](../embed/README.md)** — a zero-dependency client that drives the editor over the iframe for you, **generated from the editor contract** so it can't drift. It wraps everything for you: request/response correlation, timeouts, the editor-ready / document-loaded lifecycle, typed events, and the closed error model. Methods + arguments are camelCase; the editor's `snake_case` wire is handled behind the scenes. (If you'd rather add no dependency, the raw protocol is documented under [Wire shape](#wire-shape).)
 
 The examples below go from the simplest embed to full programmatic and agentic control. `createEmbed` either **creates** the iframe inside a container you provide, or **attaches** to an `<iframe>` you render.
 
@@ -203,7 +203,7 @@ The single source of truth for the available operations and events can be found 
 
 It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes** — each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
 
-- **Typed access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its typed client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
+- **Programmatic access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
 - **Agents / LLMs:** point the model at `/embed/json` (or `@simplepdf/embed/ai-sdk`) to discover and drive the editor programmatically.
 
 ### Wire shape
