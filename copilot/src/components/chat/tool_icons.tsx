@@ -1,11 +1,11 @@
 type ToolKind = 'read' | 'write'
 
 const READING_TOOL_NAMES = new Set<string>([
-  'get_fields',
-  'get_document_content',
-  'detect_fields',
-  'focus_field',
-  'go_to',
+  'getFields',
+  'getDocumentContent',
+  'detectFields',
+  'focusField',
+  'goTo',
 ])
 
 export const getToolKind = (toolName: string): ToolKind =>

@@ -34,6 +34,6 @@ export const createSimplePDFExecutor = ({
         error: { code: 'bad_request:invalid_input', message: `Unknown tool: ${toolName}` },
       })
     }
-    return routeToolCall(embed, toolName, input)
+    return routeToolCall(embed.actions, toolName, input)
   }
 }

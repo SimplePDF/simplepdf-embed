@@ -36,6 +36,12 @@ Easily add [SimplePDF](https://simplepdf.com) to your React app, by using the `E
 npm install @simplepdf/react-embed-pdf
 ```
 
+The package root (`<EmbedPDF>`, `useEmbed`) has no `zod` dependency. Only the agentic tools — the opt-in [`@simplepdf/react-embed-pdf/ai-sdk`](#agentic--useembedtools-vercel-ai-sdk) subpath — need `zod` (a peer). Install it alongside if you use them (npm 7+ adds it automatically; pnpm / Yarn PnP users must add it explicitly):
+
+```sh
+npm install zod
+```
+
 ## Related documentation
 
 For shared product behavior and account-specific features, see the main embed README:
@@ -67,27 +73,27 @@ _Example_
 ```jsx
 import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
-<EmbedPDF companyIdentifier="yourcompany">
+<EmbedPDF mode="modal" companyIdentifier="yourcompany">
   <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">Opens sample.pdf</a>
 </EmbedPDF>;
 ```
 
 ### Modal mode
 
-Wrap any HTML element with `EmbedPDF` to open a modal with the editor on user click.
+Pass `mode="modal"` and wrap any HTML element to open a modal with the editor on user click.
 
 ```jsx
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 // Opens the PDF on click
-<EmbedPDF>
+<EmbedPDF mode="modal">
   <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
     Opens sample.pdf
   </a>
 </EmbedPDF>
 
 // Let the user pick the PDF
-<EmbedPDF>
+<EmbedPDF mode="modal">
   <button>Opens the simplePDF editor</button>
 </EmbedPDF>
 ```
@@ -103,7 +109,7 @@ import { EmbedPDF } from "@simplepdf/react-embed-pdf";
  <EmbedPDF
   mode="inline"
   style={{ width: 900, height: 800 }}
-  documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+  document={{ url: 'https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf' }}
 />
 
 // The PDF picker is displayed when rendering the component
@@ -125,7 +131,7 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
   companyIdentifier="react-viewer"
   mode="inline"
   style={{ width: 900, height: 800 }}
-  documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+  document={{ url: 'https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf' }}
 />;
 ```
 
@@ -135,18 +141,23 @@ See [Data Privacy & `companyIdentifier`](../README.md#data-privacy--companyident
 
 _Some actions require a SimplePDF account. See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for storage and submission behavior._
 
-Use `const { embedRef, actions } = useEmbed();` to programmatically control the embed editor:
+`const { embedRef, actions } = useEmbed();` drives the editor imperatively (`actions`); the agentic `tools` come from the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath (`useEmbedTools(embedRef)`). Attach `embedRef` to the component: `<EmbedPDF ref={embedRef} mode="inline" … />`.
 
-| Action                                           | Description                                                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `actions.goTo({ page })`                         | Navigate to a specific page                                                                                        |
-| `actions.selectTool(toolType)`                   | Select a tool: `'TEXT'`, `'COMB_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect (`CURSOR`) |
-| `actions.detectFields()`                         | Automatically detect form fields in the document                                                                   |
-| `actions.deleteFields(options?)`                 | Delete fields by `fieldIds` or `page`, or all fields if no options                                                 |
-| `actions.getDocumentContent({ extractionMode })` | Extract document content (`extractionMode: 'auto'` or `'ocr'`)                                                     |
-| `actions.submit({ downloadCopyOnDevice })`       | Submit the document                                                                                                |
+#### Imperative — `actions`
 
-All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
+Actions are camelCase (the editor's snake_case wire is transformed for you). `useEmbed().actions` exposes the FULL editor surface; the most common:
+
+| Action                                           | Description                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `actions.goTo({ page })`                         | Navigate to a specific page                                                                             |
+| `actions.selectTool({ tool })`                   | Select a tool: `'TEXT'`, `'COMB_TEXT'`, `'CHECKBOX'`, `'PICTURE'`, `'SIGNATURE'`, or `null` to deselect |
+| `actions.detectFields()`                         | Automatically detect form fields in the document                                                        |
+| `actions.deleteFields({ fieldIds?, page? })`     | Delete fields by id or page, or all fields if both are omitted                                          |
+| `actions.getDocumentContent({ extractionMode })` | Extract document content (`'auto'` or `'ocr'`)                                                          |
+| `actions.setFieldValue({ fieldId, value })`      | Set a field's value                                                                                     |
+| `actions.submit({ downloadCopy })`               | Submit the document                                                                                     |
+
+…plus `createField`, `getFields`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
 ```jsx
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
@@ -155,45 +166,64 @@ const Editor = () => {
   const { embedRef, actions } = useEmbed();
 
   const handleSubmit = async () => {
-    const result = await actions.submit({ downloadCopyOnDevice: false });
-    if (result.success) {
-      console.log('Submitted!');
-    }
+    const result = await actions.submit({ downloadCopy: false });
+    if (result.success) console.log('Submitted!');
   };
 
   const handleExtract = async () => {
     const result = await actions.getDocumentContent({ extractionMode: 'auto' });
-    if (result.success) {
-      console.log('Document name:', result.data.name);
-      console.log('Pages:', result.data.pages);
-    }
-  };
-
-  const handleDetectFields = async () => {
-    const result = await actions.detectFields();
-    if (result.success) {
-      console.log('Fields detected!');
-    }
+    if (result.success) console.log('Pages:', result.data.pages);
   };
 
   return (
     <>
       <button onClick={handleSubmit}>Submit</button>
       <button onClick={handleExtract}>Extract Content</button>
-      <button onClick={handleDetectFields}>Detect Fields</button>
-      <button onClick={() => actions.selectTool('TEXT')}>Select Text Tool</button>
+      <button onClick={() => actions.detectFields()}>Detect Fields</button>
+      <button onClick={() => actions.selectTool({ tool: 'TEXT' })}>Select Text Tool</button>
       <button onClick={() => actions.goTo({ page: 2 })}>Go to Page 2</button>
       <EmbedPDF
-        companyIdentifier="yourcompany"
         ref={embedRef}
         mode="inline"
+        companyIdentifier="yourcompany"
         style={{ width: 900, height: 800 }}
-        documentURL="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf"
+        document={{ url: 'https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf' }}
       />
     </>
   );
 };
 ```
+
+**"Fill and read this document for me"** is just these actions in sequence — exactly what an AI agent calls on your behalf (read the fields, fill one, then walk the user to a signature: navigate to its page, focus it, open the signature tool):
+
+```jsx
+const { embedRef, actions } = useEmbed();
+
+const fields = await actions.getFields(); // read
+await actions.setFieldValue({ fieldId: 'f_full_name', value: 'Jane Doe' }); // fill
+await actions.goTo({ page: 3 });
+await actions.focusField({ fieldId: 'f_signature' });
+await actions.selectTool({ tool: 'SIGNATURE' });
+```
+
+#### Agentic — `useEmbedTools` (Vercel AI SDK)
+
+The agentic tools live in the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath — importing it is what pulls `zod`, so a non-agentic app never loads it (mirroring `@simplepdf/embed`'s `/ai-sdk`). `useEmbedTools(embedRef)` binds the SimplePDF tool set to the live editor — drop it straight into the AI SDK and an LLM can drive the editor:
+
+```jsx
+import { useChat } from '@ai-sdk/react';
+import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
+import { useEmbedTools } from '@simplepdf/react-embed-pdf/ai-sdk';
+
+const CopilotEditor = () => {
+  const { embedRef } = useEmbed();
+  const tools = useEmbedTools(embedRef);
+  useChat({ tools }); // the model's tool calls run against the live editor
+  return <EmbedPDF ref={embedRef} mode="inline" companyIdentifier="yourcompany" style={{ width: 900, height: 800 }} />;
+};
+```
+
+For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle — every camelCase operation, with the 1.x `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
 
@@ -210,13 +240,13 @@ See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction,
     <td>ref</td>
     <td>EmbedActions</td>
     <td>No</td>
-    <td>Used for programmatic control of the editor (see Programmatic Control section)</td>
+    <td>The live editor-actions handle, for programmatic control (see Programmatic Control). Attach the <code>embedRef</code> from <code>useEmbed()</code>.</td>
   </tr>
   <tr>
     <td>mode</td>
     <td>"inline" | "modal"</td>
     <td>No (defaults to "modal")</td>
-    <td>Inline the editor or display it inside a modal</td>
+    <td>Inline the editor in your layout, or display it inside a click-to-open modal</td>
   </tr>
   <tr>
     <td>locale</td>
@@ -257,10 +287,10 @@ See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction,
     <td><a href="https://github.com/SimplePDF/simplepdf-embed/blob/main/documentation/IFRAME.md#iframe-communication">Events sent by the Iframe</a></td>
   </tr>
   <tr>
-    <td>documentURL</td>
-    <td>string</td>
+    <td>document</td>
+    <td>{ url: string } | { dataUrl: string } | { file: File | Blob }</td>
     <td>No</td>
-    <td>Supports blob URLs, CORS URLs, and authenticated URLs (against the same origin). Available for inline mode only</td>
+    <td>The document to open (same typed shape as <code>createEmbed</code>): a URL (CORS / authenticated same-origin / a SimplePDF documents URL), a data URL, or a File/Blob</td>
   </tr>
   <tr>
     <td>style</td>

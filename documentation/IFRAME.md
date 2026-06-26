@@ -1,10 +1,14 @@
 # SimplePDF Embed using an Iframe
 
-SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) allow you to easily integrate `SimplePDF` using a single line of code by displaying the editor in a modal.
+SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) integrate `SimplePDF` in a single line of code by displaying the editor in a modal.
 
-**If you're however interested in having more control over the way SimplePDF is displayed in your app**, such as changing the way the modal looks or dropping it altogether - injecting the editor into a `div` for example, **read on:**
+**For more control** — embedding the editor inline (e.g. in a `div`), or driving it programmatically — read on.
 
-## [Show me an example!](https://replit.com/@bendersej/Simple-PDF-Embed-Iframe)
+## The iframe URL vs. programmatic control
+
+Pointing an `<iframe src>` at the editor (below) gives you the **full editor, with your account's branding**, in zero JavaScript. What it does **not** give you is **programmatic control**: you can't read a field, jump to a page, prefill values, submit, or let an AI agent fill and read the document on the user's behalf.
+
+For that, drive the same iframe with the typed [`@simplepdf/embed`](#iframe-communication) client — see [Iframe Communication](#iframe-communication).
 
 ## With a SimplePDF account (to collect customers' submissions)
 
@@ -92,131 +96,104 @@ See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentif
 
 _Programmatic control is only available with a SimplePDF account_
 
-The iframe communicates using the `postMessage` API. All messages are JSON strings that must be parsed with `JSON.parse()`.
+The iframe communicates over the `postMessage` API. Use **[`@simplepdf/embed`](../embed/README.md)** — a typed, zero-dependency client **generated from the editor contract**, so it can't drift. It wraps everything for you: request/response correlation, timeouts, the editor-ready / document-loaded lifecycle, typed events, and the closed error model. Methods + arguments are camelCase; the editor's `snake_case` wire is handled behind the scenes. (If you'd rather add no dependency, the raw protocol is documented under [Wire shape](#wire-shape).)
 
-> **Recommended: use the [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) package.** It is a typed, zero-dependency client that wraps everything below — request/response correlation, timeouts, the editor-ready / document-loaded state machine, typed events, and the closed error model — and its types, schemas, and tools are **generated from the editor contract**, so they can't drift. `createEmbed` gives you `embed.getFields()`, `embed.on('submission_sent', …)`, `embed.submit({ download_copy })`, etc. with full type-safety (plus `@simplepdf/embed/ai-sdk` for agentic tool-calling). The hand-rolled `postMessage` below is the dependency-free fallback.
+The examples below go from the simplest embed to full programmatic and agentic control. `createEmbed` either **creates** the iframe inside a container you provide, or **attaches** to an `<iframe>` you render.
 
-### Implementation
+### 1. Open a document and collect submissions
 
-```javascript
-const iframe = document.getElementById("simplepdf-iframe");
+```html
+<div id="editor" style="height: 100vh"></div>
+```
 
-// Helper to send events and receive responses
-const sendEvent = (type, data = {}) => {
-  return new Promise((resolve, reject) => {
-    const requestId = `req_${Date.now()}_${Math.random()
-      .toString(36)
-      .slice(2)}`;
+```ts
+import { createEmbed } from "@simplepdf/embed";
 
-    const handleResponse = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (
-          payload.type === "REQUEST_RESULT" &&
-          payload.data.request_id === requestId
-        ) {
-          window.removeEventListener("message", handleResponse);
-          if (payload.data.result.success) {
-            resolve(payload.data.result.data);
-          } else {
-            reject(payload.data.result.error);
-          }
-        }
-      } catch {
-        // Ignore non-JSON messages
-      }
-    };
+const embed = createEmbed({
+  target: "#editor", // a container — the iframe is created inside it
+  companyIdentifier: "acme", // your <companyIdentifier>.simplepdf.com — use "embed" for the free editor
+  document: { url: "https://example.com/form.pdf" },
+});
 
-    window.addEventListener("message", handleResponse);
-
-    iframe.contentWindow.postMessage(
-      JSON.stringify({ type, request_id: requestId, data }),
-      "*",
-    );
-
-    // Timeout after 30 seconds
-    setTimeout(() => {
-      window.removeEventListener("message", handleResponse);
-      reject({ code: "timeout", message: "Request timed out" });
-    }, 30000);
-  });
-};
-
-// Listen for events sent by the iframe
-window.addEventListener("message", (event) => {
-  try {
-    const payload = JSON.parse(event.data);
-    switch (payload.type) {
-      case "EDITOR_READY":
-        console.log("Editor is ready");
-        break;
-      case "DOCUMENT_LOADED":
-        console.log("Document loaded:", payload.data.document_id);
-        break;
-      case "PAGE_FOCUSED":
-        console.log(
-          "Page changed:",
-          payload.data.current_page,
-          "/",
-          payload.data.total_pages,
-        );
-        break;
-      case "SUBMISSION_SENT":
-        console.log("Submission sent:", payload.data.submission_id);
-        break;
-    }
-  } catch {
-    // Ignore non-JSON messages
-  }
+// Subscribe to an editor event (payloads are the verbatim snake_case wire shape).
+embed.events.on("SUBMISSION_SENT", (data) => {
+  console.log("submitted", data.document_id, data.submission_id);
 });
 ```
 
-### Usage Examples
+### 2. Attach to an iframe you render yourself
 
-```javascript
-// Load a document
-await sendEvent("LOAD_DOCUMENT", {
-  data_url: "https://example.com/document.pdf",
-  name: "my-document.pdf",
-  page: 1,
-});
-
-// Navigate to a specific page
-await sendEvent("GO_TO", { page: 3 });
-
-// Select a tool
-await sendEvent("SELECT_TOOL", { tool: "TEXT" }); // or "CHECKBOX", "SIGNATURE", "PICTURE", "COMB_TEXT", null
-
-// Detect fields in the document
-await sendEvent("DETECT_FIELDS", {});
-
-// Delete all fields (or specific ones)
-await sendEvent("DELETE_FIELDS", {}); // Delete all
-await sendEvent("DELETE_FIELDS", { page: 1 }); // Delete page 1 only
-await sendEvent("DELETE_FIELDS", {
-  field_ids: ["f_kj8n2hd9x3m1p", "f_q7v5c4b6a0wyz"],
-}); // Delete specific fields
-
-// Extract document content
-const content = await sendEvent("GET_DOCUMENT_CONTENT", {
-  extraction_mode: "auto",
-});
-console.log("Document name:", content.name);
-console.log("Pages:", content.pages); // [{ page: 1, content: "..." }, ...]
-
-// Submit the document
-await sendEvent("SUBMIT", { download_copy: true });
-
-// Move a visible page (1-indexed) to a new position
-await sendEvent("MOVE_PAGE", { from_page: 2, to_page: 5 });
-
-// Delete one or more visible pages (1-indexed). At least one visible page must remain
-await sendEvent("DELETE_PAGES", { pages: [3] });
-await sendEvent("DELETE_PAGES", { pages: [2, 4, 6] });
-
-// Rotate a visible page (1-indexed) 90° clockwise
-await sendEvent("ROTATE_PAGE", { page: 1 });
+```html
+<iframe id="editor" src="https://acme.simplepdf.com/editor"></iframe>
 ```
+
+```ts
+// No DOM is created, and lifecycle.dispose() leaves your iframe in place.
+const embed = createEmbed({ target: "#editor", companyIdentifier: "acme" });
+```
+
+### 3. Drive the editor programmatically
+
+Every method resolves to a typed `BridgeResult` and never throws:
+
+```ts
+const fields = await embed.actions.getFields();
+if (fields.success) {
+  console.log(fields.data.fields); // typed FieldRecord[]
+}
+
+await embed.actions.goTo({ page: 3 });
+await embed.actions.selectTool({ tool: "TEXT" }); // or 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | 'COMB_TEXT' | null
+await embed.actions.setFieldValue({ fieldId: "f_kj8n2hd9x3m1p", value: "Jane Doe" });
+
+const content = await embed.actions.getDocumentContent({ extractionMode: "auto" });
+console.log(content.success && content.data.pages); // [{ page: 1, content: "…" }, …]
+
+const submitted = await embed.actions.submit({ downloadCopy: true });
+if (!submitted.success) {
+  console.error(submitted.error.code, submitted.error.message); // closed BridgeErrorCode
+}
+
+embed.lifecycle.dispose(); // readiness is observable via embed.events.on('DOCUMENT_LOADED', …)
+```
+
+See the [`@simplepdf/embed` README](../embed/README.md#actions) for the full method set, the lifecycle, and the typed error model.
+
+### 4. Fill and read a document (what an agent does for you)
+
+"Fill and read this document for me" is just these operations in sequence — read the fields, fill one, then walk the user to a signature: navigate to its page, focus the field, and open the signature tool.
+
+```ts
+// read
+const fields = await embed.actions.getFields();
+const content = await embed.actions.getDocumentContent({ extractionMode: "auto" });
+
+// fill
+await embed.actions.setFieldValue({ fieldId: "f_full_name", value: "Jane Doe" });
+
+// walk the user to the signature: navigate → focus → open the signature tool
+await embed.actions.goTo({ page: 3 });
+await embed.actions.focusField({ fieldId: "f_signature" });
+await embed.actions.selectTool({ tool: "SIGNATURE" });
+```
+
+An AI agent does exactly this — the next section exposes these operations as tools the model calls.
+
+### 5. Drive the editor from an LLM (agentic)
+
+The same operations are exposed as [Vercel AI SDK](https://sdk.vercel.ai) tools:
+
+```ts
+// server — execute-less tool definitions for streamText / generateText
+import { simplePDFToolDefinitions } from "@simplepdf/embed/ai-sdk";
+streamText({ model, tools: simplePDFToolDefinitions() });
+
+// browser — run the model's tool calls against the live editor
+import { createSimplePDFExecutor } from "@simplepdf/embed/ai-sdk";
+const execute = createSimplePDFExecutor({ embed });
+```
+
+In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor — drop it straight into `useChat({ tools })`.
 
 ---
 
@@ -231,4 +208,4 @@ It describes every operation (its `request_type`, input/output JSON Schema, and 
 
 ### Wire shape
 
-Every request you post is `{ "type": <request_type>, "request_id": <your id>, "data": <input> }`; the editor replies with `{ "type": "REQUEST_RESULT", "data": { "request_id": <same id>, "result": <result> } }`, where `result` is `{ "success": true, "data": … }` or `{ "success": false, "error": { "code", "message" } }`. Outbound events (`EDITOR_READY`, `DOCUMENT_LOADED`, `PAGE_FOCUSED`, `SUBMISSION_SENT`) are pushed the same way. `request_type` is the operation name (e.g. `get_fields`, `set_field_value`, `submit`) and is accepted case-insensitively (the historical `SCREAMING_SNAKE` forms still work). The full set of `code` values is in the contract's `editor_error_schema`.
+Every request you post is `{ "type": <request_type>, "request_id": <your id>, "data": <input> }`; the editor replies with `{ "type": "REQUEST_RESULT", "data": { "request_id": <same id>, "result": <result> } }`, where `result` is `{ "success": true, "data": … }` or `{ "success": false, "error": { "code", "message" } }`. Outbound events (`EDITOR_READY`, `DOCUMENT_LOADED`, `PAGE_FOCUSED`, `SUBMISSION_SENT`) are pushed the same way. `request_type` is the operation name (e.g. `GET_FIELDS`, `SET_FIELD_VALUE`, `SUBMIT`) and is accepted case-insensitively. Payload fields are `snake_case` (e.g. `field_id`, `download_copy`). The full set of `code` values is in the contract's `editor_error_schema`.

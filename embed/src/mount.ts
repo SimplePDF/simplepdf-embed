@@ -1,34 +1,44 @@
 import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
-import type { Embed } from './types'
+import type { BridgeState, Embed } from './types'
 import type { Locale } from './generated/contract'
 
 // Construction-time configuration error. createEmbed validates its config
-// synchronously and THROWS this on programmer error (bad target/tenant/document
+// synchronously and THROWS this on programmer error (bad target/companyIdentifier/document
 // URL), surfaced at integration time. Runtime/op failures are BridgeResult and
 // never thrown.
 export class EmbedConfigError extends Error {
-  readonly code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_tenant'
-  constructor(code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_tenant', message: string) {
+  readonly code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_company_identifier'
+  constructor(code: 'invalid_config' | 'invalid_document' | 'invalid_target' | 'invalid_company_identifier', message: string) {
     super(message)
     this.name = 'EmbedConfigError'
     this.code = code
   }
 }
 
-// DNS-label tenant validator (lowercase letters, digits, internal hyphens; no
-// leading/trailing hyphen). The shared createEmbed accepts reserved portal values
-// (e.g. the 'embed' default, the Chrome integration); reserved-portal rejection
-// is a WEM-customer-boundary concern, not enforced here.
+// DNS-label companyIdentifier validator (lowercase letters, digits, internal
+// hyphens; no leading/trailing hyphen). The shared createEmbed accepts reserved
+// portal values (e.g. the 'embed' default, the Chrome integration); reserved-portal
+// rejection is a WEM-customer-boundary concern, not enforced here.
 const DNS_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
 
 const DEFAULT_BASE_DOMAIN = 'simplepdf.com'
 const DOCUMENT_SIZE_CAP_BYTES = 50 * 1024 * 1024
 
-export const buildEditorDomain = ({ tenant, baseDomain }: { tenant: string; baseDomain: string }): string => {
-  const isLocalDev = baseDomain.includes('.nil') || baseDomain.includes('localhost')
-  const protocol = isLocalDev ? 'http' : 'https'
-  return `${protocol}://${tenant}.${baseDomain}`
+// Local dev domains (a *.nil checkout host or localhost) are served over http;
+// every real domain is https.
+const isLocalDevDomain = (baseDomain: string): boolean =>
+  baseDomain.includes('.nil') || baseDomain.includes('localhost')
+
+export const buildEditorDomain = ({
+  companyIdentifier,
+  baseDomain,
+}: {
+  companyIdentifier: string
+  baseDomain: string
+}): string => {
+  const protocol = isLocalDevDomain(baseDomain) ? 'http' : 'https'
+  return `${protocol}://${companyIdentifier}.${baseDomain}`
 }
 
 export const encodeContext = (context: Record<string, unknown> | undefined): string | null => {
@@ -54,20 +64,18 @@ const extractDocumentName = (url: string): string => {
 export type EmbedDocument =
   | { url: string; name?: string; page?: number }
   | { dataUrl: string; name?: string; page?: number }
-  | { file: Blob; name?: string; page?: number }
-
-type MountDocument = EmbedDocument
+  | { file: File | Blob; name?: string; page?: number }
 
 export type CreateEmbedArgs = {
   // Where the editor goes. A container (selector or element) we create the iframe
   // inside, OR an existing <iframe> you rendered (already pointed at the editor)
   // that we bridge to instead.
   target: string | HTMLElement
-  // Your companyIdentifier: the `<tenant>.simplepdf.com` subdomain (`'embed'` is
-  // the no-account public editor).
-  tenant: string
+  // Your companyIdentifier: the `<companyIdentifier>.simplepdf.com` subdomain
+  // (`'embed'` is the no-account public editor).
+  companyIdentifier: string
   baseDomain?: string
-  document?: MountDocument
+  document?: EmbedDocument
   locale?: Locale
   context?: Record<string, unknown>
   iframeAttrs?: {
@@ -97,19 +105,19 @@ const resolveTarget = (target: unknown): HTMLElement => {
   return element
 }
 
-const assertValidTenant = (tenant: unknown): void => {
+const assertValidCompanyIdentifier = (companyIdentifier: unknown): void => {
   // Runtime guard, not just a type: an untyped JS caller passing `undefined`
   // would otherwise coerce to the string 'undefined', which passes DNS_LABEL.
-  if (typeof tenant !== 'string' || tenant === '') {
+  if (typeof companyIdentifier !== 'string' || companyIdentifier === '') {
     throw new EmbedConfigError(
-      'invalid_tenant',
-      'tenant is required: your companyIdentifier (the <tenant>.simplepdf.com subdomain).',
+      'invalid_company_identifier',
+      'companyIdentifier is required: the <companyIdentifier>.simplepdf.com subdomain from your SimplePDF account.',
     )
   }
-  if (!DNS_LABEL.test(tenant)) {
+  if (!DNS_LABEL.test(companyIdentifier)) {
     throw new EmbedConfigError(
-      'invalid_tenant',
-      `tenant '${tenant}' is not a valid DNS label (lowercase letters, digits, internal hyphens)`,
+      'invalid_company_identifier',
+      `companyIdentifier '${companyIdentifier}' is not a valid DNS label (lowercase letters, digits, internal hyphens)`,
     )
   }
 }
@@ -219,6 +227,56 @@ const assertValidDocument = (document: unknown): void => {
   if ('file' in document) {
     assertValidFileArm(document.file)
   }
+}
+
+// A SimplePDF "documents" URL is a stored document / share route
+// (e.g. https://<companyIdentifier>.simplepdf.com/documents/<id>?prefill=<id>),
+// not a fetchable PDF. The path is /documents/<id>, optionally locale-prefixed.
+const DOCUMENTS_PATH_PATTERN = /^\/(?:[a-z]{2}\/)?documents\/[^/]+\/?$/
+
+// When document.url is a SimplePDF documents URL on the configured base-domain
+// family, the iframe navigates straight to it (the editor loads + prefills the
+// stored document itself) instead of host-fetching it as a PDF. The bridge then
+// targets that URL's OWN origin — intentionally allowing a different tenant
+// subdomain than the configured companyIdentifier (e.g. open demo.simplepdf.com's
+// shared document from an app configured as `acme`), while still constraining it to
+// a single tenant label on the base-domain family over https. Returns the parsed
+// URL + origin, or null when it is not a documents URL.
+const resolveDocumentsUrl = (
+  embedDocument: EmbedDocument | undefined,
+  baseDomain: string,
+): { url: URL; origin: string } | null => {
+  if (embedDocument === undefined || !('url' in embedDocument)) {
+    return null
+  }
+  const parsed = ((): URL | null => {
+    try {
+      return new URL(embedDocument.url)
+    } catch {
+      return null
+    }
+  })()
+  if (parsed === null) {
+    return null
+  }
+  // https only, except in local dev (http on a real domain would be a downgrade).
+  const isLocalDev = isLocalDevDomain(baseDomain)
+  if (parsed.protocol !== 'https:' && !(isLocalDev && parsed.protocol === 'http:')) {
+    return null
+  }
+  // The host must be exactly ONE DNS label above baseDomain (the tenant): not the
+  // apex, and not a nested subdomain, so a crafted deeper origin can't be reached.
+  const isTenantOfBaseDomain = ((): boolean => {
+    if (!parsed.host.endsWith(`.${baseDomain}`)) {
+      return false
+    }
+    const label = parsed.host.slice(0, parsed.host.length - baseDomain.length - 1)
+    return label.length > 0 && !label.includes('.')
+  })()
+  if (!isTenantOfBaseDomain || !DOCUMENTS_PATH_PATTERN.test(parsed.pathname)) {
+    return null
+  }
+  return { url: parsed, origin: parsed.origin }
 }
 
 const buildEditorURL = ({
@@ -337,17 +395,27 @@ const documentNameOf = (embedDocument: EmbedDocument): string | undefined => {
   return undefined
 }
 
-const runWhenReady = (embed: Embed, run: () => Promise<void>): void => {
-  if (embed.getState().kind !== 'booting') {
-    void run()
-    return
-  }
-  const unsubscribe = embed.on('state_change', (next) => {
-    if (next.kind !== 'booting') {
-      unsubscribe()
-      void run()
-    }
+// "Run once the editor leaves booting" without a public event: the bridge calls the
+// gate's onStateChange on every transition — including readiness reached via the
+// liveness probe, which emits no editor event — resolving a one-shot ready promise.
+const makeReadinessGate = (): {
+  onStateChange: (state: BridgeState) => void
+  whenReady: (run: () => void) => void
+} => {
+  let markReady: () => void = () => {}
+  const ready = new Promise<void>((resolve) => {
+    markReady = resolve
   })
+  return {
+    onStateChange: (state) => {
+      if (state.kind !== 'booting') {
+        markReady()
+      }
+    },
+    whenReady: (run) => {
+      void ready.then(run)
+    },
+  }
 }
 
 // Loads `document` into the editor once it is ready. `onHostFetchFail` is the
@@ -359,8 +427,9 @@ const loadDocumentWhenReady = (params: {
   signal: AbortSignal
   safeLogger: BridgeLogger
   onHostFetchFail: (() => void) | undefined
+  whenReady: (run: () => void) => void
 }): void => {
-  const { embed, embedDocument, signal, safeLogger, onHostFetchFail } = params
+  const { embed, embedDocument, signal, safeLogger, onHostFetchFail, whenReady } = params
   const dataUrlPromise = resolveDataUrl(embedDocument, signal)
   const documentName = documentNameOf(embedDocument)
   const run = async (): Promise<void> => {
@@ -379,12 +448,12 @@ const loadDocumentWhenReady = (params: {
       })
       return
     }
-    const result = await embed.loadDocument({ data_url: dataUrl, name: documentName, page: embedDocument.page })
+    const result = await embed.actions.loadDocument({ dataUrl, name: documentName, page: embedDocument.page })
     if (!result.success) {
       safeLogger.error('load_document_failed', { code: result.error.code, message: result.error.message })
     }
   }
-  runWhenReady(embed, run)
+  whenReady(() => void run())
 }
 
 // --- Attach to an existing iframe -------------------------------------------
@@ -393,9 +462,20 @@ const attachToIframe = (
   iframe: HTMLIFrameElement,
   editorOrigin: string,
   { document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
+  // A documents URL loads by NAVIGATING the iframe, which we only do for an iframe
+  // we create. We must not touch a consumer-owned iframe's src, so reject it here
+  // rather than silently no-op (the consumer should point their iframe at it, or
+  // pass a container target instead).
+  if (documentsUrl !== null) {
+    throw new EmbedConfigError(
+      'invalid_document',
+      'a SimplePDF documents URL loads by navigating the iframe, which createEmbed only does when it creates one (a container target). For an existing <iframe>, point it at the documents URL yourself.',
+    )
+  }
   // The consumer set this iframe's src. If it points at a different origin than
-  // the one we derived from `tenant`, the bridge would post into the void and
+  // the one we derived from companyIdentifier, the bridge would post into the void and
   // time out 60s later; catch the mismatch up front instead.
   // Read the raw attribute, not iframe.src: the property resolves an empty/relative
   // src against the page URL, which would false-positive on an iframe with no src.
@@ -414,18 +494,20 @@ const attachToIframe = (
   if (iframeOrigin !== null && iframeOrigin !== editorOrigin) {
     throw new EmbedConfigError(
       'invalid_target',
-      `the iframe at this target points at ${iframeOrigin}, but the editor origin derived from tenant is ${editorOrigin}. Point the iframe at ${editorOrigin}, or fix the tenant.`,
+      `the iframe at this target points at ${iframeOrigin}, but the editor origin derived from companyIdentifier is ${editorOrigin}. Point the iframe at ${editorOrigin}, or fix the companyIdentifier.`,
     )
   }
   const documentFetchController = new AbortController()
   const safeLogger = makeSafeLogger(logger)
   // The consumer owns this iframe, so dispose() does NOT remove it; it only
   // aborts an in-flight document host-fetch.
+  const gate = makeReadinessGate()
   const embed = attachEmbed({
     getIframe: () => iframe,
     editorOrigin,
     logger: safeLogger,
     onDispose: () => documentFetchController.abort(),
+    onStateChange: gate.onStateChange,
   })
   if (embedDocument !== undefined) {
     loadDocumentWhenReady({
@@ -434,6 +516,7 @@ const attachToIframe = (
       signal: documentFetchController.signal,
       safeLogger,
       onHostFetchFail: undefined,
+      whenReady: gate.whenReady,
     })
   }
   return embed
@@ -445,15 +528,16 @@ const mountIntoContainer = (
   container: HTMLElement,
   editorOrigin: string,
   { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
+  const encodedContext = encodeContext(context)
 
   const iframe = document.createElement('iframe')
   iframe.title = iframeAttrs?.title ?? 'SimplePDF'
   iframe.setAttribute('referrerPolicy', 'no-referrer-when-downgrade')
-  if (iframeAttrs?.allow !== undefined) {
-    iframe.setAttribute('allow', iframeAttrs.allow)
-  }
+  // The editor needs clipboard access for copy/paste; default it on (overridable).
+  iframe.setAttribute('allow', iframeAttrs?.allow ?? 'clipboard-read; clipboard-write')
   if (iframeAttrs?.sandbox !== undefined) {
     iframe.setAttribute('sandbox', iframeAttrs.sandbox)
   }
@@ -466,13 +550,25 @@ const mountIntoContainer = (
   if (iframeAttrs?.style !== undefined) {
     Object.assign(iframe.style, iframeAttrs.style)
   }
-  iframe.src = buildEditorURL({
-    editorOrigin,
-    locale,
-    encodedContext: encodeContext(context),
-    hasDocumentUrl,
-    openFallbackUrl: null,
-  })
+  iframe.src =
+    documentsUrl !== null
+      ? ((): string => {
+          // Navigate straight to the stored document; carry the context through
+          // (the editor decodes ?context= on the documents route too) while
+          // preserving the URL's own query, e.g. ?prefill=.
+          const src = new URL(documentsUrl.url.href)
+          if (encodedContext !== null) {
+            src.searchParams.set('context', encodedContext)
+          }
+          return src.href
+        })()
+      : buildEditorURL({
+          editorOrigin,
+          locale,
+          encodedContext,
+          hasDocumentUrl,
+          openFallbackUrl: null,
+        })
   container.appendChild(iframe)
 
   // Tracks teardown so the async document load below doesn't post / re-navigate
@@ -482,22 +578,27 @@ const mountIntoContainer = (
   const documentFetchController = new AbortController()
   // createEmbed's own logging must be just as throw-isolated as the bridge's.
   const safeLogger = makeSafeLogger(logger)
+  const gate = makeReadinessGate()
   const embed = attachEmbed({
     getIframe: () => iframe,
     editorOrigin,
     logger: safeLogger,
+    onStateChange: gate.onStateChange,
     onDispose: () => {
       documentFetchController.abort()
       iframe.remove()
     },
   })
 
-  if (mountDocument !== undefined) {
+  // A documents URL is loaded by the navigation above; only the PDF / data-URL /
+  // file arms need the async host-fetch + LOAD_DOCUMENT (with the ?open fallback).
+  if (mountDocument !== undefined && documentsUrl === null) {
     loadDocumentWhenReady({
       embed,
       embedDocument: mountDocument,
       signal: documentFetchController.signal,
       safeLogger,
+      whenReady: gate.whenReady,
       // Host-fetch failed (CORS/size/network): re-navigate the iframe we own
       // through the editor's ?open loader, which fetches the URL inside the editor.
       onHostFetchFail: () => {
@@ -505,7 +606,7 @@ const mountIntoContainer = (
           iframe.src = buildEditorURL({
             editorOrigin,
             locale,
-            encodedContext: encodeContext(context),
+            encodedContext,
             hasDocumentUrl: false,
             openFallbackUrl: mountDocument.url,
           })
@@ -527,18 +628,23 @@ export const createEmbed = (args: CreateEmbedArgs): Embed => {
   if (typeof args !== 'object' || !args) {
     throw new EmbedConfigError(
       'invalid_config',
-      `createEmbed expects a config object { target, tenant, ... } (received ${describeValue(args)}).`,
+      `createEmbed expects a config object { target, companyIdentifier, ... } (received ${describeValue(args)}).`,
     )
   }
-  assertValidTenant(args.tenant)
+  assertValidCompanyIdentifier(args.companyIdentifier)
   if (args.baseDomain !== undefined && typeof args.baseDomain !== 'string') {
     throw new EmbedConfigError('invalid_config', `baseDomain must be a string (received ${describeValue(args.baseDomain)}).`)
   }
   assertValidDocument(args.document)
-  const editorOrigin = buildEditorDomain({ tenant: args.tenant, baseDomain: args.baseDomain ?? DEFAULT_BASE_DOMAIN })
+  const baseDomain = args.baseDomain ?? DEFAULT_BASE_DOMAIN
+  // A SimplePDF documents URL carries its own origin (a possibly-different
+  // companyIdentifier subdomain); the bridge then targets that origin instead of
+  // the configured one.
+  const documentsUrl = resolveDocumentsUrl(args.document, baseDomain)
+  const editorOrigin = documentsUrl?.origin ?? buildEditorDomain({ companyIdentifier: args.companyIdentifier, baseDomain })
   const element = resolveTarget(args.target)
   if (element instanceof HTMLIFrameElement) {
-    return attachToIframe(element, editorOrigin, args)
+    return attachToIframe(element, editorOrigin, args, documentsUrl)
   }
-  return mountIntoContainer(element, editorOrigin, args)
+  return mountIntoContainer(element, editorOrigin, args, documentsUrl)
 }

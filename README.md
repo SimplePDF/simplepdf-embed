@@ -39,7 +39,7 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 
 # Get started
 
-- 🧩 [Typed bridge](./embed/README.md) - `@simplepdf/embed` (typed client + React hook + AI SDK adapter, generated from the editor manifest)
+- 🧩 [Typed bridge](./embed/README.md) - `@simplepdf/embed` (framework-free typed client + AI SDK adapter, generated from the editor manifest; the React layer is `@simplepdf/react-embed-pdf`)
 - ⚛️ [React component](./react/README.md) - `@simplepdf/react-embed-pdf`
 - 🚀 [Script tag](./web/README.md) - `@simplepdf/web-embed-pdf`
 - 🛠 [Iframe API](./documentation/IFRAME.md) - `postMessage` events
@@ -146,7 +146,7 @@ With a [Pro plan](https://simplepdf.com/pricing), you can:
 
 ```jsx
 // React - branding configured in your dashboard settings
-<EmbedPDF companyIdentifier="yourcompany">
+<EmbedPDF mode="modal" companyIdentifier="yourcompany">
   <button>Edit PDF</button>
 </EmbedPDF>
 ```
@@ -252,7 +252,7 @@ Use `getDocumentContent()` to extract text from the PDF. See the [React](./react
 
 ### Downloading the modified PDF
 
-Use `submit({ downloadCopyOnDevice: true })` to trigger a browser download of the modified PDF.
+Use `submit({ downloadCopy: true })` to trigger a browser download of the modified PDF.
 
 ### Server-side PDF generation & storage
 
@@ -260,8 +260,8 @@ SimplePDF handles PDF generation and storage so you don't have to. When users su
 
 | Method                                      | How it works                  | Use case                             |
 | ------------------------------------------- | ----------------------------- | ------------------------------------ |
-| `submit` with `downloadCopyOnDevice: true`  | Browser downloads the PDF     | End-user saves their work            |
-| `submit` with `downloadCopyOnDevice: false` | PDF sent to SimplePDF servers | Server-side collection via webhooks  |
+| `submit` with `downloadCopy: true`          | Browser downloads the PDF     | End-user saves their work            |
+| `submit` with `downloadCopy: false`         | PDF sent to SimplePDF servers | Server-side collection via webhooks  |
 | S3/Azure/SharePoint integration             | PDF stored in your storage    | Programmatic access via your storage |
 
 **Available integrations:**
@@ -349,7 +349,7 @@ Yes. Use viewer mode to display PDFs without any editing capabilities.
 <EmbedPDF
   companyIdentifier="react-viewer"
   mode="inline"
-  documentURL="https://example.com/document.pdf"
+  document={{ url: 'https://example.com/document.pdf' }}
   style={{ width: 900, height: 800 }}
 />
 ```

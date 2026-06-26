@@ -1,14 +1,13 @@
 import { useChat } from '@ai-sdk/react'
-import type {
-  BridgeResult,
-  DocumentContentPage,
-  DocumentContentResult,
-  Embed,
-  FieldRecord,
-} from '@simplepdf/embed'
-import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
-import { OVERLAY_TOOL_TYPES } from '@simplepdf/embed/protocol'
-import type { SimplePDFToolName } from '@simplepdf/embed/tools'
+import {
+  OVERLAY_TOOL_TYPES,
+  type BridgeResult,
+  type DocumentContentPage,
+  type DocumentContentResult,
+  type EmbedActions,
+  type FieldRecord,
+} from '@simplepdf/react-embed-pdf'
+import { type EmbedTools, type SimplePDFToolName } from '@simplepdf/react-embed-pdf/ai-sdk'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp, Mic, X } from 'lucide-react'
@@ -94,7 +93,13 @@ const joinVoiceDraft = (prefix: string, transcript: string): string =>
 const homeRoute = getRouteApi('/')
 
 type ChatPaneProps = {
-  bridge: Embed | null
+  // The agentic tools (for the LLM) + imperative actions (for direct calls), both
+  // bound to the live editor by useEmbed. resetKey identifies the editor instance
+  // (it changes on a form / locale / url remount) so the field-detection poll knows
+  // when the document context changed.
+  tools: EmbedTools
+  actions: EmbedActions
+  resetKey: string
   isReady: boolean
   requiresUserUpload: boolean
   language: string
@@ -266,11 +271,11 @@ const wrapToolResult = (result: BridgeResult<unknown>): unknown => {
 const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => boolean }): ToolMiddleware => {
   const compactFields = (fields: FieldRecord[]): CompactedField[] =>
     fields.map((field) => {
-      const base: CompactedField = { id: field.field_id, type: field.type, page: field.page }
+      const base: CompactedField = { id: field.fieldId, type: field.type, page: field.page }
       if (field.value !== null && field.value !== '') {
         base.value = field.value
       }
-      if (field.name !== null && field.name !== '' && field.name !== field.field_id) {
+      if (field.name !== null && field.name !== '' && field.name !== field.fieldId) {
         base.name = field.name
       }
       return base
@@ -296,10 +301,10 @@ const createCompactionMiddleware = ({ getByokActive }: { getByokActive: () => bo
     if (!result.success) {
       return result
     }
-    if (toolName === 'get_fields' && hasFieldsShape(result.data)) {
+    if (toolName === 'getFields' && hasFieldsShape(result.data)) {
       return { success: true, data: { fields: compactFields(result.data.fields) } }
     }
-    if (toolName === 'get_document_content' && hasDocumentContentShape(result.data)) {
+    if (toolName === 'getDocumentContent' && hasDocumentContentShape(result.data)) {
       const name = result.data.name === '' ? null : result.data.name
       const pages = getByokActive() ? result.data.pages : truncatePages(result.data.pages)
       const compacted: CompactedDocumentContent = { name, pages }
@@ -353,7 +358,7 @@ const createToolbarSyncMiddleware =
   ({ onChange }: { onChange: (tool: ToolbarTool) => void }): ToolMiddleware =>
   async ({ toolName, input }, next) => {
     const result = await next()
-    if (toolName === 'select_tool' && result.success) {
+    if (toolName === 'selectTool' && result.success) {
       const nextTool = isToolbarTool(input.tool) ? input.tool : null
       onChange(nextTool)
     }
@@ -403,7 +408,9 @@ const resolveActiveModelLabel = ({
 }
 
 export const ChatPane = ({
-  bridge,
+  tools,
+  actions,
+  resetKey,
   isReady,
   requiresUserUpload,
   language,
@@ -420,8 +427,6 @@ export const ChatPane = ({
   const draftRef = useRef(draft)
   draftRef.current = draft
   const [toolbarTool, setToolbarTool] = useState<ToolbarTool>(null)
-  const bridgeRef = useRef(bridge)
-  bridgeRef.current = bridge
   const languageRef = useRef(language)
   languageRef.current = language
   // Scroll stickiness matches vercel/ai-chatbot: the hook keeps the view
@@ -681,20 +686,12 @@ export const ChatPane = ({
   const downloadCountRef = useRef(0)
 
   const fireDownload = useCallback((): void => {
-    const activeBridge = bridgeRef.current
-    if (activeBridge === null) {
-      return
-    }
-    void activeBridge.download()
-  }, [])
+    void actions.download()
+  }, [actions])
 
   const fireSubmit = useCallback((): void => {
-    const activeBridge = bridgeRef.current
-    if (activeBridge === null) {
-      return
-    }
-    void activeBridge.submit({ download_copy: false })
-  }, [])
+    void actions.submit({ downloadCopy: false })
+  }, [actions])
 
   const handleDownloadRequested = useCallback((): void => {
     downloadCountRef.current += 1
@@ -769,7 +766,8 @@ export const ChatPane = ({
   const isStreamingRef = useRef(false)
   const onFieldAddedRef = useRef<(event: FieldAddedEvent) => void>(() => {})
   useDetectUserAddedField({
-    bridge,
+    actions,
+    resetKey,
     isReady,
     toolbarTool,
     isCursorOverEditor,
@@ -777,23 +775,23 @@ export const ChatPane = ({
     onFieldAddedRef,
   })
 
-  // Build the tool executor (package executor wrapped in copilot middleware) per
-  // bridge instance. The bridge itself comes from useIframeBridge and swaps on
-  // form / locale reset; everything the middleware needs is read via closures over
-  // stable refs or callbacks,
-  // so one factory call per bridge lifetime is enough.
-  const tools = useMemo((): ((context: MiddlewareContext) => Promise<BridgeResult<unknown>>) | null => {
-    if (bridge === null) {
-      return null
-    }
-    const rawExecutor = createSimplePDFExecutor({ embed: bridge })
-    // Force download_copy:false on submit: copilot never has the agent also
+  // The tool executor: copilot middleware wrapped around the agentic tools bound to
+  // the live editor by useEmbed. The tools read the current editor through a stable
+  // ref, so this composes once and stays valid across editor remounts.
+  const runToolCall = useMemo((): ((context: MiddlewareContext) => Promise<BridgeResult<unknown>>) => {
+    // Force downloadCopy:false on submit: copilot never has the agent also
     // download a copy (preserves pre-migration behavior — the model would
     // otherwise control this flag).
-    const executor = (toolName: SimplePDFToolName, input: ToolInput): Promise<BridgeResult<unknown>> =>
-      toolName === 'submit'
-        ? rawExecutor(toolName, { ...input, download_copy: false })
-        : rawExecutor(toolName, input)
+    const executor = (toolName: SimplePDFToolName, input: ToolInput): Promise<BridgeResult<unknown>> => {
+      const tool = tools[toolName]
+      if (tool === undefined) {
+        return Promise.resolve({
+          success: false,
+          error: { code: 'bad_request:invalid_input', message: `Unknown tool: ${toolName}` },
+        })
+      }
+      return toolName === 'submit' ? tool.execute({ ...input, downloadCopy: false }) : tool.execute(input)
+    }
     const sharedMiddleware: ToolMiddleware[] = [
       createToolbarSyncMiddleware({ onChange: setToolbarTool }),
       createCompactionMiddleware({ getByokActive: () => byokConfigRef.current !== null }),
@@ -806,7 +804,7 @@ export const ChatPane = ({
       ? [createDemoDownloadMiddleware({ onRequestDownload: handleDownloadRequested }), ...sharedMiddleware]
       : sharedMiddleware
     return composeMiddleware(middleware, ({ toolName, input }) => executor(toolName, input))
-  }, [bridge, handleDownloadRequested])
+  }, [tools, handleDownloadRequested])
 
   const { messages, status, error, sendMessage, stop, addToolOutput, setMessages } = useChat({
     transport,
@@ -832,24 +830,12 @@ export const ChatPane = ({
           )
           return
         }
-        const activeTools = tools
-        if (activeTools === null) {
-          await Promise.resolve(
-            addToolOutput({
-              tool: toolName,
-              toolCallId: toolCall.toolCallId,
-              state: 'output-error',
-              errorText: 'Iframe bridge is not ready yet',
-            }),
-          )
-          return
-        }
         const startedAt = performance.now()
         const callInput = toToolInput(toolCall.input)
         monitoring.info('chat.tool_call', { tool_name: toolName, input: callInput })
         const result = await (async (): Promise<BridgeResult<unknown>> => {
           try {
-            return await activeTools({ toolName, input: callInput })
+            return await runToolCall({ toolName, input: callInput })
           } catch (error) {
             return toUnexpectedToolResult(error)
           }
@@ -919,14 +905,13 @@ export const ChatPane = ({
     }
   }, [status])
 
-  const handleToolbarSelect = useCallback((tool: ToolbarTool): void => {
-    setToolbarTool(tool)
-    const activeBridge = bridgeRef.current
-    if (activeBridge === null) {
-      return
-    }
-    void activeBridge.selectTool({ tool })
-  }, [])
+  const handleToolbarSelect = useCallback(
+    (tool: ToolbarTool): void => {
+      setToolbarTool(tool)
+      void actions.selectTool({ tool })
+    },
+    [actions],
+  )
 
   // Download button styling is driven by message count: quiet (white) until
   // the conversation has at least 5 messages, then brand-blue to signal

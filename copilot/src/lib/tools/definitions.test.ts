@@ -4,9 +4,9 @@ import { buildCopilotToolDefinitions, isCopilotToolName } from './definitions'
 describe('copilot tool catalogue', () => {
   const names = Object.keys(buildCopilotToolDefinitions())
 
-  it('never exposes create_field or load_document', () => {
-    expect(names).not.toContain('create_field')
-    expect(names).not.toContain('load_document')
+  it('never exposes createField or loadDocument', () => {
+    expect(names).not.toContain('createField')
+    expect(names).not.toContain('loadDocument')
   })
 
   it('exposes exactly one finalisation tool (submit XOR download)', () => {
@@ -17,13 +17,13 @@ describe('copilot tool catalogue', () => {
   it('exposes the core read/write tools the prompt drives', () => {
     expect(names).toEqual(
       expect.arrayContaining([
-        'get_fields',
-        'get_document_content',
-        'detect_fields',
-        'select_tool',
-        'set_field_value',
-        'focus_field',
-        'go_to',
+        'getFields',
+        'getDocumentContent',
+        'detectFields',
+        'selectTool',
+        'setFieldValue',
+        'focusField',
+        'goTo',
       ]),
     )
   })
@@ -39,8 +39,8 @@ describe('copilot tool catalogue', () => {
     for (const name of names) {
       expect(isCopilotToolName(name)).toBe(true)
     }
-    expect(isCopilotToolName('create_field')).toBe(false)
-    expect(isCopilotToolName('load_document')).toBe(false)
+    expect(isCopilotToolName('createField')).toBe(false)
+    expect(isCopilotToolName('loadDocument')).toBe(false)
     expect(isCopilotToolName('not_a_tool')).toBe(false)
     expect(isCopilotToolName(42)).toBe(false)
   })

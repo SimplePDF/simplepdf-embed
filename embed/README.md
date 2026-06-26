@@ -4,13 +4,15 @@ A typed, zero-dependency client for embedding and programmatically driving the [
 
 Types, schemas, and tools are **generated from a pinned copy of the editor's published manifest** ([`/embed/json`](https://simplepdf.com/embed/json)), so the client cannot drift from the contract.
 
+> Using React? Use [`@simplepdf/react-embed-pdf`](../react) — `<EmbedPDF>` + `useEmbed` (+ the agentic `tools`), built on this core.
+
 ## Install
 
 ```bash
 npm install @simplepdf/embed
 ```
 
-Zero runtime dependencies at the root. Optional peers (`zod`, `react`, `react-dom`) are needed only by the subpaths that use them. `/ai-sdk` produces values for the Vercel AI SDK but never imports `ai`; bring your own.
+Zero runtime dependencies at the root. `zod` is an optional peer, needed only by the `/schemas`, `/tools`, and `/ai-sdk` subpaths. `/ai-sdk` produces values for the Vercel AI SDK but never imports `ai`; bring your own.
 
 ## Subpaths
 
@@ -21,16 +23,15 @@ Zero runtime dependencies at the root. Optional peers (`zod`, `react`, `react-do
 | `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
 | `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
 | `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
-| `@simplepdf/embed/react` | `<EmbedPDF>`, `useEmbed`, `useIframeBridge` | `react`, `react-dom` |
 
 ## Conventions
 
-One deliberate naming boundary, so nothing surprises you:
+The SDK is **camelCase** (the JS/TS idiom); the editor's snake_case wire stays behind a transform the bridge owns, so you never type it:
 
-- **Package config is camelCase** (the JS idiom): `createEmbed`'s options. `target`, `tenant`, `baseDomain`, `locale`, `context`, `iframeAttrs`, the `document` arms.
-- **Editor operations are snake_case**, verbatim from the contract: every method input/output on the `embed` handle and every event payload. `data_url`, `download_copy`, `field_ids`, `document_id`.
+- **Methods, their arguments + results, and the agentic tool names/args are camelCase**: `embed.actions.getFields()`, `embed.actions.setFieldValue({ fieldId, value })`, `embed.actions.submit({ downloadCopy })`. They are generated from the contract and lowered to the snake_case wire (`field_id`, `download_copy`) at the `postMessage` boundary — automatically.
+- **Events are the one exception — delivered VERBATIM**: `embed.events.on(type, handler)` hands the handler the editor's outbound payload unchanged (snake_case fields like `document_id`), so events stay byte-for-byte compatible with the published manifest and with `@simplepdf/react-embed-pdf`'s 1.x `onEmbedEvent`.
 
-The operation surface is byte-for-byte [`/embed/json`](https://simplepdf.com/embed/json) and the raw `postMessage` wire, so what you (or an agent) read in the spec is exactly what you send. The editor owns all validation and FIFO ordering; the bridge just posts, correlates by `request_id`, and times out a dead iframe. Every method resolves to a `BridgeResult<T>` and never throws; only construction errors (bad config) throw, synchronously.
+The editor owns all validation and FIFO ordering; the bridge just posts, correlates by `request_id`, and times out a dead iframe. Every method resolves to a `BridgeResult<T>` and never throws; only construction errors (bad config) throw, synchronously.
 
 ## Quick start
 
@@ -45,19 +46,21 @@ import { createEmbed } from '@simplepdf/embed'
 
 const embed = createEmbed({
   target: '#editor', // a CSS selector, or the HTMLElement itself
-  tenant: 'acme', // your companyIdentifier
+  companyIdentifier: 'acme', // your <companyIdentifier>.simplepdf.com subdomain ('embed' = free editor)
   document: { url: 'https://example.com/form.pdf' },
 })
 
-embed.on('submission_sent', ({ document_id, submission_id }) => {
-  console.log('submitted', document_id, submission_id)
+embed.events.on('SUBMISSION_SENT', (data) => {
+  console.log('submitted', data.document_id, data.submission_id)
 })
 
-const fields = await embed.getFields()
+const fields = await embed.actions.getFields()
 if (fields.success) {
   fields.data.fields // typed FieldRecord[]
 }
 ```
+
+The handle has three groups: **`embed.actions`** (operations), **`embed.events`** (subscriptions), **`embed.lifecycle`** (teardown).
 
 ## Where the editor goes
 
@@ -68,26 +71,26 @@ One function. It does the right thing based on what `target` points at:
 
 ```ts
 // Point at a container, we make the iframe:
-createEmbed({ target: '#editor', tenant: 'acme', document: { url } })
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url } })
 
 // Point at your own iframe, we bridge to it:
 // <iframe id="ed" src="https://acme.simplepdf.com/editor"></iframe>
-createEmbed({ target: '#ed', tenant: 'acme' })
+createEmbed({ target: '#ed', companyIdentifier: 'acme' })
 ```
 
-Either way you get the same typed `Embed` handle. In React, `<EmbedPDF>` is the container case and `useIframeBridge` is the own-iframe case (see [React](#react)).
+Either way you get the same typed `Embed` handle.
 
 ### Options
 
 | Option | Type | Notes |
 | --- | --- | --- |
 | `target` | `string \| HTMLElement` | **required**: a container to fill, or an `<iframe>` to attach to |
-| `tenant` | `string` | **required**: your companyIdentifier (`<tenant>.simplepdf.com`; `'embed'` is the free no-account editor) |
+| `companyIdentifier` | `string` | **required**: your `<companyIdentifier>.simplepdf.com` subdomain (`'embed'` is the free no-account editor) |
 | `document` | `{ url } \| { dataUrl } \| { file }` | initial document (see below) |
 | `baseDomain` | `string` | editor base domain (default `simplepdf.com`); set for staging / self-hosting |
 | `locale` | `Locale` | editor UI language |
 | `context` | `object` | opaque data echoed back on submissions |
-| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only) |
+| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write` |
 | `logger` | `BridgeLogger` | structured logs (ids + timing only, never payloads) |
 
 ## Document source
@@ -95,12 +98,12 @@ Either way you get the same typed `Embed` handle. In React, `<EmbedPDF>` is the 
 `document` takes exactly one source, plus optional `name` and `page`:
 
 ```ts
-createEmbed({ target, tenant: 'acme', document: { url: 'https://…/form.pdf' } })
-createEmbed({ target, tenant: 'acme', document: { dataUrl: 'data:application/pdf;base64,…' } })
-createEmbed({ target, tenant: 'acme', document: { file: pdfFileOrBlob } })
+createEmbed({ target, companyIdentifier: 'acme', document: { url: 'https://…/form.pdf' } })
+createEmbed({ target, companyIdentifier: 'acme', document: { dataUrl: 'data:application/pdf;base64,…' } })
+createEmbed({ target, companyIdentifier: 'acme', document: { file: pdfFileOrBlob } })
 ```
 
-- **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`, since `fetch()` can't use them).
+- **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`). A **SimplePDF documents URL** on your base-domain family (e.g. `https://acme.simplepdf.com/documents/<id>?prefill=<id>`) is navigated to directly — the editor loads + prefills the stored document itself (your `context` is carried through).
 - **`file`**: a `File` (e.g. from `<input type="file">`) or any `Blob`. Converted for you, no `FileReader`.
 - **`dataUrl`**: a `data:` URL string.
 
@@ -111,79 +114,81 @@ Misuse fails fast with the fix in the message: a `Blob` in `url` tells you to us
 Every call resolves to `BridgeResult<T>` = `{ success: true; data } | { success: false; error }`:
 
 ```ts
-const r = await embed.getFields()
+const r = await embed.actions.getFields()
 if (r.success) r.data.fields // typed FieldRecord[]
 else r.error.code // a closed BridgeErrorCode
 ```
 
-Inputs are the snake_case wire shapes ([`/embed/json`](https://simplepdf.com/embed/json) or `@simplepdf/embed/schemas` carry every field):
+`embed.actions.*` — method names + arguments are camelCase (the snake_case wire is generated + transformed for you; [`/embed/json`](https://simplepdf.com/embed/json) or `@simplepdf/embed/schemas` carry every field):
 
 ```ts
-await embed.loadDocument({ data_url, name, page })
-await embed.goTo({ page: 3 })
-await embed.selectTool({ tool: 'TEXT' }) // 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | 'COMB_TEXT' | null
-await embed.detectFields()
-await embed.setFieldValue({ field_id, value })
-await embed.deleteFields({ field_ids }) // or { page }, or {} for all
-await embed.getDocumentContent({ extraction_mode: 'auto' })
-await embed.submit({ download_copy: true })
-await embed.movePage({ from_page: 2, to_page: 5 })
-await embed.deletePages({ pages: [3] })
-await embed.rotatePage({ page: 1 })
-await embed.download()
+await embed.actions.loadDocument({ dataUrl, name, page })
+await embed.actions.goTo({ page: 3 })
+await embed.actions.selectTool({ tool: 'TEXT' }) // 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | 'COMB_TEXT' | null
+await embed.actions.detectFields()
+await embed.actions.setFieldValue({ fieldId, value })
+await embed.actions.deleteFields({ fieldIds }) // or { page }, or {} for all
+await embed.actions.getDocumentContent({ extractionMode: 'auto' })
+await embed.actions.submit({ downloadCopy: true })
+await embed.actions.movePage({ fromPage: 2, toPage: 5 })
+await embed.actions.deletePages({ pages: [3] })
+await embed.actions.rotatePage({ page: 1 })
+await embed.actions.download()
 ```
 
-Full set: `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`. Lifecycle: `embed.state` / `embed.getState()` (`booting → editor_ready → document_loaded`), `embed.iframe`, `embed.dispose()`.
+Full set: `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
+
+**"Fill and read this document for me"** is just these operations in sequence — exactly what the agentic tools expose to a model:
+
+```ts
+const fields = await embed.actions.getFields() // read
+await embed.actions.setFieldValue({ fieldId: 'f_full_name', value: 'Jane Doe' }) // fill
+// walk the user to a signature: navigate → focus → open the signature tool
+await embed.actions.goTo({ page: 3 })
+await embed.actions.focusField({ fieldId: 'f_signature' })
+await embed.actions.selectTool({ tool: 'SIGNATURE' })
+```
 
 ## Events
 
+`embed.events.on(type, handler)` subscribes to one editor event and hands the handler that event's payload VERBATIM (snake_case) — the stable, 1.x-compatible contract. It returns an unsubscribe function:
+
 ```ts
-const off = embed.on('submission_sent', ({ document_id, submission_id }) => {})
-embed.on('page_focused', ({ previous_page, current_page, total_pages }) => {})
-embed.on('state_change', (state) => {})
-embed.on('disposed', () => {})
-off() // unsubscribe (all subscriptions also clear on dispose)
+const off = embed.events.on('SUBMISSION_SENT', (data) => {
+  data.document_id // + data.submission_id
+})
+off() // unsubscribe (all subscriptions also clear on lifecycle.dispose())
+
+// The full set — each handler receives that event's typed payload:
+embed.events.on('EDITOR_READY', () => {})
+embed.events.on('DOCUMENT_LOADED', (data) => data.document_id)
+embed.events.on('PAGE_FOCUSED', (data) => data) // { previous_page, current_page, total_pages }
+embed.events.on('SUBMISSION_SENT', (data) => data) // { document_id, submission_id }
 ```
+
+## Lifecycle
+
+`embed.lifecycle.dispose()` tears down the bridge (removes the iframe in the container case; clears subscriptions + pending requests). Readiness — `booting → editorReady → documentLoaded` — is observable via the `EDITOR_READY` / `DOCUMENT_LOADED` events above.
 
 ## Errors
 
-- **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_config | invalid_target | invalid_tenant | invalid_document`.
+- **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_config | invalid_target | invalid_company_identifier | invalid_document`.
 - **Operations**: never throw; resolve to `BridgeResult`. `error.code` is a closed `BridgeErrorCode` (the bridge's transport / lifecycle codes union the editor's redacted set). `bad_request:missing_required_fields` carries typed `details`.
 
 Prefer exceptions? `unwrap` returns `data` or throws:
 
 ```ts
 import { unwrap } from '@simplepdf/embed'
-const { fields } = unwrap(await embed.getFields())
+const { fields } = unwrap(await embed.actions.getFields())
 ```
 
 ## React
 
-```tsx
-import { EmbedPDF, useEmbed } from '@simplepdf/embed/react'
-
-const { embedRef, actions } = useEmbed() // attach embedRef; call actions.*
-
-<EmbedPDF
-  ref={embedRef}
-  tenant="acme"
-  document={{ url }}
-  onSubmissionSent={({ submission_id }) => {}}
-  onStateChange={(state) => {}}
-  style={{ height: '100vh' }}
-/>
-
-// actions.* are the same typed Embed methods, but always return a BridgeResult:
-// a call before the editor has mounted resolves to a not-mounted error Result
-// rather than `undefined`, so every call site has one uniform shape to handle.
-const result = await actions.submit({ download_copy: true })
-```
-
-Rendering the iframe yourself? `useIframeBridge({ iframeRef, editorOrigin })` returns `{ bridge, bridgeState }`.
+Use [`@simplepdf/react-embed-pdf`](../react): `<EmbedPDF>` renders the iframe and `useEmbed()` returns `{ embedRef, actions }`; its opt-in `/ai-sdk` subpath adds `useEmbedTools(embedRef)` for the AI SDK. It is built on this core.
 
 ## Agentic / tool-calling
 
-Drive the editor from an LLM. Tool inputs are the same snake_case wire shapes, so the model generates exactly what the editor accepts.
+Drive the editor from an LLM. Tool names + inputs are the same camelCase as the SDK; the bridge lowers them to the wire, so the model generates exactly what `routeToolCall` (and React's `useEmbedTools`) dispatch.
 
 ```ts
 // server (Vercel AI SDK): execute-less tool definitions
@@ -195,7 +200,7 @@ import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
 const execute = createSimplePDFExecutor({ embed })
 ```
 
-`@simplepdf/embed/tools` exposes the same registry SDK-agnostically (`routeToolCall`, `isSimplePDFToolName`).
+`@simplepdf/embed/tools` exposes the same registry SDK-agnostically (`routeToolCall`, `isSimplePDFToolName`). In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor.
 
 ## Reference: the editor contract (the spec)
 

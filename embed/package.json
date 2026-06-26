@@ -20,30 +20,33 @@
   "files": [
     "dist"
   ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./protocol": {
       "types": "./dist/protocol.d.ts",
-      "import": "./dist/protocol.js"
+      "import": "./dist/protocol.js",
+      "require": "./dist/protocol.cjs"
     },
     "./schemas": {
       "types": "./dist/schemas.d.ts",
-      "import": "./dist/schemas.js"
+      "import": "./dist/schemas.js",
+      "require": "./dist/schemas.cjs"
     },
     "./tools": {
       "types": "./dist/tools.d.ts",
-      "import": "./dist/tools.js"
+      "import": "./dist/tools.js",
+      "require": "./dist/tools.cjs"
     },
     "./ai-sdk": {
       "types": "./dist/ai-sdk.d.ts",
-      "import": "./dist/ai-sdk.js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "import": "./dist/react.js"
+      "import": "./dist/ai-sdk.js",
+      "require": "./dist/ai-sdk.cjs"
     }
   },
   "scripts": {
@@ -59,27 +62,15 @@
     "check:size": "npm run build && node scripts/check-bundle-size.mjs"
   },
   "peerDependencies": {
-    "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0",
     "zod": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
-      "optional": true
-    },
     "zod": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
     "jsdom": "^26.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17",
