@@ -73,27 +73,27 @@ _Example_
 ```jsx
 import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
-<EmbedPDF mode="modal" companyIdentifier="yourcompany">
+<EmbedPDF companyIdentifier="yourcompany">
   <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">Opens sample.pdf</a>
 </EmbedPDF>;
 ```
 
 ### Modal mode
 
-Pass `mode="modal"` and wrap any HTML element to open a modal with the editor on user click.
+Modal is the default — just wrap any HTML element and the editor opens in a modal on the user's click. You don't need the `mode` prop; pass `mode="modal"` only if you want to be explicit.
 
 ```jsx
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
 
 // Opens the PDF on click
-<EmbedPDF mode="modal">
+<EmbedPDF>
   <a href="https://cdn.simplepdf.com/simple-pdf/assets/sample.pdf">
     Opens sample.pdf
   </a>
 </EmbedPDF>
 
 // Let the user pick the PDF
-<EmbedPDF mode="modal">
+<EmbedPDF>
   <button>Opens the simplePDF editor</button>
 </EmbedPDF>
 ```
