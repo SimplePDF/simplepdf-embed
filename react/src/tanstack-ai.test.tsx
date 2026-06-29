@@ -5,23 +5,23 @@ import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import type { BridgeResult } from '@simplepdf/embed';
 import { useEmbed } from './index';
-import { useEmbedTanstackTools } from './tanstack-ai';
+import { useEmbedTools } from './tanstack-ai';
 
 // useEmbed pulls in <EmbedPDF>, which imports scss (a build concern, irrelevant here).
 vi.mock('./styles.scss', () => ({}));
 
-describe('useEmbedTanstackTools', () => {
+describe('useEmbedTools', () => {
   it('returns TanStack client tools, each execute null-safe before <EmbedPDF> mounts', async () => {
-    const captured: ReturnType<typeof useEmbedTanstackTools>[] = [];
+    const captured: ReturnType<typeof useEmbedTools>[] = [];
     const Probe = (): null => {
       const { embedRef } = useEmbed();
-      captured.push(useEmbedTanstackTools(embedRef));
+      captured.push(useEmbedTools(embedRef));
       return null;
     };
     render(<Probe />);
     const tools = captured[0];
     if (tools === undefined) {
-      throw new Error('expected useEmbedTanstackTools to have rendered');
+      throw new Error('expected useEmbedTools to have rendered');
     }
     const goTo = tools.find((tool) => tool.name === 'goTo');
     if (goTo === undefined || goTo.execute === undefined) {

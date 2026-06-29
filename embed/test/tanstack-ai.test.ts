@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createSimplePDFTanstackTools, simplePDFTanstackToolDefinitions } from '../src/tanstack-ai'
+import { createSimplePDFTools, simplePDFToolDefinitions } from '../src/tanstack-ai'
 import type { BridgeResult } from '../src/types'
 import { makeEmbedStub } from './helpers'
 
-describe('simplePDFTanstackToolDefinitions', () => {
+describe('simplePDFToolDefinitions', () => {
   it('returns the 14 agentic operations as execute-less definitions (loadDocument excluded)', () => {
-    const definitions = simplePDFTanstackToolDefinitions()
+    const definitions = simplePDFToolDefinitions()
     expect(definitions).toHaveLength(14)
     expect(definitions.map((definition) => definition.name)).not.toContain('loadDocument')
     for (const definition of definitions) {
@@ -15,16 +15,16 @@ describe('simplePDFTanstackToolDefinitions', () => {
   })
 })
 
-describe('createSimplePDFTanstackTools', () => {
+describe('createSimplePDFTools', () => {
   it('produces a client tool for each of the 14 agentic operations', () => {
-    const tools = createSimplePDFTanstackTools({ embed: makeEmbedStub() })
+    const tools = createSimplePDFTools({ embed: makeEmbedStub() })
     expect(tools).toHaveLength(14)
     expect(tools.every((tool) => typeof tool.execute === 'function')).toBe(true)
   })
 
   it('binds each tool to the editor: a client call validates input + dispatches to the matching action', async () => {
     const embed = makeEmbedStub()
-    const goTo = createSimplePDFTanstackTools({ embed }).find((tool) => tool.name === 'goTo')
+    const goTo = createSimplePDFTools({ embed }).find((tool) => tool.name === 'goTo')
     if (goTo === undefined || goTo.execute === undefined) {
       throw new Error('expected a goTo client tool with an execute')
     }
@@ -34,7 +34,7 @@ describe('createSimplePDFTanstackTools', () => {
 
   it('returns bad_request:invalid_input on schema-invalid input without dispatching', async () => {
     const embed = makeEmbedStub()
-    const goTo = createSimplePDFTanstackTools({ embed }).find((tool) => tool.name === 'goTo')
+    const goTo = createSimplePDFTools({ embed }).find((tool) => tool.name === 'goTo')
     if (goTo === undefined || goTo.execute === undefined) {
       throw new Error('expected a goTo client tool with an execute')
     }

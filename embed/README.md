@@ -53,13 +53,13 @@ For TanStack AI, the same registry is exposed via `@simplepdf/embed/tanstack-ai`
 
 ```ts
 // server: execute-less definitions so the model is aware of the tools
-import { simplePDFTanstackToolDefinitions } from '@simplepdf/embed/tanstack-ai'
-chat({ adapter, messages, tools: simplePDFTanstackToolDefinitions() })
+import { simplePDFToolDefinitions } from '@simplepdf/embed/tanstack-ai'
+chat({ adapter, messages, tools: simplePDFToolDefinitions() })
 
 // browser: the same definitions bound to the live editor via .client()
 import { clientTools } from '@tanstack/ai-react'
-import { createSimplePDFTanstackTools } from '@simplepdf/embed/tanstack-ai'
-useChat({ connection, tools: clientTools(...createSimplePDFTanstackTools({ embed })) })
+import { createSimplePDFTools } from '@simplepdf/embed/tanstack-ai'
+useChat({ connection, tools: clientTools(...createSimplePDFTools({ embed })) })
 ```
 
 ## Install
@@ -79,7 +79,7 @@ Zero runtime dependencies at the root. `zod` is an optional peer, needed by the 
 | `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
 | `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
 | `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
-| `@simplepdf/embed/tanstack-ai` | `simplePDFTanstackToolDefinitions()` (server) + `createSimplePDFTanstackTools({ embed })` (browser) for TanStack AI | `zod`, `@tanstack/ai` |
+| `@simplepdf/embed/tanstack-ai` | `simplePDFToolDefinitions()` (server) + `createSimplePDFTools({ embed })` (browser) for TanStack AI | `zod`, `@tanstack/ai` |
 
 ## Where the editor goes
 

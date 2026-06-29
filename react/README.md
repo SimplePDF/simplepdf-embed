@@ -223,26 +223,26 @@ const CopilotEditor = () => {
 };
 ```
 
-For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle, every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
+For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from the React-free core `@simplepdf/embed/ai-sdk` (importing it from this React subpath would pull React into your server). `embedRef.current` is the flat editor-actions handle, every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
 
-#### Agentic: `useEmbedTanstackTools` (TanStack AI)
+#### Agentic: `useEmbedTools` (TanStack AI)
 
-The TanStack mirror lives in the opt-in `@simplepdf/react-embed-pdf/tanstack-ai` subpath (importing it pulls `@tanstack/ai`). `useEmbedTanstackTools(embedRef)` returns the editor-bound client tools; pass them to `clientTools(...)`, then `useChat`:
+The TanStack mirror lives in the opt-in `@simplepdf/react-embed-pdf/tanstack-ai` subpath (importing it pulls `@tanstack/ai`). `useEmbedTools(embedRef)` returns the editor-bound client tools; pass them to `clientTools(...)`, then `useChat`:
 
 ```jsx
 import { useChat, clientTools } from '@tanstack/ai-react';
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
-import { useEmbedTanstackTools } from '@simplepdf/react-embed-pdf/tanstack-ai';
+import { useEmbedTools } from '@simplepdf/react-embed-pdf/tanstack-ai';
 
 const CopilotEditor = () => {
   const { embedRef } = useEmbed();
-  const tools = clientTools(...useEmbedTanstackTools(embedRef));
+  const tools = clientTools(...useEmbedTools(embedRef));
   useChat({ connection, tools }); // the model's tool calls run against the live editor
   return <EmbedPDF ref={embedRef} mode="inline" companyIdentifier="yourcompany" style={{ width: 900, height: 800 }} />;
 };
 ```
 
-On your server `chat({ tools })` route, register `simplePDFTanstackToolDefinitions()` (re-exported from the same subpath) so the model is aware of the tools.
+On your server `chat({ tools })` route, register `simplePDFToolDefinitions()` imported from the React-free core `@simplepdf/embed/tanstack-ai` (not from this React subpath, which would pull React into your server) so the model is aware of the tools.
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
 

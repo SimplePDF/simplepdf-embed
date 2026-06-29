@@ -26,10 +26,10 @@ const define = (name: SimplePDFToolName) =>
 // Server: execute-less definitions for `chat({ tools })`, so the model is aware of
 // the tools. A fresh array each call so the host can pick/omit (e.g. gate submit XOR
 // download) without mutating shared state.
-export const simplePDFTanstackToolDefinitions = (): ReturnType<typeof define>[] => TOOL_NAMES.map(define)
+export const simplePDFToolDefinitions = (): ReturnType<typeof define>[] => TOOL_NAMES.map(define)
 
 // Browser: the same definitions bound to the live editor via `.client()`, for
 // `clientTools(...)` -> `useChat({ tools })`. Each call validates input against the
 // tool schema and dispatches to the matching editor action, resolving to a BridgeResult.
-export const createSimplePDFTanstackTools = ({ embed }: { embed: Embed }): AnyClientTool[] =>
+export const createSimplePDFTools = ({ embed }: { embed: Embed }): AnyClientTool[] =>
   TOOL_NAMES.map((name) => define(name).client((input) => routeToolCall(embed.actions, name, input)))
