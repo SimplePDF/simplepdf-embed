@@ -42,3 +42,6 @@ jobs:
 
       - name: Export load
         run: npm run --workspace @simplepdf/embed check:exports
+
+      - name: API surface
+        run: npm run --workspace @simplepdf/embed check:api

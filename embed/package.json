@@ -64,7 +64,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:size": "npm run build && node scripts/check-bundle-size.mjs",
-    "check:exports": "node ../scripts/check-exports.mjs ."
+    "check:exports": "node ../scripts/check-exports.mjs .",
+    "check:api": "node ../scripts/check-api.mjs ."
   },
   "peerDependencies": {
     "@tanstack/ai": "^0.38.0",

@@ -45,7 +45,8 @@
     "prepublishOnly": "rimraf dist && npm run build",
     "build": "rollup -c",
     "start": "rollup -c -w",
-    "check:exports": "node ../scripts/check-exports.mjs ."
+    "check:exports": "node ../scripts/check-exports.mjs .",
+    "check:api": "node ../scripts/check-api.mjs ."
   },
   "dependencies": {
     "@simplepdf/embed": "^0.5.0"
