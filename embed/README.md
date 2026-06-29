@@ -49,13 +49,26 @@ const execute = createSimplePDFExecutor({ embed })
 
 `@simplepdf/embed/tools` exposes the same registry SDK-agnostically (`routeToolCall`, `isSimplePDFToolName`). In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor.
 
+For TanStack AI, the same registry is exposed via `@simplepdf/embed/tanstack-ai`:
+
+```ts
+// server: execute-less definitions so the model is aware of the tools
+import { simplePDFTanstackToolDefinitions } from '@simplepdf/embed/tanstack-ai'
+chat({ adapter, messages, tools: simplePDFTanstackToolDefinitions() })
+
+// browser: the same definitions bound to the live editor via .client()
+import { clientTools } from '@tanstack/ai-react'
+import { createSimplePDFTanstackTools } from '@simplepdf/embed/tanstack-ai'
+useChat({ connection, tools: clientTools(...createSimplePDFTanstackTools({ embed })) })
+```
+
 ## Install
 
 ```bash
 npm install @simplepdf/embed
 ```
 
-Zero runtime dependencies at the root. `zod` is an optional peer, needed only by the `/schemas`, `/tools`, and `/ai-sdk` subpaths. `/ai-sdk` produces values for the Vercel AI SDK but never imports `ai`; bring your own.
+Zero runtime dependencies at the root. `zod` is an optional peer, needed by the `/schemas`, `/tools`, `/ai-sdk`, and `/tanstack-ai` subpaths. `/ai-sdk` produces values for the Vercel AI SDK without importing `ai` (bring your own); `/tanstack-ai` uses `@tanstack/ai`'s `toolDefinition` (also an optional peer, pulled only by that subpath).
 
 ## Subpaths
 
@@ -66,6 +79,7 @@ Zero runtime dependencies at the root. `zod` is an optional peer, needed only by
 | `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
 | `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
 | `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
+| `@simplepdf/embed/tanstack-ai` | `simplePDFTanstackToolDefinitions()` (server) + `createSimplePDFTanstackTools({ embed })` (browser) for TanStack AI | `zod`, `@tanstack/ai` |
 
 ## Where the editor goes
 

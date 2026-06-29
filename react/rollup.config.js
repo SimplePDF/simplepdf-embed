@@ -11,13 +11,14 @@ const isExternal = (id) =>
   id === 'react' ||
   id === 'react-dom' ||
   id === 'zod' ||
+  id === '@tanstack/ai' ||
   id === '@simplepdf/embed' ||
   id.startsWith('@simplepdf/embed/');
 
 export default {
   // Two entries mirroring the core: the zod-free root, and the opt-in agentic /ai-sdk
   // (which pulls zod). A consumer importing only the root never loads zod.
-  input: { index: 'src/index.tsx', 'ai-sdk': 'src/ai-sdk.tsx' },
+  input: { index: 'src/index.tsx', 'ai-sdk': 'src/ai-sdk.tsx', 'tanstack-ai': 'src/tanstack-ai.tsx' },
   output: [
     {
       dir: 'dist',

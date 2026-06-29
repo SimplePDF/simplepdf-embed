@@ -19,6 +19,7 @@ const BUDGETS = {
   'schemas.js': 3 * 1024,
   'tools.js': 5 * 1024,
   'ai-sdk.js': 5.5 * 1024,
+  'tanstack-ai.js': 5.5 * 1024,
 }
 
 const localImports = (file) => {

@@ -1,29 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { isSimplePDFToolName, routeToolCall, SIMPLEPDF_TOOLS } from '../src/tools'
-import type { BridgeResult, IframeActions } from '../src/types'
-
-const okResult: BridgeResult<unknown> = { success: true, data: null }
-
-const makeActionsStub = (): IframeActions => {
-  const method = (): Promise<BridgeResult<unknown>> => Promise.resolve(okResult)
-  return {
-    createField: vi.fn(method),
-    deleteFields: vi.fn(method),
-    deletePages: vi.fn(method),
-    detectFields: vi.fn(method),
-    download: vi.fn(method),
-    focusField: vi.fn(method),
-    getDocumentContent: vi.fn(method),
-    getFields: vi.fn(method),
-    goTo: vi.fn(method),
-    loadDocument: vi.fn(method),
-    movePage: vi.fn(method),
-    rotatePage: vi.fn(method),
-    selectTool: vi.fn(method),
-    setFieldValue: vi.fn(method),
-    submit: vi.fn(method),
-  }
-}
+import { makeActionsStub } from './helpers'
 
 describe(isSimplePDFToolName.name, () => {
   it('accepts agentic tool names', () => {

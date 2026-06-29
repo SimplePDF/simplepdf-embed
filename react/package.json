@@ -21,6 +21,11 @@
       "types": "./dist/ai-sdk.d.ts",
       "import": "./dist/ai-sdk.esm.js",
       "require": "./dist/ai-sdk.cjs"
+    },
+    "./tanstack-ai": {
+      "types": "./dist/tanstack-ai.d.ts",
+      "import": "./dist/tanstack-ai.esm.js",
+      "require": "./dist/tanstack-ai.cjs"
     }
   },
   "author": "bendersej",
@@ -46,17 +51,22 @@
     "@simplepdf/embed": "^0.5.0"
   },
   "peerDependencies": {
+    "@tanstack/ai": "^0.38.0",
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
     "zod": "^4.0.0"
   },
   "peerDependenciesMeta": {
+    "@tanstack/ai": {
+      "optional": true
+    },
     "zod": {
       "optional": true
     }
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
+    "@tanstack/ai": "^0.38.0",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "16.3.1",
