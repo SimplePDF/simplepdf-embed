@@ -2,13 +2,13 @@
 
 SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) integrate `SimplePDF` in a single line of code by displaying the editor in a modal.
 
-**For more control** — embedding the editor inline (e.g. in a `div`), or driving it programmatically — read on.
+**For more control**, embedding the editor inline (e.g. in a `div`), or driving it programmatically, read on.
 
 ## The iframe URL vs. programmatic control
 
 Pointing an `<iframe src>` at the editor (below) gives you the **full editor, with your account's branding**, in zero JavaScript. What it does **not** give you is **programmatic control**: you can't read a field, jump to a page, prefill values, submit, or let an AI agent fill and read the document on the user's behalf.
 
-For that, drive the same iframe with the typed [`@simplepdf/embed`](#iframe-communication) client — see [Iframe Communication](#iframe-communication).
+For that, drive the same iframe with the typed [`@simplepdf/embed`](#iframe-communication) client, see [Iframe Communication](#iframe-communication).
 
 ## With a SimplePDF account (to collect customers' submissions)
 
@@ -96,7 +96,7 @@ See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentif
 
 _Programmatic control is only available with a SimplePDF account_
 
-The iframe communicates over the `postMessage` API. Use **[`@simplepdf/embed`](../embed/README.md)** — a zero-dependency client that drives the editor over the iframe for you, **generated from the editor contract** so it can't drift. It wraps everything for you: request/response correlation, timeouts, the editor-ready / document-loaded lifecycle, typed events, and the closed error model. Methods + arguments are camelCase; the editor's `snake_case` wire is handled behind the scenes. (If you'd rather add no dependency, the raw protocol is documented under [Wire shape](#wire-shape).)
+The iframe communicates over the `postMessage` API. Use **[`@simplepdf/embed`](../embed/README.md)**, a zero-dependency client that drives the editor over the iframe for you, **generated from the editor contract** so it can't drift. It wraps everything for you: request/response correlation, timeouts, the editor-ready / document-loaded lifecycle, typed events, and the closed error model. Methods + arguments are camelCase; the editor's `snake_case` wire is handled behind the scenes. (If you'd rather add no dependency, the raw protocol is documented under [Wire shape](#wire-shape).)
 
 The examples below go from the simplest embed to full programmatic and agentic control. `createEmbed` either **creates** the iframe inside a container you provide, or **attaches** to an `<iframe>` you render.
 
@@ -110,8 +110,8 @@ The examples below go from the simplest embed to full programmatic and agentic c
 import { createEmbed } from "@simplepdf/embed";
 
 const embed = createEmbed({
-  target: "#editor", // a container — the iframe is created inside it
-  companyIdentifier: "acme", // your <companyIdentifier>.simplepdf.com — use "embed" for the free editor
+  target: "#editor", // a container, the iframe is created inside it
+  companyIdentifier: "acme", // your <companyIdentifier>.simplepdf.com, use "embed" for the free editor
   document: { url: "https://example.com/form.pdf" },
 });
 
@@ -161,7 +161,7 @@ See the [`@simplepdf/embed` README](../embed/README.md#actions) for the full met
 
 ### 4. Fill and read a document (what an agent does for you)
 
-"Fill and read this document for me" is just these operations in sequence — read the fields, fill one, then walk the user to a signature: navigate to its page, focus the field, and open the signature tool.
+"Fill and read this document for me" is just these operations in sequence, read the fields, fill one, then walk the user to a signature: navigate to its page, focus the field, and open the signature tool.
 
 ```ts
 // read
@@ -177,23 +177,23 @@ await embed.actions.focusField({ fieldId: "f_signature" });
 await embed.actions.selectTool({ tool: "SIGNATURE" });
 ```
 
-An AI agent does exactly this — the next section exposes these operations as tools the model calls.
+An AI agent does exactly this, the next section exposes these operations as tools the model calls.
 
 ### 5. Drive the editor from an LLM (agentic)
 
 The same operations are exposed as [Vercel AI SDK](https://sdk.vercel.ai) tools:
 
 ```ts
-// server — execute-less tool definitions for streamText / generateText
+// server: execute-less tool definitions for streamText / generateText
 import { simplePDFToolDefinitions } from "@simplepdf/embed/ai-sdk";
 streamText({ model, tools: simplePDFToolDefinitions() });
 
-// browser — run the model's tool calls against the live editor
+// browser: run the model's tool calls against the live editor
 import { createSimplePDFExecutor } from "@simplepdf/embed/ai-sdk";
 const execute = createSimplePDFExecutor({ embed });
 ```
 
-In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor — drop it straight into `useChat({ tools })`.
+In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor, drop it straight into `useChat({ tools })`.
 
 ---
 
@@ -201,9 +201,9 @@ In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the
 
 The single source of truth for the available operations and events can be found at **[`https://simplepdf.com/embed/json`](https://simplepdf.com/embed/json)**.
 
-It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes** — each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
+It describes every operation (its `request_type`, input/output JSON Schema, and per-operation error codes), the outbound events, the supported locales, and the **complete closed set of error codes**, each `code` carrying a plain-language description of its meaning. It is the iframe / `postMessage` counterpart to the REST API's OpenAPI spec at [`/api/json`](https://simplepdf.com/api/json).
 
-- **Programmatic access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract — use the package and you never read the raw spec.
+- **Programmatic access (recommended):** [`@simplepdf/embed`](https://github.com/SimplePDF/simplepdf-embed/tree/main/embed) generates its client, zod schemas (`/schemas`), and agentic tool registry (`/tools`, `/ai-sdk`) from this exact contract, use the package and you never read the raw spec.
 - **Agents / LLMs:** point the model at `/embed/json` (or `@simplepdf/embed/ai-sdk`) to discover and drive the editor programmatically.
 
 ### Wire shape

@@ -1,37 +1,8 @@
 # @simplepdf/embed
 
-Embed and programmatically drive the [SimplePDF](https://simplepdf.com) editor over its iframe / `postMessage` bridge — from any framework, with zero runtime dependencies.
+Embed and programmatically drive the [SimplePDF](https://simplepdf.com) editor over its iframe / `postMessage` bridge, from any framework, with zero runtime dependencies.
 
-Types, schemas, and tools are **generated from a pinned copy of the editor's published manifest** ([`/embed/json`](https://simplepdf.com/embed/json)), so the client cannot drift from the contract.
-
-> Using React? Use [`@simplepdf/react-embed-pdf`](../react) — `<EmbedPDF>` + `useEmbed` (+ the agentic `tools`), built on this core.
-
-## Install
-
-```bash
-npm install @simplepdf/embed
-```
-
-Zero runtime dependencies at the root. `zod` is an optional peer, needed only by the `/schemas`, `/tools`, and `/ai-sdk` subpaths. `/ai-sdk` produces values for the Vercel AI SDK but never imports `ai`; bring your own.
-
-## Subpaths
-
-| Import | Purpose | Peer |
-| --- | --- | --- |
-| `@simplepdf/embed` | `createEmbed`, the `Embed` handle, the closed error model + `BridgeResult` types, `unwrap`, `NOOP_LOGGER` | none |
-| `@simplepdf/embed/protocol` | wire operation/event constants | none |
-| `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
-| `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
-| `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
-
-## Conventions
-
-The SDK is **camelCase** (the JS/TS idiom); the editor's snake_case wire stays behind a transform the bridge owns, so you never type it:
-
-- **Methods, their arguments + results, and the agentic tool names/args are camelCase**: `embed.actions.getFields()`, `embed.actions.setFieldValue({ fieldId, value })`, `embed.actions.submit({ downloadCopy })`. They are generated from the contract and lowered to the snake_case wire (`field_id`, `download_copy`) at the `postMessage` boundary — automatically.
-- **Events are the one exception — delivered VERBATIM**: `embed.events.on(type, handler)` hands the handler the editor's outbound payload unchanged (snake_case fields like `document_id`), so events stay byte-for-byte compatible with the published manifest and with `@simplepdf/react-embed-pdf`'s existing `onEmbedEvent`.
-
-The editor owns all validation and FIFO ordering; the bridge just posts, correlates by `request_id`, and times out a dead iframe. Every method resolves to a `BridgeResult<T>` and never throws; only construction errors (bad config) throw, synchronously.
+> Using React? Use [`@simplepdf/react-embed-pdf`](../react): `<EmbedPDF>` + `useEmbed` (+ the agentic `tools`), built on this core.
 
 ## Quick start
 
@@ -61,6 +32,40 @@ if (fields.success) {
 ```
 
 The handle has three groups: **`embed.actions`** (operations), **`embed.events`** (subscriptions), **`embed.lifecycle`** (teardown).
+
+## Agentic / tool-calling
+
+Drive the editor from an LLM. Tool names + inputs are the same camelCase as the SDK; the bridge lowers them to the wire, so the model generates exactly what `routeToolCall` (and React's `useEmbedTools`) dispatch.
+
+```ts
+// server (Vercel AI SDK): execute-less tool definitions
+import { simplePDFToolDefinitions } from '@simplepdf/embed/ai-sdk'
+streamText({ model, tools: simplePDFToolDefinitions() })
+
+// browser: a bridge-bound executor for onToolCall
+import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
+const execute = createSimplePDFExecutor({ embed })
+```
+
+`@simplepdf/embed/tools` exposes the same registry SDK-agnostically (`routeToolCall`, `isSimplePDFToolName`). In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor.
+
+## Install
+
+```bash
+npm install @simplepdf/embed
+```
+
+Zero runtime dependencies at the root. `zod` is an optional peer, needed only by the `/schemas`, `/tools`, and `/ai-sdk` subpaths. `/ai-sdk` produces values for the Vercel AI SDK but never imports `ai`; bring your own.
+
+## Subpaths
+
+| Import | Purpose | Peer |
+| --- | --- | --- |
+| `@simplepdf/embed` | `createEmbed`, the `Embed` handle, the closed error model + `BridgeResult` types, `unwrap`, `NOOP_LOGGER` | none |
+| `@simplepdf/embed/protocol` | wire operation/event constants | none |
+| `@simplepdf/embed/schemas` | zod schema for every operation input | `zod` |
+| `@simplepdf/embed/tools` | SDK-agnostic agentic tool registry + `routeToolCall` + `isSimplePDFToolName` | `zod` |
+| `@simplepdf/embed/ai-sdk` | `simplePDFToolDefinitions()` (server) + `createSimplePDFExecutor({ embed })` (browser) for the Vercel AI SDK | `zod` |
 
 ## Where the editor goes
 
@@ -103,7 +108,7 @@ createEmbed({ target, companyIdentifier: 'acme', document: { dataUrl: 'data:appl
 createEmbed({ target, companyIdentifier: 'acme', document: { file: pdfFileOrBlob } })
 ```
 
-- **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`). A **SimplePDF documents URL** on your base-domain family (e.g. `https://acme.simplepdf.com/documents/<id>?prefill=<id>`) is navigated to directly — the editor loads + prefills the stored document itself (your `context` is carried through).
+- **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`). A **SimplePDF documents URL** on your base-domain family (e.g. `https://acme.simplepdf.com/documents/<id>?prefill=<id>`) is navigated to directly, so the editor loads + prefills the stored document itself (your `context` is carried through).
 - **`file`**: a `File` (e.g. from `<input type="file">`) or any `Blob`. Converted for you, no `FileReader`.
 - **`dataUrl`**: a `data:` URL string.
 
@@ -119,7 +124,7 @@ if (r.success) r.data.fields // typed FieldRecord[]
 else r.error.code // a closed BridgeErrorCode
 ```
 
-`embed.actions.*` — method names + arguments are camelCase (the snake_case wire is generated + transformed for you; [`/embed/json`](https://simplepdf.com/embed/json) or `@simplepdf/embed/schemas` carry every field):
+`embed.actions.*`: method names + arguments are camelCase (the snake_case wire is generated + transformed for you; [`/embed/json`](https://simplepdf.com/embed/json) or `@simplepdf/embed/schemas` carry every field):
 
 ```ts
 await embed.actions.loadDocument({ dataUrl, name, page })
@@ -138,7 +143,7 @@ await embed.actions.download()
 
 Full set: `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
 
-**"Fill and read this document for me"** is just these operations in sequence — exactly what the agentic tools expose to a model:
+**"Fill and read this document for me"** is just these operations in sequence, exactly what the agentic tools expose to a model:
 
 ```ts
 const fields = await embed.actions.getFields() // read
@@ -151,7 +156,7 @@ await embed.actions.selectTool({ tool: 'SIGNATURE' })
 
 ## Events
 
-`embed.events.on(type, handler)` subscribes to one editor event and hands the handler that event's payload VERBATIM (snake_case) — the stable, established contract. It returns an unsubscribe function:
+`embed.events.on(type, handler)` subscribes to one editor event and hands the handler that event's payload VERBATIM (snake_case), the stable, established contract. It returns an unsubscribe function:
 
 ```ts
 const off = embed.events.on('SUBMISSION_SENT', (data) => {
@@ -159,7 +164,7 @@ const off = embed.events.on('SUBMISSION_SENT', (data) => {
 })
 off() // unsubscribe (all subscriptions also clear on lifecycle.dispose())
 
-// The full set — each handler receives that event's typed payload:
+// The full set, each handler receives that event's typed payload:
 embed.events.on('EDITOR_READY', () => {})
 embed.events.on('DOCUMENT_LOADED', (data) => data.document_id)
 embed.events.on('PAGE_FOCUSED', (data) => data) // { previous_page, current_page, total_pages }
@@ -168,7 +173,7 @@ embed.events.on('SUBMISSION_SENT', (data) => data) // { document_id, submission_
 
 ## Lifecycle
 
-`embed.lifecycle.dispose()` tears down the bridge (removes the iframe in the container case; clears subscriptions + pending requests). Readiness — `booting → editorReady → documentLoaded` — is observable via the `EDITOR_READY` / `DOCUMENT_LOADED` events above.
+`embed.lifecycle.dispose()` tears down the bridge (removes the iframe in the container case; clears subscriptions + pending requests). Readiness (`booting → editorReady → documentLoaded`) is observable via the `EDITOR_READY` / `DOCUMENT_LOADED` events above.
 
 ## Errors
 
@@ -185,22 +190,6 @@ const { fields } = unwrap(await embed.actions.getFields())
 ## React
 
 Use [`@simplepdf/react-embed-pdf`](../react): `<EmbedPDF>` renders the iframe and `useEmbed()` returns `{ embedRef, actions }`; its opt-in `/ai-sdk` subpath adds `useEmbedTools(embedRef)` for the AI SDK. It is built on this core.
-
-## Agentic / tool-calling
-
-Drive the editor from an LLM. Tool names + inputs are the same camelCase as the SDK; the bridge lowers them to the wire, so the model generates exactly what `routeToolCall` (and React's `useEmbedTools`) dispatch.
-
-```ts
-// server (Vercel AI SDK): execute-less tool definitions
-import { simplePDFToolDefinitions } from '@simplepdf/embed/ai-sdk'
-streamText({ model, tools: simplePDFToolDefinitions() })
-
-// browser: a bridge-bound executor for onToolCall
-import { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk'
-const execute = createSimplePDFExecutor({ embed })
-```
-
-`@simplepdf/embed/tools` exposes the same registry SDK-agnostically (`routeToolCall`, `isSimplePDFToolName`). In React, `@simplepdf/react-embed-pdf/ai-sdk`'s `useEmbedTools(embedRef)` is the same registry pre-bound to the live editor.
 
 ## Reference: the editor contract (the spec)
 

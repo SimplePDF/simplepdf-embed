@@ -36,7 +36,7 @@ Easily add [SimplePDF](https://simplepdf.com) to your React app, by using the `E
 npm install @simplepdf/react-embed-pdf
 ```
 
-The package root (`<EmbedPDF>`, `useEmbed`) has no `zod` dependency. Only the agentic tools — the opt-in [`@simplepdf/react-embed-pdf/ai-sdk`](#agentic--useembedtools-vercel-ai-sdk) subpath — need `zod` (a peer). Install it alongside if you use them (npm 7+ adds it automatically; pnpm / Yarn PnP users must add it explicitly):
+The package root (`<EmbedPDF>`, `useEmbed`) has no `zod` dependency. Only the agentic tools, the opt-in [`@simplepdf/react-embed-pdf/ai-sdk`](#agentic--useembedtools-vercel-ai-sdk) subpath, need `zod` (a peer). Install it alongside if you use them (npm 7+ adds it automatically; pnpm / Yarn PnP users must add it explicitly):
 
 ```sh
 npm install zod
@@ -80,7 +80,7 @@ import { EmbedPDF } from '@simplepdf/react-embed-pdf';
 
 ### Modal mode
 
-Modal is the default — just wrap any HTML element and the editor opens in a modal on the user's click. You don't need the `mode` prop; pass `mode="modal"` only if you want to be explicit.
+Modal is the default, just wrap any HTML element and the editor opens in a modal on the user's click. You don't need the `mode` prop; pass `mode="modal"` only if you want to be explicit.
 
 ```jsx
 import { EmbedPDF } from "@simplepdf/react-embed-pdf";
@@ -143,7 +143,7 @@ _Some actions require a SimplePDF account. See [Retrieving PDF Data](../README.m
 
 `const { embedRef, actions } = useEmbed();` drives the editor imperatively (`actions`); the agentic `tools` come from the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath (`useEmbedTools(embedRef)`). Attach `embedRef` to the component: `<EmbedPDF ref={embedRef} mode="inline" … />`.
 
-#### Imperative — `actions`
+#### Imperative: `actions`
 
 Actions are camelCase (the editor's snake_case wire is transformed for you). `useEmbed().actions` exposes the FULL editor surface; the most common:
 
@@ -194,7 +194,7 @@ const Editor = () => {
 };
 ```
 
-**"Fill and read this document for me"** is just these actions in sequence — exactly what an AI agent calls on your behalf (read the fields, fill one, then walk the user to a signature: navigate to its page, focus it, open the signature tool):
+**"Fill and read this document for me"** is just these actions in sequence, exactly what an AI agent calls on your behalf (read the fields, fill one, then walk the user to a signature: navigate to its page, focus it, open the signature tool):
 
 ```jsx
 const { embedRef, actions } = useEmbed();
@@ -206,9 +206,9 @@ await actions.focusField({ fieldId: 'f_signature' });
 await actions.selectTool({ tool: 'SIGNATURE' });
 ```
 
-#### Agentic — `useEmbedTools` (Vercel AI SDK)
+#### Agentic: `useEmbedTools` (Vercel AI SDK)
 
-The agentic tools live in the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath — importing it is what pulls `zod`, so a non-agentic app never loads it (mirroring `@simplepdf/embed`'s `/ai-sdk`). `useEmbedTools(embedRef)` binds the SimplePDF tool set to the live editor — drop it straight into the AI SDK and an LLM can drive the editor:
+The agentic tools live in the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath, importing it is what pulls `zod`, so a non-agentic app never loads it (mirroring `@simplepdf/embed`'s `/ai-sdk`). `useEmbedTools(embedRef)` binds the SimplePDF tool set to the live editor, drop it straight into the AI SDK and an LLM can drive the editor:
 
 ```jsx
 import { useChat } from '@ai-sdk/react';
@@ -223,7 +223,7 @@ const CopilotEditor = () => {
 };
 ```
 
-For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle — every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
+For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from `@simplepdf/react-embed-pdf/ai-sdk`. `embedRef.current` is the flat editor-actions handle, every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
 
 See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction, downloading, and server-side storage options.
 
