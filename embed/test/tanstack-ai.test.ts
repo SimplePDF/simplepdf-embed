@@ -16,6 +16,12 @@ describe('simplePDFTanstackToolDefinitions', () => {
 })
 
 describe('createSimplePDFTanstackTools', () => {
+  it('produces a client tool for each of the 14 agentic operations', () => {
+    const tools = createSimplePDFTanstackTools({ embed: makeEmbedStub() })
+    expect(tools).toHaveLength(14)
+    expect(tools.every((tool) => typeof tool.execute === 'function')).toBe(true)
+  })
+
   it('binds each tool to the editor: a client call validates input + dispatches to the matching action', async () => {
     const embed = makeEmbedStub()
     const goTo = createSimplePDFTanstackTools({ embed }).find((tool) => tool.name === 'goTo')

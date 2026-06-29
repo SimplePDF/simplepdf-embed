@@ -1,8 +1,11 @@
-// Bundle-size budget guard. Gzips each public entry's full LOCAL closure (the
-// entry file plus the dist chunks it imports — peer deps are external and never
-// counted) and fails if any entry exceeds its budget. Run after `npm run build`.
+// Build verification, run after `npm run build`. (1) Gzips each public entry's local
+// closure (the entry file plus the dist chunks it imports; peer deps are external and
+// never counted) and fails if any entry exceeds its budget. (2) Loads every public
+// subpath per its export conditions, so an entry that resolves but throws at load (e.g.
+// a CJS bundle requiring an ESM-only peer) fails here, not at the consumer.
 
 import { existsSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
@@ -55,4 +58,26 @@ const allWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
   console.log(`${ok ? '✓' : '✗'} ${entry}: ${size} B gzip (budget ${budget} B)`)
   return ok
 })
-process.exit(allWithinBudget.every(Boolean) ? 0 : 1)
+// Load every public subpath the way its export map advertises it.
+const require = createRequire(import.meta.url)
+const pkg = JSON.parse(readFileSync(join(DIST, '..', 'package.json'), 'utf8'))
+const load = { require: (spec) => require(spec), import: (spec) => import(spec) }
+const exportsLoad = []
+for (const [subpath, conditions] of Object.entries(pkg.exports)) {
+  const spec = subpath === '.' ? pkg.name : `${pkg.name}/${subpath.slice(2)}`
+  for (const condition of ['require', 'import']) {
+    if (conditions[condition] === undefined) {
+      continue
+    }
+    try {
+      await load[condition](spec)
+      console.log(`✓ ${spec} [${condition}] loads`)
+      exportsLoad.push(true)
+    } catch (error) {
+      console.error(`✗ ${spec} [${condition}]: ${error.code ?? error.message}`)
+      exportsLoad.push(false)
+    }
+  }
+}
+
+process.exit([...allWithinBudget, ...exportsLoad].every(Boolean) ? 0 : 1)

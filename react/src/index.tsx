@@ -1,8 +1,8 @@
 // @simplepdf/react-embed-pdf — the React home for embedding the SimplePDF editor,
 // built on the framework-free @simplepdf/embed core. This root entry is zod-free (like
-// the core's main entry); the agentic tools (useEmbedTools) live in the opt-in
-// `@simplepdf/react-embed-pdf/ai-sdk` subpath, which pulls zod — mirroring the core's
-// main-vs-/tools+/ai-sdk split so both packages share the same requirements.
+// the core's main entry); the agentic tools live in the opt-in `/ai-sdk` (Vercel,
+// `useEmbedTools`) and `/tanstack-ai` (TanStack, `useEmbedTanstackTools`) subpaths, which
+// pull zod (and `@tanstack/ai` for `/tanstack-ai`), so a non-agentic app never loads them.
 
 export { EmbedPDF, useEmbed } from './embed-pdf';
 export type { EmbedActions, EmbedEvent, EmbedPDFProps } from './embed-pdf';
