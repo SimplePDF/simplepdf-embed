@@ -144,7 +144,7 @@ See the privacy notes above for the per-route audio-egress disclosure.
 
 ### Load a specific document via `?url=`
 
-To open a specific document instead of the bundled demo forms, append `?url=<document-url>`. The value is used verbatim as the editor iframe `src`, so pass a valid SimplePDF document URL (e.g. a `/documents/<id>` link, optionally with a `?prefill=<id>`):
+To open a specific document instead of the bundled demo forms, append `?url=<document-url>`. The value is passed as the `document` to `<EmbedPDF>`; a SimplePDF documents URL (a `/documents/<id>` link, optionally with a `?prefill=<id>`) is navigated to directly by the embed core, so pass a valid one:
 
 ```
 http://localhost:3001/?url=https%3A%2F%2Fdemo.simplepdf.com%2Fdocuments%2Fc28f061b-1974-4251-ba7a-d08bedc3ef28%3Fprefill%3D35fdf39e-2e06-4712-bb9d-f62d2f88ce50
@@ -212,16 +212,16 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 
 | Tool | Purpose |
 |------|---------|
-| `get_fields` | List form fields currently on the document |
-| `get_document_content` | Extract text content per page |
-| `detect_fields` | Auto-detect missing fields on scanned PDFs |
-| `focus_field` | Highlight + scroll to a field |
-| `set_field_value` | Write a value into a field |
-| `select_tool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
-| `go_to` | Navigate to a specific page (1-indexed) |
-| `move_page` | Reorder a visible page (`from_page` → `to_page`, both 1-indexed). Destructive — only fired on explicit user request |
-| `delete_page` | Remove a visible page and its fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |
-| `rotate_page` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
+| `getFields` | List form fields currently on the document |
+| `getDocumentContent` | Extract text content per page |
+| `detectFields` | Auto-detect missing fields on scanned PDFs |
+| `focusField` | Highlight + scroll to a field |
+| `setFieldValue` | Write a value into a field |
+| `selectTool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
+| `goTo` | Navigate to a specific page (1-indexed) |
+| `movePage` | Reorder a visible page (`fromPage` → `toPage`, both 1-indexed). Destructive — only fired on explicit user request |
+| `deletePages` | Remove visible pages and their fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |
+| `rotatePage` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
 | `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
 Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).

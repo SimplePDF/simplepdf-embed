@@ -1,4 +1,4 @@
-import type { FieldType, IframeBridge, OverlayToolType } from '@simplepdf/embed'
+import type { EmbedActions, FieldType, OverlayToolType } from '@simplepdf/react-embed-pdf'
 import { type MutableRefObject, useEffect, useRef } from 'react'
 
 // WORKAROUND: the SimplePDF editor does not currently emit an outbound
@@ -9,11 +9,11 @@ import { type MutableRefObject, useEffect, useRef } from 'react'
 // deleted in one place the day the editor ships a real outbound event.
 //
 // The polling LOOP is gated aggressively to minimise iframe round-trips:
-//   - bridge ready AND isReady AND toolbarTool is a placement tool AND the
-//     user's cursor is over the editor iframe.
+//   - isReady (a document is loaded) AND toolbarTool is a placement tool AND
+//     the user's cursor is over the editor.
 // When any of those flip off, the loop pauses; when they flip back on,
 // it resumes. The SET OF SEEN FIELD IDS persists across gate flips —
-// only a bridge change resets it. This is what gives the post-LLM-turn
+// only a resetKey change resets it. This is what gives the post-LLM-turn
 // reconciliation for free: while the LLM is streaming, the user's cursor
 // often moves to the chat panel and back. Without persistence, each
 // cursor re-entry would re-seed the seen set with the (now-larger) field
@@ -42,7 +42,10 @@ const POLL_INTERVAL_MS = 200
 export type FieldAddedEvent = { tools: FieldType[]; delta: number }
 
 type UseDetectUserAddedFieldArgs = {
-  bridge: IframeBridge | null
+  actions: EmbedActions
+  // Identifies the editor instance; a change means a new document context, which
+  // invalidates the seen-id set (the ids belonged to the previous document).
+  resetKey: string
   isReady: boolean
   toolbarTool: OverlayToolType | null
   isCursorOverEditor: boolean
@@ -51,7 +54,8 @@ type UseDetectUserAddedFieldArgs = {
 }
 
 export const useDetectUserAddedField = ({
-  bridge,
+  actions,
+  resetKey,
   isReady,
   toolbarTool,
   isCursorOverEditor,
@@ -59,19 +63,19 @@ export const useDetectUserAddedField = ({
   onFieldAddedRef,
 }: UseDetectUserAddedFieldArgs): void => {
   const seenIdsRef = useRef<Set<string> | null>(null)
-  const lastBridgeRef = useRef<IframeBridge | null>(null)
+  const lastResetKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // Bridge swap is the only event that invalidates the seen set; the
+    // A resetKey change is the only event that invalidates the seen set; the
     // ids belong to a different document context. Tool changes, cursor
     // re-entry, and isReady transitions do NOT reset — see the file header
     // for why persistence drives the post-stream reconciliation.
-    if (lastBridgeRef.current !== bridge) {
+    if (lastResetKeyRef.current !== resetKey) {
       seenIdsRef.current = null
-      lastBridgeRef.current = bridge
+      lastResetKeyRef.current = resetKey
     }
 
-    const gatesOpen = bridge !== null && isReady && toolbarTool !== null && isCursorOverEditor
+    const gatesOpen = isReady && toolbarTool !== null && isCursorOverEditor
     if (!gatesOpen) {
       return
     }
@@ -84,21 +88,21 @@ export const useDetectUserAddedField = ({
         // the seen set.
         return
       }
-      const result = await bridge.getFields()
+      const result = await actions.getFields()
       if (cancelled || !result.success) {
         return
       }
       const currentFields = result.data.fields
-      const currentIds = new Set(currentFields.map((field) => field.field_id))
+      const currentIds = new Set(currentFields.map((field) => field.fieldId))
       if (seenIdsRef.current === null) {
         seenIdsRef.current = currentIds
         return
       }
       const seen = seenIdsRef.current
-      const addedFields = currentFields.filter((field) => !seen.has(field.field_id))
+      const addedFields = currentFields.filter((field) => !seen.has(field.fieldId))
       if (isStreamingRef.current) {
         // Race-safety: if the stream started between the top of poll and
-        // the getFields resolve, hold the seen set for the next tick.
+        // the get_fields resolve, hold the seen set for the next tick.
         return
       }
       // Always refresh the seen set to the live id set. Adds get reported,
@@ -127,5 +131,5 @@ export const useDetectUserAddedField = ({
         clearTimeout(timeoutId)
       }
     }
-  }, [bridge, isReady, toolbarTool, isCursorOverEditor, isStreamingRef, onFieldAddedRef])
+  }, [actions, resetKey, isReady, toolbarTool, isCursorOverEditor, isStreamingRef, onFieldAddedRef])
 }

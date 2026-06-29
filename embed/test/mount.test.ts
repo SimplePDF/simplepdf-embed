@@ -1,15 +1,15 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildEditorDomain, createEmbed, EmbedConfigError, encodeContext } from '../src/mount'
 import type { Embed } from '../src/types'
 
 describe(buildEditorDomain.name, () => {
   it('uses https for production base domains', () => {
-    expect(buildEditorDomain({ tenant: 'acme', baseDomain: 'simplepdf.com' })).toBe('https://acme.simplepdf.com')
+    expect(buildEditorDomain({ companyIdentifier: 'acme', baseDomain: 'simplepdf.com' })).toBe('https://acme.simplepdf.com')
   })
 
   it('uses http for local/.nil base domains', () => {
-    expect(buildEditorDomain({ tenant: 'acme', baseDomain: 'localhost:3000' })).toBe('http://acme.localhost:3000')
-    expect(buildEditorDomain({ tenant: 'acme', baseDomain: 'acme.nil' })).toBe('http://acme.acme.nil')
+    expect(buildEditorDomain({ companyIdentifier: 'acme', baseDomain: 'localhost:3000' })).toBe('http://acme.localhost:3000')
+    expect(buildEditorDomain({ companyIdentifier: 'acme', baseDomain: 'acme.nil' })).toBe('http://acme.acme.nil')
   })
 })
 
@@ -35,15 +35,15 @@ describe(createEmbed.name, () => {
 
   afterEach(() => {
     for (const embed of mounted) {
-      embed.dispose()
+      embed.lifecycle.dispose()
     }
     mounted.length = 0
     document.body.innerHTML = ''
   })
 
-  // Defaults tenant so the document/target tests stay terse; pass tenant to override.
-  const mount = (args: Omit<Parameters<typeof createEmbed>[0], 'tenant'> & { tenant?: string }): Embed => {
-    const embed = createEmbed({ tenant: 'acme', ...args })
+  // Defaults companyIdentifier so the document/target tests stay terse; pass companyIdentifier to override.
+  const mount = (args: Omit<Parameters<typeof createEmbed>[0], 'companyIdentifier'> & { companyIdentifier?: string }): Embed => {
+    const embed = createEmbed({ companyIdentifier: 'acme', ...args })
     mounted.push(embed)
     return embed
   }
@@ -52,9 +52,9 @@ describe(createEmbed.name, () => {
     expect(() => mount({ target: '#missing' })).toThrow(EmbedConfigError)
   })
 
-  it('throws EmbedConfigError for an invalid tenant', () => {
+  it('throws EmbedConfigError for an invalid companyIdentifier', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    expect(() => mount({ target: '#root', tenant: 'Not A Label' })).toThrow(/DNS label/)
+    expect(() => mount({ target: '#root', companyIdentifier: 'Not A Label' })).toThrow(/DNS label/)
   })
 
   // Mount with a document source against a fresh root (most document tests only
@@ -125,14 +125,14 @@ describe(createEmbed.name, () => {
     )
   })
 
-  it('accepts the reserved "embed" tenant (reserved-portal rejection is WEM-only)', () => {
+  it('accepts the reserved "embed" companyIdentifier (reserved-portal rejection is WEM-only)', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    expect(() => mount({ target: '#root', tenant: 'embed' })).not.toThrow()
+    expect(() => mount({ target: '#root', companyIdentifier: 'embed' })).not.toThrow()
   })
 
   it('mounts an iframe under the target with the locale + context in the URL', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    mount({ target: '#root', tenant: 'acme', locale: 'fr', context: { a: 1 } })
+    mount({ target: '#root', companyIdentifier: 'acme', locale: 'fr', context: { a: 1 } })
     const iframe = document.querySelector('#root iframe')
     if (!(iframe instanceof HTMLIFrameElement)) {
       throw new Error('expected an iframe under the target')
@@ -143,45 +143,162 @@ describe(createEmbed.name, () => {
     expect(src.searchParams.get('context')).not.toBeNull()
   })
 
+  it('navigates straight to a SimplePDF documents URL (preserving its query, appending context, bridging to its own subdomain)', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({
+      target: '#root',
+      companyIdentifier: 'acme',
+      context: { a: 1 },
+      document: { url: 'https://demo.simplepdf.com/documents/abc-123?prefill=p-9' },
+    })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('expected an iframe under the target')
+    }
+    const src = new URL(iframe.src)
+    // Bridges to the URL's own subdomain (demo), not the configured companyIdentifier (acme).
+    expect(src.origin).toBe('https://demo.simplepdf.com')
+    expect(src.pathname).toBe('/documents/abc-123')
+    expect(src.searchParams.get('prefill')).toBe('p-9')
+    expect(src.searchParams.get('context')).not.toBeNull()
+    // It is a direct navigation, not the host-fetch /editor path.
+    expect(src.searchParams.get('loadingPlaceholder')).toBeNull()
+  })
+
+  it('treats a /documents/ url off the base-domain family as a normal PDF url (builds /editor)', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({ target: '#root', companyIdentifier: 'acme', document: { url: 'https://evil.com/documents/abc-123' } })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('expected an iframe under the target')
+    }
+    const src = new URL(iframe.src)
+    expect(src.origin).toBe('https://acme.simplepdf.com')
+    expect(src.pathname).toBe('/en/editor')
+  })
+
+  it('does not direct-load a documents URL on a nested subdomain (one tenant label only)', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({ target: '#root', companyIdentifier: 'acme', document: { url: 'https://a.b.simplepdf.com/documents/abc' } })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('expected an iframe under the target')
+    }
+    // a.b.simplepdf.com is two labels above the base domain → not a tenant documents
+    // URL → falls back to the configured tenant's /editor host-fetch path.
+    expect(new URL(iframe.src).origin).toBe('https://acme.simplepdf.com')
+    expect(new URL(iframe.src).pathname).toBe('/en/editor')
+  })
+
+  it('does not direct-load a documents URL at the apex base domain (a tenant subdomain is required)', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({ target: '#root', companyIdentifier: 'acme', document: { url: 'https://simplepdf.com/documents/abc' } })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('expected an iframe under the target')
+    }
+    expect(new URL(iframe.src).pathname).toBe('/en/editor')
+  })
+
+  it('does not direct-load a documents URL with extra path segments (anchored /documents/<id>)', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({
+      target: '#root',
+      companyIdentifier: 'acme',
+      document: { url: 'https://demo.simplepdf.com/documents/abc/extra' },
+    })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement)) {
+      throw new Error('expected an iframe under the target')
+    }
+    expect(new URL(iframe.src).pathname).toBe('/en/editor')
+  })
+
   it('removes the iframe it created on dispose', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    const embed = createEmbed({ target: '#root', tenant: 'acme' })
+    const embed = createEmbed({ target: '#root', companyIdentifier: 'acme' })
     expect(document.querySelector('#root iframe')).not.toBeNull()
-    embed.dispose()
+    embed.lifecycle.dispose()
     expect(document.querySelector('#root iframe')).toBeNull()
+  })
+
+  it('loads the document once readiness is reached via the probe (gate posts LOAD_DOCUMENT)', async () => {
+    vi.useFakeTimers()
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({ target: '#root', document: { dataUrl: 'data:application/pdf;base64,AAAA' } })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement) || iframe.contentWindow === null) {
+      throw new Error('expected an iframe with a contentWindow')
+    }
+    const contentWindow = iframe.contentWindow
+    const posted: { type: string; request_id: string }[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    // Advance to a probe tick: readiness reached with NO EDITOR_READY / DOCUMENT_LOADED
+    // event — only the probe. The readiness gate must still fire the deferred load.
+    await vi.advanceTimersByTimeAsync(500)
+    const probe = posted.find((message) => message.type === 'GET_FIELDS')
+    if (probe === undefined) {
+      throw new Error('expected a readiness probe')
+    }
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: JSON.stringify({
+          type: 'REQUEST_RESULT',
+          data: { request_id: probe.request_id, result: { success: true, data: { fields: [] } } },
+        }),
+        origin: 'https://acme.simplepdf.com',
+        source: contentWindow,
+      }),
+    )
+    // Flush the gate's microtask + the async data-URL resolution.
+    await vi.advanceTimersByTimeAsync(0)
+    expect(posted.some((message) => message.type === 'LOAD_DOCUMENT')).toBe(true)
+    vi.restoreAllMocks()
+    vi.useRealTimers()
   })
 
   it('attaches to an existing <iframe> target instead of creating one, and leaves it on dispose', () => {
     document.body.innerHTML = '<iframe id="ed" src="https://acme.simplepdf.com/editor"></iframe>'
     const iframeCountBefore = document.querySelectorAll('iframe').length
-    const embed = mount({ target: '#ed', tenant: 'acme' })
+    const embed = mount({ target: '#ed', companyIdentifier: 'acme' })
     // No new iframe is created: we bridge to the one you rendered.
     expect(document.querySelectorAll('iframe').length).toBe(iframeCountBefore)
     // dispose() must NOT remove an iframe the consumer owns.
-    embed.dispose()
+    embed.lifecycle.dispose()
     expect(document.querySelector('#ed')).not.toBeNull()
   })
 
-  it('rejects an attached iframe whose src origin does not match the tenant', () => {
+  it('rejects an attached iframe whose src origin does not match the companyIdentifier', () => {
     document.body.innerHTML = '<iframe id="ed" src="https://other.simplepdf.com/editor"></iframe>'
-    expect(() => mount({ target: '#ed', tenant: 'acme' })).toThrow('https://other.simplepdf.com')
+    expect(() => mount({ target: '#ed', companyIdentifier: 'acme' })).toThrow('https://other.simplepdf.com')
+  })
+
+  it('rejects a documents URL when attaching to an existing iframe (mount-only feature)', () => {
+    document.body.innerHTML = '<iframe id="ed" src="https://demo.simplepdf.com/documents/abc"></iframe>'
+    expect(() =>
+      mount({ target: '#ed', companyIdentifier: 'acme', document: { url: 'https://demo.simplepdf.com/documents/abc' } }),
+    ).toThrow(/documents URL/)
   })
 
   it('does not false-positive the origin guard when the iframe has no usable src', () => {
     for (const html of ['<iframe id="x"></iframe>', '<iframe id="x" src=""></iframe>', '<iframe id="x" src="about:blank"></iframe>']) {
       document.body.innerHTML = html
-      expect(() => mount({ target: '#x', tenant: 'acme' })).not.toThrow()
+      expect(() => mount({ target: '#x', companyIdentifier: 'acme' })).not.toThrow()
     }
   })
 
-  it('rejects a missing tenant', () => {
-    // @ts-expect-error tenant is required; exercise the runtime guard for untyped JS callers
-    expect(() => createEmbed({ target: '#root' })).toThrow(/tenant is required/)
+  it('rejects a missing companyIdentifier', () => {
+    // @ts-expect-error companyIdentifier is required; exercise the runtime guard for untyped JS callers
+    expect(() => createEmbed({ target: '#root' })).toThrow(/companyIdentifier is required/)
   })
 
   it('rejects a non-element, non-string target with a clean error', () => {
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed({ target: 123, tenant: 'acme' })).toThrow(/target must be/)
+    expect(() => createEmbed({ target: 123, companyIdentifier: 'acme' })).toThrow(/target must be/)
   })
 
   it('rejects a non-object document with a clean error', () => {
@@ -197,6 +314,6 @@ describe(createEmbed.name, () => {
 
   it('rejects a non-string baseDomain with a clean error', () => {
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed({ target: '#root', tenant: 'acme', baseDomain: 123 })).toThrow(/baseDomain must be a string/)
+    expect(() => createEmbed({ target: '#root', companyIdentifier: 'acme', baseDomain: 123 })).toThrow(/baseDomain must be a string/)
   })
 })

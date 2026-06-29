@@ -98,35 +98,38 @@ export type BridgeResult<TData = null> =
 
 // --- Lifecycle -------------------------------------------------------------
 
-// Strictly forward: booting -> editor_ready -> document_loaded (with a drop
-// back to editor_ready when the iframe re-mounts for a fresh document).
+// Strictly forward: booting -> editorReady -> documentLoaded (with a drop back to
+// editorReady when the iframe re-mounts for a fresh document). INTERNAL to the bridge
+// (readiness probing + createEmbed's load-when-ready gate); not on the public handle —
+// readiness is observable via the EDITOR_READY / DOCUMENT_LOADED editor events.
 export type BridgeState =
   | { kind: 'booting' }
-  | { kind: 'editor_ready' }
-  | { kind: 'document_loaded'; documentId: string | null }
+  | { kind: 'editorReady' }
+  | { kind: 'documentLoaded'; documentId: string | null }
 
-// Events a consumer can subscribe to via embed.on(...). The two editor-derived
-// events mirror the manifest's outbound events; state_change/disposed are the
-// package-owned lifecycle signals.
-export type BridgeEventMap = {
-  state_change: BridgeState
-  submission_sent: SubmissionSentPayload
-  page_focused: PageFocusedPayload
-  disposed: undefined
-}
+// The editor's outbound events, forwarded to onEmbedEvent VERBATIM: SCREAMING_SNAKE
+// `type` + snake_case `data` (the stable, established contract — deliberately NOT
+// camelCased, unlike op payloads). EDITOR_READY / DOCUMENT_LOADED are the lifecycle
+// wire events; PAGE_FOCUSED / SUBMISSION_SENT take their payloads from the manifest.
+export type EditorEvent =
+  | { type: 'EDITOR_READY'; data: Record<string, never> }
+  | { type: 'DOCUMENT_LOADED'; data: { document_id: string } }
+  | { type: 'PAGE_FOCUSED'; data: PageFocusedPayload }
+  | { type: 'SUBMISSION_SENT'; data: SubmissionSentPayload }
 
-export type BridgeEventName = keyof BridgeEventMap
+// Event type -> payload, derived from EditorEvent, for the granular on(type, handler).
+export type EditorEventMap = { [TEvent in EditorEvent as TEvent['type']]: TEvent['data'] }
 
-// --- Bridge surface --------------------------------------------------------
+// --- Handle groups ---------------------------------------------------------
 
-// The programmatic method surface. Each method validates nothing client-side
-// (the editor owns validation and always replies with a typed Result); it posts
-// the request, correlates the reply by request_id, and resolves to a typed
-// BridgeResult — it never throws. Inputs are typed for TS consumers; at runtime
-// any value is accepted (the editor is the validation authority).
-export type IframeBridge = {
+// `embed.actions` — the editor operations. Each validates nothing client-side (the
+// editor owns validation and always replies with a typed Result); it posts the request,
+// correlates the reply by request_id, and resolves to a typed BridgeResult — it never
+// throws. Drift-guarded against the generated operation set in ./generated/drift.ts
+// (a new operation fails the build until added here).
+export type IframeActions = {
   createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>
-  deleteFields: (input: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>
+  deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>
   deletePages: (input: DeletePagesInput) => Promise<BridgeResult>
   detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>
   download: () => Promise<BridgeResult>
@@ -140,16 +143,28 @@ export type IframeBridge = {
   selectTool: (input: SelectToolInput) => Promise<BridgeResult>
   setFieldValue: (input: SetFieldValueInput) => Promise<BridgeResult>
   submit: (input: SubmitInput) => Promise<BridgeResult>
-  getState: () => BridgeState
 }
-// IframeBridge's method set is drift-guarded against the generated operation set
-// in ./generated/drift.ts (a new operation fails the build until added above).
 
-// The full handle returned by createEmbed. Convention: name the
-// variable `embed`.
-export type Embed = IframeBridge & {
-  readonly state: BridgeState
-  on: <E extends BridgeEventName>(event: E, listener: (payload: BridgeEventMap[E]) => void) => () => void
+// `embed.events` — granular, EventEmitter-style subscription to the editor's outbound
+// events. `on(type, handler)` hands the handler that event's typed payload and returns
+// an unsubscribe function.
+export type EmbedEvents = {
+  on: <TEventType extends keyof EditorEventMap>(
+    type: TEventType,
+    handler: (data: EditorEventMap[TEventType]) => void,
+  ) => () => void
+}
+
+// `embed.lifecycle` — teardown.
+export type EmbedLifecycle = {
   dispose: () => void
-  readonly iframe: HTMLIFrameElement | null
+}
+
+// The handle returned by createEmbed: three groups — `actions`, `events`, `lifecycle`.
+// Convention: name the variable `embed` (e.g. `embed.actions.goTo({ page })`,
+// `embed.events.on('SUBMISSION_SENT', …)`, `embed.lifecycle.dispose()`).
+export type Embed = {
+  actions: IframeActions
+  events: EmbedEvents
+  lifecycle: EmbedLifecycle
 }

@@ -1,12 +1,12 @@
-import { useIframeBridge } from '@simplepdf/embed/react'
+import { EmbedPDF, type EmbedDocument, type EmbedEvent, useEmbed } from '@simplepdf/react-embed-pdf'
+import { useEmbedTools } from '@simplepdf/react-embed-pdf/ai-sdk'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeader, getRequestUrl } from '@tanstack/react-start/server'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { z } from 'zod'
 import { ChatPane } from '../components/chat/chat_pane'
 import { WelcomeModal } from '../components/demo/welcome_modal'
-import { EditorPane } from '../components/editor_pane'
 import { Layout } from '../components/layout'
 import {
   DEFAULT_FORM_ID,
@@ -41,8 +41,7 @@ const TrimmedOptionalString = z.preprocess((val) => {
 // with the demo's shared identifier (which would either succeed and bill the
 // demo workspace, or fail at iframe-load time with a confusing whitelist
 // error). Base domain is optional with a default of https://simplepdf.com;
-// override for staging, alternate prod tenants, or a local SimplePDF dev
-// checkout.
+// override it to point at a different SimplePDF domain.
 const ClientEnvSchema = z.object({
   VITE_SIMPLEPDF_COMPANY_IDENTIFIER: z.preprocess(
     (val) => (typeof val === 'string' ? val.trim() : val),
@@ -66,7 +65,6 @@ const clientEnv = ((): z.infer<typeof ClientEnvSchema> => {
 
 const COMPANY_IDENTIFIER = clientEnv.VITE_SIMPLEPDF_COMPANY_IDENTIFIER
 const BASE_DOMAIN_URL = new URL(clientEnv.VITE_SIMPLEPDF_BASE_DOMAIN ?? DEFAULT_BASE_DOMAIN)
-const EDITOR_ORIGIN = `${BASE_DOMAIN_URL.protocol}//${COMPANY_IDENTIFIER}.${BASE_DOMAIN_URL.host}`
 
 // Tuple-derived union so adding / removing a value updates the type, the
 // runtime check, and the URL contract in lockstep. No `as` casts needed at
@@ -85,10 +83,11 @@ export type ModelTab = (typeof MODEL_TABS)[number]
 const isModelTab = (value: unknown): value is ModelTab =>
   typeof value === 'string' && MODEL_TABS.some((candidate) => candidate === value)
 
-// A `?url=` value is dropped straight into the iframe `src` AND its origin
-// becomes the postMessage bridge target, so it must be a valid SimplePDF
-// document URL on the editor's own base-domain family (e.g. any
-// `*.simplepdf.com` tenant), such as
+// A `?url=` becomes the `<EmbedPDF>` document. A SimplePDF documents URL on the
+// editor's own base-domain family is navigated to DIRECTLY by the embed core, so
+// its origin becomes the iframe origin AND the postMessage bridge target — it must
+// therefore be a valid document URL on that family (e.g. any `*.simplepdf.com`
+// tenant), such as
 // https://demo.simplepdf.com/documents/c28f061b-1974-4251-ba7a-d08bedc3ef28?prefill=35fdf39e-2e06-4712-bb9d-f62d2f88ce50
 // Rejecting everything else keeps a crafted `?url=javascript:...`, a relative
 // path resolving against our own origin, or a third-party origin (which would
@@ -195,25 +194,12 @@ export const Route = createFileRoute('/')({
   },
 })
 
-// Locales the SimplePDF editor can render via i18n path-prefix routing.
-// English is the default on the non-prefixed path, so it is not listed here.
-const EDITOR_SUPPORTED_LOCALES = new Set(['de', 'es', 'fr', 'it', 'nl', 'pt'])
-
-const buildEditorSrc = ({ pdfUrl, lang }: { pdfUrl: string; lang: string }): string => {
-  const localePrefix = EDITOR_SUPPORTED_LOCALES.has(lang) ? `/${lang}` : ''
-  const editorHost = `${EDITOR_ORIGIN}${localePrefix}/editor`
-  if (pdfUrl === '') {
-    // Custom / user-picked PDF: the editor falls back to its native file picker
-    // when no ?open= is provided. We also drop loadingPlaceholder so the picker
-    // is not hidden behind a loading screen.
-    return editorHost
-  }
-  const params = new URLSearchParams({
-    open: pdfUrl,
-    loadingPlaceholder: 'true',
-  })
-  return `${editorHost}?${params.toString()}`
-}
+// Locales the SimplePDF editor renders via i18n path-prefix routing (English is
+// the default, no prefix; an unsupported lang falls back to it). EmbedPDF builds
+// the editor URL from this locale.
+const EDITOR_LOCALES = ['de', 'es', 'fr', 'it', 'nl', 'pt'] as const
+const isEditorLocale = (value: string): value is (typeof EDITOR_LOCALES)[number] =>
+  EDITOR_LOCALES.some((locale) => locale === value)
 
 function Home() {
   const { form, lang, url } = Route.useSearch()
@@ -221,27 +207,38 @@ function Home() {
   const localeForms = getFormsForLocale(lang)
   const currentForm = localeForms.forms[form] ?? localeForms.forms[DEFAULT_FORM_ID]
   const navigate = useNavigate()
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  // A `?url=` overrides everything: its value becomes the iframe `src` verbatim
-  // and the bridge targets that URL's origin so the copilot keeps driving the
-  // editor even when the URL points at a different fork / subdomain. Without
-  // it, the editor URL is built from the picked demo form + locale (the
-  // default behaviour). `url` is validated as an absolute http(s) URL in
-  // validateSearch, so `new URL(url)` never throws here.
-  const editorTarget = ((): { src: string; origin: string } => {
+  // The editor is driven through <EmbedPDF> + useEmbed: <EmbedPDF> renders the
+  // iframe; useEmbed gives the ref to attach plus the imperative `actions` and the
+  // agentic `tools`. A `?url=` (validated to the editor's own base-domain family in
+  // validateSearch) becomes the document source — a `/documents/<id>` URL is
+  // navigated to directly by the embed core, otherwise the picked demo form's PDF
+  // is host-fetched. No document → the editor's native file picker.
+  const { embedRef, actions } = useEmbed()
+  const tools = useEmbedTools(embedRef)
+  const editorDocument = ((): EmbedDocument | undefined => {
     if (url !== undefined) {
-      return { src: url, origin: new URL(url).origin }
+      return { url }
     }
-    return { src: buildEditorSrc({ pdfUrl: currentForm.pdfUrl, lang }), origin: EDITOR_ORIGIN }
+    if (currentForm.pdfUrl !== '') {
+      return { url: currentForm.pdfUrl }
+    }
+    return undefined
   })()
+  const editorLocale = isEditorLocale(lang) ? lang : undefined
   const editorResetKey = url ?? `${currentForm.id}:${lang}`
-  const { bridge, bridgeState } = useIframeBridge({
-    iframeRef,
-    editorOrigin: editorTarget.origin,
-    resetKey: editorResetKey,
-    logger: bridgeLogger,
-  })
-  const isDocumentLoaded = bridgeState.kind === 'document_loaded'
+  // Readiness is observed via onEmbedEvent (the DOCUMENT_LOADED editor event), keyed
+  // on the editor instance so a remount (form / locale / url change) resets it until
+  // the new document loads — no separate effect, no stale "ready".
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
+  const handleEmbedEvent = useCallback(
+    (event: EmbedEvent): void => {
+      if (event.type === 'DOCUMENT_LOADED') {
+        setLoadedKey(editorResetKey)
+      }
+    },
+    [editorResetKey],
+  )
+  const isDocumentLoaded = loadedKey === editorResetKey
   // A `?url=` always supplies the document, so the user is never asked to
   // upload one — only the `custom` demo form (which opens the native file
   // picker) requires an upload.
@@ -250,30 +247,13 @@ function Home() {
   // WORKAROUND: the SimplePDF editor does not currently emit an outbound
   // FIELD_ADDED event when the user drops a field via the toolbar, so the
   // chat_pane's "new field added by the user" hint has to detect it via a
-  // polling GET_FIELDS loop. To keep that loop narrow, we gate it on whether
-  // the user's cursor is over the iframe — if the cursor is somewhere else
-  // (hovering the chat, etc.), there's no chance a field is about to be
-  // dropped, and polling is pure noise. `pointerenter` / `pointerleave` on
-  // the parent's <iframe> element fire reliably on entry / exit of the
-  // iframe's bounding box, even though pointermove events inside the iframe
-  // don't bubble up to the parent. Remove this workaround if the editor
-  // starts emitting a FIELD_ADDED event.
+  // polling GET_FIELDS loop. To keep that loop narrow, we gate it on whether the
+  // user's cursor is over the editor — pointerenter / pointerleave on the wrapper
+  // around <EmbedPDF> fire on entry / exit of the editor's bounding box. Remove
+  // this workaround if the editor starts emitting a FIELD_ADDED event.
   const [isCursorOverEditor, setIsCursorOverEditor] = useState(false)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: editorResetKey is used as a proxy for "iframe element was remounted" — when the key flips, EditorPane re-renders a fresh <iframe> and iframeRef.current points at the new node, so we re-attach listeners.
-  useEffect(() => {
-    const iframe = iframeRef.current
-    if (iframe === null) {
-      return
-    }
-    const onEnter = (): void => setIsCursorOverEditor(true)
-    const onLeave = (): void => setIsCursorOverEditor(false)
-    iframe.addEventListener('pointerenter', onEnter)
-    iframe.addEventListener('pointerleave', onLeave)
-    return () => {
-      iframe.removeEventListener('pointerenter', onEnter)
-      iframe.removeEventListener('pointerleave', onLeave)
-    }
-  }, [editorResetKey])
+  const handleEditorPointerEnter = useCallback((): void => setIsCursorOverEditor(true), [])
+  const handleEditorPointerLeave = useCallback((): void => setIsCursorOverEditor(false), [])
 
   const handleLanguageChange = useCallback(
     (nextLang: string): void => {
@@ -320,10 +300,31 @@ function Home() {
       <Layout
         locale={lang}
         currentFormId={form}
-        editor={<EditorPane ref={iframeRef} iframeKey={editorResetKey} editorSrc={editorTarget.src} />}
+        editor={
+          <div
+            className="h-full w-full"
+            onPointerEnter={handleEditorPointerEnter}
+            onPointerLeave={handleEditorPointerLeave}
+          >
+            <EmbedPDF
+              ref={embedRef}
+              key={editorResetKey}
+              mode="inline"
+              companyIdentifier={COMPANY_IDENTIFIER}
+              baseDomain={BASE_DOMAIN_URL.host}
+              locale={editorLocale}
+              document={editorDocument}
+              onEmbedEvent={handleEmbedEvent}
+              logger={bridgeLogger}
+              className="h-full w-full"
+            />
+          </div>
+        }
         chat={
           <ChatPane
-            bridge={bridge}
+            tools={tools}
+            actions={actions}
+            resetKey={editorResetKey}
             isReady={isDocumentLoaded}
             requiresUserUpload={requiresUserUpload}
             language={lang}

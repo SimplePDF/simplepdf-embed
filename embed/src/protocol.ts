@@ -31,8 +31,8 @@ export {
 export { INTERNAL_PROTOCOL } from './internal-protocol'
 export type { InternalProtocolType } from './internal-protocol'
 
-// Convenience derived constants (the wire type each op posts; the request_type
-// that doubles as the agentic tool name).
+// Convenience derived constants (the wire type each op posts; the request_type, the
+// editor's operation identifier — the camelCase SDK method/tool name is `method`).
 export const WIRE_TYPES = OPERATIONS.map((operation) => operation.wire_type)
 export const REQUEST_TYPES = OPERATIONS.map((operation) => operation.request_type)
 export const OUTBOUND_EVENT_TYPES = OUTBOUND_EVENTS.map((event) => event.event_type)

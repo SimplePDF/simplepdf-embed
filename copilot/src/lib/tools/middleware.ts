@@ -1,5 +1,5 @@
 import type { BridgeResult } from '@simplepdf/embed'
-import type { SimplePDFToolName } from '@simplepdf/embed/tools'
+import type { SimplePDFToolName } from '@simplepdf/react-embed-pdf/ai-sdk'
 
 // Copilot-owned tool middleware. The @simplepdf/embed package owns the bridge,
 // the tool registry, and the executor; middleware (compaction, prompt-injection

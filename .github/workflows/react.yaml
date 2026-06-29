@@ -6,20 +6,19 @@ on:
       - main
     paths:
       - react/**
+      - embed/**
       - .github/workflows/react.yaml
   pull_request:
     branches:
       - main
     paths:
       - react/**
+      - embed/**
       - .github/workflows/react.yaml
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: react
 
     steps:
       - name: Checkout code
@@ -30,14 +29,20 @@ jobs:
         with:
           node-version: "22"
 
+      # react-embed-pdf depends on the @simplepdf/embed workspace package, so install
+      # from the workspace ROOT (the internal dep resolves via the workspace, not npm)
+      # rather than a per-package `npm ci`, and build the core before type-checking.
       - name: Install dependencies
         run: npm ci
 
+      - name: Build the core
+        run: npm run --workspace @simplepdf/embed build
+
       - name: Formatting
-        run: npm run test:format
+        run: npm run --workspace @simplepdf/react-embed-pdf test:format
 
       - name: Types
-        run: npm run test:types
+        run: npm run --workspace @simplepdf/react-embed-pdf test:types
 
       - name: Tests
-        run: npm test
+        run: npm run --workspace @simplepdf/react-embed-pdf test

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attachEmbed } from '../src/bridge'
-import type { Embed } from '../src/types'
+import type { BridgeState, Embed } from '../src/types'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
 
@@ -11,6 +11,9 @@ type Harness = {
   reply: (message: unknown) => void
   lastRequestId: () => string
   contentWindow: Window
+  // The lifecycle state machine is internal (no public getState); tests observe it
+  // through onStateChange, the same hook createEmbed's load-when-ready gate uses.
+  getState: () => BridgeState
 }
 
 const harnesses: Harness[] = []
@@ -28,7 +31,12 @@ const makeHarness = (): Harness => {
       posted.push(JSON.parse(message))
     }
   })
-  const embed = attachEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN })
+  const states: BridgeState[] = [{ kind: 'booting' }]
+  const embed = attachEmbed({
+    getIframe: () => iframe,
+    editorOrigin: EDITOR_ORIGIN,
+    onStateChange: (state) => states.push(state),
+  })
   const reply = (message: unknown): void => {
     window.dispatchEvent(
       new MessageEvent('message', { data: JSON.stringify(message), origin: EDITOR_ORIGIN, source: contentWindow }),
@@ -41,7 +49,14 @@ const makeHarness = (): Harness => {
     }
     return last.request_id
   }
-  const harness: Harness = { embed, posted, reply, lastRequestId, contentWindow }
+  const getState = (): BridgeState => {
+    const latest = states[states.length - 1]
+    if (latest === undefined) {
+      throw new Error('no state captured')
+    }
+    return latest
+  }
+  const harness: Harness = { embed, posted, reply, lastRequestId, contentWindow, getState }
   harnesses.push(harness)
   return harness
 }
@@ -52,7 +67,7 @@ const replyResult = (harness: Harness, requestId: string, result: unknown): void
 describe(attachEmbed.name, () => {
   afterEach(() => {
     for (const harness of harnesses) {
-      harness.embed.dispose()
+      harness.embed.lifecycle.dispose()
     }
     harnesses.length = 0
     document.body.innerHTML = ''
@@ -62,7 +77,7 @@ describe(attachEmbed.name, () => {
 
   it('posts the SCREAMING_SNAKE wire type and correlates the reply by request_id', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.getFields()
+    const promise = harness.embed.actions.getFields()
     const request = harness.posted[harness.posted.length - 1]
     expect(request?.type).toBe('GET_FIELDS')
     replyResult(harness, harness.lastRequestId(), { success: true, data: { fields: [] } })
@@ -71,14 +86,15 @@ describe(attachEmbed.name, () => {
 
   it('normalizes a void success ({ success: true }) to { success: true, data: null }', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.goTo({ page: 2 })
+    const promise = harness.embed.actions.goTo({ page: 2 })
     replyResult(harness, harness.lastRequestId(), { success: true })
     await expect(promise).resolves.toEqual({ success: true, data: null })
   })
 
-  it('forwards a typed editor error (with details) verbatim', async () => {
+  it('forwards a typed editor error and camelCases its details payload', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.submit({ download_copy: false })
+    const promise = harness.embed.actions.submit({ downloadCopy: false })
+    // The wire sends snake_case details; the SDK surfaces them camelCased.
     replyResult(harness, harness.lastRequestId(), {
       success: false,
       error: {
@@ -89,25 +105,36 @@ describe(attachEmbed.name, () => {
     })
     const result = await promise
     expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.code).toBe('bad_request:missing_required_fields')
+    if (!result.success && result.error.code === 'bad_request:missing_required_fields') {
+      expect(result.error.details).toEqual({ unfilledRequiredFieldsCount: 2 })
     }
+  })
+
+  it('transforms the camelCase request payload to snake_case on the wire', async () => {
+    const harness = makeHarness()
+    const promise = harness.embed.actions.setFieldValue({ fieldId: 'f1', value: 'hello_world' })
+    const request = harness.posted[harness.posted.length - 1]
+    expect(request?.type).toBe('SET_FIELD_VALUE')
+    // KEY fieldId -> field_id; the opaque value (with underscores) is untouched.
+    expect(request?.data).toEqual({ field_id: 'f1', value: 'hello_world' })
+    replyResult(harness, harness.lastRequestId(), { success: true })
+    await expect(promise).resolves.toEqual({ success: true, data: null })
   })
 
   it('returns unexpected:iframe_not_mounted when the iframe is gone', async () => {
     const embed = attachEmbed({ getIframe: () => null, editorOrigin: EDITOR_ORIGIN })
-    const result = await embed.getFields()
+    const result = await embed.actions.getFields()
     expect(result).toEqual({
       success: false,
       error: { code: 'unexpected:iframe_not_mounted', message: 'Editor iframe is not mounted' },
     })
-    embed.dispose()
+    embed.lifecycle.dispose()
   })
 
   it('times out with unexpected:timeout after the generous dead-iframe budget', async () => {
     vi.useFakeTimers()
     const harness = makeHarness()
-    const promise = harness.embed.getFields()
+    const promise = harness.embed.actions.getFields()
     await vi.advanceTimersByTimeAsync(60_001)
     const result = await promise
     expect(result.success).toBe(false)
@@ -119,22 +146,22 @@ describe(attachEmbed.name, () => {
   it('does not starve a request queued behind a slow one (resolves when replied within budget)', async () => {
     vi.useFakeTimers()
     const harness = makeHarness()
-    const slow = harness.embed.detectFields()
+    const slow = harness.embed.actions.detectFields()
     const slowId = harness.lastRequestId()
-    const fast = harness.embed.getFields()
+    const fast = harness.embed.actions.getFields()
     const fastId = harness.lastRequestId()
     // 30s elapses (well under the 60s budget); the slow op is still in flight.
     await vi.advanceTimersByTimeAsync(30_000)
     replyResult(harness, fastId, { success: true, data: { fields: [] } })
     await expect(fast).resolves.toEqual({ success: true, data: { fields: [] } })
     replyResult(harness, slowId, { success: true, data: { detected_count: 1 } })
-    await expect(slow).resolves.toEqual({ success: true, data: { detected_count: 1 } })
+    await expect(slow).resolves.toEqual({ success: true, data: { detectedCount: 1 } })
   })
 
   it('rejects pending requests with unexpected:bridge_disposed on dispose', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.getFields()
-    harness.embed.dispose()
+    const promise = harness.embed.actions.getFields()
+    harness.embed.lifecycle.dispose()
     await expect(promise).resolves.toEqual({
       success: false,
       error: { code: 'unexpected:bridge_disposed', message: 'Editor bridge was disposed' },
@@ -143,9 +170,9 @@ describe(attachEmbed.name, () => {
 
   it('returns unexpected:bridge_disposed for a call made after dispose (without posting)', async () => {
     const harness = makeHarness()
-    harness.embed.dispose()
+    harness.embed.lifecycle.dispose()
     const postedBefore = harness.posted.length
-    const result = await harness.embed.getFields()
+    const result = await harness.embed.actions.getFields()
     expect(result).toEqual({
       success: false,
       error: { code: 'unexpected:bridge_disposed', message: 'Editor bridge was disposed' },
@@ -158,7 +185,7 @@ describe(attachEmbed.name, () => {
     vi.spyOn(harness.contentWindow, 'postMessage').mockImplementation(() => {
       throw new Error('dead window')
     })
-    const result = await harness.embed.getFields()
+    const result = await harness.embed.actions.getFields()
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.code).toBe('unexpected:unknown')
@@ -167,7 +194,7 @@ describe(attachEmbed.name, () => {
 
   it('returns unexpected:malformed_result when the editor reply has no valid result', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.getFields()
+    const promise = harness.embed.actions.getFields()
     replyResult(harness, harness.lastRequestId(), { nonsense: true })
     const result = await promise
     expect(result.success).toBe(false)
@@ -176,50 +203,109 @@ describe(attachEmbed.name, () => {
     }
   })
 
-  it('emits submission_sent with the typed payload', () => {
+  it('delivers SUBMISSION_SENT to on(type) with the verbatim snake_case payload', () => {
     const harness = makeHarness()
     const listener = vi.fn()
-    harness.embed.on('submission_sent', listener)
+    harness.embed.events.on('SUBMISSION_SENT', listener)
     harness.reply({ type: 'SUBMISSION_SENT', data: { document_id: 'doc_1', submission_id: 'sub_1' } })
     expect(listener).toHaveBeenCalledWith({ document_id: 'doc_1', submission_id: 'sub_1' })
   })
 
-  it('keeps notifying listeners when one throws', () => {
+  it('delivers the EDITOR_READY and DOCUMENT_LOADED lifecycle events to on(type)', () => {
+    const harness = makeHarness()
+    const onReady = vi.fn()
+    const onLoaded = vi.fn()
+    harness.embed.events.on('EDITOR_READY', onReady)
+    harness.embed.events.on('DOCUMENT_LOADED', onLoaded)
+    harness.reply({ type: 'EDITOR_READY', data: {} })
+    expect(onReady).toHaveBeenCalledWith({})
+    harness.reply({ type: 'DOCUMENT_LOADED', data: { document_id: 'doc_9' } })
+    expect(onLoaded).toHaveBeenCalledWith({ document_id: 'doc_9' })
+  })
+
+  it('keeps notifying handlers of the same event when one throws', () => {
     const harness = makeHarness()
     const second = vi.fn()
-    harness.embed.on('submission_sent', () => {
+    harness.embed.events.on('SUBMISSION_SENT', () => {
       throw new Error('listener boom')
     })
-    harness.embed.on('submission_sent', second)
+    harness.embed.events.on('SUBMISSION_SENT', second)
     harness.reply({ type: 'SUBMISSION_SENT', data: { document_id: 'doc_1', submission_id: 'sub_1' } })
     expect(second).toHaveBeenCalledWith({ document_id: 'doc_1', submission_id: 'sub_1' })
   })
 
-  it('drops a malformed submission_sent payload', () => {
+  it('drops a malformed SUBMISSION_SENT payload', () => {
     const harness = makeHarness()
     const listener = vi.fn()
-    harness.embed.on('submission_sent', listener)
+    harness.embed.events.on('SUBMISSION_SENT', listener)
     harness.reply({ type: 'SUBMISSION_SENT', data: { document_id: 'doc_1' } })
     expect(listener).not.toHaveBeenCalled()
   })
 
-  it('emits page_focused with the typed payload (null previous_page allowed)', () => {
+  it('unsubscribes when the returned disposer is called', () => {
     const harness = makeHarness()
     const listener = vi.fn()
-    harness.embed.on('page_focused', listener)
+    const off = harness.embed.events.on('SUBMISSION_SENT', listener)
+    off()
+    harness.reply({ type: 'SUBMISSION_SENT', data: { document_id: 'doc_1', submission_id: 'sub_1' } })
+    expect(listener).not.toHaveBeenCalled()
+  })
+
+  it('delivers PAGE_FOCUSED to on(type) verbatim (null previous_page allowed)', () => {
+    const harness = makeHarness()
+    const listener = vi.fn()
+    harness.embed.events.on('PAGE_FOCUSED', listener)
     harness.reply({ type: 'PAGE_FOCUSED', data: { previous_page: null, current_page: 1, total_pages: 3 } })
     expect(listener).toHaveBeenCalledWith({ previous_page: null, current_page: 1, total_pages: 3 })
   })
 
-  it('flips to editor_ready then document_loaded from probe responses', () => {
+  it('flips to editorReady then documentLoaded from probe responses', () => {
     const harness = makeHarness()
-    expect(harness.embed.getState().kind).toBe('booting')
+    expect(harness.getState().kind).toBe('booting')
     const probe = harness.posted.find((message) => message.type === 'GET_FIELDS')
     expect(probe).toBeDefined()
     if (probe !== undefined) {
       replyResult(harness, probe.request_id, { success: true, data: { fields: [] } })
     }
-    expect(harness.embed.getState().kind).toBe('document_loaded')
+    expect(harness.getState().kind).toBe('documentLoaded')
+  })
+
+  it('reports readiness via onStateChange when reached only through the probe (no editor event)', () => {
+    // This is what drives createEmbed's "load the document once ready" gate: readiness
+    // reached via the probe emits NO editor event, so onStateChange must still fire.
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    const contentWindow = iframe.contentWindow
+    if (contentWindow === null) {
+      throw new Error('jsdom iframe has no contentWindow')
+    }
+    const posted: Posted[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    const states: string[] = []
+    const embed = attachEmbed({
+      getIframe: () => iframe,
+      editorOrigin: EDITOR_ORIGIN,
+      onStateChange: (state) => states.push(state.kind),
+    })
+    const probe = posted.find((message) => message.type === 'GET_FIELDS')
+    if (probe !== undefined) {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: JSON.stringify({
+            type: 'REQUEST_RESULT',
+            data: { request_id: probe.request_id, result: { success: true, data: { fields: [] } } },
+          }),
+          origin: EDITOR_ORIGIN,
+          source: contentWindow,
+        }),
+      )
+    }
+    expect(states).toContain('documentLoaded')
+    embed.lifecycle.dispose()
   })
 
   it('clears the readiness fallback once a document is loaded (no late warning or corruption)', () => {
@@ -237,10 +323,12 @@ describe(attachEmbed.name, () => {
       }
     })
     const warn = vi.fn()
+    const states: string[] = []
     const embed = attachEmbed({
       getIframe: () => iframe,
       editorOrigin: EDITOR_ORIGIN,
       logger: { debug: () => {}, info: () => {}, warn, error: () => {} },
+      onStateChange: (state) => states.push(state.kind),
     })
     const probe = posted.find((message) => message.type === 'GET_FIELDS')
     if (probe !== undefined) {
@@ -255,13 +343,13 @@ describe(attachEmbed.name, () => {
         }),
       )
     }
-    expect(embed.getState().kind).toBe('document_loaded')
+    expect(states.at(-1)).toBe('documentLoaded')
     // The fallback timer was cleared on load: advancing past it neither warns nor
-    // drops the loaded document back to editor_ready.
+    // drops the loaded document back to editorReady.
     vi.advanceTimersByTime(31_000)
-    expect(embed.getState().kind).toBe('document_loaded')
+    expect(states.at(-1)).toBe('documentLoaded')
     expect(warn).not.toHaveBeenCalled()
-    embed.dispose()
+    embed.lifecycle.dispose()
   })
 
   it('stops the readiness probe loop after the fallback window (bounded probing)', () => {
@@ -275,7 +363,7 @@ describe(attachEmbed.name, () => {
     vi.advanceTimersByTime(30_000)
     const countLater = harness.posted.filter((message) => message.type === 'GET_FIELDS').length
     expect(countLater).toBe(countAtFallback)
-    expect(harness.embed.getState().kind).toBe('editor_ready')
+    expect(harness.getState().kind).toBe('editorReady')
   })
 
   it('a throwing logger never affects bridge behavior', async () => {
@@ -296,7 +384,7 @@ describe(attachEmbed.name, () => {
     }
     const throwingLogger = { debug: boom, info: boom, warn: boom, error: boom }
     const embed = attachEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, logger: throwingLogger })
-    const promise = embed.getFields()
+    const promise = embed.actions.getFields()
     const requestId = posted[posted.length - 1]?.request_id ?? ''
     window.dispatchEvent(
       new MessageEvent('message', {
@@ -310,7 +398,7 @@ describe(attachEmbed.name, () => {
     )
     await expect(promise).resolves.toEqual({ success: true, data: { fields: [] } })
     // Disposal must not throw either.
-    expect(() => embed.dispose()).not.toThrow()
+    expect(() => embed.lifecycle.dispose()).not.toThrow()
   })
 
   it('an async-rejecting logger never surfaces as an unhandled rejection', async () => {
@@ -334,7 +422,7 @@ describe(attachEmbed.name, () => {
       editorOrigin: EDITOR_ORIGIN,
       logger: { debug: rejecting, info: rejecting, warn: rejecting, error: rejecting },
     })
-    const promise = embed.getFields()
+    const promise = embed.actions.getFields()
     const requestId = posted[posted.length - 1]?.request_id ?? ''
     window.dispatchEvent(
       new MessageEvent('message', {
@@ -351,12 +439,12 @@ describe(attachEmbed.name, () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(unhandled).not.toHaveBeenCalled()
     process.off('unhandledRejection', unhandled)
-    embed.dispose()
+    embed.lifecycle.dispose()
   })
 
   it('ignores messages from a foreign origin', async () => {
     const harness = makeHarness()
-    const promise = harness.embed.getFields()
+    const promise = harness.embed.actions.getFields()
     window.dispatchEvent(
       new MessageEvent('message', {
         data: JSON.stringify({
@@ -368,17 +456,18 @@ describe(attachEmbed.name, () => {
       }),
     )
     // The foreign-origin reply is ignored; the request stays pending until disposed.
-    harness.embed.dispose()
+    harness.embed.lifecycle.dispose()
     const result = await promise
     expect(result.success).toBe(false)
   })
 
-  it('disposes idempotently and notifies the disposed event once', () => {
-    const harness = makeHarness()
-    const listener = vi.fn()
-    harness.embed.on('disposed', listener)
-    harness.embed.dispose()
-    harness.embed.dispose()
-    expect(listener).toHaveBeenCalledTimes(1)
+  it('disposes idempotently, invoking onDispose exactly once', () => {
+    const iframe = document.createElement('iframe')
+    document.body.appendChild(iframe)
+    const onDispose = vi.fn()
+    const embed = attachEmbed({ getIframe: () => iframe, editorOrigin: EDITOR_ORIGIN, onDispose })
+    embed.lifecycle.dispose()
+    embed.lifecycle.dispose()
+    expect(onDispose).toHaveBeenCalledTimes(1)
   })
 })

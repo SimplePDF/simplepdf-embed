@@ -1,14 +1,14 @@
+import { fromWireData, toWireData } from './case-transform'
 import { INTERNAL_PROTOCOL } from './internal-protocol'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
 import type {
-  BridgeEventMap,
-  BridgeEventName,
   BridgeResult,
   BridgeState,
+  EditorEventMap,
   Embed,
-  IframeBridge,
+  IframeActions,
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
@@ -26,6 +26,11 @@ export type AttachEmbedArgs = {
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
   // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
+  // Internal wiring for createEmbed's "load the document once ready" flow: called on
+  // every lifecycle transition (booting -> editorReady -> documentLoaded), including
+  // readiness reached via the liveness probe (which emits no editor event). NOT a
+  // public event — consumers observe lifecycle via the EDITOR_READY / DOCUMENT_LOADED events.
+  onStateChange?: (state: BridgeState) => void
 }
 
 // One uniform request/response timeout. The editor is proven alive (EDITOR_READY
@@ -69,6 +74,9 @@ type PendingRequest = {
   timeoutId: ReturnType<typeof setTimeout>
 }
 
+// Validates + returns the editor's outbound event payload VERBATIM (snake_case):
+// these are forwarded to onEmbedEvent unchanged, so they keep the wire shape (the
+// established EmbedEvent contract). Op method payloads, by contrast, are camelCased.
 const asSubmissionSent = (data: Record<string, unknown> | undefined): SubmissionSentPayload | null => {
   const documentId = data?.document_id
   const submissionId = data?.submission_id
@@ -94,6 +102,7 @@ export const attachEmbed = ({
   editorOrigin,
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
+  onStateChange,
 }: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
@@ -101,9 +110,11 @@ export const attachEmbed = ({
   let documentId: string | null = null
   let disposed = false
 
-  // Per-event channels. Each owns its listener Set + subscribe/emit/clear, and a
-  // throwing listener can't stop the others or break cleanup. The mapped type
-  // keeps `on` and the emit call sites exact per event without any cast.
+  // Per-type channels for the editor's outbound events, forwarded verbatim (the
+  // established EmbedEvent contract). A throwing listener can't stop the others or break cleanup.
+  // The lifecycle state machine below is INTERNAL (readiness probing + createEmbed's
+  // load-when-ready gate), not an event: consumers observe readiness via the
+  // EDITOR_READY / DOCUMENT_LOADED events.
   type Channel<T> = {
     subscribe: (listener: (payload: T) => void) => () => void
     emit: (payload: T) => void
@@ -130,18 +141,23 @@ export const attachEmbed = ({
       clear: () => listeners.clear(),
     }
   }
-  const channels: { [E in BridgeEventName]: Channel<BridgeEventMap[E]> } = {
-    state_change: makeChannel(),
-    submission_sent: makeChannel(),
-    page_focused: makeChannel(),
-    disposed: makeChannel(),
+  // One channel per editor event type, so on(type, handler) hands the handler that
+  // event's typed payload directly — no cast, no union narrowing.
+  const channels: { [TEventType in keyof EditorEventMap]: Channel<EditorEventMap[TEventType]> } = {
+    EDITOR_READY: makeChannel(),
+    DOCUMENT_LOADED: makeChannel(),
+    PAGE_FOCUSED: makeChannel(),
+    SUBMISSION_SENT: makeChannel(),
   }
-  const on = <E extends BridgeEventName>(event: E, listener: (payload: BridgeEventMap[E]) => void): (() => void) =>
-    channels[event].subscribe(listener)
+  // Granular, EventEmitter-style subscription. Returns an unsubscribe fn.
+  const on = <TEventType extends keyof EditorEventMap>(
+    type: TEventType,
+    handler: (data: EditorEventMap[TEventType]) => void,
+  ): (() => void) => channels[type].subscribe(handler)
 
   const transitionTo = (next: BridgeState): void => {
     state = next
-    channels.state_change.emit(state)
+    onStateChange?.(next)
   }
 
   const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
@@ -190,7 +206,7 @@ export const attachEmbed = ({
       // Serializing (circular / BigInt input) or posting (dead contentWindow) can
       // throw; convert that into a Result rather than rejecting the promise.
       try {
-        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data })
+        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data: toWireData(data) })
         iframe.contentWindow.postMessage(outbound, editorOrigin)
         logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, char_count: outbound.length })
       } catch (error) {
@@ -224,19 +240,19 @@ export const attachEmbed = ({
 
   // `editor_ready_event` = a real EDITOR_READY message (iframe re-mounting for a
   // fresh document cycle). `probe`/`fallback` only prove liveness and must NEVER
-  // drop a loaded document back to editor_ready.
+  // drop a loaded document back to editorReady.
   type EditorReadySource = 'editor_ready_event' | 'probe' | 'fallback'
   const markEditorReady = (source: EditorReadySource): void => {
     switch (state.kind) {
-      case 'document_loaded':
+      case 'documentLoaded':
         if (source === 'editor_ready_event') {
-          transitionTo({ kind: 'editor_ready' })
+          transitionTo({ kind: 'editorReady' })
         }
         return
       case 'booting':
-        transitionTo({ kind: 'editor_ready' })
+        transitionTo({ kind: 'editorReady' })
         return
-      case 'editor_ready':
+      case 'editorReady':
         return
       default:
         state satisfies never
@@ -252,12 +268,12 @@ export const attachEmbed = ({
   }
 
   const markDocumentLoaded = (): void => {
-    if (state.kind === 'document_loaded') {
+    if (state.kind === 'documentLoaded') {
       return
     }
     clearReadyTimeout()
     stopProbing()
-    transitionTo({ kind: 'document_loaded', documentId })
+    transitionTo({ kind: 'documentLoaded', documentId })
   }
 
   const sendProbe = (): void => {
@@ -326,18 +342,23 @@ export const attachEmbed = ({
 
     if (payload.type === INTERNAL_PROTOCOL.EDITOR_READY) {
       markEditorReady('editor_ready_event')
+      channels.EDITOR_READY.emit({})
       return
     }
 
     if (payload.type === INTERNAL_PROTOCOL.DOCUMENT_LOADED) {
       const rawDocId = payload.data?.document_id
-      if (typeof rawDocId === 'string' && rawDocId !== '' && documentId !== rawDocId) {
-        documentId = rawDocId
-        if (state.kind === 'document_loaded') {
-          // Late DOCUMENT_LOADED after the probe already flipped the state: still
-          // propagate the fresh documentId to consumers.
-          transitionTo({ kind: 'document_loaded', documentId })
-          return
+      if (typeof rawDocId === 'string' && rawDocId !== '') {
+        // Forward every real DOCUMENT_LOADED verbatim (snake wire data).
+        channels.DOCUMENT_LOADED.emit({ document_id: rawDocId })
+        if (documentId !== rawDocId) {
+          documentId = rawDocId
+          if (state.kind === 'documentLoaded') {
+            // Late DOCUMENT_LOADED after the probe already flipped the state: still
+            // refresh the internal documentId snapshot.
+            transitionTo({ kind: 'documentLoaded', documentId })
+            return
+          }
         }
       }
       markDocumentLoaded()
@@ -347,7 +368,7 @@ export const attachEmbed = ({
     if (payload.type === SUBMISSION_SENT_EVENT) {
       const submission = asSubmissionSent(payload.data)
       if (submission !== null) {
-        channels.submission_sent.emit(submission)
+        channels.SUBMISSION_SENT.emit(submission)
       }
       return
     }
@@ -355,7 +376,7 @@ export const attachEmbed = ({
     if (payload.type === PAGE_FOCUSED_EVENT) {
       const pageFocused = asPageFocused(payload.data)
       if (pageFocused !== null) {
-        channels.page_focused.emit(pageFocused)
+        channels.PAGE_FOCUSED.emit(pageFocused)
       }
       return
     }
@@ -399,7 +420,17 @@ export const attachEmbed = ({
       if (rawResult.success === true && !('data' in rawResult)) {
         return { success: true, data: null }
       }
-      return rawResult
+      // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
+      // The transform preserves the envelope shape, so re-narrowing with the same
+      // guard re-types it without a cast.
+      const camelCased = fromWireData(rawResult)
+      if (!isBridgeResultLike(camelCased)) {
+        return {
+          success: false,
+          error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
+        }
+      }
+      return camelCased
     })()
     logger.info('iframe.request_received', {
       request_id: requestId,
@@ -417,7 +448,8 @@ export const attachEmbed = ({
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
     createField: (input) => sendRequest('CREATE_FIELD', input),
-    deleteFields: (input) => sendRequest('DELETE_FIELDS', input),
+    // All-optional input: deleteFields() with no args clears every field.
+    deleteFields: (input) => sendRequest('DELETE_FIELDS', input ?? {}),
     deletePages: (input) => sendRequest('DELETE_PAGES', input),
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
     download: () => sendRequest('DOWNLOAD', {}),
@@ -431,8 +463,7 @@ export const attachEmbed = ({
     selectTool: (input) => sendRequest('SELECT_TOOL', input),
     setFieldValue: (input) => sendRequest('SET_FIELD_VALUE', input),
     submit: (input) => sendRequest('SUBMIT', input),
-    getState: () => state,
-  } satisfies IframeBridge
+  } satisfies IframeActions
 
   const dispose = (): void => {
     if (disposed) {
@@ -450,7 +481,6 @@ export const attachEmbed = ({
       })
     }
     pending.clear()
-    channels.disposed.emit(undefined)
     for (const channel of Object.values(channels)) {
       channel.clear()
     }
@@ -458,15 +488,9 @@ export const attachEmbed = ({
   }
 
   const embed: Embed = {
-    ...methods,
-    on,
-    dispose,
-    get state() {
-      return state
-    },
-    get iframe() {
-      return getIframe()
-    },
+    actions: methods,
+    events: { on },
+    lifecycle: { dispose },
   }
   return embed
 }

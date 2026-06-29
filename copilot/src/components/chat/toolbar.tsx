@@ -1,4 +1,4 @@
-import type { OverlayToolType } from '@simplepdf/embed'
+import type { OverlayToolType } from '@simplepdf/react-embed-pdf'
 import { Check, Download, ImageIcon, MousePointer, PenTool, Send, Type } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'

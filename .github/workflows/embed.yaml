@@ -1,0 +1,41 @@
+name: Embed
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - embed/**
+      - .github/workflows/embed.yaml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - embed/**
+      - .github/workflows/embed.yaml
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # @simplepdf/embed is a workspace package, so install from the root.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Types
+        run: npm run --workspace @simplepdf/embed test:types
+
+      - name: Tests
+        run: npm run --workspace @simplepdf/embed test
+
+      - name: Bundle size budgets
+        run: npm run --workspace @simplepdf/embed check:size

@@ -11,6 +11,18 @@
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs"
+    },
+    "./ai-sdk": {
+      "types": "./dist/ai-sdk.d.ts",
+      "import": "./dist/ai-sdk.esm.js",
+      "require": "./dist/ai-sdk.cjs"
+    }
+  },
   "author": "bendersej",
   "license": "MIT",
   "private": false,
@@ -30,9 +42,18 @@
     "build": "rollup -c",
     "start": "rollup -c -w"
   },
+  "dependencies": {
+    "@simplepdf/embed": "^0.4.0"
+  },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "react-dom": "^18.2.0 || ^19.0.0"
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
@@ -55,7 +76,8 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "sass": "^1.71.1",
     "typescript": "^5.9.3",
-    "vitest": "4.0.17"
+    "vitest": "4.0.17",
+    "zod": "^4.4.3"
   },
   "files": ["dist"],
   "keywords": ["react", "typescript", "npm", "pdf"]

@@ -37,14 +37,16 @@ const NON_AGENTIC_OPERATIONS = new Set(['load_document'])
 // Naming helpers
 // ---------------------------------------------------------------------------
 
-/** snake_case request_type -> camelCase JS method name (go_to -> goTo). */
-const toMethodName = (requestType) =>
-  requestType.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+/** snake_case / SCREAMING_SNAKE -> camelCase (GO_TO -> goTo, field_id -> fieldId).
+ * Used for method/tool names AND object property keys: the SDK surface is camelCase,
+ * while the wire stays snake_case (the bridge transforms between them). */
+const toCamel = (name) =>
+  name.toLowerCase().replace(/_([a-z])/g, (_, c) => c.toUpperCase())
 
 /** snake_case request_type -> PascalCase type stem (go_to -> GoTo). */
 const toPascal = (requestType) => {
-  const method = toMethodName(requestType)
-  return method.charAt(0).toUpperCase() + method.slice(1)
+  const camel = toCamel(requestType)
+  return camel.charAt(0).toUpperCase() + camel.slice(1)
 }
 
 // Known enum sets mapped to named types for a readable generated surface.
@@ -111,7 +113,11 @@ const tsForEnum = (members) => {
   return members.map((m) => JSON.stringify(m)).join(' | ')
 }
 
-const tsForNode = (node) => {
+// `camelKeys` controls property-key casing: true for OPERATION payloads (the SDK's
+// camelCase method args / results — the bridge transforms them to snake on the wire),
+// false for EVENT payloads (forwarded to onEmbedEvent VERBATIM, so they keep the
+// editor's snake_case to stay compatible with the 1.x EmbedEvent contract).
+const tsForNode = (node, camelKeys) => {
   assertKnownKeywords(node)
   if (node.const !== undefined) {
     return JSON.stringify(node.const)
@@ -120,7 +126,7 @@ const tsForNode = (node) => {
     return tsForEnum(node.enum)
   }
   if (Array.isArray(node.anyOf)) {
-    return node.anyOf.map((sub) => tsForNode(sub)).join(' | ')
+    return node.anyOf.map((sub) => tsForNode(sub, camelKeys)).join(' | ')
   }
   switch (node.type) {
     case 'string':
@@ -133,17 +139,17 @@ const tsForNode = (node) => {
     case 'null':
       return 'null'
     case 'array': {
-      const item = tsForNode(node.items)
+      const item = tsForNode(node.items, camelKeys)
       return /[ |]/.test(item) ? `Array<${item}>` : `${item}[]`
     }
     case 'object':
-      return tsForObject(node)
+      return tsForObject(node, camelKeys)
     default:
       throw new Error(`Unsupported JSON Schema node for TS: ${JSON.stringify(node)}`)
   }
 }
 
-const tsForObject = (node) => {
+const tsForObject = (node, camelKeys) => {
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
@@ -152,7 +158,7 @@ const tsForObject = (node) => {
   }
   const members = keys.map((key) => {
     const optional = required.has(key) ? '' : '?'
-    return `${key}${optional}: ${tsForNode(properties[key])}`
+    return `${camelKeys ? toCamel(key) : key}${optional}: ${tsForNode(properties[key], camelKeys)}`
   })
   return `{ ${members.join('; ')} }`
 }
@@ -214,7 +220,7 @@ const zodForObject = (node) => {
   const members = keys.map((key) => {
     const inner = zodForNode(properties[key], { withDescription: true })
     const withOptional = required.has(key) ? inner : `${inner}.optional()`
-    return `  ${key}: ${withOptional},`
+    return `  ${toCamel(key)}: ${withOptional},`
   })
   return `z.object({\n${members.join('\n')}\n})`
 }
@@ -262,7 +268,11 @@ preflightSchema(contract.editor_error_schema)
 preflightSchema(contract.protocol.request_envelope_schema)
 preflightSchema(contract.protocol.result_envelope_schema)
 
-const operationsByType = Object.fromEntries(contract.operations.map((op) => [op.request_type, op]))
+// Keyed by lowercase request_type so the hardcoded lookups below are agnostic to
+// the manifest's request_type casing (snake_case or SCREAMING_SNAKE).
+const operationsByType = Object.fromEntries(
+  contract.operations.map((op) => [op.request_type.toLowerCase(), op]),
+)
 
 const fieldRecordSchema = operationsByType.get_fields.output_schema.properties.fields.items
 const fieldTypes = fieldRecordSchema.properties.type.enum
@@ -299,8 +309,8 @@ contractLines.push(constArray('EXTRACTION_MODES', extractionModes, 'ExtractionMo
 // Per-operation input/output types.
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
-  contractLines.push(`export type ${stem}Input = ${tsForNode(op.input_schema)}`)
-  contractLines.push(`export type ${stem}Output = ${tsForNode(op.output_schema)}`)
+  contractLines.push(`export type ${stem}Input = ${tsForNode(op.input_schema, true)}`)
+  contractLines.push(`export type ${stem}Output = ${tsForNode(op.output_schema, true)}`)
 }
 contractLines.push('')
 
@@ -318,7 +328,7 @@ if (missingFieldsVariant?.properties?.details === undefined) {
   throw new Error('embed-api.json: the bad_request:missing_required_fields variant lacks a details schema')
 }
 contractLines.push(
-  `export type MissingRequiredFieldsDetails = ${tsForNode(missingFieldsVariant.properties.details)}`,
+  `export type MissingRequiredFieldsDetails = ${tsForNode(missingFieldsVariant.properties.details, true)}`,
 )
 contractLines.push('')
 
@@ -328,21 +338,21 @@ for (const event of contract.events) {
     .toLowerCase()
     .replace(/_([a-z])/g, (_, c) => c.toUpperCase())
     .replace(/^[a-z]/, (c) => c.toUpperCase())
-  contractLines.push(`export type ${stem}Payload = ${tsForNode(event.payload_schema)}`)
+  contractLines.push(`export type ${stem}Payload = ${tsForNode(event.payload_schema, false)}`)
 }
 contractLines.push('')
 
-// Operation metadata table (request_type doubles as the agentic tool name).
+// Operation metadata table (the camelCase `method` is the SDK method + agentic tool name).
 const opMeta = contract.operations.map((op) => {
   const stem = toPascal(op.request_type)
   return (
     `  {\n` +
     `    request_type: ${JSON.stringify(op.request_type)},\n` +
     `    wire_type: ${JSON.stringify(op.request_type.toUpperCase())},\n` +
-    `    method: ${JSON.stringify(toMethodName(op.request_type))},\n` +
+    `    method: ${JSON.stringify(toCamel(op.request_type))},\n` +
     `    description: ${JSON.stringify(op.description)},\n` +
     `    error_codes: [${op.error_codes.map((c) => JSON.stringify(c)).join(', ')}] as const,\n` +
-    `    is_agentic_tool: ${!NON_AGENTIC_OPERATIONS.has(op.request_type)},\n` +
+    `    is_agentic_tool: ${!NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase())},\n` +
     `    has_output: ${op.output_schema.type !== 'null'},\n` +
     `  } /* ${stem} */`
   )
@@ -351,9 +361,12 @@ contractLines.push(`export const OPERATIONS = [\n${opMeta.join(',\n')},\n] as co
 contractLines.push('')
 contractLines.push('export type WireType = (typeof OPERATIONS)[number]["wire_type"]')
 contractLines.push('export type RequestType = (typeof OPERATIONS)[number]["request_type"]')
+// The JS method/tool name is the camelCase of the wire op (the SDK is camelCase;
+// the bridge transforms to the snake_case wire). The drift guard checks IframeActions
+// matches MethodName.
 contractLines.push('export type MethodName = (typeof OPERATIONS)[number]["method"]')
 contractLines.push(
-  'export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["request_type"]',
+  'export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]',
 )
 contractLines.push('')
 
@@ -392,17 +405,21 @@ writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
 
 const driftLines = []
 driftLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
-driftLines.push("import type { IframeBridge } from '../types'")
+driftLines.push("import type { EditorEvent, IframeActions } from '../types'")
 driftLines.push("import type * as Schemas from './schemas'")
 driftLines.push("import type * as Contract from './contract'")
 driftLines.push('')
 driftLines.push('type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false')
+driftLines.push('type Extends<A, B> = [A] extends [B] ? true : false')
 driftLines.push('type AssertTrue<T extends true> = T')
 driftLines.push('')
-driftLines.push('// IframeBridge method set must exactly equal the generated operation methods,')
-driftLines.push('// and each zod schema must stay mutually assignable to its plain contract type.')
+driftLines.push('// IframeActions method set must exactly equal the generated operation methods,')
+driftLines.push('// each zod schema must stay mutually assignable to its plain contract type, and')
+driftLines.push('// every generated outbound event must appear in the hand-maintained EditorEvent union')
+driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).")
 driftLines.push('export type DriftGuards = [')
-driftLines.push("  AssertTrue<Exact<Exclude<keyof IframeBridge, 'getState'>, Contract.MethodName>>,")
+driftLines.push("  AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,")
+driftLines.push("  AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,")
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
   driftLines.push(`  AssertTrue<Exact<Schemas.${stem}Input, Contract.${stem}Input>>,`)
@@ -414,18 +431,20 @@ writeFileSync(join(GENERATED_DIR, 'drift.ts'), renderFile(driftLines))
 
 // --- tools.ts (agentic tool registry: name -> { description, inputSchema }) --
 
-const agenticOperations = contract.operations.filter((op) => !NON_AGENTIC_OPERATIONS.has(op.request_type))
+const agenticOperations = contract.operations.filter(
+  (op) => !NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase()),
+)
 const toolLines = []
 toolLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
 toolLines.push("import * as Schemas from './schemas'")
 toolLines.push('')
-toolLines.push('// The agentic tool registry. Each tool name is the operation request_type;')
+toolLines.push('// The agentic tool registry. Each tool name is the camelCase operation name;')
 toolLines.push('// load_document is excluded (it is a host/setup action, not an agentic tool).')
 toolLines.push('export const TOOL_DEFINITIONS = {')
 for (const op of agenticOperations) {
   const stem = toPascal(op.request_type)
   toolLines.push(
-    `  ${op.request_type}: { description: ${JSON.stringify(op.description)}, inputSchema: Schemas.${stem}Input },`,
+    `  ${toCamel(op.request_type)}: { description: ${JSON.stringify(op.description)}, inputSchema: Schemas.${stem}Input },`,
   )
 }
 toolLines.push('} as const')
