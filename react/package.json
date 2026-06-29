@@ -44,7 +44,8 @@
     "format": "npm run prettier -- --write",
     "prepublishOnly": "rimraf dist && npm run build",
     "build": "rollup -c",
-    "start": "rollup -c -w"
+    "start": "rollup -c -w",
+    "check:exports": "node ../scripts/check-exports.mjs ."
   },
   "dependencies": {
     "@simplepdf/embed": "^0.5.0"

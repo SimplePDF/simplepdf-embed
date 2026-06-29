@@ -39,3 +39,6 @@ jobs:
 
       - name: Bundle size budgets
         run: npm run --workspace @simplepdf/embed check:size
+
+      - name: Export load
+        run: npm run --workspace @simplepdf/embed check:exports
