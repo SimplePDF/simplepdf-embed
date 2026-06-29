@@ -7,22 +7,8 @@
 export { EmbedPDF, useEmbed } from './embed-pdf';
 export type { EmbedActions, EmbedEvent, EmbedPDFProps } from './embed-pdf';
 
-// Framework-free core: the full typed surface (Embed, BridgeResult / BridgeError,
-// the per-op Input/Output types, FieldRecord, FieldType, OverlayToolType, Locale,
-// …) plus createEmbed + helpers for non-React / imperative use.
-export * from '@simplepdf/embed';
-
-export {
-  EDITOR_ERROR_CODES,
-  EXTRACTION_MODES,
-  FIELD_TYPES,
-  INTERNAL_PROTOCOL,
-  LOCALES,
-  OPERATIONS,
-  OUTBOUND_EVENT_TYPES,
-  OUTBOUND_EVENTS,
-  OVERLAY_TOOL_TYPES,
-  REQUEST_TYPES,
-  WIRE_TYPES,
-} from '@simplepdf/embed/protocol';
-export type { InternalProtocolType, OutboundEventType, RequestType, WireType } from '@simplepdf/embed/protocol';
+// Core types a React consumer names directly (the document source, the field + tool enums).
+// The imperative core (createEmbed, the bridge helpers) and the wire-protocol vocabulary stay
+// in @simplepdf/embed: a React app uses <EmbedPDF> / useEmbed, so they are intentionally not
+// re-exported here. Import them from @simplepdf/embed directly if a non-React path needs them.
+export type { EmbedDocument, FieldType, OverlayToolType } from '@simplepdf/embed';

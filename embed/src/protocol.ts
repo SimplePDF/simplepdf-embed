@@ -26,10 +26,6 @@ export {
   LOCALES,
   OVERLAY_TOOL_TYPES,
 } from './generated/contract'
-// The internal protocol constants live in their own module (so the bridge / root
-// entry never pulls the OPERATIONS table); the public /protocol surface re-exports them.
-export { INTERNAL_PROTOCOL } from './internal-protocol'
-export type { InternalProtocolType } from './internal-protocol'
 
 // Convenience derived constants (the wire type each op posts; the request_type, the
 // editor's operation identifier — the camelCase SDK method/tool name is `method`).
