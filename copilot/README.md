@@ -69,9 +69,9 @@ Browser
 - SimplePDF Copilot drives the editor through `postMessage` (focus a field, set a value, navigate, submit)
 - LLM streaming runs through your server via the Vercel AI SDK; you choose the provider
 - Tool calls are executed in the browser, against the iframe. Your server only proxies the chat stream.
-- **Voice input is different — it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; recording starts when you tap the mic, and when you confirm it (✓) the clip is transcribed and the editable transcript drops into the textarea. Two routes, each named in the recorder before the audio is sent:
+- **Voice input is different, it is a deliberate audio egress, on one of two paths.** Dictating into the composer records a short audio clip in the browser; recording starts when you tap the mic, and when you confirm it (✓) the clip is transcribed and the editable transcript drops into the textarea. Two routes, each named in the recorder before the audio is sent:
   - **Demo (server):** when the deployment is in demo mode (operator keys configured), the clip uploads to `/api/transcribe`, which forwards it to OpenAI (`gpt-4o-transcribe`) and returns the transcript. So **audio leaves the browser to SimplePDF's server and then OpenAI** (the server keeps no audio, logs no transcript).
-  - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault — a demo/reference feature (a browser-held key is exposed to anything on the page).
+  - **BYOK (browser-direct):** configure a Speech-to-Text provider (OpenAI or a custom OpenAI-compatible endpoint) in the model picker's Speech-to-Text tab; the clip is sent **directly from the browser to that endpoint, never to SimplePDF**. The key lives only in this browser's encrypted vault, a demo/reference feature (a browser-held key is exposed to anything on the page).
   - In both cases PDF bytes still stay on-device, and audio is sent only when you confirm the recording (never automatically). The recorder prompt names the actual audio recipient before you confirm: the **demo** prompt reads "Speak to SimplePDF Copilot…" (its server→OpenAI flow is the one described above, and "What is this demo?" documents it); the **BYOK** prompt reads "Speak to OpenAI…" or "Speak to &lt;your endpoint&gt;…" (sent directly to that provider, not to SimplePDF).
 
 ## Built with
@@ -119,19 +119,19 @@ In the running app, open the chat sidebar, click **Bring your own provider**, pa
 
 ### Run the demo without asking viewers for a key
 
-Asking every visitor to paste a provider key is friction-heavy. To skip that, put the deployment **in demo mode**: configure a single chat key/model/turn-cap plus a transcription key in your `.env`, and the server pays for chat + voice under your account for every visitor. There are no invite links — demo mode is simply on whenever both are configured. The chat opens already wired up and the Model Picker stays out of the way (visitors can still bring their own key to override).
+Asking every visitor to paste a provider key is friction-heavy. To skip that, put the deployment **in demo mode**: configure a single chat key/model/turn-cap plus a transcription key in your `.env`, and the server pays for chat + voice under your account for every visitor. There are no invite links, demo mode is simply on whenever both are configured. The chat opens already wired up and the Model Picker stays out of the way (visitors can still bring their own key to override).
 
 Demo mode requires **both**:
 
-- `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS` — the chat key, the model, and the per-IP turn cap.
-- `DEMO_STT_OPENAI_API_KEY` — the voice transcription key (transcription-only, never your chat key).
+- `DEMO_CHAT_API_KEY` + `DEMO_CHAT_MODEL` + `DEMO_RATE_LIMIT_TURNS`, the chat key, the model, and the per-IP turn cap.
+- `DEMO_STT_OPENAI_API_KEY`, the voice transcription key (transcription-only, never your chat key).
 
 Two chat models are supported on the demo path:
 
 - Anthropic Claude Haiku 4.5 (`DEMO_CHAT_MODEL=anthropic_haiku_4_5`)
 - DeepSeek V4 Flash (`DEMO_CHAT_MODEL=deepseek_v4_flash`)
 
-Leave the demo vars unset and the deployment runs **BYOK-only**: every visitor brings their own key via the Model Picker. Note: with no invite gating, demo mode is open to anyone who can reach the page, so the **per-IP turn cap (`DEMO_RATE_LIMIT_TURNS`) is the cost control** — size it accordingly. See [`.env.example`](./.env.example) for the exact vars.
+Leave the demo vars unset and the deployment runs **BYOK-only**: every visitor brings their own key via the Model Picker. Note: with no invite gating, demo mode is open to anyone who can reach the page, so the **per-IP turn cap (`DEMO_RATE_LIMIT_TURNS`) is the cost control**, size it accordingly. See [`.env.example`](./.env.example) for the exact vars.
 
 ### Voice input (dictation)
 
@@ -170,9 +170,9 @@ The iframe will refuse to load on origins that aren't whitelisted, so add your s
 
 For multi-container deployments (or any deploy where you want per-IP rate-limit counters to survive restarts), set `REDIS_URL` to a Redis-protocol-compatible instance (Valkey on DO Managed Caching is the canonical fit at $15/mo). When `REDIS_URL` is set, `IP_HASH_SALT` is also required (the server refuses to boot otherwise) so the persisted hashes can't be brute-forced against a leaked snapshot. Generate one with `openssl rand -hex 32`. Without `REDIS_URL`, counters live in memory per container, which is fine for local dev, single-instance hosts, or BYOK-only deployments.
 
-> **DO App Platform gotcha — wire the database from the App side.** If you're using DO Managed Caching, **don't** start by adding a Trusted Source on the cluster. Open your App Platform app → **Settings** → **App Spec** → **+ Create or Attach Database** → pick the existing cluster (or provision a new one). DO then auto-handles trusted sources, VPC routing, and injects the connection string into the app's env. Wiring from the cluster side leaves the App on a public-egress IP that can't be matched to a Trusted Source, and you'll get `ETIMEDOUT` even with the source allowlisted. Same shape as adding a custom domain: it has to be done from the App, not from the resource.
+> **DO App Platform gotcha, wire the database from the App side.** If you're using DO Managed Caching, **don't** start by adding a Trusted Source on the cluster. Open your App Platform app → **Settings** → **App Spec** → **+ Create or Attach Database** → pick the existing cluster (or provision a new one). DO then auto-handles trusted sources, VPC routing, and injects the connection string into the app's env. Wiring from the cluster side leaves the App on a public-egress IP that can't be matched to a Trusted Source, and you'll get `ETIMEDOUT` even with the source allowlisted. Same shape as adding a custom domain: it has to be done from the App, not from the resource.
 >
-> Once attached, DO injects the connection string as `DATABASE_URL` (the bind variable's default name) — **rename it** to `REDIS_URL` in the App's env vars, OR add a separate `REDIS_URL` entry whose value is `${cluster-name.DATABASE_URL}` to alias it. The copilot server only reads `REDIS_URL`.
+> Once attached, DO injects the connection string as `DATABASE_URL` (the bind variable's default name), **rename it** to `REDIS_URL` in the App's env vars, OR add a separate `REDIS_URL` entry whose value is `${cluster-name.DATABASE_URL}` to alias it. The copilot server only reads `REDIS_URL`.
 
 #### One-click deploy to DigitalOcean
 
@@ -219,9 +219,9 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `setFieldValue` | Write a value into a field |
 | `selectTool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
 | `goTo` | Navigate to a specific page (1-indexed) |
-| `movePage` | Reorder a visible page (`fromPage` → `toPage`, both 1-indexed). Destructive — only fired on explicit user request |
-| `deletePages` | Remove visible pages and their fields (last remaining page can't be deleted). Destructive — only fired on explicit user request |
-| `rotatePage` | Rotate a visible page 90° clockwise per call. Destructive — only fired on explicit user request |
+| `movePage` | Reorder a visible page (`fromPage` → `toPage`, both 1-indexed). Destructive, only fired on explicit user request |
+| `deletePages` | Remove visible pages and their fields (last remaining page can't be deleted). Destructive, only fired on explicit user request |
+| `rotatePage` | Rotate a visible page 90° clockwise per call. Destructive, only fired on explicit user request |
 | `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
 Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
@@ -245,7 +245,7 @@ The architecture is deliberate:
 - **Document data stays in the browser.** SimplePDF processes PDFs client-side. The iframe never uploads document bytes to SimplePDF.
 - **Chat traffic flows through your server.** You control the provider, the keys, the logs, and any RAG / internal data layered in.
 - **Submission is direct to your storage.** On Premium with [Bring Your Own Storage](https://simplepdf.com/pricing) (S3, Azure Blob, or SharePoint), completed PDFs upload from the browser to your bucket, never to SimplePDF servers.
-- **Voice input is the one exception, and it is opt-in.** Dictation sends the recorded audio clip out of the browser — unlike PDF bytes, dictated audio (which can contain PII/PHI) leaves the device. Two routes, each disclosed before recording: the **demo** route uploads to SimplePDF's server and on to OpenAI (the server keeps no audio and logs no transcript text — only an IP hash, byte size, and elapsed time); the **BYOK** route sends audio **directly to the user's chosen provider, never to SimplePDF** (SimplePDF makes no retention claim for user-selected providers — that's the provider's policy). Audio is sent only on an explicit Record.
+- **Voice input is the one exception, and it is opt-in.** Dictation sends the recorded audio clip out of the browser, unlike PDF bytes, dictated audio (which can contain PII/PHI) leaves the device. Two routes, each disclosed before recording: the **demo** route uploads to SimplePDF's server and on to OpenAI (the server keeps no audio and logs no transcript text, only an IP hash, byte size, and elapsed time); the **BYOK** route sends audio **directly to the user's chosen provider, never to SimplePDF** (SimplePDF makes no retention claim for user-selected providers, that's the provider's policy). Audio is sent only on an explicit Record.
 
 ### Using the demo account
 
