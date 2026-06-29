@@ -11,7 +11,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "1.1.1",
     "@radix-ui/react-switch": "1.1.2",
-    "@simplepdf/react-embed-pdf": "latest",
+    "@simplepdf/react-embed-pdf": "^1.11.0",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
