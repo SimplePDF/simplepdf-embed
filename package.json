@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version",
+    "version": "changeset version && npm run --prefix react format",
     "publish": "changeset publish"
   },
   "devDependencies": {

@@ -12,6 +12,9 @@ jobs:
   check:
     name: Require Changeset
     runs-on: ubuntu-latest
+    # The auto-generated Version PR (changeset-release/main) consumes the changesets to
+    # produce the version bump, so it legitimately has none — don't require one of it.
+    if: github.head_ref != 'changeset-release/main'
 
     steps:
       - name: Checkout code
