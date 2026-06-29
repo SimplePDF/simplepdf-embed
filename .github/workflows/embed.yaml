@@ -6,12 +6,18 @@ on:
       - main
     paths:
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/embed.yaml
   pull_request:
     branches:
       - main
     paths:
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/embed.yaml
 
 jobs:

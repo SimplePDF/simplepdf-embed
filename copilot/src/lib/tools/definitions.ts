@@ -1,4 +1,4 @@
-import { simplePDFToolDefinitions, type SimplePDFToolName } from '@simplepdf/react-embed-pdf/ai-sdk'
+import { type SimplePDFToolName, simplePDFToolDefinitions } from '@simplepdf/embed/ai-sdk'
 import type { FinalisationAction } from '../../server/tools'
 import { IS_DEMO_MODE } from '../mode'
 

@@ -7,6 +7,9 @@ on:
     paths:
       - react/**
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/react.yaml
   pull_request:
     branches:
@@ -14,6 +17,9 @@ on:
     paths:
       - react/**
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/react.yaml
 
 jobs:

@@ -43,7 +43,13 @@ export default {
       outputStyle: 'compressed',
       insert: true,
     }),
-    typescript(),
+    // Build excludes test files so type-only `*.test-d.ts` assertions (still type-checked by
+    // test:types) never emit declarations into dist / ship to npm.
+    typescript({
+      tsconfigOverride: {
+        exclude: ['node_modules', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.test-d.ts', 'vitest.setup.ts'],
+      },
+    }),
     terser({
       format: {
         comments: false,
