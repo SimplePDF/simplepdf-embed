@@ -223,7 +223,7 @@ const CopilotEditor = () => {
 };
 ```
 
-For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from the React-free core `@simplepdf/embed/ai-sdk` (importing it from this React subpath would pull React into your server). `embedRef.current` is the flat editor-actions handle, every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
+For server-side tool definitions (execute-less, for `streamText`), import `simplePDFToolDefinitions` from the React-free core `@simplepdf/embed/ai-sdk` (it is intentionally not re-exported from this React subpath, which imports React). `embedRef.current` is the flat editor-actions handle, every camelCase operation, with the deprecated `selectTool` / `submit` overloads; subscribe to editor events via the `onEmbedEvent` prop. (The framework-free `@simplepdf/embed` core exposes the grouped `embed.actions` / `embed.events` / `embed.lifecycle` handle for non-React use.)
 
 #### Agentic: `useEmbedTools` (TanStack AI)
 
