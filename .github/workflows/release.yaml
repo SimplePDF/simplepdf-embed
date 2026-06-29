@@ -29,6 +29,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Build in dependency order (workspaces: embed → react → web) so each package's
+      # types exist before the next builds. Without this, changeset publish's
+      # prepublishOnly hooks race: react's rollup type-checks against @simplepdf/embed's
+      # .d.ts, which isn't generated yet → TS7016 → the publish aborts before anything ships.
+      - name: Build packages
+        run: npm run build --workspaces --if-present
+
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
