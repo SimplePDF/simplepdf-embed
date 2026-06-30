@@ -53,9 +53,6 @@ const checkEntry = (entry) => {
     tempConfigPath,
     JSON.stringify({
       projectFolder: packageDir,
-      // api-extractor defaults to CRLF; force LF so the committed reports don't trip
-      // git's whitespace gate or churn across platforms.
-      newlineKind: 'lf',
       mainEntryPointFilePath: resolve(packageDir, entry.types),
       compiler: { tsconfigFilePath: resolve(packageDir, 'tsconfig.json') },
       apiReport: {
