@@ -11,13 +11,14 @@ const isExternal = (id) =>
   id === 'react' ||
   id === 'react-dom' ||
   id === 'zod' ||
+  id === '@tanstack/ai' ||
   id === '@simplepdf/embed' ||
   id.startsWith('@simplepdf/embed/');
 
 export default {
-  // Two entries mirroring the core: the zod-free root, and the opt-in agentic /ai-sdk
-  // (which pulls zod). A consumer importing only the root never loads zod.
-  input: { index: 'src/index.tsx', 'ai-sdk': 'src/ai-sdk.tsx' },
+  // Three entries mirroring the core: the zod-free root, plus the opt-in agentic /ai-sdk
+  // (pulls zod) and /tanstack-ai (pulls zod + @tanstack/ai). The root loads neither.
+  input: { index: 'src/index.tsx', 'ai-sdk': 'src/ai-sdk.tsx', 'tanstack-ai': 'src/tanstack-ai.tsx' },
   output: [
     {
       dir: 'dist',
@@ -42,7 +43,13 @@ export default {
       outputStyle: 'compressed',
       insert: true,
     }),
-    typescript(),
+    // Build excludes test files so type-only `*.test-d.ts` assertions (still type-checked by
+    // test:types) never emit declarations into dist / ship to npm.
+    typescript({
+      tsconfigOverride: {
+        exclude: ['node_modules', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.test-d.ts', 'vitest.setup.ts'],
+      },
+    }),
     terser({
       format: {
         comments: false,

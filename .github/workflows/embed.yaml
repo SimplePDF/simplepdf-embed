@@ -6,12 +6,18 @@ on:
       - main
     paths:
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/embed.yaml
   pull_request:
     branches:
       - main
     paths:
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/embed.yaml
 
 jobs:
@@ -39,3 +45,9 @@ jobs:
 
       - name: Bundle size budgets
         run: npm run --workspace @simplepdf/embed check:size
+
+      - name: Export load
+        run: npm run --workspace @simplepdf/embed check:exports
+
+      - name: API surface
+        run: npm run --workspace @simplepdf/embed check:api

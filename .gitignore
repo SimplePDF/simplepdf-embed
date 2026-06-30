@@ -13,3 +13,6 @@ chrome-extension/release.zip
 .wrangler/
 
 coverage
+
+# api-extractor working files (committed API reports live in <pkg>/etc/)
+tmp/

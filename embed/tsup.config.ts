@@ -13,6 +13,7 @@ export default defineConfig({
     schemas: 'src/schemas.ts',
     tools: 'src/tools.ts',
     'ai-sdk': 'src/ai-sdk.ts',
+    'tanstack-ai': 'src/tanstack-ai.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,
@@ -20,5 +21,5 @@ export default defineConfig({
   splitting: true,
   sourcemap: true,
   clean: true,
-  external: ['zod'],
+  external: ['zod', '@tanstack/ai'],
 })

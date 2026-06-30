@@ -1,6 +1,7 @@
-// Bundle-size budget guard. Gzips each public entry's full LOCAL closure (the
-// entry file plus the dist chunks it imports — peer deps are external and never
-// counted) and fails if any entry exceeds its budget. Run after `npm run build`.
+// Bundle-size budget guard, run after `npm run build`. Gzips each public entry's local
+// closure (the entry file plus the dist chunks it imports; peer deps are external and
+// never counted) and fails if any entry exceeds its budget. Export loadability is guarded
+// separately by ../../scripts/check-exports.mjs (the `check:exports` script).
 
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -19,6 +20,7 @@ const BUDGETS = {
   'schemas.js': 3 * 1024,
   'tools.js': 5 * 1024,
   'ai-sdk.js': 5.5 * 1024,
+  'tanstack-ai.js': 5.5 * 1024,
 }
 
 const localImports = (file) => {

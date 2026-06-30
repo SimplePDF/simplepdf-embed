@@ -7,6 +7,9 @@ on:
     paths:
       - react/**
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/react.yaml
   pull_request:
     branches:
@@ -14,6 +17,9 @@ on:
     paths:
       - react/**
       - embed/**
+      - scripts/**
+      - package.json
+      - package-lock.json
       - .github/workflows/react.yaml
 
 jobs:
@@ -38,6 +44,9 @@ jobs:
       - name: Build the core
         run: npm run --workspace @simplepdf/embed build
 
+      - name: Build react-embed-pdf
+        run: npm run --workspace @simplepdf/react-embed-pdf build
+
       - name: Formatting
         run: npm run --workspace @simplepdf/react-embed-pdf test:format
 
@@ -46,3 +55,9 @@ jobs:
 
       - name: Tests
         run: npm run --workspace @simplepdf/react-embed-pdf test
+
+      - name: Export load
+        run: npm run --workspace @simplepdf/react-embed-pdf check:exports
+
+      - name: API surface
+        run: npm run --workspace @simplepdf/react-embed-pdf check:api

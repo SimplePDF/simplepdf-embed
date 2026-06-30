@@ -1,13 +1,8 @@
 import { useChat } from '@ai-sdk/react'
-import {
-  OVERLAY_TOOL_TYPES,
-  type BridgeResult,
-  type DocumentContentPage,
-  type DocumentContentResult,
-  type EmbedActions,
-  type FieldRecord,
-} from '@simplepdf/react-embed-pdf'
-import { type EmbedTools, type SimplePDFToolName } from '@simplepdf/react-embed-pdf/ai-sdk'
+import type { BridgeResult, DocumentContentPage, DocumentContentResult, FieldRecord } from '@simplepdf/embed'
+import { OVERLAY_TOOL_TYPES } from '@simplepdf/embed/protocol'
+import type { EmbedActions } from '@simplepdf/react-embed-pdf'
+import type { EmbedTools, SimplePDFToolName } from '@simplepdf/react-embed-pdf/ai-sdk'
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp, Mic, X } from 'lucide-react'

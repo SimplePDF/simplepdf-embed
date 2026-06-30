@@ -12,6 +12,7 @@
     "publish": "changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.8"
+    "@changesets/cli": "^2.29.8",
+    "@microsoft/api-extractor": "^7.58.9"
   }
 }

@@ -1,4 +1,4 @@
-// The agentic surface for @simplepdf/react-embed-pdf — the React mirror of
+// The agentic surface for @simplepdf/react-embed-pdf: the React mirror of
 // @simplepdf/embed's /tools + /ai-sdk subpaths. Importing THIS module (not the package
 // root) is what pulls in `zod`, so a <EmbedPDF>-only app never loads it — the same
 // pay-for-use contract the core has. Pair it with useEmbed():
@@ -14,10 +14,11 @@ import { isSimplePDFToolName, routeToolCall, SIMPLEPDF_TOOLS, type SimplePDFTool
 import type { EmbedActions } from './embed-pdf';
 import { notMounted } from './not-mounted';
 
-// Re-export the core agentic surface so React consumers get everything from one subpath:
-// server-side tool definitions (execute-less, for streamText), the browser executor, and
-// the tool-name guard — mirroring @simplepdf/embed/ai-sdk + /tools.
-export { createSimplePDFExecutor, simplePDFToolDefinitions } from '@simplepdf/embed/ai-sdk';
+// Re-export the browser-side executor + the tool-name guard for React consumers. The
+// server-side `simplePDFToolDefinitions` is deliberately NOT re-exported: this module
+// imports React (for the hook), so re-exporting the defs would pull React into a server
+// `streamText` route. Import those from the React-free core `@simplepdf/embed/ai-sdk`.
+export { createSimplePDFExecutor } from '@simplepdf/embed/ai-sdk';
 export { isSimplePDFToolName };
 export type { SimplePDFToolName };
 

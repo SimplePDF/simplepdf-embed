@@ -1,0 +1,4 @@
+# API Extractor emits CRLF; keep the committed API-surface reports LF so they don't trip
+# git's whitespace gate or churn across platforms. api-extractor's report comparison is
+# line-ending agnostic, so this does not affect `check:api`.
+*.api.md text eol=lf
