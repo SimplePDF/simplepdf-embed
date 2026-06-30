@@ -4,6 +4,16 @@ Embed and programmatically drive the [SimplePDF](https://simplepdf.com) editor o
 
 > Using React? Use [`@simplepdf/react-embed-pdf`](../react): `<EmbedPDF>` + `useEmbed` (+ the agentic `tools`), built on this core.
 
+## Install
+
+```bash
+npm install @simplepdf/embed
+```
+
+Zero runtime dependencies at the root. `zod` is an optional peer, needed by the `/schemas`, `/tools`, `/ai-sdk`, and `/tanstack-ai` subpaths. `/ai-sdk` produces values for the Vercel AI SDK without importing `ai` (bring your own); `/tanstack-ai` uses `@tanstack/ai`'s `toolDefinition` (also an optional peer, pulled only by that subpath).
+
+See [Subpaths](#subpaths) for more details.
+
 ## Quick start
 
 `createEmbed` builds the editor iframe and appends it to a container you provide:
@@ -61,14 +71,6 @@ import { clientTools } from '@tanstack/ai-react'
 import { createSimplePDFTools } from '@simplepdf/embed/tanstack-ai'
 useChat({ connection, tools: clientTools(...createSimplePDFTools({ embed })) })
 ```
-
-## Install
-
-```bash
-npm install @simplepdf/embed
-```
-
-Zero runtime dependencies at the root. `zod` is an optional peer, needed by the `/schemas`, `/tools`, `/ai-sdk`, and `/tanstack-ai` subpaths. `/ai-sdk` produces values for the Vercel AI SDK without importing `ai` (bring your own); `/tanstack-ai` uses `@tanstack/ai`'s `toolDefinition` (also an optional peer, pulled only by that subpath).
 
 ## Subpaths
 
