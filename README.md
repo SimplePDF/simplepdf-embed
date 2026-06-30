@@ -42,7 +42,7 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 - ⚛️ [React component](./react/README.md) - `@simplepdf/react-embed-pdf`
 - 🧩 [Iframe bridge](./embed/README.md) - `@simplepdf/embed` (framework-free client to embed + programmatically drive the editor, with an AI SDK adapter)
 - 🚀 [Script tag](./web/README.md) - `@simplepdf/web-embed-pdf`
-- 🤖 [SimplePDF Copilot](./copilot/README.md) - AI form-filling reference implementation
+- 🤖 [SimplePDF Copilot](./copilot/README.md) - ready-to-fork demo of the editor's agentic capabilities
 
 # Features
 
@@ -51,7 +51,7 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 - Page manipulation: add, remove, rotate, re-arrange
 - White-label and headless mode (Pro plan+)
 - Webhooks, API, bring-your-own-storage: S3, Azure Blob Storage, SharePoint
-- AI [Copilot](./copilot/README.md) that fills forms step-by-step (opt-in)
+- Agentic control: drive the editor from an LLM with client-side tool calling (Vercel AI SDK + TanStack AI)
 - Tiny footprint (~5KB gzipped) - the editor lazy-loads on user interaction
 
 # Built for healthcare and privacy-sensitive products
@@ -62,7 +62,7 @@ PHI never leaves the browser unless you explicitly enable submissions. BAA avail
 
 # AI Copilot
 
-AI that helps users fill PDF forms step by step, inside the SimplePDF editor.
+A ready-to-fork demo that demonstrates the editor's agentic capabilities: an LLM drives the SimplePDF editor through client-side tool calling.
 
 Copilot is a turn-key, MIT-licensed reference implementation. Users answer in plain language; Copilot maps answers to the right fields, asks for what's missing, and the user reviews and signs. Fork it, wire up your AI provider, and ship it inside your product without writing the iframe bridge, tool plumbing, or streaming chat from scratch.
 
