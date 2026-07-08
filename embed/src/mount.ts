@@ -279,7 +279,7 @@ const resolveDocumentsUrl = (
   return { url: parsed, origin: parsed.origin }
 }
 
-const buildEditorURL = ({
+export const buildEditorURL = ({
   editorOrigin,
   locale,
   encodedContext,

@@ -1,6 +1,72 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buildEditorDomain, createEmbed, EmbedConfigError, encodeContext } from '../src/mount'
+import { buildEditorDomain, buildEditorURL, createEmbed, EmbedConfigError, encodeContext } from '../src/mount'
 import type { Embed } from '../src/types'
+
+// Recover the document URL from ?open= the same way the editor does. Kept here so this test pins the
+// CONTRACT both sides rely on - the SDK builds the ?open value and the editor reads it back - not just
+// the SDK half.
+const recoverDocumentUrlFromOpen = (requestUrl: string): string | null => {
+  const queryStart = requestUrl.indexOf('?')
+  if (queryStart === -1) return null
+  const match = requestUrl.slice(queryStart + 1).match(/(?:^|&)open=(.*)$/)
+  if (match === null) return null
+  const rawOpenValue = match[1]
+  const firstSegment = rawOpenValue.split('&')[0]
+  const decode = (value: string): string => {
+    try {
+      return decodeURIComponent(value)
+    } catch {
+      return value
+    }
+  }
+  // No raw ? in the value: it is a single query param, so a + is an encoded space. A raw ? means the
+  // URL carries its own query, which is kept verbatim.
+  const documentUrl = firstSegment.includes('?') ? decode(rawOpenValue) : decode(firstSegment.replace(/\+/g, ' '))
+  return documentUrl === '' ? null : documentUrl
+}
+
+describe(buildEditorURL.name, () => {
+  const openFallbackRoundTrip = (documentUrl: string): string | null => {
+    const editorUrl = buildEditorURL({
+      editorOrigin: 'https://acme.simplepdf.com',
+      locale: undefined,
+      encodedContext: null,
+      hasDocumentUrl: false,
+      openFallbackUrl: documentUrl,
+    })
+    const { pathname, search } = new URL(editorUrl)
+    return recoverDocumentUrlFromOpen(`${pathname}${search}`)
+  }
+
+  it.each([
+    'https://cdn.example.com/report.pdf',
+    // A space in the consumer's URL is encoded as + by URLSearchParams; the editor must restore it.
+    'https://cdn.example.com/my file.pdf',
+    // A literal + is encoded as %2B (not +), so it survives as a literal +.
+    'https://cdn.example.com/a+b.pdf',
+    // The document URL carries its own query - the whole thing is percent-encoded, so it round-trips.
+    'https://gen.example.com/doc?id=7&v=2',
+    // A base64 ?context= (contains a literal +) in the document's OWN query.
+    'https://gen.example.com/doc?context=eyJjdXN0b21lcklkIjoiY3VzXzlmMyIsImNpdHkiOiLQnNC+0YHQutCy0LAifQ==',
+  ])('the ?open fallback URL round-trips through the editor parser: %s', (documentUrl) => {
+    expect(openFallbackRoundTrip(documentUrl)).toBe(documentUrl)
+  })
+
+  it('encodes context so the editor decodes it back to the original object', () => {
+    const context = { customerId: 'cus_9f3', ref: 'invoice-42' }
+    const editorUrl = buildEditorURL({
+      editorOrigin: 'https://acme.simplepdf.com',
+      locale: undefined,
+      encodedContext: encodeContext(context),
+      hasDocumentUrl: false,
+      openFallbackUrl: 'https://cdn.example.com/f.pdf',
+    })
+    // The editor URL-decodes the context param once, then base64-decodes it back to the object.
+    const contextParam = new URL(editorUrl).searchParams.get('context')
+    expect(contextParam).not.toBeNull()
+    expect(JSON.parse(atob(decodeURIComponent(contextParam ?? '')))).toEqual(context)
+  })
+})
 
 describe(buildEditorDomain.name, () => {
   it('uses https for production base domains', () => {
