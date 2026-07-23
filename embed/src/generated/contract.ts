@@ -4,7 +4,7 @@
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const EDITOR_ERROR_CODES = ["bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
+export const EDITOR_ERROR_CODES = ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
 export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number]
 
 export const FIELD_TYPES = ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"] as const
@@ -97,7 +97,7 @@ export const OPERATIONS = [
     wire_type: "DOWNLOAD",
     method: "download",
     description: "Generate and download the current document as a PDF. Returns no data.",
-    error_codes: ["bad_request:no_document_loaded", "bad_request:missing_required_fields"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:missing_required_fields", "bad_request:download_blocked"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* Download */,

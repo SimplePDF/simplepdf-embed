@@ -1,5 +1,5 @@
 {
-  "editor_version": "40196b30-20260626T045356Z",
+  "editor_version": "07807b8d-20260723T044102Z",
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -230,7 +230,11 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:no_document_loaded", "bad_request:missing_required_fields"]
+      "error_codes": [
+        "bad_request:no_document_loaded",
+        "bad_request:missing_required_fields",
+        "bad_request:download_blocked"
+      ]
     },
     {
       "request_type": "FOCUS_FIELD",
@@ -635,6 +639,11 @@
         "properties": {
           "code": {
             "anyOf": [
+              {
+                "type": "string",
+                "const": "bad_request:download_blocked",
+                "description": "The browser blocked delivering the generated document (share sheet or new tab denied without a user gesture, or a popup blocker). Retry the download from a direct user interaction."
+              },
               {
                 "type": "string",
                 "const": "bad_request:editor_not_ready",
