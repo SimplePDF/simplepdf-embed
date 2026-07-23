@@ -328,7 +328,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
         </svg>
       </button>
       <div class="simplePDF_iframeContainer">
-        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" class="simplePDF_iframe" src="${
+        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" allow="clipboard-read; clipboard-write; web-share" class="simplePDF_iframe" src="${
           iframeURL.href
         }" onload="${onIframeLoaded()}"/>
       </div>

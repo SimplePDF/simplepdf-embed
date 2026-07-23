@@ -536,10 +536,22 @@ const mountIntoContainer = (
   const iframe = document.createElement('iframe')
   iframe.title = iframeAttrs?.title ?? 'SimplePDF'
   iframe.setAttribute('referrerPolicy', 'no-referrer-when-downgrade')
-  // The editor needs clipboard access for copy/paste; default it on (overridable).
-  iframe.setAttribute('allow', iframeAttrs?.allow ?? 'clipboard-read; clipboard-write')
+  // The editor needs clipboard access for copy/paste, and web-share so the editor's
+  // share-sheet download path works on iOS — navigator.share is permissions-policy
+  // gated in cross-origin iframes and rejects without the delegation. Default both
+  // on (overridable).
+  iframe.setAttribute('allow', iframeAttrs?.allow ?? 'clipboard-read; clipboard-write; web-share')
   if (iframeAttrs?.sandbox !== undefined) {
     iframe.setAttribute('sandbox', iframeAttrs.sandbox)
+    // Chromium silently no-ops the editor's Download click inside a sandboxed frame
+    // missing this token — no error, no event, nothing happens. console (not the
+    // logger, which defaults to noop) so the misconfiguration is visible to the
+    // integrator during development.
+    if (!iframeAttrs.sandbox.split(/\s+/).some((token) => token.toLowerCase() === 'allow-downloads')) {
+      console.warn(
+        '[SimplePDF] The iframe "sandbox" attribute is missing "allow-downloads": the editor\'s Download button will be silently blocked by the browser. Add "allow-downloads" to your sandbox tokens.',
+      )
+    }
   }
   if (iframeAttrs?.className !== undefined) {
     iframe.className = iframeAttrs.className

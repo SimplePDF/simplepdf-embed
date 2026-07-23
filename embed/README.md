@@ -111,7 +111,7 @@ Either way you get the same typed `Embed` handle.
 | `baseDomain` | `string` | the editor's base domain (defaults to `simplepdf.com`) |
 | `locale` | `Locale` | editor UI language |
 | `context` | `object` | opaque data echoed back on submissions |
-| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write` |
+| `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write; web-share` — a custom `allow` MUST keep `web-share` or the editor's iOS share-sheet download is silently denied; a custom `sandbox` MUST include `allow-downloads` or the editor's Download button is silently blocked |
 | `logger` | `BridgeLogger` | structured logs (ids + timing only, never payloads) |
 
 ## Document source
