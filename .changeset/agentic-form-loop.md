@@ -1,6 +1,6 @@
 ---
 "@simplepdf/embed": minor
-"@simplepdf/react-embed-pdf": minor
+"@simplepdf/react-embed-pdf": major
 ---
 
 Make the full form-building loop drivable through the editor contract: detect, see, adjust, verify.
