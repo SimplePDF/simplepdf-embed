@@ -3,13 +3,18 @@ import { z } from 'zod'
 
 export const CreateFieldInput = z.object({
   type: z.enum(["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]).describe("Field type to create."),
-  x: z.number().describe("Field x position, in PDF points."),
-  y: z.number().describe("Field y position, in PDF points."),
+  x: z.number().describe("X of the field's top-left corner, in PDF points from the page's left edge."),
+  y: z.number().describe("Y of the field's top-left corner, in PDF points from the page's TOP edge (y grows downward) - the same convention get_fields reports."),
   width: z.number().describe("Field width, in PDF points."),
   height: z.number().describe("Field height, in PDF points."),
   page: z.number().int().describe("1-based page to place the field on."),
+  name: z.string().describe("Optional field name, shown as the field label in the editor sidebar.").optional(),
+  comb: z.object({
+  cellOffsets: z.array(z.number()).describe("Per-cell x offsets relative to the field's x, in PDF points. Must start at 0, increase strictly, and leave at least cell_width between consecutive offsets."),
+  cellWidth: z.number().describe("Width of a single character cell, in PDF points. Must be positive."),
+}).describe("Explicit comb cell layout - COMB_TEXT only (rejected for other types). The field width must equal the last offset plus cell_width, so the layout round-trips verbatim through get_fields. Omit for the editor default layout.").optional(),
   value: z.string().describe("Optional initial value. A string for text/checkbox fields, or a data URL for signature/picture fields.").optional(),
-}).describe("Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.")
+}).describe("Create a new overlay field of the given type at an (x, y) position and size, in PDF points with a top-left origin (y grows downward; the same convention get_fields reports, so created geometry reads back identically). Placed on a 1-based page. COMB_TEXT fields accept an explicit comb cell layout. To adjust an existing field, delete it and recreate it with the corrected geometry. Returns { field_id } for the created field. Requires editing to be enabled.")
 export type CreateFieldInput = z.infer<typeof CreateFieldInput>
 export const DeleteFieldsInput = z.object({
   fieldIds: z.array(z.string()).describe("IDs of the fields to delete. Omit to delete every field on the target page.").optional(),
@@ -32,7 +37,10 @@ export const GetDocumentContentInput = z.object({
   extractionMode: z.enum(["auto", "ocr"]).describe("Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.").optional(),
 }).describe("Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.")
 export type GetDocumentContentInput = z.infer<typeof GetDocumentContentInput>
-export const GetFieldsInput = z.object({}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.")
+export const GetFieldsInput = z.object({
+  includeAnnotatedPages: z.boolean().describe("When true, also return page renders with a numbered badge over every field (badge n = the n-th entry of the returned fields array), so field placement can be verified visually. Subject to the same access gating as get_document_content. After creating or adjusting fields, call get_fields again with this flag to SEE the result.").optional(),
+  pages: z.array(z.number().int()).describe("Optional 1-based page filter for the annotated renders (unique, within the document). Only meaningful together with include_annotated_pages; geometry is always returned for every field regardless.").optional(),
+}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and geometry: x, y, width, height in PDF points with a top-left origin (y grows downward) - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers. COMB_TEXT fields also report their comb cell layout. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification. Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.")
 export type GetFieldsInput = z.infer<typeof GetFieldsInput>
 export const GoToInput = z.object({
   page: z.number().int().describe("1-based page to navigate to."),

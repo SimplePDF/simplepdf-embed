@@ -16,7 +16,7 @@ export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number]
 export const EXTRACTION_MODES = ["auto", "ocr"] as const
 export type ExtractionMode = (typeof EXTRACTION_MODES)[number]
 
-export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; value?: string }
+export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; name?: string; comb?: { cellOffsets: number[]; cellWidth: number }; value?: string }
 export type CreateFieldOutput = { fieldId: string }
 export type DeleteFieldsInput = { fieldIds?: string[]; page?: number }
 export type DeleteFieldsOutput = { deletedCount: number }
@@ -30,8 +30,8 @@ export type FocusFieldInput = { fieldId: string }
 export type FocusFieldOutput = { hint: { type: "user_action_expected"; message: string } }
 export type GetDocumentContentInput = { extractionMode?: ExtractionMode }
 export type GetDocumentContentOutput = { name: string; pages: Array<{ page: number; content: string }> }
-export type GetFieldsInput = Record<string, never>
-export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; value: string | null; options: string[] | null }> }
+export type GetFieldsInput = { includeAnnotatedPages?: boolean; pages?: number[] }
+export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; x: number; y: number; width: number; height: number; comb: { cellOffsets: number[]; cellWidth: number } | null; value: string | null; options: string[] | null }>; pages: Array<{ page: number; width: number; height: number }>; annotatedPages?: Array<{ page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; pageWidth: number; pageHeight: number; badges: Record<string, string> }> }
 export type GoToInput = { page: number }
 export type GoToOutput = null
 export type LoadDocumentInput = { dataUrl: string; name?: string; page?: number }
@@ -60,7 +60,7 @@ export const OPERATIONS = [
     request_type: "CREATE_FIELD",
     wire_type: "CREATE_FIELD",
     method: "createField",
-    description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.",
+    description: "Create a new overlay field of the given type at an (x, y) position and size, in PDF points with a top-left origin (y grows downward; the same convention get_fields reports, so created geometry reads back identically). Placed on a 1-based page. COMB_TEXT fields accept an explicit comb cell layout. To adjust an existing field, delete it and recreate it with the corrected geometry. Returns { field_id } for the created field. Requires editing to be enabled.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -123,8 +123,8 @@ export const OPERATIONS = [
     request_type: "GET_FIELDS",
     wire_type: "GET_FIELDS",
     method: "getFields",
-    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.",
-    error_codes: ["bad_request:no_document_loaded"] as const,
+    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and geometry: x, y, width, height in PDF points with a top-left origin (y grows downward) - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers. COMB_TEXT fields also report their comb cell layout. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification. Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
+    error_codes: ["bad_request:invalid_page", "bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* GetFields */,

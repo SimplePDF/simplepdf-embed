@@ -71,6 +71,9 @@ const KNOWN_SCHEMA_KEYWORDS = new Set([
   'required',
   'items',
   'description',
+  // Object form only (a record's value schema, e.g. GET_FIELDS' annotated-page badges); the
+  // boolean strictness form never reaches the manifest (the editor strips it).
+  'additionalProperties',
 ])
 const assertKnownKeywords = (node) => {
   for (const keyword of Object.keys(node)) {
@@ -94,6 +97,9 @@ const preflightSchema = (node) => {
     for (const sub of Object.values(node.properties)) {
       preflightSchema(sub)
     }
+  }
+  if (typeof node.additionalProperties === 'object' && node.additionalProperties !== null) {
+    preflightSchema(node.additionalProperties)
   }
   if (node.items !== undefined) {
     preflightSchema(node.items)
@@ -153,6 +159,10 @@ const tsForObject = (node, camelKeys) => {
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
+  // A record (open key set, one value schema): keys are DATA (e.g. badge numbers), never camelized.
+  if (keys.length === 0 && typeof node.additionalProperties === 'object' && node.additionalProperties !== null) {
+    return `Record<string, ${tsForNode(node.additionalProperties, camelKeys)}>`
+  }
   if (keys.length === 0) {
     return 'Record<string, never>'
   }
@@ -214,6 +224,10 @@ const zodForObject = (node) => {
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
+  // A record (open key set, one value schema) - mirrors tsForObject's record arm.
+  if (keys.length === 0 && typeof node.additionalProperties === 'object' && node.additionalProperties !== null) {
+    return `z.record(z.string(), ${zodForNode(node.additionalProperties, { withDescription: false })})`
+  }
   if (keys.length === 0) {
     return 'z.object({})'
   }
