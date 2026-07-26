@@ -335,7 +335,7 @@
     },
     {
       "request_type": "GET_FIELDS",
-      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and geometry: x, y, width, height in PDF points with a top-left origin (y grows downward) - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers. COMB_TEXT fields also report their comb cell layout. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification. Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
+      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -344,14 +344,14 @@
             "type": "boolean"
           },
           "pages": {
-            "description": "Optional 1-based page filter for the annotated renders (unique, within the document). Only meaningful together with include_annotated_pages; geometry is always returned for every field regardless.",
+            "description": "Optional 1-based page filter for the annotated renders (unique, within the document). Only meaningful together with include_annotated_pages; the field listing itself always covers the whole document.",
             "type": "array",
             "items": {
               "type": "integer"
             }
           }
         },
-        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and geometry: x, y, width, height in PDF points with a top-left origin (y grows downward) - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers. COMB_TEXT fields also report their comb cell layout. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification. Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points."
+        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points."
       },
       "output_schema": {
         "type": "object",
@@ -382,46 +382,60 @@
                   "type": "integer",
                   "description": "1-based page the field sits on, at its CURRENT position (tracks page deletions and moves)."
                 },
-                "x": {
-                  "type": "number",
-                  "description": "X of the field's top-left corner, in PDF points from the page's left edge."
-                },
-                "y": {
-                  "type": "number",
-                  "description": "Y of the field's top-left corner, in PDF points from the page's TOP edge (y grows downward)."
-                },
-                "width": {
-                  "type": "number",
-                  "description": "Field width, in PDF points."
-                },
-                "height": {
-                  "type": "number",
-                  "description": "Field height, in PDF points."
-                },
-                "comb": {
+                "geometry": {
                   "anyOf": [
                     {
                       "type": "object",
                       "properties": {
-                        "cell_offsets": {
-                          "type": "array",
-                          "items": {
-                            "type": "number"
-                          },
-                          "description": "Per-cell x offsets relative to the field's x, in PDF points. The first offset is 0."
-                        },
-                        "cell_width": {
+                        "x": {
                           "type": "number",
-                          "description": "Width of a single character cell, in PDF points."
+                          "description": "X of the field's top-left corner, in PDF points from the page's left edge."
+                        },
+                        "y": {
+                          "type": "number",
+                          "description": "Y of the field's top-left corner, in PDF points from the page's TOP edge (y grows downward)."
+                        },
+                        "width": {
+                          "type": "number",
+                          "description": "Field width, in PDF points."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Field height, in PDF points."
+                        },
+                        "comb": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "cell_offsets": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "Per-cell x offsets relative to the field's x, in PDF points. The first offset is 0."
+                                },
+                                "cell_width": {
+                                  "type": "number",
+                                  "description": "Width of a single character cell, in PDF points."
+                                }
+                              },
+                              "required": ["cell_offsets", "cell_width"]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Comb layout (one character per cell) of a COMB_TEXT field; null for every other type."
                         }
                       },
-                      "required": ["cell_offsets", "cell_width"]
+                      "required": ["x", "y", "width", "height", "comb"]
                     },
                     {
                       "type": "null"
                     }
                   ],
-                  "description": "Comb layout (one character per cell) of a COMB_TEXT field; null for every other type."
+                  "description": "The field's position and size in PDF points (top-left origin, y grows downward - the same convention create_field consumes). Null when the tenant's plan does not include programmatic geometry access: upgrade to Pro or above at https://simplepdf.com/pricing."
                 },
                 "value": {
                   "anyOf": [
@@ -449,7 +463,7 @@
                   "description": "Valid values for this field (a DROPDOWN/RADIO's choices), or null. When set, the value passed to set_field_value or create_field must be one of these."
                 }
               },
-              "required": ["field_id", "name", "type", "page", "x", "y", "width", "height", "comb", "value", "options"]
+              "required": ["field_id", "name", "type", "page", "geometry", "value", "options"]
             }
           },
           "pages": {

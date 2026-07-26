@@ -31,7 +31,7 @@ export type FocusFieldOutput = { hint: { type: "user_action_expected"; message: 
 export type GetDocumentContentInput = { extractionMode?: ExtractionMode }
 export type GetDocumentContentOutput = { name: string; pages: Array<{ page: number; content: string }> }
 export type GetFieldsInput = { includeAnnotatedPages?: boolean; pages?: number[] }
-export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; x: number; y: number; width: number; height: number; comb: { cellOffsets: number[]; cellWidth: number } | null; value: string | null; options: string[] | null }>; pages: Array<{ page: number; width: number; height: number }>; annotatedPages?: Array<{ page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; pageWidth: number; pageHeight: number; badges: Record<string, string> }> }
+export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; geometry: { x: number; y: number; width: number; height: number; comb: { cellOffsets: number[]; cellWidth: number } | null } | null; value: string | null; options: string[] | null }>; pages: Array<{ page: number; width: number; height: number }>; annotatedPages?: Array<{ page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; pageWidth: number; pageHeight: number; badges: Record<string, string> }> }
 export type GoToInput = { page: number }
 export type GoToOutput = null
 export type LoadDocumentInput = { dataUrl: string; name?: string; page?: number }
@@ -123,7 +123,7 @@ export const OPERATIONS = [
     request_type: "GET_FIELDS",
     wire_type: "GET_FIELDS",
     method: "getFields",
-    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and geometry: x, y, width, height in PDF points with a top-left origin (y grows downward) - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers. COMB_TEXT fields also report their comb cell layout. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification. Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
+    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
     error_codes: ["bad_request:invalid_page", "bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: true,
