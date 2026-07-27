@@ -14,6 +14,7 @@ export const makeActionsStub = (): IframeActions => {
     detectFields: vi.fn(method),
     download: vi.fn(method),
     focusField: vi.fn(method),
+    getAnnotatedArea: vi.fn(method),
     getDocumentContent: vi.fn(method),
     getFields: vi.fn(method),
     goTo: vi.fn(method),

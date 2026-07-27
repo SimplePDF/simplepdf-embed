@@ -8,7 +8,6 @@ export const CreateFieldInput = z.object({
   width: z.number().describe("Field width, in PDF points."),
   height: z.number().describe("Field height, in PDF points."),
   page: z.number().int().describe("1-based page to place the field on."),
-  name: z.string().describe("Optional field name, shown as the field label in the editor sidebar.").optional(),
   comb: z.object({
   cellOffsets: z.array(z.number()).describe("Per-cell x offsets relative to the field's x, in PDF points. Must start at 0, increase strictly, and leave at least cell_width between consecutive offsets."),
   cellWidth: z.number().describe("Width of a single character cell, in PDF points. Must be positive."),
@@ -33,14 +32,20 @@ export const FocusFieldInput = z.object({
   fieldId: z.string().describe("ID of the field to focus and scroll into view."),
 }).describe("Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.")
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
+export const GetAnnotatedAreaInput = z.object({
+  page: z.number().int().describe("1-based page to render."),
+  x: z.number().describe("X of the area's top-left corner, in PDF points from the page's left edge. Provide x, y, width and height together to render a sub-area; omit all four to render the whole page.").optional(),
+  y: z.number().describe("Y of the area's top-left corner, in PDF points from the page's TOP edge (y grows downward).").optional(),
+  width: z.number().describe("Area width in PDF points.").optional(),
+  height: z.number().describe("Area height in PDF points.").optional(),
+  zoom: z.number().describe("Magnification over the whole-page overview scale (~1.4 px per PDF point). 1 (default) renders the area at overview resolution; higher values zoom in for pixel-precise checks. Clamped so the rendered image stays within a bounded pixel budget; the response echoes the effective pixel size.").optional(),
+}).describe("Render a badge-annotated PNG of a page or a sub-area of it, to SEE field placement against the printed form. Pass page alone for a whole-page overview; add x, y, width, height (PDF points, top-left origin, y grows downward - the same convention get_fields and create_field use) to crop to a region, and zoom to magnify further for fine detail such as comb cells straddling their printed bars. Every field overlapping the area is outlined and given a numbered badge. Returns { page, x, y, width, height (the rendered area in PDF points), image_data_url, image_width, image_height (pixels; the px-per-point scale is image_width / width), badges } where badges maps each badge number to its field_id. This is a Premium capability (Plan.ENTERPRISE); lower plans get plan_upgrade_required (or signup_required for anonymous SDK embeds). It renders document content, so like get_document_content it also requires the embedding origin to be whitelisted for the tenant.")
+export type GetAnnotatedAreaInput = z.infer<typeof GetAnnotatedAreaInput>
 export const GetDocumentContentInput = z.object({
   extractionMode: z.enum(["auto", "ocr"]).describe("Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.").optional(),
 }).describe("Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.")
 export type GetDocumentContentInput = z.infer<typeof GetDocumentContentInput>
-export const GetFieldsInput = z.object({
-  includeAnnotatedPages: z.boolean().describe("When true, also return page renders with a numbered badge over every field (badge n = the n-th entry of the returned fields array), so field placement can be verified visually. Subject to the same access gating as get_document_content. After creating or adjusting fields, call get_fields again with this flag to SEE the result.").optional(),
-  pages: z.array(z.number().int()).describe("Optional 1-based page filter for the annotated renders (unique, within the document). Only meaningful together with include_annotated_pages; the field listing itself always covers the whole document.").optional(),
-}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.")
+export const GetFieldsInput = z.object({}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. Call this first to discover field ids before reading or setting values, and to verify geometry after create_field. To SEE placement against the printed page, call get_annotated_area. Returns { fields, pages } where pages lists every page with its current 1-based position and its displayed size in PDF points.")
 export type GetFieldsInput = z.infer<typeof GetFieldsInput>
 export const GoToInput = z.object({
   page: z.number().int().describe("1-based page to navigate to."),

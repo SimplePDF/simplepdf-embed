@@ -14,14 +14,16 @@ export const FINALISATION_ACTION: FinalisationAction = IS_DEMO_MODE
 type SimplePDFToolDefinitions = ReturnType<typeof simplePDFToolDefinitions>
 type ToolDefinition = SimplePDFToolDefinitions[keyof SimplePDFToolDefinitions]
 
-// Copilot's LLM tool set: the agentic tools from @simplepdf/embed minus
-// createField (copilot never asks the model to create fields), with the
+// Copilot's LLM tool set: the agentic tools from @simplepdf/embed minus the
+// authoring tools it never uses - createField and getAnnotatedArea (copilot
+// fills forms, it does not build them, so it never asks the model to create
+// fields or to render the Premium build-verification image) - with the
 // mode-appropriate finalisation tool (submit XOR download). Returned as the
 // plain { name: { description, inputSchema } } record streamText consumes.
 export const buildCopilotToolDefinitions = (): Record<string, ToolDefinition> => {
   const all = simplePDFToolDefinitions()
   const isExposed = (name: string): boolean => {
-    if (name === 'createField') {
+    if (name === 'createField' || name === 'getAnnotatedArea') {
       return false
     }
     if (name === 'submit') {

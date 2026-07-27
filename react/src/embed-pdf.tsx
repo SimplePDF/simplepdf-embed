@@ -388,6 +388,7 @@ export const useEmbed = (): {
       detectFields: () => embedRef.current?.detectFields() ?? notMounted(),
       download: () => embedRef.current?.download() ?? notMounted(),
       focusField: (input) => embedRef.current?.focusField(input) ?? notMounted(),
+      getAnnotatedArea: (input) => embedRef.current?.getAnnotatedArea(input) ?? notMounted(),
       getDocumentContent: (input) => embedRef.current?.getDocumentContent(input) ?? notMounted(),
       getFields: () => embedRef.current?.getFields() ?? notMounted(),
       goTo: (input) => embedRef.current?.goTo(input) ?? notMounted(),

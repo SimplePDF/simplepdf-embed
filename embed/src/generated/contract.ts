@@ -16,7 +16,7 @@ export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number]
 export const EXTRACTION_MODES = ["auto", "ocr"] as const
 export type ExtractionMode = (typeof EXTRACTION_MODES)[number]
 
-export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; name?: string; comb?: { cellOffsets: number[]; cellWidth: number }; value?: string }
+export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; comb?: { cellOffsets: number[]; cellWidth: number }; value?: string }
 export type CreateFieldOutput = { fieldId: string }
 export type DeleteFieldsInput = { fieldIds?: string[]; page?: number }
 export type DeleteFieldsOutput = { deletedCount: number }
@@ -28,10 +28,12 @@ export type DownloadInput = Record<string, never>
 export type DownloadOutput = null
 export type FocusFieldInput = { fieldId: string }
 export type FocusFieldOutput = { hint: { type: "user_action_expected"; message: string } }
+export type GetAnnotatedAreaInput = { page: number; x?: number; y?: number; width?: number; height?: number; zoom?: number }
+export type GetAnnotatedAreaOutput = { page: number; x: number; y: number; width: number; height: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> }
 export type GetDocumentContentInput = { extractionMode?: ExtractionMode }
 export type GetDocumentContentOutput = { name: string; pages: Array<{ page: number; content: string }> }
-export type GetFieldsInput = { includeAnnotatedPages?: boolean; pages?: number[] }
-export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; geometry: { x: number; y: number; width: number; height: number; comb: { cellOffsets: number[]; cellWidth: number } | null } | null; value: string | null; options: string[] | null }>; pages: Array<{ page: number; width: number; height: number }>; annotatedPages?: Array<{ page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; pageWidth: number; pageHeight: number; badges: Record<string, string> }> }
+export type GetFieldsInput = Record<string, never>
+export type GetFieldsOutput = { fields: Array<{ fieldId: string; name: string | null; type: FieldType; page: number; geometry: { x: number; y: number; width: number; height: number; comb: { cellOffsets: number[]; cellWidth: number } | null }; value: string | null; options: string[] | null }>; pages: Array<{ page: number; width: number; height: number }> }
 export type GoToInput = { page: number }
 export type GoToOutput = null
 export type LoadDocumentInput = { dataUrl: string; name?: string; page?: number }
@@ -111,6 +113,15 @@ export const OPERATIONS = [
     has_output: true,
   } /* FocusField */,
   {
+    request_type: "GET_ANNOTATED_AREA",
+    wire_type: "GET_ANNOTATED_AREA",
+    method: "getAnnotatedArea",
+    description: "Render a badge-annotated PNG of a page or a sub-area of it, to SEE field placement against the printed form. Pass page alone for a whole-page overview; add x, y, width, height (PDF points, top-left origin, y grows downward - the same convention get_fields and create_field use) to crop to a region, and zoom to magnify further for fine detail such as comb cells straddling their printed bars. Every field overlapping the area is outlined and given a numbered badge. Returns { page, x, y, width, height (the rendered area in PDF points), image_data_url, image_width, image_height (pixels; the px-per-point scale is image_width / width), badges } where badges maps each badge number to its field_id. This is a Premium capability (Plan.ENTERPRISE); lower plans get plan_upgrade_required (or signup_required for anonymous SDK embeds). It renders document content, so like get_document_content it also requires the embedding origin to be whitelisted for the tenant.",
+    error_codes: ["bad_request:invalid_dimensions", "bad_request:invalid_page", "bad_request:invalid_value", "bad_request:page_out_of_range"] as const,
+    is_agentic_tool: true,
+    has_output: true,
+  } /* GetAnnotatedArea */,
+  {
     request_type: "GET_DOCUMENT_CONTENT",
     wire_type: "GET_DOCUMENT_CONTENT",
     method: "getDocumentContent",
@@ -123,8 +134,8 @@ export const OPERATIONS = [
     request_type: "GET_FIELDS",
     wire_type: "GET_FIELDS",
     method: "getFields",
-    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
-    error_codes: ["bad_request:invalid_page", "bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:page_out_of_range"] as const,
+    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. Call this first to discover field ids before reading or setting values, and to verify geometry after create_field. To SEE placement against the printed page, call get_annotated_area. Returns { fields, pages } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
+    error_codes: ["bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* GetFields */,

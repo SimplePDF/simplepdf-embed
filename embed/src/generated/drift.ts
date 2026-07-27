@@ -20,6 +20,7 @@ export type DriftGuards = [
   AssertTrue<Exact<Schemas.DetectFieldsInput, Contract.DetectFieldsInput>>,
   AssertTrue<Exact<Schemas.DownloadInput, Contract.DownloadInput>>,
   AssertTrue<Exact<Schemas.FocusFieldInput, Contract.FocusFieldInput>>,
+  AssertTrue<Exact<Schemas.GetAnnotatedAreaInput, Contract.GetAnnotatedAreaInput>>,
   AssertTrue<Exact<Schemas.GetDocumentContentInput, Contract.GetDocumentContentInput>>,
   AssertTrue<Exact<Schemas.GetFieldsInput, Contract.GetFieldsInput>>,
   AssertTrue<Exact<Schemas.GoToInput, Contract.GoToInput>>,

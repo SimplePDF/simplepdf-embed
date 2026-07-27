@@ -1,5 +1,4 @@
 {
-  "editor_version": null,
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -18,7 +17,11 @@
           "description": "The operation's input payload, matching that operation's input_schema."
         }
       },
-      "required": ["type", "request_id", "data"]
+      "required": [
+        "type",
+        "request_id",
+        "data"
+      ]
     },
     "result_envelope_schema": {
       "type": "object",
@@ -47,7 +50,10 @@
                       "description": "Matches the operation's output_schema; null for ops that return nothing."
                     }
                   },
-                  "required": ["success", "data"]
+                  "required": [
+                    "success",
+                    "data"
+                  ]
                 },
                 {
                   "type": "object",
@@ -60,15 +66,24 @@
                       "description": "The error object when success is false: a `code` plus a human-readable `message` (with typed `details` for bad_request:missing_required_fields). Its full shape and code set are editor_error_schema, where each code const carries a description of its meaning."
                     }
                   },
-                  "required": ["success", "error"]
+                  "required": [
+                    "success",
+                    "error"
+                  ]
                 }
               ]
             }
           },
-          "required": ["request_id", "result"]
+          "required": [
+            "request_id",
+            "result"
+          ]
         }
       },
-      "required": ["type", "data"]
+      "required": [
+        "type",
+        "data"
+      ]
     },
     "correlation": {
       "id_field": "request_id",
@@ -84,7 +99,13 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"],
+            "enum": [
+              "TEXT",
+              "SIGNATURE",
+              "PICTURE",
+              "CHECKBOX",
+              "COMB_TEXT"
+            ],
             "description": "Field type to create."
           },
           "x": {
@@ -107,10 +128,6 @@
             "type": "integer",
             "description": "1-based page to place the field on."
           },
-          "name": {
-            "description": "Optional field name, shown as the field label in the editor sidebar.",
-            "type": "string"
-          },
           "comb": {
             "description": "Explicit comb cell layout - COMB_TEXT only (rejected for other types). The field width must equal the last offset plus cell_width, so the layout round-trips verbatim through get_fields. Omit for the editor default layout.",
             "type": "object",
@@ -127,14 +144,24 @@
                 "description": "Width of a single character cell, in PDF points. Must be positive."
               }
             },
-            "required": ["cell_offsets", "cell_width"]
+            "required": [
+              "cell_offsets",
+              "cell_width"
+            ]
           },
           "value": {
             "description": "Optional initial value. A string for text/checkbox fields, or a data URL for signature/picture fields.",
             "type": "string"
           }
         },
-        "required": ["type", "x", "y", "width", "height", "page"],
+        "required": [
+          "type",
+          "x",
+          "y",
+          "width",
+          "height",
+          "page"
+        ],
         "description": "Create a new overlay field of the given type at an (x, y) position and size, in PDF points with a top-left origin (y grows downward; the same convention get_fields reports, so created geometry reads back identically). Placed on a 1-based page. COMB_TEXT fields accept an explicit comb cell layout. To adjust an existing field, delete it and recreate it with the corrected geometry. Returns { field_id } for the created field. Requires editing to be enabled."
       },
       "output_schema": {
@@ -144,7 +171,9 @@
             "type": "string"
           }
         },
-        "required": ["field_id"]
+        "required": [
+          "field_id"
+        ]
       },
       "error_codes": [
         "forbidden:editing_not_allowed",
@@ -184,7 +213,9 @@
             "type": "integer"
           }
         },
-        "required": ["deleted_count"]
+        "required": [
+          "deleted_count"
+        ]
       },
       "error_codes": [
         "forbidden:editing_not_allowed",
@@ -208,7 +239,9 @@
             "description": "1-based page numbers to delete."
           }
         },
-        "required": ["pages"],
+        "required": [
+          "pages"
+        ],
         "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled."
       },
       "output_schema": {
@@ -237,9 +270,14 @@
             "type": "integer"
           }
         },
-        "required": ["detected_count"]
+        "required": [
+          "detected_count"
+        ]
       },
-      "error_codes": ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"]
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:no_document_loaded"
+      ]
     },
     {
       "request_type": "DOWNLOAD",
@@ -269,7 +307,9 @@
             "description": "ID of the field to focus and scroll into view."
           }
         },
-        "required": ["field_id"],
+        "required": [
+          "field_id"
+        ],
         "description": "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next."
       },
       "output_schema": {
@@ -286,12 +326,119 @@
                 "type": "string"
               }
             },
-            "required": ["type", "message"]
+            "required": [
+              "type",
+              "message"
+            ]
           }
         },
-        "required": ["hint"]
+        "required": [
+          "hint"
+        ]
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"]
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:no_document_loaded",
+        "bad_request:field_not_found"
+      ]
+    },
+    {
+      "request_type": "GET_ANNOTATED_AREA",
+      "description": "Render a badge-annotated PNG of a page or a sub-area of it, to SEE field placement against the printed form. Pass page alone for a whole-page overview; add x, y, width, height (PDF points, top-left origin, y grows downward - the same convention get_fields and create_field use) to crop to a region, and zoom to magnify further for fine detail such as comb cells straddling their printed bars. Every field overlapping the area is outlined and given a numbered badge. Returns { page, x, y, width, height (the rendered area in PDF points), image_data_url, image_width, image_height (pixels; the px-per-point scale is image_width / width), badges } where badges maps each badge number to its field_id. This is a Premium capability (Plan.ENTERPRISE); lower plans get plan_upgrade_required (or signup_required for anonymous SDK embeds). It renders document content, so like get_document_content it also requires the embedding origin to be whitelisted for the tenant.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "1-based page to render."
+          },
+          "x": {
+            "description": "X of the area's top-left corner, in PDF points from the page's left edge. Provide x, y, width and height together to render a sub-area; omit all four to render the whole page.",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y of the area's top-left corner, in PDF points from the page's TOP edge (y grows downward).",
+            "type": "number"
+          },
+          "width": {
+            "description": "Area width in PDF points.",
+            "type": "number"
+          },
+          "height": {
+            "description": "Area height in PDF points.",
+            "type": "number"
+          },
+          "zoom": {
+            "description": "Magnification over the whole-page overview scale (~1.4 px per PDF point). 1 (default) renders the area at overview resolution; higher values zoom in for pixel-precise checks. Clamped so the rendered image stays within a bounded pixel budget; the response echoes the effective pixel size.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "page"
+        ],
+        "description": "Render a badge-annotated PNG of a page or a sub-area of it, to SEE field placement against the printed form. Pass page alone for a whole-page overview; add x, y, width, height (PDF points, top-left origin, y grows downward - the same convention get_fields and create_field use) to crop to a region, and zoom to magnify further for fine detail such as comb cells straddling their printed bars. Every field overlapping the area is outlined and given a numbered badge. Returns { page, x, y, width, height (the rendered area in PDF points), image_data_url, image_width, image_height (pixels; the px-per-point scale is image_width / width), badges } where badges maps each badge number to its field_id. This is a Premium capability (Plan.ENTERPRISE); lower plans get plan_upgrade_required (or signup_required for anonymous SDK embeds). It renders document content, so like get_document_content it also requires the embedding origin to be whitelisted for the tenant."
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "1-based page position this render shows."
+          },
+          "x": {
+            "type": "number",
+            "description": "X of the rendered area's top-left corner in PDF points (0 for a whole-page render)."
+          },
+          "y": {
+            "type": "number",
+            "description": "Y of the rendered area's top-left corner in PDF points (0 for a whole-page render)."
+          },
+          "width": {
+            "type": "number",
+            "description": "Rendered area width in PDF points."
+          },
+          "height": {
+            "type": "number",
+            "description": "Rendered area height in PDF points."
+          },
+          "image_data_url": {
+            "type": "string",
+            "description": "PNG render of the area as a data URL, with a numbered badge over every field overlapping it."
+          },
+          "image_width": {
+            "type": "integer",
+            "description": "Render width in pixels. Divide by width to get the px-per-point scale for mapping pixels back to points."
+          },
+          "image_height": {
+            "type": "integer",
+            "description": "Render height in pixels."
+          },
+          "badges": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Badge number (as drawn on the render) to field_id, for every field overlapping the rendered area."
+          }
+        },
+        "required": [
+          "page",
+          "x",
+          "y",
+          "width",
+          "height",
+          "image_data_url",
+          "image_width",
+          "image_height",
+          "badges"
+        ]
+      },
+      "error_codes": [
+        "bad_request:invalid_dimensions",
+        "bad_request:invalid_page",
+        "bad_request:invalid_value",
+        "bad_request:page_out_of_range"
+      ]
     },
     {
       "request_type": "GET_DOCUMENT_CONTENT",
@@ -302,7 +449,10 @@
           "extraction_mode": {
             "description": "Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.",
             "type": "string",
-            "enum": ["auto", "ocr"]
+            "enum": [
+              "auto",
+              "ocr"
+            ]
           }
         },
         "description": "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }."
@@ -325,33 +475,30 @@
                   "type": "string"
                 }
               },
-              "required": ["page", "content"]
+              "required": [
+                "page",
+                "content"
+              ]
             }
           }
         },
-        "required": ["name", "pages"]
+        "required": [
+          "name",
+          "pages"
+        ]
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded"]
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:no_document_loaded"
+      ]
     },
     {
       "request_type": "GET_FIELDS",
-      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
+      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. Call this first to discover field ids before reading or setting values, and to verify geometry after create_field. To SEE placement against the printed page, call get_annotated_area. Returns { fields, pages } where pages lists every page with its current 1-based position and its displayed size in PDF points.",
       "input_schema": {
         "type": "object",
-        "properties": {
-          "include_annotated_pages": {
-            "description": "When true, also return page renders with a numbered badge over every field (badge n = the n-th entry of the returned fields array), so field placement can be verified visually. Subject to the same access gating as get_document_content. After creating or adjusting fields, call get_fields again with this flag to SEE the result.",
-            "type": "boolean"
-          },
-          "pages": {
-            "description": "Optional 1-based page filter for the annotated renders (unique, within the document). Only meaningful together with include_annotated_pages; the field listing itself always covers the whole document.",
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          }
-        },
-        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and - on plans with programmatic geometry access (Pro and above) - a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. geometry is null on lower plans. Call this first to discover field ids before reading or setting values. Pass include_annotated_pages to additionally get badge-numbered page renders for visual verification (same plan requirement). Returns { fields, pages, annotated_pages? } where pages lists every page with its current 1-based position and its displayed size in PDF points."
+        "properties": {},
+        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and a geometry object: x, y, width, height in PDF points with a top-left origin (y grows downward, the same convention create_field consumes, so a create-then-read round-trip returns identical numbers) plus the comb cell layout for COMB_TEXT fields. Call this first to discover field ids before reading or setting values, and to verify geometry after create_field. To SEE placement against the printed page, call get_annotated_area. Returns { fields, pages } where pages lists every page with its current 1-based position and its displayed size in PDF points."
       },
       "output_schema": {
         "type": "object",
@@ -376,66 +523,76 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"]
+                  "enum": [
+                    "TEXT",
+                    "SIGNATURE",
+                    "PICTURE",
+                    "CHECKBOX",
+                    "COMB_TEXT",
+                    "DROPDOWN",
+                    "RADIO"
+                  ]
                 },
                 "page": {
                   "type": "integer",
                   "description": "1-based page the field sits on, at its CURRENT position (tracks page deletions and moves)."
                 },
                 "geometry": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "x": {
-                          "type": "number",
-                          "description": "X of the field's top-left corner, in PDF points from the page's left edge."
-                        },
-                        "y": {
-                          "type": "number",
-                          "description": "Y of the field's top-left corner, in PDF points from the page's TOP edge (y grows downward)."
-                        },
-                        "width": {
-                          "type": "number",
-                          "description": "Field width, in PDF points."
-                        },
-                        "height": {
-                          "type": "number",
-                          "description": "Field height, in PDF points."
-                        },
-                        "comb": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "cell_offsets": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "number"
-                                  },
-                                  "description": "Per-cell x offsets relative to the field's x, in PDF points. The first offset is 0."
-                                },
-                                "cell_width": {
-                                  "type": "number",
-                                  "description": "Width of a single character cell, in PDF points."
-                                }
-                              },
-                              "required": ["cell_offsets", "cell_width"]
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ],
-                          "description": "Comb layout (one character per cell) of a COMB_TEXT field; null for every other type."
-                        }
-                      },
-                      "required": ["x", "y", "width", "height", "comb"]
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "description": "X of the field's top-left corner, in PDF points from the page's left edge."
                     },
-                    {
-                      "type": "null"
+                    "y": {
+                      "type": "number",
+                      "description": "Y of the field's top-left corner, in PDF points from the page's TOP edge (y grows downward)."
+                    },
+                    "width": {
+                      "type": "number",
+                      "description": "Field width, in PDF points."
+                    },
+                    "height": {
+                      "type": "number",
+                      "description": "Field height, in PDF points."
+                    },
+                    "comb": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "cell_offsets": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "description": "Per-cell x offsets relative to the field's x, in PDF points. The first offset is 0."
+                            },
+                            "cell_width": {
+                              "type": "number",
+                              "description": "Width of a single character cell, in PDF points."
+                            }
+                          },
+                          "required": [
+                            "cell_offsets",
+                            "cell_width"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Comb layout (one character per cell) of a COMB_TEXT field; null for every other type."
                     }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "width",
+                    "height",
+                    "comb"
                   ],
-                  "description": "The field's position and size in PDF points (top-left origin, y grows downward - the same convention create_field consumes). Null when the tenant's plan does not include programmatic geometry access: upgrade to Pro or above at https://simplepdf.com/pricing."
+                  "description": "The field's position and size in PDF points (top-left origin, y grows downward - the same convention create_field consumes, so a create-then-read round-trip returns identical numbers). Always present."
                 },
                 "value": {
                   "anyOf": [
@@ -463,7 +620,15 @@
                   "description": "Valid values for this field (a DROPDOWN/RADIO's choices), or null. When set, the value passed to set_field_value or create_field must be one of these."
                 }
               },
-              "required": ["field_id", "name", "type", "page", "geometry", "value", "options"]
+              "required": [
+                "field_id",
+                "name",
+                "type",
+                "page",
+                "geometry",
+                "value",
+                "options"
+              ]
             }
           },
           "pages": {
@@ -484,66 +649,21 @@
                   "description": "Page height in PDF points, as currently displayed (accounts for page rotation)."
                 }
               },
-              "required": ["page", "width", "height"]
-            }
-          },
-          "annotated_pages": {
-            "description": "Only present when include_annotated_pages was passed.",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "page": {
-                  "type": "integer",
-                  "description": "1-based current page position this render shows."
-                },
-                "image_data_url": {
-                  "type": "string",
-                  "description": "PNG render of the page as a data URL, with a numbered badge over every field."
-                },
-                "image_width": {
-                  "type": "integer",
-                  "description": "Render width in pixels."
-                },
-                "image_height": {
-                  "type": "integer",
-                  "description": "Render height in pixels."
-                },
-                "page_width": {
-                  "type": "number",
-                  "description": "Page width in PDF points - divide pixel positions by image_width/page_width to map back to points."
-                },
-                "page_height": {
-                  "type": "number",
-                  "description": "Page height in PDF points."
-                },
-                "badges": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "description": "Badge number (as drawn on the render) to field_id. Badge n is the n-th entry of the returned fields array."
-                }
-              },
               "required": [
                 "page",
-                "image_data_url",
-                "image_width",
-                "image_height",
-                "page_width",
-                "page_height",
-                "badges"
+                "width",
+                "height"
               ]
             }
           }
         },
-        "required": ["fields", "pages"]
+        "required": [
+          "fields",
+          "pages"
+        ]
       },
       "error_codes": [
-        "bad_request:invalid_page",
-        "bad_request:invalid_value",
-        "bad_request:no_document_loaded",
-        "bad_request:page_out_of_range"
+        "bad_request:no_document_loaded"
       ]
     },
     {
@@ -557,13 +677,18 @@
             "description": "1-based page to navigate to."
           }
         },
-        "required": ["page"],
+        "required": [
+          "page"
+        ],
         "description": "Scroll the editor to a specific 1-based page. Returns no data."
       },
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_page", "bad_request:page_out_of_range"]
+      "error_codes": [
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range"
+      ]
     },
     {
       "request_type": "LOAD_DOCUMENT",
@@ -584,13 +709,18 @@
             "type": "integer"
           }
         },
-        "required": ["data_url"],
+        "required": [
+          "data_url"
+        ],
         "description": "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data."
       },
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:invalid_page"]
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:invalid_page"
+      ]
     },
     {
       "request_type": "MOVE_PAGE",
@@ -607,7 +737,10 @@
             "description": "1-based destination position for the page."
           }
         },
-        "required": ["from_page", "to_page"],
+        "required": [
+          "from_page",
+          "to_page"
+        ],
         "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled."
       },
       "output_schema": {
@@ -632,7 +765,9 @@
             "description": "1-based page to rotate 90 degrees clockwise."
           }
         },
-        "required": ["page"],
+        "required": [
+          "page"
+        ],
         "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled."
       },
       "output_schema": {
@@ -656,7 +791,13 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]
+                "enum": [
+                  "TEXT",
+                  "SIGNATURE",
+                  "PICTURE",
+                  "CHECKBOX",
+                  "COMB_TEXT"
+                ]
               },
               {
                 "type": "null"
@@ -665,13 +806,17 @@
             "description": "Tool to activate, or null to deselect."
           }
         },
-        "required": ["tool"],
+        "required": [
+          "tool"
+        ],
         "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data."
       },
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_tool"]
+      "error_codes": [
+        "bad_request:invalid_tool"
+      ]
     },
     {
       "request_type": "SET_FIELD_VALUE",
@@ -695,7 +840,10 @@
             "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL (signature/picture)."
           }
         },
-        "required": ["field_id", "value"],
+        "required": [
+          "field_id",
+          "value"
+        ],
         "description": "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data."
       },
       "output_schema": {
@@ -720,13 +868,18 @@
             "description": "When true, the signer also receives a downloaded copy on submit."
           }
         },
-        "required": ["download_copy"],
+        "required": [
+          "download_copy"
+        ],
         "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data."
       },
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:missing_required_fields"]
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:missing_required_fields"
+      ]
     }
   ],
   "events": [
@@ -753,7 +906,11 @@
             "type": "integer"
           }
         },
-        "required": ["previous_page", "current_page", "total_pages"]
+        "required": [
+          "previous_page",
+          "current_page",
+          "total_pages"
+        ]
       }
     },
     {
@@ -769,11 +926,23 @@
             "type": "string"
           }
         },
-        "required": ["document_id", "submission_id"]
+        "required": [
+          "document_id",
+          "submission_id"
+        ]
       }
     }
   ],
-  "locales": ["fr", "en", "it", "de", "pt", "es", "ja", "nl"],
+  "locales": [
+    "fr",
+    "en",
+    "it",
+    "de",
+    "pt",
+    "es",
+    "ja",
+    "nl"
+  ],
   "editor_error_schema": {
     "anyOf": [
       {
@@ -794,10 +963,16 @@
                 "type": "integer"
               }
             },
-            "required": ["unfilled_required_fields_count"]
+            "required": [
+              "unfilled_required_fields_count"
+            ]
           }
         },
-        "required": ["code", "message", "details"]
+        "required": [
+          "code",
+          "message",
+          "details"
+        ]
       },
       {
         "type": "object",
@@ -920,7 +1095,10 @@
             "type": "string"
           }
         },
-        "required": ["code", "message"]
+        "required": [
+          "code",
+          "message"
+        ]
       }
     ]
   }

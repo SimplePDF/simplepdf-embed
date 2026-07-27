@@ -454,6 +454,7 @@ export const attachEmbed = ({
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
     download: () => sendRequest('DOWNLOAD', {}),
     focusField: (input) => sendRequest('FOCUS_FIELD', input),
+    getAnnotatedArea: (input) => sendRequest('GET_ANNOTATED_AREA', input),
     getDocumentContent: (input) => sendRequest('GET_DOCUMENT_CONTENT', input ?? {}),
     getFields: () => sendRequest('GET_FIELDS', {}),
     goTo: (input) => sendRequest('GO_TO', input),

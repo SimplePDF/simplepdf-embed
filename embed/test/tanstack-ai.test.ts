@@ -4,9 +4,9 @@ import type { BridgeResult } from '../src/types'
 import { makeEmbedStub } from './helpers'
 
 describe('simplePDFToolDefinitions', () => {
-  it('returns the 14 agentic operations as execute-less definitions (loadDocument excluded)', () => {
+  it('returns the 15 agentic operations as execute-less definitions (loadDocument excluded)', () => {
     const definitions = simplePDFToolDefinitions()
-    expect(definitions).toHaveLength(14)
+    expect(definitions).toHaveLength(15)
     expect(definitions.map((definition) => definition.name)).not.toContain('loadDocument')
     for (const definition of definitions) {
       expect(typeof definition.description).toBe('string')
@@ -16,9 +16,9 @@ describe('simplePDFToolDefinitions', () => {
 })
 
 describe('createSimplePDFTools', () => {
-  it('produces a client tool for each of the 14 agentic operations', () => {
+  it('produces a client tool for each of the 15 agentic operations', () => {
     const tools = createSimplePDFTools({ embed: makeEmbedStub() })
-    expect(tools).toHaveLength(14)
+    expect(tools).toHaveLength(15)
     expect(tools.every((tool) => typeof tool.execute === 'function')).toBe(true)
   })
 

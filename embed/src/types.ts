@@ -13,6 +13,8 @@ import type {
   EditorErrorCode,
   FocusFieldInput,
   FocusFieldOutput,
+  GetAnnotatedAreaInput,
+  GetAnnotatedAreaOutput,
   GetDocumentContentInput,
   GetDocumentContentOutput,
   GetFieldsOutput,
@@ -42,6 +44,8 @@ export type {
   FieldType,
   FocusFieldInput,
   FocusFieldOutput,
+  GetAnnotatedAreaInput,
+  GetAnnotatedAreaOutput,
   GetDocumentContentInput,
   GetDocumentContentOutput,
   GetFieldsOutput,
@@ -134,6 +138,7 @@ export type IframeActions = {
   detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>
   download: () => Promise<BridgeResult>
   focusField: (input: FocusFieldInput) => Promise<BridgeResult<FocusFieldOutput>>
+  getAnnotatedArea: (input: GetAnnotatedAreaInput) => Promise<BridgeResult<GetAnnotatedAreaOutput>>
   getDocumentContent: (input?: GetDocumentContentInput) => Promise<BridgeResult<GetDocumentContentOutput>>
   getFields: () => Promise<BridgeResult<GetFieldsOutput>>
   goTo: (input: GoToInput) => Promise<BridgeResult>

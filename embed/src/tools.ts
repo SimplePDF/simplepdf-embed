@@ -13,6 +13,7 @@ import {
   DetectFieldsInput,
   DownloadInput,
   FocusFieldInput,
+  GetAnnotatedAreaInput,
   GetDocumentContentInput,
   GetFieldsInput,
   GoToInput,
@@ -74,6 +75,8 @@ export const routeToolCall = (
       return dispatch(DownloadInput, input ?? {}, () => actions.download())
     case 'focusField':
       return dispatch(FocusFieldInput, input, (value) => actions.focusField(value))
+    case 'getAnnotatedArea':
+      return dispatch(GetAnnotatedAreaInput, input, (value) => actions.getAnnotatedArea(value))
     case 'getDocumentContent':
       return dispatch(GetDocumentContentInput, input ?? {}, (value) => actions.getDocumentContent(value))
     case 'getFields':

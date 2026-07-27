@@ -4,8 +4,9 @@ import { buildCopilotToolDefinitions, isCopilotToolName } from './definitions'
 describe('copilot tool catalogue', () => {
   const names = Object.keys(buildCopilotToolDefinitions())
 
-  it('never exposes createField or loadDocument', () => {
+  it('never exposes the authoring tools (createField, getAnnotatedArea) or loadDocument', () => {
     expect(names).not.toContain('createField')
+    expect(names).not.toContain('getAnnotatedArea')
     expect(names).not.toContain('loadDocument')
   })
 
