@@ -1,0 +1,10 @@
+{
+  "name": "fill-any-pdf",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Drive the SimplePDF embed editor to fill any PDF (flat or already-fillable) over the iframe protocol, ending at a submitted document.",
+  "dependencies": {
+    "playwright": "^1.57.0"
+  }
+}
