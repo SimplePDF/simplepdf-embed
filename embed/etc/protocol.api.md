@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export const EDITOR_ERROR_CODES: readonly ["bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"];
+export const EDITOR_ERROR_CODES: readonly ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"];
 
 // @public (undocumented)
 export const EXTRACTION_MODES: readonly ["auto", "ocr"];
@@ -63,7 +63,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "DOWNLOAD";
     readonly method: "download";
     readonly description: "Generate and download the current document as a PDF. Returns no data.";
-    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:missing_required_fields"];
+    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:missing_required_fields", "bad_request:download_blocked"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
 }, {
