@@ -6,7 +6,16 @@ import type { EmbedTools, SimplePDFToolName } from '@simplepdf/react-embed-pdf/a
 import { getRouteApi } from '@tanstack/react-router'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from 'ai'
 import { ArrowUp, Mic, X } from 'lucide-react'
-import { type ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  type ReactElement,
+  type MouseEvent as ReactMouseEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStickToBottom } from 'use-stick-to-bottom'
 import {
@@ -999,6 +1008,11 @@ export const ChatPane = ({
     return t('chat.subtitleWaiting')
   }, [hasActiveModel, requiresUserUpload, t])
   const inputPlaceholder = canSend ? t('chat.inputPlaceholderReady') : chatStatusMessage
+  // The composer only behaves as a text target when the textarea is mounted
+  // (idle, not recording) and actually editable. Gates both the text cursor
+  // and the click-to-focus redirect so neither signals "type here" while the
+  // input is disabled or swapped out for the voice bar.
+  const isComposerInteractive = canSend && voice.status === 'idle'
 
   useEffect(() => {
     if (canSend) {
@@ -1061,6 +1075,27 @@ export const ChatPane = ({
       setDraft('')
     },
     [sendMessage, voice.dismissError],
+  )
+
+  // Make the whole composer act as one big input target: a mousedown landing
+  // on padding / empty space (anything that isn't the textarea or a control)
+  // redirects focus to the textarea. preventDefault stops the textarea from
+  // blurring first, so there is no focus flicker.
+  const handleComposerMouseDown = useCallback(
+    (event: ReactMouseEvent<HTMLFormElement>): void => {
+      if (!isComposerInteractive) {
+        return
+      }
+      if (!(event.target instanceof HTMLElement)) {
+        return
+      }
+      if (event.target.closest('button, textarea') !== null) {
+        return
+      }
+      event.preventDefault()
+      inputRef.current?.focus()
+    },
+    [isComposerInteractive],
   )
 
   return (
@@ -1190,7 +1225,8 @@ export const ChatPane = ({
             event.preventDefault()
             handleSend(draft)
           }}
-          className="flex items-end gap-2"
+          onMouseDown={handleComposerMouseDown}
+          className={`flex items-end gap-2 ${isComposerInteractive ? 'cursor-text' : ''}`}
         >
           {/* One composer box (P070-03) shared by every voice state, so
               clicking the mic causes NO layout shift: the textarea ↔
