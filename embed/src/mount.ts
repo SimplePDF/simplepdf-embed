@@ -543,13 +543,20 @@ const mountIntoContainer = (
   iframe.setAttribute('allow', iframeAttrs?.allow ?? 'clipboard-read; clipboard-write; web-share')
   if (iframeAttrs?.sandbox !== undefined) {
     iframe.setAttribute('sandbox', iframeAttrs.sandbox)
-    // Chromium silently no-ops the editor's Download click inside a sandboxed frame
-    // missing this token — no error, no event, nothing happens. console (not the
-    // logger, which defaults to noop) so the misconfiguration is visible to the
+    // Chromium silently no-ops these editor actions inside a sandboxed frame missing the
+    // token — no error, no event, nothing happens ("allow-downloads" gates the Download
+    // button, "allow-modals" gates the print dialog behind "Print document"). console (not
+    // the logger, which defaults to noop) so the misconfiguration is visible to the
     // integrator during development.
-    if (!iframeAttrs.sandbox.split(/\s+/).some((token) => token.toLowerCase() === 'allow-downloads')) {
+    const sandboxTokens = iframeAttrs.sandbox.split(/\s+/).map((token) => token.toLowerCase())
+    if (!sandboxTokens.includes('allow-downloads')) {
       console.warn(
         '[SimplePDF] The iframe "sandbox" attribute is missing "allow-downloads": the editor\'s Download button will be silently blocked by the browser. Add "allow-downloads" to your sandbox tokens.',
+      )
+    }
+    if (!sandboxTokens.includes('allow-modals')) {
+      console.warn(
+        '[SimplePDF] The iframe "sandbox" attribute is missing "allow-modals": the editor\'s "Print document" action will be silently ignored by the browser. Add "allow-modals" to your sandbox tokens.',
       )
     }
   }
