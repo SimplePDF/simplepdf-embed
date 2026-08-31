@@ -4,7 +4,7 @@
 // with useEmbed():
 //
 //   const { embedRef } = useEmbed()
-//   const tools = clientTools(...useEmbedTools(embedRef)) // from @tanstack/ai-react
+//   const tools = useEmbedTools(embedRef) // bound to the live editor
 //   useChat({ connection, tools })
 
 import * as React from 'react';
@@ -23,7 +23,7 @@ export type { SimplePDFToolName } from '@simplepdf/embed/tanstack-ai';
 
 // The agentic tools bound to the live editor via useEmbed().embedRef. Stable and
 // null-safe before the editor mounts (each .client() reads embedRef.current at call
-// time). Pass to clientTools(...) -> useChat({ tools }).
+// time). Pass straight to useChat({ connection, tools }).
 export const useEmbedTools = (embedRef: RefObject<EmbedActions | null>): AnyClientTool[] =>
   React.useMemo<AnyClientTool[]>(
     () =>

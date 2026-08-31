@@ -67,9 +67,8 @@ import { simplePDFToolDefinitions } from '@simplepdf/embed/tanstack-ai'
 chat({ adapter, messages, tools: simplePDFToolDefinitions() })
 
 // browser: the same definitions bound to the live editor via .client()
-import { clientTools } from '@tanstack/ai-react'
 import { createSimplePDFTools } from '@simplepdf/embed/tanstack-ai'
-useChat({ connection, tools: clientTools(...createSimplePDFTools({ embed })) })
+useChat({ connection, tools: createSimplePDFTools({ embed }) })
 ```
 
 ## Subpaths

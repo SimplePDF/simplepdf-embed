@@ -1,7 +1,7 @@
 // TanStack AI adapter. The same generated registry + bridge router as the Vercel
 // `/ai-sdk` adapter, in TanStack's isomorphic tool shape: server-registerable
 // definitions for `chat({ tools })`, and browser `.client()` tools bound to the live
-// editor for `clientTools(...)` -> `useChat({ tools })`. The zod input schemas drop
+// editor for `useChat({ connection, tools })`. The zod input schemas drop
 // in directly (TanStack accepts any Standard Schema); `@tanstack/ai` is the only
 // added peer, pulled solely by this subpath.
 
@@ -28,8 +28,8 @@ const define = (name: SimplePDFToolName) =>
 // download) without mutating shared state.
 export const simplePDFToolDefinitions = (): ReturnType<typeof define>[] => TOOL_NAMES.map(define)
 
-// Browser: the same definitions bound to the live editor via `.client()`, for
-// `clientTools(...)` -> `useChat({ tools })`. Each call validates input against the
+// Browser: the same definitions bound to the live editor via `.client()`, passed
+// straight to `useChat({ connection, tools })`. Each call validates input against the
 // tool schema and dispatches to the matching editor action, resolving to a BridgeResult.
 export const createSimplePDFTools = ({ embed }: { embed: Embed }): AnyClientTool[] =>
   TOOL_NAMES.map((name) => define(name).client((input) => routeToolCall(embed.actions, name, input)))

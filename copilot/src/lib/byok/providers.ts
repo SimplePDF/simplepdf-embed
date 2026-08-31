@@ -155,7 +155,7 @@ export const PROVIDER_ENTRIES: ProviderEntry[] = [
       {
         id: 'claude-haiku-4-5-20251001',
         label: 'Claude Haiku 4.5',
-        description: 'Fast and inexpensive. Same model running the demo.',
+        description: 'Fast and inexpensive.',
         recommended: true,
       },
       {

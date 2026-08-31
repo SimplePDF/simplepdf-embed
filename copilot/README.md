@@ -86,7 +86,7 @@ Browser
 ## Getting started
 
 > [!TIP]
-> Using Claude Code, Codex, or another agentic coding tool? Point it at [`skills/fork-and-go/SKILL.md`](./skills/fork-and-go/SKILL.md) and it will walk you through the entire fork → configure → deploy journey one question at a time. The skill is tool-agnostic markdown; works anywhere your AI assistant can read project files.
+> Using Claude Code, Codex, or another agentic coding tool? Point it at [`../skills/fork-and-go/SKILL.md`](../skills/fork-and-go/SKILL.md) and it will walk you through the entire fork → configure → deploy journey one question at a time. The skill is tool-agnostic markdown; works anywhere your AI assistant can read project files.
 
 ### Run the demo locally (no SimplePDF account needed)
 
@@ -193,12 +193,12 @@ Once deployed, copy the `.ondigitalocean.app` URL DigitalOcean assigns and add i
 The stack runs unmodified anywhere a Node 24 server can. Tested + documented targets:
 
 - **DigitalOcean App Platform** (one-click button above)
-- **Cloudflare Containers** (GA since April 2026, Workers Paid plan): wrap the build in a small Dockerfile and `npx wrangler containers deploy`. Cloudflare's edge sits in front for free, with WAF rate-limiting and global caching. See <https://developers.cloudflare.com/containers/>.
+- **Cloudflare Containers** (GA since April 2026, Workers Paid plan): wrap the build in a small Dockerfile, reference it from the wrangler config's container settings, and `npx wrangler deploy`. Cloudflare's edge sits in front for free, with WAF rate-limiting and global caching. See <https://developers.cloudflare.com/containers/>.
 - **Vercel**: the nitro `node-server` preset works on Vercel's Node runtime. `vercel deploy` from the `copilot/` folder.
 - **Render**, **fly.io**, **Railway**: point at the repo, set build = `npm run build`, start = `npm start`, configure env vars in the dashboard. fly.io expects a Dockerfile.
 - **Self-hosted Docker**: `npm run build` produces `.output/`. `node .output/server/index.mjs`, expose port 3000.
 
-The skill at [`skills/fork-and-go/SKILL.md`](./skills/fork-and-go/SKILL.md) walks you through whichever target you pick.
+The skill at [`../skills/fork-and-go/SKILL.md`](../skills/fork-and-go/SKILL.md) walks you through whichever target you pick.
 
 ### Wire up your AI provider
 
@@ -232,10 +232,10 @@ Tool input + output schemas + the bridge that posts these events into the iframe
 |------|------------------|
 | `src/server/tools.ts` | System prompt + tool registry |
 | `src/server/language_model.ts` | AI provider wiring |
-| `src/components/chat_pane.tsx` | Chat UI + streaming + tool routing |
+| `src/components/chat/chat_pane.tsx` | Chat UI + streaming + tool routing |
 | `src/lib/byok/` | Browser-direct provider plumbing (delete if you don't need BYOK) |
-| `src/locales/` | 22 locale files (en / fr / de / es / it / pt / nl / ja / …) |
-| `src/forms/` | Sample forms (replace with your own) |
+| `src/locales/` | 23 locale files (en / fr / de / es / it / pt / nl / …) |
+| `src/lib/demo/forms.ts` | Sample-form catalogue (replace with your own) |
 | `src/routes/__root.tsx` | `<head>` (title, meta, favicon) |
 
 ## Privacy by design

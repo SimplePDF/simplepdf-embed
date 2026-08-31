@@ -12,5 +12,5 @@ expectTypeOf<SimplePDFToolName>().not.toEqualTypeOf<SimplePDFToolName | 'loadDoc
 // Server definitions stay name-strict: each element's `name` is the literal union, not `string`.
 expectTypeOf<ReturnType<typeof simplePDFToolDefinitions>[number]['name']>().toEqualTypeOf<SimplePDFToolName>()
 
-// Browser tools are the documented `AnyClientTool[]` (the clientTools-ready shape).
+// Browser tools are the documented `AnyClientTool[]`, passed straight to useChat({ tools }).
 expectTypeOf<ReturnType<typeof createSimplePDFTools>>().toEqualTypeOf<AnyClientTool[]>()

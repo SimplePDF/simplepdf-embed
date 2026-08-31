@@ -5,7 +5,7 @@
 //
 //   const { embedRef } = useEmbed()
 //   const tools = useEmbedTools(embedRef) // bound to the live editor
-//   useChat({ tools })
+//   useChat({ onToolCall })  // dispatch: tools[toolCall.toolName].execute(toolCall.input) → addToolOutput
 
 import * as React from 'react';
 import type { RefObject } from 'react';
@@ -25,8 +25,8 @@ export type { SimplePDFToolName };
 type ToolInputSchema = (typeof SIMPLEPDF_TOOLS)[SimplePDFToolName]['inputSchema'];
 
 // One agentic tool, bound to the live editor. The shape ({ description, inputSchema,
-// execute }) is exactly what the AI SDK consumes, so the whole `tools` record drops
-// straight into useChat({ tools }) / streamText — no executor to wire.
+// execute }) matches the AI SDK's tool shape; dispatch client calls from useChat's
+// onToolCall (tools[toolCall.toolName].execute(input) → addToolOutput).
 export type EmbedTool = {
   description: string;
   inputSchema: ToolInputSchema;

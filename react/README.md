@@ -208,7 +208,7 @@ await actions.selectTool({ tool: 'SIGNATURE' });
 
 #### Agentic: `useEmbedTools` (Vercel AI SDK)
 
-The agentic tools live in the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath, importing it is what pulls `zod`, so a non-agentic app never loads it (mirroring `@simplepdf/embed`'s `/ai-sdk`). `useEmbedTools(embedRef)` binds the SimplePDF tool set to the live editor, drop it straight into the AI SDK and an LLM can drive the editor:
+The agentic tools live in the opt-in `@simplepdf/react-embed-pdf/ai-sdk` subpath, importing it is what pulls `zod`, so a non-agentic app never loads it (mirroring `@simplepdf/embed`'s `/ai-sdk`). `useEmbedTools(embedRef)` binds the SimplePDF tool set to the live editor; dispatch the model's tool calls from `useChat`'s `onToolCall` and an LLM can drive the editor:
 
 ```jsx
 import { useChat } from '@ai-sdk/react';
@@ -218,7 +218,14 @@ import { useEmbedTools } from '@simplepdf/react-embed-pdf/ai-sdk';
 const CopilotEditor = () => {
   const { embedRef } = useEmbed();
   const tools = useEmbedTools(embedRef);
-  useChat({ tools }); // the model's tool calls run against the live editor
+  const { addToolOutput } = useChat({
+    onToolCall: async ({ toolCall }) => {
+      const tool = tools[toolCall.toolName];
+      if (tool === undefined) return;
+      const output = await tool.execute(toolCall.input); // runs against the live editor
+      addToolOutput({ tool: toolCall.toolName, toolCallId: toolCall.toolCallId, output });
+    },
+  });
   return <EmbedPDF ref={embedRef} mode="inline" companyIdentifier="yourcompany" style={{ width: 900, height: 800 }} />;
 };
 ```
@@ -227,17 +234,17 @@ For server-side tool definitions (execute-less, for `streamText`), import `simpl
 
 #### Agentic: `useEmbedTools` (TanStack AI)
 
-The TanStack mirror lives in the opt-in `@simplepdf/react-embed-pdf/tanstack-ai` subpath (importing it pulls `@tanstack/ai`). `useEmbedTools(embedRef)` returns the editor-bound client tools; pass them to `clientTools(...)`, then `useChat`:
+The TanStack mirror lives in the opt-in `@simplepdf/react-embed-pdf/tanstack-ai` subpath (importing it pulls `@tanstack/ai`). `useEmbedTools(embedRef)` returns the editor-bound client tools; pass them straight to `useChat`:
 
 ```jsx
-import { useChat, clientTools } from '@tanstack/ai-react';
+import { useChat, fetchServerSentEvents } from '@tanstack/ai-react';
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
 import { useEmbedTools } from '@simplepdf/react-embed-pdf/tanstack-ai';
 
 const CopilotEditor = () => {
   const { embedRef } = useEmbed();
-  const tools = clientTools(...useEmbedTools(embedRef));
-  useChat({ connection, tools }); // the model's tool calls run against the live editor
+  const tools = useEmbedTools(embedRef);
+  useChat({ connection: fetchServerSentEvents('/api/chat'), tools }); // the model's tool calls run against the live editor
   return <EmbedPDF ref={embedRef} mode="inline" companyIdentifier="yourcompany" style={{ width: 900, height: 800 }} />;
 };
 ```

@@ -4,6 +4,9 @@ SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) integrat
 
 **For more control**, embedding the editor inline (e.g. in a `div`), or driving it programmatically, read on.
 
+> [!TIP]
+> Using Claude Code, Codex, or another agentic coding tool? Point it at [`../skills/build-with-simplepdf/SKILL.md`](../skills/build-with-simplepdf/SKILL.md) - it inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration.
+
 ## The iframe URL vs. programmatic control
 
 Pointing an `<iframe src>` at the editor (below) gives you the **full editor, with your account's branding**, in zero JavaScript. What it does **not** give you is **programmatic control**: you can't read a field, jump to a page, prefill values, submit, or let an AI agent fill and read the document on the user's behalf.

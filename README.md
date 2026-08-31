@@ -39,6 +39,9 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 
 # Get started
 
+> [!TIP]
+> Using Claude Code, Codex, or another agentic coding tool? Point it at [`skills/build-with-simplepdf/SKILL.md`](./skills/build-with-simplepdf/SKILL.md) - it inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration.
+
 - ⚛️ [React component](./react/README.md) - `@simplepdf/react-embed-pdf`
 - 🧩 [Iframe bridge](./embed/README.md) - `@simplepdf/embed` (framework-free client to embed + programmatically drive the editor, with an AI SDK adapter)
 - 🚀 [Script tag](./web/README.md) - `@simplepdf/web-embed-pdf`
@@ -74,9 +77,9 @@ Copilot is a turn-key, MIT-licensed reference implementation. Users answer in pl
 
 **Links:**
 
-- 🎬 [Live demo on a healthcare form](https://copilot.simplepdf.com/?share=78b6f31195aa35f3a8117ec5ade21bad2634b47638dc18d96d8429e044b61b47&form=healthcare)
+- 🎬 [Live demo on a healthcare form](https://copilot.simplepdf.com/?form=healthcare)
 - 📖 [Copilot README](./copilot/README.md) - architecture, fork points, deploy targets
-- 🤖 [`skills/fork-and-go/SKILL.md`](./copilot/skills/fork-and-go/SKILL.md) - point Claude Code or Codex at it for a guided setup
+- 🤖 [`skills/fork-and-go/SKILL.md`](./skills/fork-and-go/SKILL.md) - point Claude Code or Codex at it for a guided setup
 
 ---
 

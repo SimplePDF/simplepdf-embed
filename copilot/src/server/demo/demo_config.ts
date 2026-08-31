@@ -8,8 +8,7 @@ import { readTranscriptionKey } from '../transcription_model'
 // deployment is "in demo mode": every visitor gets the demo on the operator's
 // keys, rate-limited per IP. `isDemo` is purely derived from config presence —
 // there are no invite shares and no `?share=`. BYOK still overrides per
-// capability. (Replaces the former SHARED_API_KEYS invite-map + ?share=
-// machinery — the per-invite budgets/models were over-engineered for a demo.)
+// capability.
 
 // Single per-IP rate-limit bucket (Redis key `rl:__default__:<ipHash>`). The
 // per-IP turn lifetime IS the abuse control now that the route is open to any

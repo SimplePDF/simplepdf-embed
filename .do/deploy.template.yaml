@@ -17,7 +17,16 @@ spec:
         - key: VITE_SIMPLEPDF_COMPANY_IDENTIFIER
           scope: BUILD_TIME
           type: GENERAL
-        - key: SHARED_API_KEYS
+        - key: DEMO_CHAT_API_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: DEMO_CHAT_MODEL
+          scope: RUN_TIME
+          type: GENERAL
+        - key: DEMO_RATE_LIMIT_TURNS
+          scope: RUN_TIME
+          type: GENERAL
+        - key: DEMO_STT_OPENAI_API_KEY
           scope: RUN_TIME
           type: SECRET
         - key: REDIS_URL

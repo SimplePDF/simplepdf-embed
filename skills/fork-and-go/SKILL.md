@@ -1,3 +1,12 @@
+---
+name: fork-and-go
+description: >-
+  Guided walkthrough for forking and deploying your own SimplePDF Copilot:
+  hosting choice, Pro-account confirmation, AI-provider wiring, demo
+  customization, deploy, and the SimplePDF whitelist step. Use when a developer
+  wants to fork, self-host, ship, or deploy SimplePDF Copilot.
+---
+
 # Fork and Go
 
 A guided walkthrough for SimplePDF Pro customers forking and deploying their own SimplePDF Copilot.
@@ -7,6 +16,8 @@ A guided walkthrough for SimplePDF Pro customers forking and deploying their own
 Walk a developer through forking the SimplePDF Copilot reference implementation into their own product. Covers hosting choice, Pro-account confirmation, AI-provider wiring, demo customization, deploy, and the SimplePDF whitelist step. End state: a running SimplePDF Copilot at their chosen URL, talking to their AI provider, whitelisted on their account.
 
 ## Triggers
+
+To get the `/fork-and-go` slash command in Claude Code, copy this folder into the project's `.claude/skills/` — or just point the agent at this file.
 
 Invoke when the user types `/fork-and-go` or any natural-language equivalent:
 
@@ -53,7 +64,7 @@ If you catch yourself drafting more than one question, delete everything after t
 
 ## Use AskUserQuestion for choices
 
-When asking the user to pick between known options, ALWAYS use the `AskUserQuestion` tool, never a plain text list. Free-text answers (e.g. "what's your companyIdentifier?") use a regular question.
+When asking the user to pick between known options, use the `AskUserQuestion` tool whenever it is available, never a plain text list. Free-text answers (e.g. "what's your companyIdentifier?") use a regular question. If `AskUserQuestion` is not available, ask the same single question as concise plain text.
 
 `AskUserQuestion` header chips: keep them under 12 chars. Examples: `Host`, `Plan`, `Provider`, `Customize`.
 
@@ -84,9 +95,8 @@ Use `AskUserQuestion`:
 - **Options:**
   - `Local only` (Recommended): _"Just `npm run dev` on your dev machine, served at `http://localhost:3001`. The demo's SimplePDF workspace whitelists that exact origin, so no Pro account is needed. The port has to stay 3001."_
   - `DigitalOcean App Platform`: _"One-click deploy via the bundled `.do/deploy.template.yaml`. Cheapest hosted option (~$12-24/mo)."_
-  - `Cloudflare Containers`: _"GA since April 2026. Workers Paid plan ($5/mo) required. The copilot Node + nitro stack runs as-is in a Linux container. Needs a small Dockerfile and a `wrangler containers` deploy."_
-  - `Vercel / Render / fly.io`: _"Other PaaS hosts. The Vercel AI SDK + nitro `node-server` stack works on all of them; we'll set up env vars + build commands."_
-  - `Custom (Docker, my own server)`: _"Run the production build (`npm start`) wherever you want."_
+  - `Cloudflare Containers`: _"GA since April 2026. Workers Paid plan ($5/mo) required. The copilot Node + nitro stack runs as-is in a Linux container. Needs a small Dockerfile and a `wrangler deploy`."_
+  - `Other (Vercel / Render / fly.io / Docker / my own server)`: _"The nitro `node-server` stack works on any PaaS or your own box; we'll set up env vars + build commands, or you run the production build (`npm start`) wherever you want."_
 
 DO NOT proceed until they answer.
 
@@ -122,15 +132,14 @@ Use `AskUserQuestion`:
 - **Question:** Which AI provider should SimplePDF Copilot use server-side?
 - **Header:** `Provider`
 - **Options:**
-  - `Anthropic Claude` (Recommended): _"Default in the demo (Haiku 4.5). Mature tool-calling, broad ecosystem support, predictable pricing."_
-  - `OpenAI`: _"GPT-4 / GPT-5 family. Solid alternative."_
-  - `DeepSeek`: _"In our testing, on par with Anthropic Claude Haiku 4.5 for the form-filling task, at a meaningfully lower cost per turn."_
-  - `Custom OpenAI-compatible (Ollama, LM Studio, vLLM)`: _"Local or self-hosted endpoint. The browser-direct BYOK path covers this; your server isn't in the loop."_
-  - `BYOK only: let users bring their own key`: _"No server-side provider. Visitors paste their own key in the in-app Model Picker. Lowest ops surface."_
+  - `Anthropic Claude` (Recommended): _"Ships wired in the demo registry (`anthropic_haiku_4_5`). Mature tool-calling, broad ecosystem support, predictable pricing."_
+  - `OpenAI`: _"GPT-4 / GPT-5 family. Solid alternative — needs a small wiring change (Step 5) before demo mode can use it."_
+  - `DeepSeek`: _"In our testing, on par with Anthropic Claude Haiku 4.5 for the form-filling task, at a meaningfully lower cost per turn. Ships wired (`deepseek_v4_flash`)."_
+  - `BYOK / custom OpenAI-compatible endpoint`: _"No server-side provider: visitors paste their own key in the in-app Model Picker. Also covers local/self-hosted OpenAI-compatible endpoints (Ollama, LM Studio, vLLM) via the browser-direct BYOK path — your server isn't in the loop. Lowest ops surface."_
 
 ### Q5: demo mode
 
-ONLY ask if they didn't pick `BYOK only` in Q4. Use `AskUserQuestion`:
+ONLY ask if Q4 was a named provider (Anthropic / OpenAI / DeepSeek) — the BYOK / custom-endpoint path has no server-side demo config, and for OpenAI note that the Step 5 wiring must land before demo mode works. Use `AskUserQuestion`:
 
 - **Question:** Want **demo mode** — your keys power chat + voice for every visitor (no key-paste needed), rate-limited per IP?
 - **Header:** `Demo mode`
@@ -146,7 +155,7 @@ Use `AskUserQuestion`:
 - **Header:** `Customize`
 - **Options:**
   - `Keep everything` (Recommended): _"BYOK Model Picker, sample forms, welcome splash, info modal, all of it. Easiest to start; trim later once you know what you want."_
-  - `Strip the demo`: _"Delete the entire `demo/` tree (welcome modal, info modal, download modal upsell, social-share, sample forms, share-link / shared-key gating, misbehavior detector). Roughly 4 folder deletes + 5 small import edits. You keep the chat surface, BYOK Model Picker, iframe bridge, locale system."_
+  - `Strip the demo`: _"Delete the demo trees (welcome modal, info modal, download modal upsell, social-share, sample forms, demo gating, misbehavior detector). Three folder deletes + one file swap, then small edits in the nine retained files that imported them. You keep the chat surface, BYOK Model Picker, model registry, iframe bridge, locale system."_
   - `Custom: walk me through each`: _"We'll go through each demo feature one at a time."_
 
 Demo code is grouped under `demo/` directories specifically so the strip is mechanical:
@@ -161,9 +170,9 @@ Demo code is grouped under `demo/` directories specifically so the strip is mech
 
 After Q6, BEFORE writing any code, mention in plain prose (NOT a question):
 
-> "One thing to flag now so it's not a surprise later: the SimplePDF iframe only loads on origins your account whitelists. The demo workspace whitelists `localhost:3001` so local dev works out of the box. For your own deploy URL (e.g. `https://my-app.example.com`), you'll need to add it to your SimplePDF dashboard's embed-origins list before the iframe will load. I'll remind you again at deploy time."
+> "One thing to flag now so it's not a surprise later: your account's embed-origins whitelist controls where the SimplePDF iframe loads. While the whitelist is empty, all origins are allowed — adding the first origin activates the allow-list and blocks everything else. The demo workspace whitelists `localhost:3001`, so local dev works out of the box. For your own deploy URL (e.g. `https://my-app.example.com`), plan to whitelist it so your account isn't left open to any origin. I'll remind you again at deploy time."
 
-If they picked `Local only` in Q1, skip this entirely (the demo workspace already covers them).
+If they picked `Local only` in Q1 AND are staying on the demo `spdf-copilot` identifier, skip this entirely (the demo workspace already covers them). A Local-only user on their OWN identifier still needs `http://localhost:3001` whitelisted once their allow-list has entries — keep the reminder for them.
 
 This is informational. Do NOT pause for an answer; continue to the wiring sequence.
 
@@ -178,9 +187,11 @@ After all the questions are answered, walk through these steps. ONE step per tur
 If the user already has the copilot directory open (their cwd looks like `…/copilot/`), skip to Step 2. Otherwise:
 
 ```sh
-git clone https://github.com/SimplePDF/simplepdf-embed.git
+gh repo fork SimplePDF/simplepdf-embed --clone
 cd simplepdf-embed/copilot
 ```
+
+**Fork, don't just clone** — every hosted deploy target in Step 7 builds from a GitHub repo, so the user's Step 5/6 changes must live in a repo they can push to. Without `gh`: fork in the GitHub UI first, then clone the fork. (`Local only` explorers who will never deploy can plain-clone upstream.)
 
 Wait for them to confirm they're inside the folder.
 
@@ -200,7 +211,7 @@ cp .env.example .env
 
 Then edit `.env`:
 
-- Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `spdf-copilot`.
+- Set `VITE_SIMPLEPDF_COMPANY_IDENTIFIER=<their value from Q3>`. If they're `Just exploring`, leave it as `spdf-copilot`. Heads-up: any identifier other than `spdf-copilot` switches the app to customer mode (`MODE = 'simplepdf_customer'`), which among other things swaps the toolbar's **Download** button for **Submit** (submissions flow to their SimplePDF account). This is separate from the env-driven shared-key demo chat (the `DEMO_*` vars from Q5), which works in either mode.
 - If they answered `Yes, enable demo mode` in Q5, set all four demo vars per `.env.example`: `DEMO_CHAT_API_KEY`, `DEMO_CHAT_MODEL` (`anthropic_haiku_4_5` or `deepseek_v4_flash`), `DEMO_RATE_LIMIT_TURNS` (per-IP turn cap), and `DEMO_STT_OPENAI_API_KEY`. Demo mode turns on only when all four are present.
 - For multi-container hosted deploys (DO App Platform with auto-scaling), recommend setting `REDIS_URL` (any Redis-compatible URL: DO Managed Caching for Valkey works) and `IP_HASH_SALT` (generate with `openssl rand -hex 32`). Required pair when `REDIS_URL` is set; the server refuses to boot otherwise.
 
@@ -217,12 +228,12 @@ Open http://localhost:3001. Expected:
 - The iframe loads with a demo sample form.
 - The chat sidebar shows the Model Picker (BYOK) or is ready to send (demo mode, when the demo vars are configured).
 
-The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the `companyIdentifier` whitelists exactly the origin `http://localhost:3001` and only that origin: any other port (3000, 5173) or any other host gets refused at iframe load. Don't override the port with `--port` flags.
+The dev script pins port 3001 deliberately. The SimplePDF workspace tied to the `companyIdentifier` whitelists exactly the origin `http://localhost:3001` and only that origin: any other port (3000, 5173) or any other host gets a blocked-origin error screen naming the offending origin (with a link to the embed settings). Don't override the port with `--port` flags.
 
 If the iframe fails to load:
 
 1. The dev server is not on port 3001. Re-run `npm run dev` without overrides.
-2. Their `companyIdentifier` is set to a value that doesn't match an account whitelisting `localhost:3001`. The demo's `spdf-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves. Easiest path: just load `http://localhost:3001` in the browser once (the iframe will refuse to render, but the editor records the attempted origin), then open `https://<companyIdentifier>.simplepdf.com/account/embed`, scroll to **Security**, and the auto-detected origin will be there ready to one-click approve. Refresh the local page; the iframe now loads.
+2. Their `companyIdentifier` is set to a value whose account whitelists other origins but not `localhost:3001` (an account with an empty whitelist allows all origins). The demo's `spdf-copilot` identifier covers it. Their own Pro identifier requires them to whitelist `http://localhost:3001` themselves once their allow-list has entries. Easiest path: just load `http://localhost:3001` in the browser once (the embed won't work yet, but the editor records the attempted origin), then open `https://<companyIdentifier>.simplepdf.com/account/embed`, scroll to **Security**, and the auto-detected origin will be there ready to one-click approve. Refresh the local page; the iframe now loads.
 
 Wait for them to confirm the editor renders.
 
@@ -231,7 +242,7 @@ Wait for them to confirm the editor renders.
 Open `src/server/language_model.ts`. The current dispatch handles Anthropic and DeepSeek by name. Per their Q4 choice:
 
 - **Anthropic Claude:** for demo mode set `DEMO_CHAT_API_KEY` (Anthropic key) + `DEMO_CHAT_MODEL=anthropic_haiku_4_5` in `.env`. No code change needed.
-- **OpenAI:** set `OPENAI_API_KEY` in `.env`. Add an OpenAI branch to `language_model.ts` (`@ai-sdk/openai` is already installed; create a model handle in `src/lib/demo_model.ts` and wire the dispatch).
+- **OpenAI:** for demo mode set `DEMO_CHAT_API_KEY` (OpenAI key). Then wire the provider in `src/lib/demo/demo_model.ts`: add the new key to the `DemoModel` union AND the `DemoModelSchema` enum (the env value is validated against it — an unknown key silently drops the deployment to BYOK-only), plus its `DEMO_MODELS` entry. Add an `openai` case to `src/server/language_model.ts` (`@ai-sdk/openai` is already installed; the `satisfies never` guard fails the build until the case exists). Finally set `DEMO_CHAT_MODEL` to the new key.
 - **DeepSeek:** for demo mode set `DEMO_CHAT_API_KEY` (DeepSeek key) + `DEMO_CHAT_MODEL=deepseek_v4_flash`. Already wired.
 - **Custom OpenAI-compatible:** the browser-direct BYOK path in `src/lib/byok/` already supports any OpenAI-compatible endpoint. Defaults are in `src/lib/byok/providers.ts` (Ollama URL + a default model name). Update if you want different defaults.
 - **BYOK only:** nothing to wire on the server. Leave the `DEMO_CHAT_*` + `DEMO_STT_OPENAI_API_KEY` vars unset in `.env` so the deployment stays out of demo mode. Visitors will see the Model Picker on first load.
@@ -249,34 +260,58 @@ If `Strip the demo`, walk the user through these mechanical steps. They run in o
 **6a — Delete the demo folders**
 
 ```sh
-rm -rf src/components/demo src/components/easter-eggs src/lib/demo src/server/demo
+rm -rf src/components/demo src/components/easter-eggs src/server/demo
+rm src/lib/demo/forms.ts
 ```
 
-That removes: welcome modal, info modal, download modal (with the Pro upsell), social-share component, Cerfa d'Or easter egg, sample-form catalogue, demo model registry, demo-config resolver, misbehavior detector, preflight gate, demo-only loader server fns.
+That removes: welcome modal, info modal, download modal (with the Pro upsell), social-share component, Cerfa d'Or easter egg, sample-form catalogue, demo-config resolver, misbehavior detector, preflight gate, demo-only loader server fns.
+
+**Keep `src/lib/demo/demo_model.ts`** — despite the folder name it is the model registry, not demo-only: the retained chat path imports it (`chat_pane.tsx`, `model_picker_modal.tsx`, `api/chat.ts`, `server/language_model.ts`).
+
+The deletes leave compile errors at these retained files; steps 6b-6g clear them one by one: `routes/index.tsx` (WelcomeModal, forms, loader helpers), `routes/api/chat.ts` / `api/summarize.ts` / `api/transcribe.ts` (preflight gate), `routes/api/transcribe.test.ts` (misbehavior import — delete that test file or its import), `components/layout.tsx` (InfoModal, CerfaDorModal), `components/error_banner.tsx` (SocialShare), `components/chat/chat_pane.tsx` (DownloadModal), plus the forms catalogue consumers (`form_picker.tsx`, `chat_pane.tsx`).
 
 **6b — Replace the sample-form catalogue**
 
-SimplePDF Copilot needs a single PDF URL to load on first paint. Create `src/lib/forms.ts` with the customer's own:
+SimplePDF Copilot needs a single PDF URL to load on first paint. Recreate `src/lib/demo/forms.ts` (same path, so no import edits anywhere) with the customer's own:
 
 ```ts
 export type FormId = 'default'
-export const DEFAULT_FORM_ID: FormId = 'default'
-export const isFormId = (value: unknown): value is FormId => value === 'default'
 
-const FORM = {
-  id: 'default' as const,
+export type FormConfig = {
+  id: FormId
+  useCaseKey: string
+  subtitleKey?: string
+  labelKey: string
+  pdfUrl: string
+}
+
+export type LocaleForms = {
+  order: FormId[]
+  forms: Record<FormId, FormConfig>
+}
+
+const FORM: FormConfig = {
+  id: 'default',
   pdfUrl: 'https://your-cdn.example.com/your-form.pdf',
-  // labelKey + useCaseKey + subtitleKey are i18n keys; point them at any
-  // string you already have, or hardcode short labels.
+  // labelKey + useCaseKey are i18n keys; point them at strings you keep,
+  // or hardcode short labels.
   labelKey: 'forms.labels.default',
   useCaseKey: 'forms.useCases.default',
 }
 
-export const getFormsForLocale = (_locale: string) => ({
+export const DEFAULT_FORM_ID: FormId = 'default'
+export const getDefaultFormIdForLocale = (_locale: string): FormId => 'default'
+export const isFormId = (value: unknown): value is FormId => value === 'default'
+export const getFormsForLocale = (_locale: string): LocaleForms => ({
   forms: { default: FORM },
-  order: ['default'] as const,
+  order: ['default'],
 })
 ```
+
+Two follow-up edits — `'custom'` (the demo's upload-your-own flow) is gone from the union, so both comparisons stop compiling:
+
+- `routes/index.tsx`: replace the `requiresUserUpload = url === undefined && form === 'custom'` line with `const requiresUserUpload = false` (or keep a `'custom'` member if you want the native-file-picker flow).
+- `components/form_picker.tsx`: the subtitle ternary `form.id === 'custom' ? t('forms.customSubtitle') : …` — drop the ternary, keeping `t(form.subtitleKey ?? form.useCaseKey)`.
 
 Or wire a runtime loader (your own storage) — but the static one is fine for most forks.
 
@@ -285,50 +320,67 @@ Or wire a runtime loader (your own storage) — but the static one is fine for m
 Three callers (`src/routes/api/chat.ts`, `src/routes/api/summarize.ts`, and `src/routes/api/transcribe.ts`) use `applyDemoPreflight` from the now-deleted `src/server/demo/gate.ts`. Replace the import + call with a static resolution that reads your API key from env (transcribe also reads `DEMO_STT_OPENAI_API_KEY` directly, so it keeps working once the preflight is replaced):
 
 ```ts
-// at the top of chat.ts / summarize.ts, replace the demo import with:
-import { hashIp, getClientIp } from '../../server/rate_limit'
+// at the top of chat.ts / summarize.ts / transcribe.ts, replace the demo import with
+// (transcribe.ts only consumes bucket + lifetime from the resolution):
+import { hashIp, getClientIp, isSameOrigin, looksLikeBrowserFetch } from '../../server/rate_limit'
+import type { DemoModel } from '../../lib/demo/demo_model'
 
 // inside the POST handler, replace the preflight block with:
 const ip = getClientIp(request)
 const ipHash = await hashIp(ip)
-const resolution = {
+const resolution: { apiKey: string; bucket: string; lifetime: number; model: DemoModel } = {
   apiKey: process.env.AI_API_KEY ?? '',
   // The rate-limit bucket name is per-customer convention; "global"
   // collapses every IP into one bucket. Use whatever you want.
   bucket: 'global',
-  lifetime: 1000,  // very high cap; tighten if you want IP-rate-limiting
-  model: 'claude-haiku-4-5-20251001' as const,  // your model id
+  lifetime: 1000, // very high cap; tighten if you want IP-rate-limiting
+  model: 'anthropic_haiku_4_5', // a DEMO_MODELS handle from demo_model.ts, NOT a provider model id
 }
 ```
 
-If you don't want any IP-rate-limiting at all, you can also delete the `rateLimiter.check` block that follows in `chat.ts`. The limiter primitive in `src/server/rate_limit.ts` itself is generic and can stay (it gets a no-op fallback when `REDIS_URL` is unset).
+**What this removes**: `applyDemoPreflight` was also a gate — it rejected cross-origin non-browser calls (`isSameOrigin` / `looksLikeBrowserFetch`, both retained in `src/server/rate_limit.ts`), blocked flagged IPs, and 503'd when unconfigured. With a server-side `AI_API_KEY` here, dropping all of that ships an open cross-origin LLM proxy. Keep at least the origin check at the top of the handler:
+
+```ts
+if (!isSameOrigin(request) && !looksLikeBrowserFetch(request)) {
+  return new Response(null, { status: 403 })
+}
+```
+
+If you don't want any IP-rate-limiting at all, you can also delete the whole rate-limit section in `chat.ts` (the `rateLimiter.isReady()` guard AND the `rateLimiter.check` call) — along with everything only it consumed: the `ip`/`ipHash` locals and the `hashIp`, `getClientIp` (unless kept for the origin check above), `rateLimiter`, and `RateLimitDecision` imports (`noUnusedLocals` turns any leftover into a build error). The limiter primitive in `src/server/rate_limit.ts` itself is generic and can stay — without `REDIS_URL` it falls back to an in-memory per-instance limiter (fine for a single container; multi-instance deploys need Redis).
 
 **6d — Drop the demo references in `routes/index.tsx`**
 
-The file imports `DemoGate`, `readDemoGate`, `readWelcomeDismissed`, `WELCOME_DISMISSED_COOKIE` from `src/server/demo/loader_helpers.ts` (now deleted). Replace the import block with:
+The file imports `DemoGate`, `readDemoGate`, `readWelcomeDismissed`, and `writeWelcomeDismissedCookie` from `src/server/demo/loader_helpers.ts` (now deleted). Replace the import block AND the standalone `export type { DemoGate }` re-export just below it (keeping both would be a duplicate-identifier error) with:
 
 ```ts
-type DemoGate = { kind: 'byok' }  // there's only one path now
-export type { DemoGate }
+import type { DemoModel } from '../lib/demo/demo_model'
+
+// Keep the full union: retained code (chat_pane, model_picker_modal, voice
+// capability resolution) branches on both members with exhaustive switches.
+export type DemoGate = { kind: 'byok' } | { kind: 'demo'; model: DemoModel }
+
+const STATIC_DEMO_GATE: DemoGate = { kind: 'byok' }
 ```
 
-Then in the route's `loader`, replace the `Promise.all([readDemoGate(...), readWelcomeDismissed()])` call with:
+Then in the route's `loader`, replace the `Promise.all([readDemoGate(), readWelcomeDismissed()])` call with:
 
 ```ts
-loader: async () => ({ demoGate: { kind: 'byok' as const }, welcomeDismissed: true }),
+loader: async () => ({ demoGate: STATIC_DEMO_GATE }),
 ```
 
-`welcomeDismissed: true` keeps the welcome modal off forever — but since `WelcomeModal` is also deleted in step 6a, the field becomes unused. Delete the prop and references too.
-
-Also remove the `WelcomeModal` import + JSX (`<WelcomeModal ... />`), the `dismissWelcome` callback, and the `WELCOME_DISMISSED_COOKIE` reference.
+`welcomeDismissed` disappears from the loader data because everything it fed is going: remove the `WelcomeModal` import + JSX (`<WelcomeModal ... />`), the `dismissWelcome` callback (it calls the deleted `writeWelcomeDismissedCookie` server fn), and every remaining `welcomeDismissed` reference.
 
 **6e — Drop demo references in `src/components/layout.tsx`**
 
-Layout currently imports the (deleted) `InfoModal` from `./demo/info_modal` and `CerfaDorModal` from `./easter-eggs/cerfa_dor_modal`. Delete both imports + the JSX + the URL-search reading that opens them (`?show=info`, `?show=cerfa_dor`).
+Layout currently imports the (deleted) `InfoModal` from `./demo/info_modal` and `CerfaDorModal` from `./easter-eggs/cerfa_dor_modal`. Delete both imports + the JSX + the URL-search reading that opens them (`?show=info`, `?show=cerfa_dor`), and the header's info trigger (its `header.whatIsThisDemo` aria-label key dies in 6g).
 
-**6f — Drop the rate-limit panel + social share from the error banner**
+With `?show=info` gone, the WelcomeBanner's info link in `chat_pane.tsx` points at nothing — delete that anchor (the `chat.welcomeInfoLink` line) too.
 
-`src/components/error_banner.tsx` references `SocialShare` from `./demo/social_share` (deleted). Delete the import and the `RateLimitPanel` definition (it's only useful when the demo's per-IP cap fires, which can't happen without the gate).
+**6f — Drop the social share from the error banner, and the download modal from the chat pane**
+
+`src/components/error_banner.tsx` references `SocialShare` from `./demo/social_share` (deleted). Delete the import and the whole share block (the `SocialShare` JSX plus the surrounding `chat.shareHero` copy). **Keep `RateLimitPanel`** — the retained `chat_pane.tsx` renders it on the voice rate-limit path.
+
+`src/components/chat/chat_pane.tsx` imports `DownloadModal` from `../demo/download_modal` (deleted). Delete the import and its JSX/trigger.
 
 **6g — Strip demo-flavoured locale keys**
 
@@ -336,16 +388,18 @@ Run a sweep across `src/locales/*.json` removing these keys (they're now unrefer
 
 ```
 chat.shareHero, chat.shareCtaLabel, chat.shareCopyLink, chat.shareCopied, chat.shareTweetText
-chat.errorRateLimitedTitle, chat.errorRateLimitedBodyThanks, chat.errorRateLimitedBodyCta, chat.errorRateLimitedCtaButton
-chat.welcomeTitle, chat.welcomeBody, chat.welcomeCta, chat.welcomeInfoLink
+chat.welcomeInfoLink (its ?show=info target died in 6e)
+header.whatIsThisDemo (the info trigger died in 6e)
 welcomeModal.* (whole tree)
-infoModal.* (whole tree)
+infoModal.* (whole tree EXCEPT infoModal.close — the retained ui/modal.tsx uses it as the close-button aria-label)
 download.* (whole tree)
-cerfaDor.* (whole tree)
-forms.* (whole tree, unless your replacement in 6b uses these keys)
+cerfaDor.* (whole tree — exists only in fr.json)
+forms.* (whole tree — then add the two keys 6b's template references, forms.labels.default and forms.useCases.default, to each locale you keep, or hardcode the labels instead)
 ```
 
-Use the project's `/translator` agent for the multi-locale removal, or write a tiny `python -c "import json, sys; ..."` one-liner.
+Keep `chat.welcomeTitle` / `chat.welcomeBody` / `chat.welcomeCta` and the `chat.errorRateLimited*` keys — the retained chat pane's BYOK empty state (`WelcomeBanner`) and rate-limit panel still render them.
+
+Sweep the locale files with a tiny `python -c "import json, sys; ..."` one-liner per file.
 
 Replace `header.brand` ("SimplePDF Copilot Demo") with the customer's brand name in en.json + every other locale.
 
@@ -360,7 +414,7 @@ npm run dev
 
 Open `http://localhost:3001`. Expected: the chat sidebar shows the BYOK Model Picker (or sends straight to your server's `chat.ts` if you wired a static API key in step 6c), the editor loads your replacement PDF from step 6b, no welcome modal, no info modal trigger, no Cerfa easter egg.
 
-If `tsc` or runtime fails: the most common cause is a stale import to a deleted file. Search for `from '.*demo'` and `from '.*easter-eggs'` across `src/` — any remaining hit is something missed in 6c-6f.
+If `tsc` or runtime fails: the most common cause is a stale import to a deleted file. Run `grep -rnE "from '.*(demo|easter-eggs)" src/` — any hit on a DELETED path is something missed in 6b-6g (hits on `lib/demo/demo_model` and `lib/demo/forms` are expected: both files still exist).
 
 If `Custom: walk me through each`: ask them which feature they want to address first (sample forms / info modal / BYOK Model Picker / share-link UI / sample documents). Walk through ONE at a time, pausing after each.
 
@@ -368,8 +422,10 @@ If `Custom: walk me through each`: ask them which feature they want to address f
 
 Per their Q1 choice:
 
-- **DigitalOcean App Platform:** click the deploy button at <https://cloud.digitalocean.com/apps/new?repo=https://github.com/SimplePDF/simplepdf-embed/tree/main>. The repo's `.do/deploy.template.yaml` drives it. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) the demo vars (`DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` / `DEMO_STT_OPENAI_API_KEY`) / `REDIS_URL` / `IP_HASH_SALT`.
-- **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), then `npx wrangler containers deploy` from a `wrangler.toml` that binds env vars and ties the container to a Worker route. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put DEMO_CHAT_API_KEY` (and the other demo vars) etc. Cloudflare's edge sits in front for free WAF + caching.
+First, for every hosted target: **push the Step 5/6 changes to the user's fork** — deploying upstream `SimplePDF/simplepdf-embed` ships none of their work.
+
+- **DigitalOcean App Platform:** the one-click URL and the bundled `.do/deploy.template.yaml` both reference `SimplePDF/simplepdf-embed` — substitute the user's fork: edit the template's `repo:` in their fork, then use `https://cloud.digitalocean.com/apps/new?repo=https://github.com/<their-owner>/simplepdf-embed/tree/main`. DigitalOcean will prompt for `VITE_SIMPLEPDF_COMPANY_IDENTIFIER` and (optionally) the demo vars (`DEMO_CHAT_API_KEY` / `DEMO_CHAT_MODEL` / `DEMO_RATE_LIMIT_TURNS` / `DEMO_STT_OPENAI_API_KEY`) / `REDIS_URL` / `IP_HASH_SALT`.
+- **Cloudflare Containers:** GA since April 2026 on the Workers Paid plan ($5/mo). The Node + nitro stack runs as-is in a Linux container. Workflow: write a small Dockerfile (Node 24 base, `RUN npm ci && npm run build`, `CMD ["node", ".output/server/index.mjs"]`, expose port 3000), reference it from the wrangler config's container settings, then run `npx wrangler deploy`. See <https://developers.cloudflare.com/containers/>. Set secrets with `npx wrangler secret put DEMO_CHAT_API_KEY` (and the other demo vars) etc. Cloudflare's edge sits in front for free WAF + caching.
 - **Vercel:** the nitro `node-server` preset works on Vercel's Node runtime. From the copilot folder, run `vercel deploy` and set the env vars via the dashboard or `vercel env add`.
 - **Render / fly.io:** point the service at this repo, set build command `npm run build`, start command `npm start`, and configure env vars in the host's dashboard. fly.io needs a `Dockerfile` (build the production output, run `node .output/server/index.mjs`).
 - **Custom Docker:** `npm run build` produces `.output/`. Bundle it in your Dockerfile, expose port 3000, run `node .output/server/index.mjs`.
@@ -378,14 +434,16 @@ Wait for them to confirm the deploy succeeded and they have a URL.
 
 ### Step 8: whitelist the deploy URL (CRITICAL: skip only if `Local only`)
 
+Heads-up: an account with an **empty** whitelist allows the embed on **all** origins — whitelisting the first origin is what activates the allow-list (blocking everything else). So on a fresh account the deploy URL may load right away; whitelist it anyway so the account isn't left open to any origin.
+
 The fastest path uses the editor's origin auto-detection:
 
-1. Open the deploy URL in a browser (e.g. `https://my-app.example.com`). The iframe will refuse to load because the origin isn't whitelisted yet, but the editor records the attempted origin server-side.
+1. Open the deploy URL in a browser (e.g. `https://my-app.example.com`). If the account already has whitelisted origins, the embed won't work there (the editor loads but stays inert), but the attempted origin is recorded server-side.
 2. In another tab, open `https://<companyIdentifier>.simplepdf.com/account/embed` (replace `<companyIdentifier>` with their value from Q3).
-3. Scroll to the **Security** section. The auto-detected origin from step 1 is listed there ready to approve. Click to whitelist it (no typing, no risk of protocol/trailing-slash mismatch).
+3. In the **Security** section, click **Whitelist origin** — the modal it opens lists the **Detected origins**, including the one from step 1, ready to approve. Click it (no typing, no risk of protocol/trailing-slash mismatch).
 4. Refresh the deploy URL. The iframe now loads.
 
-If they prefer to whitelist before opening the deploy URL: the **Security** section also has a manual **Whitelist origin** button. Match the protocol (`https://`) and host without a trailing slash.
+If they prefer to whitelist before opening the deploy URL: the same **Whitelist origin** modal also accepts a manually-typed origin. Match the protocol (`https://`) and host without a trailing slash.
 
 Then open the deploy URL. The iframe should load. If not, the most likely causes:
 
