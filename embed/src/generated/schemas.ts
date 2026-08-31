@@ -30,7 +30,7 @@ export const FocusFieldInput = z.object({
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
 export const GetDocumentContentInput = z.object({
   extractionMode: z.enum(["auto", "ocr"]).describe("Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.").optional(),
-}).describe("Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.")
+}).describe("Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.")
 export type GetDocumentContentInput = z.infer<typeof GetDocumentContentInput>
 export const GetFieldsInput = z.object({}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.")
 export type GetFieldsInput = z.infer<typeof GetFieldsInput>

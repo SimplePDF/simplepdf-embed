@@ -114,7 +114,7 @@ export const OPERATIONS = [
     request_type: "GET_DOCUMENT_CONTENT",
     wire_type: "GET_DOCUMENT_CONTENT",
     method: "getDocumentContent",
-    description: "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
+    description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
     error_codes: ["bad_request:invalid_value", "bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
