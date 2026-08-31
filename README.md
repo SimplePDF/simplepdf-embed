@@ -40,7 +40,11 @@ https://github.com/SimplePDF/simplepdf-embed/assets/10613140/8924f018-6076-4e44-
 # Get started
 
 > [!TIP]
-> Using Claude Code, Codex, or another agentic coding tool? Point it at [`skills/build-with-simplepdf/SKILL.md`](./skills/build-with-simplepdf/SKILL.md) - it inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration.
+> Using Claude Code, Codex, or another agentic coding tool? Paste this into it and ask it to follow the downloaded `build-with-simplepdf.md` - the [skill](./skills/build-with-simplepdf/SKILL.md) inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/SimplePDF/simplepdf-embed/main/skills/build-with-simplepdf/SKILL.md -o build-with-simplepdf.md
+> ```
 
 - ⚛️ [React component](./react/README.md) - `@simplepdf/react-embed-pdf`
 - 🧩 [Iframe bridge](./embed/README.md) - `@simplepdf/embed` (framework-free client to embed + programmatically drive the editor, with an AI SDK adapter)

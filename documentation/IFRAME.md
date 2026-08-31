@@ -5,7 +5,11 @@ SimplePDF Embed [React](../react/README.md) and [Web](../web/README.md) integrat
 **For more control**, embedding the editor inline (e.g. in a `div`), or driving it programmatically, read on.
 
 > [!TIP]
-> Using Claude Code, Codex, or another agentic coding tool? Point it at [`../skills/build-with-simplepdf/SKILL.md`](../skills/build-with-simplepdf/SKILL.md) - it inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration.
+> Using Claude Code, Codex, or another agentic coding tool? Paste this into it and ask it to follow the downloaded `build-with-simplepdf.md` - the [skill](../skills/build-with-simplepdf/SKILL.md) inspects your codebase, asks one architecture question at a time, and implements the right SimplePDF integration:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/SimplePDF/simplepdf-embed/main/skills/build-with-simplepdf/SKILL.md -o build-with-simplepdf.md
+> ```
 
 ## The iframe URL vs. programmatic control
 
