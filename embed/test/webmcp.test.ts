@@ -171,17 +171,18 @@ describe('attachEmbed({ enableWebMCP })', () => {
 
   it('waits for the editor to be ready before registering, so an early tool call cannot post into a listener-less iframe', async () => {
     const modelContext = installModelContext(document)
-    const registerTool = vi.spyOn(modelContext, 'registerTool')
     const booting = makeHarness({ enableWebMCP: true })
-    // Control: a second, ready embed proves the lazy path had time to run while the
-    // booting one still registered nothing.
-    const control = installModelContext(navigator)
-    mountReady({ enableWebMCP: true })
-    await waitForTools(control, 0)
-    expect(registerTool).not.toHaveBeenCalled()
+    // Control: a ready embed on the same context proves the lazy path had time to run;
+    // every live name is the control's, so the booting embed registered nothing.
+    const control = mountReady({ enableWebMCP: true })
+    await waitForTools(modelContext, TOOL_COUNT)
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
+    control.embed.lifecycle.dispose()
+    expect(modelContext.liveToolNames()).toEqual([])
 
     booting.markEditorReady()
-    await waitForTools(modelContext, TOOL_COUNT)
+    await waitForTools(modelContext, TOOL_COUNT * 2)
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
   })
 
   it('withholds the excluded operations and registers the rest', async () => {

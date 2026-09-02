@@ -3,7 +3,7 @@ import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
 import { AGENTIC_TOOL_NAMES } from './generated/agentic-tool-names'
 import type { Locale } from './generated/contract'
-import type { WebMCPOptions } from './webmcp-options'
+import type { WebMCPOptions } from './webmcp-shared'
 
 // Construction-time configuration error. createEmbed validates its config
 // synchronously and THROWS this on programmer error (bad target/companyIdentifier/document

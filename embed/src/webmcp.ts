@@ -1,6 +1,5 @@
 // Registers the editor operations as WebMCP tools on the HOST page's model context
-// (`document.modelContext`; `navigator.modelContext` is the deprecated alias older
-// runtimes expose) and executes each call over the bridge's wire dispatch, so the
+// and executes each call over the bridge's wire dispatch, so the
 // editor validates the agent's input exactly as it validates every other request.
 // The host page is where an in-browser agent looks: tools registered inside the
 // editor iframe are not discovered, which is why the SDK lifts them here.
@@ -14,6 +13,7 @@ import { OPERATIONS, type AgenticToolName, type WireType } from './generated/con
 import { TOOL_INPUT_SCHEMAS, type ToolInputSchema } from './generated/tool-input-schemas'
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
+import { modelContextCandidates } from './webmcp-shared'
 
 // The slice of the WebMCP surface this module touches, typed structurally so the
 // zero-dependency root pulls in no type package. `readOnlyHint` and
@@ -67,15 +67,7 @@ const isAgenticOperation = (operation: Operation): operation is AgenticOperation
 const isModelContext = (value: unknown): value is ModelContext =>
   typeof value === 'object' && value !== null && 'registerTool' in value && typeof value.registerTool === 'function'
 
-const readModelContext = (): ModelContext | null => {
-  if ('modelContext' in document && isModelContext(document.modelContext)) {
-    return document.modelContext
-  }
-  if ('modelContext' in navigator && isModelContext(navigator.modelContext)) {
-    return navigator.modelContext
-  }
-  return null
-}
+const readModelContext = (): ModelContext | null => modelContextCandidates().find(isModelContext) ?? null
 
 const toCallToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
   content: [{ type: 'text', text: JSON.stringify(result) }],

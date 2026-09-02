@@ -12,7 +12,7 @@ import type {
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
-import { normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-options'
+import { modelContextCandidates, normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-shared'
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
@@ -167,15 +167,16 @@ export const attachEmbed = ({
   const webMCPController = new AbortController()
   const webMCP = normalizeWebMCPOptions(enableWebMCP)
   // Latched while a registration attempt is in flight or succeeded; released when the
-  // module finds no usable context, so the next non-booting transition probes again and
-  // a runtime that installs its context after a fast EDITOR_READY still gets the tools
-  // (a transition during the load itself needs no replay: the module probes on arrival).
+  // module finds no usable context or fails to load, so the next non-booting transition
+  // probes again and a runtime that installs its context after a fast EDITOR_READY (or a
+  // transient chunk fetch failure) still gets the tools. A transition during the load
+  // itself needs no replay: the module probes on arrival.
   let webMCPStarted = false
   const startWebMCP = (): void => {
     if (!webMCP.enabled || webMCPStarted) {
       return
     }
-    if (!('modelContext' in document) && !('modelContext' in navigator)) {
+    if (modelContextCandidates().length === 0) {
       logger.info('webmcp.unavailable', { reason: 'no_model_context' })
       return
     }
@@ -193,6 +194,7 @@ export const attachEmbed = ({
         }
       })
       .catch((error: unknown) => {
+        webMCPStarted = false
         logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
       })
   }

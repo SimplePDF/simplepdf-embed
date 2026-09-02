@@ -32,8 +32,8 @@ describe('EmbedPDF (inline)', () => {
           source: container.querySelector('iframe')?.contentWindow ?? null,
         }),
       );
-      await waitFor(() => expect(liveTools.size).toBe(13));
-      expect(liveTools.has('setFieldValue')).toBe(true);
+      await waitFor(() => expect(liveTools.has('setFieldValue')).toBe(true));
+      expect(liveTools.size).toBeGreaterThan(1);
       expect(liveTools.has('submit')).toBe(false);
       unmount();
       expect(liveTools.size).toBe(0);

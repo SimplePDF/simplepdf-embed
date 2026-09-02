@@ -1,4 +1,21 @@
+// What the zero-dep root needs to know about WebMCP without loading the module:
+// the option shape and where a model context lives.
+
 import type { AgenticToolName } from './generated/contract'
+
+// Every value a page may expose as its model context, document first (the canonical
+// install location since Chrome 150; `navigator.modelContext` is the deprecated alias
+// older runtimes still expose). The bridge checks presence, the module validity.
+export const modelContextCandidates = (): unknown[] => {
+  const candidates: unknown[] = []
+  if ('modelContext' in document) {
+    candidates.push(document.modelContext)
+  }
+  if ('modelContext' in navigator) {
+    candidates.push(navigator.modelContext)
+  }
+  return candidates
+}
 
 // `true` registers every agentic operation; `exclude` withholds the listed ones
 // (e.g. `submit` when only a person may finalize). `false` / omitted registers nothing.
