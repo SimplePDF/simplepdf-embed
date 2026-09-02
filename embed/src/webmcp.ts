@@ -46,8 +46,9 @@ type AgenticOperation = Extract<Operation, { is_agentic_tool: true }>
 // which is untrusted from the page's perspective. Every writer declares whether it
 // removes or reorders content or finalizes the document; setting a field value is
 // not destructive here because the person reviews every value in the editor before
-// the one irreversible step, submit. Same map as the editor's in-page tools. The
-// Record makes a new operation a compile error until it is annotated.
+// the one irreversible step, submit. The Record makes a new operation a compile
+// error until it is annotated. Kept identical to the editor's in-page tool hints.
+// CF: WEBMCP_TOOL_ANNOTATIONS in the editor's lib/iframe/handlers.ts (SimplePDF editor repository)
 const TOOL_ANNOTATIONS = {
   createField: { destructiveHint: false },
   deleteFields: { destructiveHint: true },
@@ -66,8 +67,6 @@ const TOOL_ANNOTATIONS = {
 } satisfies Record<AgenticToolName, ToolAnnotations>
 
 const isAgenticOperation = (operation: Operation): operation is AgenticOperation => operation.is_agentic_tool
-
-const isAgenticToolName = (value: string): value is AgenticToolName => value in TOOL_INPUT_SCHEMAS
 
 const isModelContext = (value: unknown): value is ModelContext =>
   typeof value === 'object' && value !== null && 'registerTool' in value && typeof value.registerTool === 'function'
@@ -110,14 +109,7 @@ export const registerWebMCPTools = ({
     logger.warn('webmcp.unavailable', { reason: 'invalid_model_context' })
     return
   }
-  const excluded = new Set<AgenticToolName>()
-  for (const name of options === true ? [] : options.exclude) {
-    if (isAgenticToolName(name)) {
-      excluded.add(name)
-    } else {
-      logger.warn('webmcp.unknown_excluded_tool', { tool: name })
-    }
-  }
+  const excluded = new Set<AgenticToolName>(options === true ? [] : options.exclude)
   for (const operation of OPERATIONS) {
     if (!isAgenticOperation(operation) || excluded.has(operation.method)) {
       continue

@@ -1,6 +1,7 @@
 import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
+import { AGENTIC_TOOL_NAMES } from './generated/agentic-tool-names'
 import type { Locale } from './generated/contract'
 import type { WebMCPOptions } from './webmcp'
 
@@ -200,22 +201,37 @@ const assertValidFileArm = (file: unknown): void => {
   }
 }
 
-// `enableWebMCP` withholds irreversible operations from an agent, so a malformed value
-// from an untyped JS caller must fail loud rather than register everything.
+// `enableWebMCP.exclude` withholds irreversible operations from an agent, so a
+// malformed value or a misspelled name from an untyped JS caller must fail loud
+// rather than register the operation it meant to withhold.
+const AGENTIC_TOOL_NAME_SET: ReadonlySet<string> = new Set(AGENTIC_TOOL_NAMES)
+
 const assertValidWebMCPOptions = (enableWebMCP: unknown): void => {
   if (enableWebMCP === undefined || typeof enableWebMCP === 'boolean') {
     return
   }
-  const isExcludeList =
-    typeof enableWebMCP === 'object' &&
-    enableWebMCP !== null &&
-    'exclude' in enableWebMCP &&
-    Array.isArray(enableWebMCP.exclude) &&
-    enableWebMCP.exclude.every((name) => typeof name === 'string')
-  if (!isExcludeList) {
+  const excludeList = ((): string[] | null => {
+    if (typeof enableWebMCP !== 'object' || enableWebMCP === null || !('exclude' in enableWebMCP)) {
+      return null
+    }
+    const { exclude } = enableWebMCP
+    if (!Array.isArray(exclude)) {
+      return null
+    }
+    const entries: unknown[] = exclude
+    return entries.every((name): name is string => typeof name === 'string') ? entries : null
+  })()
+  if (excludeList === null) {
     throw new EmbedConfigError(
       'invalid_config',
-      `enableWebMCP must be a boolean or { exclude: string[] } (received ${describeValue(enableWebMCP)}).`,
+      `enableWebMCP must be a boolean or { exclude: AgenticToolName[] } (received ${describeValue(enableWebMCP)}).`,
+    )
+  }
+  const unknownNames = excludeList.filter((name) => !AGENTIC_TOOL_NAME_SET.has(name))
+  if (unknownNames.length > 0) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `enableWebMCP.exclude names no tool: ${unknownNames.join(', ')} (known: ${AGENTIC_TOOL_NAMES.join(', ')}).`,
     )
   }
 }

@@ -171,11 +171,13 @@ export const attachEmbed = ({
     if (webMCPOptions === null || webMCPStarted) {
       return
     }
-    webMCPStarted = true
+    // Probed on every non-booting transition until a context shows up, so a runtime
+    // that installs one after a fast EDITOR_READY still gets the tools.
     if (!('modelContext' in document) && !('modelContext' in navigator)) {
       logger.info('webmcp.unavailable', { reason: 'no_model_context' })
       return
     }
+    webMCPStarted = true
     void import('./webmcp')
       .then(({ registerWebMCPTools }) =>
         registerWebMCPTools({ dispatch: sendRequest, options: webMCPOptions, signal: webMCPController.signal, logger }),

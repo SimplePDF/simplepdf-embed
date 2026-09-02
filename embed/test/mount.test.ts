@@ -396,6 +396,13 @@ describe(createEmbed.name, () => {
     document.body.innerHTML = '<div id="root"></div>'
     const malformedArgs: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP }
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed(malformedArgs)).toThrow(/enableWebMCP must be a boolean or \{ exclude: string\[\] \}/)
+    expect(() => createEmbed(malformedArgs)).toThrow(/enableWebMCP must be a boolean or \{ exclude: AgenticToolName\[\] \}/)
+  })
+
+  it('throws EmbedConfigError when exclude names no tool, so a misspelled name cannot register the operation it meant to withhold', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP: { exclude: ['sumbit'] } }
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed(misspelled)).toThrow(/enableWebMCP\.exclude names no tool: sumbit \(known: createField/)
   })
 })

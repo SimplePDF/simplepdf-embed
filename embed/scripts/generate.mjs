@@ -10,6 +10,9 @@
 //   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
 //                                  drift-guarded against the plain type in contract.ts,
 //                                  so a divergence fails `tsc`.
+//   - src/generated/agentic-tool-names.ts : the agentic tool names alone, the one
+//                                  generated VALUE the zero-dep root imports (to
+//                                  validate `enableWebMCP.exclude`).
 //   - src/generated/tool-input-schemas.ts : the agentic operations' input schemas as
 //                                  plain JSON (camelCase keys), read only by the
 //                                  lazily-loaded WebMCP module.
@@ -302,6 +305,7 @@ const constArray = (name, values, typeName) => {
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
 contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module.')
+contractLines.push("import type { AGENTIC_TOOL_NAMES } from './agentic-tool-names'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))
 contractLines.push(constArray('EDITOR_ERROR_CODES', editorErrorCodes, 'EditorErrorCode'))
@@ -416,9 +420,11 @@ contractLines.push('export type RequestType = (typeof OPERATIONS)[number]["reque
 // the bridge transforms to the snake_case wire). The drift guard checks IframeActions
 // matches MethodName.
 contractLines.push('export type MethodName = (typeof OPERATIONS)[number]["method"]')
-contractLines.push(
-  'export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]',
-)
+// The agentic tool names live in their own tiny module (createEmbed validates an
+// untyped caller's `exclude` against the runtime list, and must not pull this whole
+// table into the zero-dep root); the type is derived from it here, and drift.ts pins
+// it to the `is_agentic_tool` operations so the two views of one fact cannot diverge.
+contractLines.push("export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number]")
 contractLines.push('')
 
 const eventMeta = contract.events.map(
@@ -448,6 +454,22 @@ for (const op of contract.operations) {
 schemaLines.push('')
 
 writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
+
+// --- agentic-tool-names.ts (zero runtime deps; the one generated value the root imports) ---
+
+const agenticToolNames = contract.operations
+  .filter((op) => !NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase()))
+  .map((op) => toCamel(op.request_type))
+writeFileSync(
+  join(GENERATED_DIR, 'agentic-tool-names.ts'),
+  renderFile([
+    '// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.',
+    '// The agentic tool names alone, so createEmbed can validate an `exclude` list without',
+    '// pulling the operations table into the zero-dep root; contract.ts derives',
+    '// AgenticToolName from this list.',
+    `export const AGENTIC_TOOL_NAMES = [${agenticToolNames.map((name) => JSON.stringify(name)).join(', ')}] as const`,
+  ]),
+)
 
 // --- tool-input-schemas.ts (zero runtime deps, loaded only by the WebMCP module) ---
 
@@ -496,6 +518,9 @@ driftLines.push('// every generated outbound event must appear in the hand-maint
 driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).")
 driftLines.push('export type DriftGuards = [')
 driftLines.push("  AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,")
+driftLines.push(
+  '  AssertTrue<Exact<Contract.AgenticToolName, Extract<(typeof Contract.OPERATIONS)[number], { is_agentic_tool: true }>["method"]>>,',
+)
 driftLines.push("  AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,")
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
@@ -533,5 +558,5 @@ writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +
-    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + tool-input-schemas.ts`,
+    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + agentic-tool-names.ts + tool-input-schemas.ts`,
 )

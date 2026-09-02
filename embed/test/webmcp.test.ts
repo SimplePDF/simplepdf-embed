@@ -61,8 +61,9 @@ type Harness = {
   embed: Embed
   posted: Posted[]
   reply: (request: Posted, result: unknown) => void
-  // Registration waits for the editor to be alive; this is the editor announcing it.
+  // Registration waits for the editor to be alive; these are the editor's lifecycle announcements.
   markEditorReady: () => void
+  markDocumentLoaded: () => void
 }
 
 const harnesses: Harness[] = []
@@ -91,6 +92,7 @@ const makeHarness = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Ha
     posted,
     reply: (request, result) => receive({ type: 'REQUEST_RESULT', data: { request_id: request.request_id, result } }),
     markEditorReady: () => receive({ type: 'EDITOR_READY', data: {} }),
+    markDocumentLoaded: () => receive({ type: 'DOCUMENT_LOADED', data: { document_id: 'doc1' } }),
   }
   harnesses.push(harness)
   return harness
@@ -196,7 +198,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
     await waitForTools(modelContext, 14)
   })
 
-  it('withholds the excluded operations, registers the rest, and reports an exclusion that names no tool', async () => {
+  it('withholds the excluded operations and registers the rest', async () => {
     const modelContext = installModelContext(document)
     const logger = makeLogger()
     mountReady({ enableWebMCP: { exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] }, logger })
@@ -208,14 +210,6 @@ describe('attachEmbed({ enableWebMCP })', () => {
     expect(names).not.toContain('submit')
     expect(names).not.toContain('deletePages')
     expect(logger.warn).not.toHaveBeenCalled()
-
-    // A typo in `exclude` (an untyped caller) registers the tool it meant to withhold:
-    // the SDK says so instead of staying silent.
-    modelContext.registered.length = 0
-    const typo = makeLogger()
-    const excludeWithTypo: AttachEmbedArgs['enableWebMCP'] = JSON.parse('{"exclude":["sumbit"]}')
-    mountReady({ enableWebMCP: excludeWithTypo, logger: typo })
-    await vi.waitFor(() => expect(typo.warn).toHaveBeenCalledWith('webmcp.unknown_excluded_tool', { tool: 'sumbit' }))
   })
 
   it('executes a tool call as the operation request on the wire and returns the editor Result as a JSON-text tool result', async () => {
@@ -317,11 +311,18 @@ describe('attachEmbed({ enableWebMCP })', () => {
     expect(modelContext.liveToolNames()).toHaveLength(14)
   })
 
-  it('reports an absent model context instead of loading the module, and never throws', async () => {
+  it('reports an absent model context instead of loading the module, never throws, and registers once a context appears', async () => {
     const logger = makeLogger()
-    expect(() => mountReady({ enableWebMCP: true, logger })).not.toThrow()
+    const harness = makeHarness({ enableWebMCP: true, logger })
+    harness.markEditorReady()
     await vi.waitFor(() => expect(logger.info).toHaveBeenCalledWith('webmcp.unavailable', { reason: 'no_model_context' }))
     expect(logger.error).not.toHaveBeenCalled()
+
+    // A context installed after a fast EDITOR_READY (an extension injected late) is
+    // picked up on the next lifecycle transition.
+    const modelContext = installModelContext(document)
+    harness.markDocumentLoaded()
+    await waitForTools(modelContext, 14)
   })
 
   it('reports a model context without registerTool as invalid', async () => {

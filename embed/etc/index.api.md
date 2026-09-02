@@ -4,12 +4,10 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "OPERATIONS" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "AGENTIC_TOOL_NAMES" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type AgenticToolName = Extract<(typeof OPERATIONS)[number], {
-    is_agentic_tool: true;
-}>["method"];
+export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number];
 
 // @public (undocumented)
 export type BridgeError = {

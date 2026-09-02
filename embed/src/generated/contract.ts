@@ -1,5 +1,6 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 // Zero runtime dependencies: the zero-dep root imports only from this module.
+import type { AGENTIC_TOOL_NAMES } from './agentic-tool-names'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
@@ -196,7 +197,7 @@ export const OPERATIONS = [
 export type WireType = (typeof OPERATIONS)[number]["wire_type"]
 export type RequestType = (typeof OPERATIONS)[number]["request_type"]
 export type MethodName = (typeof OPERATIONS)[number]["method"]
-export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]
+export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number]
 
 export const OUTBOUND_EVENTS = [
   { event_type: "PAGE_FOCUSED", description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page." },

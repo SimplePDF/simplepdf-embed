@@ -5,7 +5,7 @@
 // the consumers that trigger it), so the two costs stay visible separately. Export loadability is guarded
 // separately by ../../scripts/check-exports.mjs (the `check:exports` script).
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
@@ -76,7 +76,7 @@ const entriesWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
 const lazyChunks = [...new Set(Object.keys(BUDGETS).flatMap((entry) => closureOf(entry).flatMap(lazyImports)))]
 const lazyWithinBudget = lazyChunks.map((chunk) => {
   const budgetEntry = Object.entries(LAZY_BUDGETS).find(([prefix]) => chunk.startsWith(prefix))
-  if (budgetEntry === undefined || !readdirSync(DIST).includes(chunk)) {
+  if (budgetEntry === undefined || !existsSync(join(DIST, chunk))) {
     console.error(`✗ ${chunk}: lazily imported but not built or not budgeted (add a LAZY_BUDGETS row)`)
     return false
   }

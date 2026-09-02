@@ -206,8 +206,8 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
   }, [context]);
   // Registration happens at mount, so a changed option remounts the editor (and drops
   // the person's edits). Keyed on the normalized value, so a fresh `{ exclude: [...] }`
-  // literal, a reordered list, or `undefined` vs `false` never remounts. The effect
-  // reads the option through a ref for the same reason the callbacks do.
+  // literal, a reordered list, or `undefined` vs `false` never remounts; the effect
+  // reads the option through a ref so the literal itself stays out of its dependencies.
   const webMCPKey = ((): string => {
     if (enableWebMCP === undefined || enableWebMCP === false) {
       return 'off';

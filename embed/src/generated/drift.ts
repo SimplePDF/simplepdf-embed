@@ -13,6 +13,7 @@ type AssertTrue<T extends true> = T
 // (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).
 export type DriftGuards = [
   AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,
+  AssertTrue<Exact<Contract.AgenticToolName, Extract<(typeof Contract.OPERATIONS)[number], { is_agentic_tool: true }>["method"]>>,
   AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,
   AssertTrue<Exact<Schemas.CreateFieldInput, Contract.CreateFieldInput>>,
   AssertTrue<Exact<Schemas.DeleteFieldsInput, Contract.DeleteFieldsInput>>,
