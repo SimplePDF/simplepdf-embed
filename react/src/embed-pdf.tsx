@@ -204,9 +204,21 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
       return `unserializable:${Object.keys(context).sort().join(',')}`;
     }
   }, [context]);
-  // Registration happens at mount, so a changed option remounts the editor; keyed on
-  // the serialized value so a fresh `{ exclude: [...] }` literal each render does not.
-  const webMCPKey = JSON.stringify(enableWebMCP ?? null);
+  // Registration happens at mount, so a changed option remounts the editor (and drops
+  // the person's edits). Keyed on the normalized value, so a fresh `{ exclude: [...] }`
+  // literal, a reordered list, or `undefined` vs `false` never remounts. The effect
+  // reads the option through a ref for the same reason the callbacks do.
+  const webMCPKey = ((): string => {
+    if (enableWebMCP === undefined || enableWebMCP === false) {
+      return 'off';
+    }
+    if (enableWebMCP === true) {
+      return 'all';
+    }
+    return `exclude:${[...enableWebMCP.exclude].sort().join(',')}`;
+  })();
+  const enableWebMCPRef = React.useRef(enableWebMCP);
+  enableWebMCPRef.current = enableWebMCP;
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -221,7 +233,7 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
       locale,
       context,
       logger: stableLogger,
-      enableWebMCP,
+      enableWebMCP: enableWebMCPRef.current,
     });
     assignRef(ref, toEmbedActions(embed));
     // Forward each editor event to onEmbedEvent as the verbatim { type, data }. The

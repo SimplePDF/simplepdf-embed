@@ -200,6 +200,26 @@ const assertValidFileArm = (file: unknown): void => {
   }
 }
 
+// `enableWebMCP` withholds irreversible operations from an agent, so a malformed value
+// from an untyped JS caller must fail loud rather than register everything.
+const assertValidWebMCPOptions = (enableWebMCP: unknown): void => {
+  if (enableWebMCP === undefined || typeof enableWebMCP === 'boolean') {
+    return
+  }
+  const isExcludeList =
+    typeof enableWebMCP === 'object' &&
+    enableWebMCP !== null &&
+    'exclude' in enableWebMCP &&
+    Array.isArray(enableWebMCP.exclude) &&
+    enableWebMCP.exclude.every((name) => typeof name === 'string')
+  if (!isExcludeList) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `enableWebMCP must be a boolean or { exclude: string[] } (received ${describeValue(enableWebMCP)}).`,
+    )
+  }
+}
+
 const assertValidDocument = (document: unknown): void => {
   if (document === undefined) {
     return
@@ -663,6 +683,7 @@ export const createEmbed = (args: CreateEmbedArgs): Embed => {
     throw new EmbedConfigError('invalid_config', `baseDomain must be a string (received ${describeValue(args.baseDomain)}).`)
   }
   assertValidDocument(args.document)
+  assertValidWebMCPOptions(args.enableWebMCP)
   const baseDomain = args.baseDomain ?? DEFAULT_BASE_DOMAIN
   // A SimplePDF documents URL carries its own origin (a possibly-different
   // companyIdentifier subdomain); the bridge then targets that origin instead of

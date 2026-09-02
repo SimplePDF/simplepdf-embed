@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AgenticToolName } from '@simplepdf/embed';
 import type { BridgeLogger } from '@simplepdf/embed';
 import type { BridgeResult } from '@simplepdf/embed';
 import type { EditorEvent } from '@simplepdf/embed';
@@ -16,6 +17,8 @@ import * as React_2 from 'react';
 import type { SelectToolInput } from '@simplepdf/embed';
 import type { SubmitInput } from '@simplepdf/embed';
 import { WebMCPOptions } from '@simplepdf/embed';
+
+export { AgenticToolName }
 
 // @public (undocumented)
 export type EmbedActions = Omit<IframeActions, 'selectTool' | 'submit'> & {
@@ -48,6 +51,8 @@ export const useEmbed: () => {
     embedRef: React_2.RefObject<EmbedActions | null>;
     actions: EmbedActions;
 };
+
+export { WebMCPOptions }
 
 // (No @packageDocumentation comment for this package)
 

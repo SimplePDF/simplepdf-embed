@@ -3,13 +3,16 @@
 // source of truth; this script is the only consumer that re-materializes it as
 // TypeScript. Run via `npm run generate` (wired into prebuild + pretest).
 //
-// Two outputs, both derived from one source so they cannot hand-drift:
+// Three outputs, all derived from one source so they cannot hand-drift:
 //   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
 //                                  (locales, error codes, operations, events).
 //                                  The zero-dep root imports only from here.
 //   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
 //                                  drift-guarded against the plain type in contract.ts,
 //                                  so a divergence fails `tsc`.
+//   - src/generated/tool-input-schemas.ts : the agentic operations' input schemas as
+//                                  plain JSON (camelCase keys), read only by the
+//                                  lazily-loaded WebMCP module.
 //
 // The JSON Schema vocabulary in embed-api.json is closed and small (object/string/
 // integer/number/boolean/null/array/enum/const/anyOf), so the emitter below covers
@@ -352,6 +355,11 @@ const toolInputSchema = (node) => {
     throw new Error(`Unsupported tool input schema root (expected an object): ${JSON.stringify(node)}`)
   }
   const properties = node.properties ?? {}
+  for (const required of node.required ?? []) {
+    if (!(required in properties)) {
+      throw new Error(`Tool input schema requires '${required}' but declares no such property: ${JSON.stringify(node)}`)
+    }
+  }
   const camelProperties = Object.fromEntries(
     Object.entries(properties).map(([key, property]) => [toCamel(key), toolInputSchemaProperty(property)]),
   )
@@ -363,13 +371,25 @@ const toolInputSchema = (node) => {
 }
 const toolInputSchemaProperty = (node) => {
   assertKnownKeywords(node)
-  if (node.type === 'object') {
-    return { ...toolInputSchema(node), ...(node.description !== undefined ? { description: node.description } : {}) }
+  if (node.const !== undefined || Array.isArray(node.enum)) {
+    return node
   }
-  return {
-    ...node,
-    ...(node.items !== undefined ? { items: toolInputSchemaProperty(node.items) } : {}),
-    ...(Array.isArray(node.anyOf) ? { anyOf: node.anyOf.map(toolInputSchemaProperty) } : {}),
+  if (Array.isArray(node.anyOf)) {
+    return { ...node, anyOf: node.anyOf.map(toolInputSchemaProperty) }
+  }
+  switch (node.type) {
+    case 'string':
+    case 'integer':
+    case 'number':
+    case 'boolean':
+    case 'null':
+      return node
+    case 'array':
+      return { ...node, items: toolInputSchemaProperty(node.items) }
+    case 'object':
+      return { ...toolInputSchema(node), ...(node.description !== undefined ? { description: node.description } : {}) }
+    default:
+      throw new Error(`Unsupported JSON Schema node for a tool input schema: ${JSON.stringify(node)}`)
   }
 }
 
@@ -382,7 +402,6 @@ const opMeta = contract.operations.map((op) => {
     `    wire_type: ${JSON.stringify(op.request_type.toUpperCase())},\n` +
     `    method: ${JSON.stringify(toCamel(op.request_type))},\n` +
     `    description: ${JSON.stringify(op.description)},\n` +
-    `    input_schema: ${JSON.stringify(toolInputSchema(op.input_schema))},\n` +
     `    error_codes: [${op.error_codes.map((c) => JSON.stringify(c)).join(', ')}] as const,\n` +
     `    is_agentic_tool: ${!NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase())},\n` +
     `    has_output: ${op.output_schema.type !== 'null'},\n` +
@@ -429,6 +448,32 @@ for (const op of contract.operations) {
 schemaLines.push('')
 
 writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
+
+// --- tool-input-schemas.ts (zero runtime deps, loaded only by the WebMCP module) ---
+
+const toolInputSchemaLines = []
+toolInputSchemaLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
+toolInputSchemaLines.push('// The agentic operations\' input schemas as plain JSON Schema with camelCase keys (the')
+toolInputSchemaLines.push('// SDK-side shape; the bridge lowers the keys to the wire). Read only by src/webmcp.ts,')
+toolInputSchemaLines.push('// which is lazy-loaded, so this table never lands in an entry that did not opt in.')
+toolInputSchemaLines.push("import type { AgenticToolName } from './contract'")
+toolInputSchemaLines.push('')
+toolInputSchemaLines.push('export type ToolInputSchema = {')
+toolInputSchemaLines.push("  readonly type: 'object'")
+toolInputSchemaLines.push('  readonly properties?: Readonly<Record<string, unknown>>')
+toolInputSchemaLines.push('  readonly required?: readonly string[]')
+toolInputSchemaLines.push('}')
+toolInputSchemaLines.push('')
+toolInputSchemaLines.push('export const TOOL_INPUT_SCHEMAS = {')
+for (const op of contract.operations) {
+  if (NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase())) {
+    continue
+  }
+  toolInputSchemaLines.push(`  ${toCamel(op.request_type)}: ${JSON.stringify(toolInputSchema(op.input_schema))},`)
+}
+toolInputSchemaLines.push('} as const satisfies Record<AgenticToolName, ToolInputSchema>')
+
+writeFileSync(join(GENERATED_DIR, 'tool-input-schemas.ts'), renderFile(toolInputSchemaLines))
 
 // --- drift.ts (compile-time drift guards; type-checked, not bundled) --------
 // One exported tuple gathers every guard so noUnusedLocals stays happy while the
@@ -488,5 +533,5 @@ writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +
-    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts`,
+    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + tool-input-schemas.ts`,
 )

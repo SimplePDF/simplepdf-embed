@@ -159,9 +159,38 @@ export const attachEmbed = ({
     handler: (data: EditorEventMap[TEventType]) => void,
   ): (() => void) => channels[type].subscribe(handler)
 
+  // WebMCP tools are registered once the editor is alive (an agent enumerating tools
+  // at page load must not post into an iframe that has no listener yet), only when the
+  // embedder opted in and the page exposes a model context: the module and the schema
+  // table it reads load for no one else. Aborting the signal on dispose unregisters
+  // every tool.
+  const webMCPController = new AbortController()
+  const webMCPOptions = enableWebMCP === undefined || enableWebMCP === false ? null : enableWebMCP
+  let webMCPStarted = false
+  const startWebMCP = (): void => {
+    if (webMCPOptions === null || webMCPStarted) {
+      return
+    }
+    webMCPStarted = true
+    if (!('modelContext' in document) && !('modelContext' in navigator)) {
+      logger.info('webmcp.unavailable', { reason: 'no_model_context' })
+      return
+    }
+    void import('./webmcp')
+      .then(({ registerWebMCPTools }) =>
+        registerWebMCPTools({ dispatch: sendRequest, options: webMCPOptions, signal: webMCPController.signal, logger }),
+      )
+      .catch((error: unknown) => {
+        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
+      })
+  }
+
   const transitionTo = (next: BridgeState): void => {
     state = next
     onStateChange?.(next)
+    if (next.kind !== 'booting') {
+      startWebMCP()
+    }
   }
 
   const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
@@ -468,20 +497,6 @@ export const attachEmbed = ({
     setFieldValue: (input) => sendRequest('SET_FIELD_VALUE', input),
     submit: (input) => sendRequest('SUBMIT', input),
   } satisfies IframeActions
-
-  // The WebMCP module (and the operations table it reads) loads only for an embedder
-  // that opts in; aborting the signal on dispose unregisters every tool it registered.
-  const webMCPController = new AbortController()
-  const webMCPOptions = enableWebMCP === undefined || enableWebMCP === false ? null : enableWebMCP
-  if (webMCPOptions !== null) {
-    void import('./webmcp')
-      .then(({ registerWebMCPTools }) =>
-        registerWebMCPTools({ dispatch: sendRequest, options: webMCPOptions, signal: webMCPController.signal, logger }),
-      )
-      .catch((error: unknown) => {
-        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
-      })
-  }
 
   const dispose = (): void => {
     if (disposed) {

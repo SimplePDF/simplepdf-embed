@@ -5,11 +5,13 @@
 // The host page is where an in-browser agent looks: tools registered inside the
 // editor iframe are not discovered, which is why the SDK lifts them here.
 //
-// Loaded lazily by the bridge only when `enableWebMCP` is set, so an embedder that
-// does not opt in downloads none of this (nor the operations table it reads).
+// Loaded lazily by the bridge, once the editor is ready and only when `enableWebMCP`
+// is set and the page exposes a model context, so nothing here (nor the schema table
+// it reads) is downloaded otherwise.
 // CF: https://webmachinelearning.github.io/webmcp/
 
 import { OPERATIONS, type AgenticToolName, type WireType } from './generated/contract'
+import { TOOL_INPUT_SCHEMAS, type ToolInputSchema } from './generated/tool-input-schemas'
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
 
@@ -18,14 +20,14 @@ import type { BridgeResult } from './types'
 export type WebMCPOptions = boolean | { exclude: readonly AgenticToolName[] }
 
 // The slice of the WebMCP surface this module touches, typed structurally so the
-// zero-dependency root pulls in no type package.
-type ToolAnnotations = { readOnlyHint?: boolean; destructiveHint?: boolean }
+// zero-dependency root pulls in no type package. `readOnlyHint` and
+// `untrustedContentHint` are the specification's annotations; `destructiveHint` is
+// MCP's, read by runtimes that carry MCP's hint vocabulary and ignored by the others.
+type ToolAnnotations = { readOnlyHint?: boolean; untrustedContentHint?: boolean; destructiveHint?: boolean }
+// The MCP tool-result envelope. The specification serializes whatever `execute`
+// resolves with; this shape is what the runtimes in the field read (and what the
+// editor's own in-page tools return), a failed Result additionally flagged `isError`.
 type CallToolResult = { content: Array<{ type: 'text'; text: string }>; isError?: boolean }
-type ToolInputSchema = {
-  readonly type: 'object'
-  readonly properties?: Readonly<Record<string, unknown>>
-  readonly required?: readonly string[]
-}
 type WebMCPTool = {
   name: string
   description: string
@@ -40,10 +42,12 @@ type ModelContext = {
 type Operation = (typeof OPERATIONS)[number]
 type AgenticOperation = Extract<Operation, { is_agentic_tool: true }>
 
-// MCP planners treat an unset destructiveHint as true, so every operation declares
-// one: true for the ones that remove or reorder content or finalize the document;
-// readOnlyHint marks the pure readers. The Record makes a new operation a compile
-// error until it is annotated.
+// The two readers return document-derived content (field values, extracted text),
+// which is untrusted from the page's perspective. Every writer declares whether it
+// removes or reorders content or finalizes the document; setting a field value is
+// not destructive here because the person reviews every value in the editor before
+// the one irreversible step, submit. Same map as the editor's in-page tools. The
+// Record makes a new operation a compile error until it is annotated.
 const TOOL_ANNOTATIONS = {
   createField: { destructiveHint: false },
   deleteFields: { destructiveHint: true },
@@ -51,8 +55,8 @@ const TOOL_ANNOTATIONS = {
   detectFields: { destructiveHint: false },
   download: { destructiveHint: false },
   focusField: { destructiveHint: false },
-  getDocumentContent: { readOnlyHint: true },
-  getFields: { readOnlyHint: true },
+  getDocumentContent: { readOnlyHint: true, untrustedContentHint: true },
+  getFields: { readOnlyHint: true, untrustedContentHint: true },
   goTo: { destructiveHint: false },
   movePage: { destructiveHint: true },
   rotatePage: { destructiveHint: true },
@@ -62,6 +66,8 @@ const TOOL_ANNOTATIONS = {
 } satisfies Record<AgenticToolName, ToolAnnotations>
 
 const isAgenticOperation = (operation: Operation): operation is AgenticOperation => operation.is_agentic_tool
+
+const isAgenticToolName = (value: string): value is AgenticToolName => value in TOOL_INPUT_SCHEMAS
 
 const isModelContext = (value: unknown): value is ModelContext =>
   typeof value === 'object' && value !== null && 'registerTool' in value && typeof value.registerTool === 'function'
@@ -76,12 +82,14 @@ const readModelContext = (): ModelContext | null => {
   return null
 }
 
-// The editor Result, serialized as the JSON-text CallToolResult an agent reads; a
-// failed Result is additionally flagged `isError` (the MCP convention).
 const toCallToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
   content: [{ type: 'text', text: JSON.stringify(result) }],
   ...(result.success ? {} : { isError: true }),
 })
+
+// A model context is a page-level singleton keyed by tool name, so two embeds on one
+// page would collide; the first registration of a name wins and the rest are reported.
+const liveToolNames = new Set<string>()
 
 export const registerWebMCPTools = ({
   dispatch,
@@ -94,29 +102,47 @@ export const registerWebMCPTools = ({
   signal: AbortSignal
   logger: BridgeLogger
 }): void => {
-  const modelContext = readModelContext()
-  if (modelContext === null || signal.aborted) {
+  if (signal.aborted) {
     return
   }
-  const excluded = new Set<AgenticToolName>(options === true ? [] : options.exclude)
+  const modelContext = readModelContext()
+  if (modelContext === null) {
+    logger.warn('webmcp.unavailable', { reason: 'invalid_model_context' })
+    return
+  }
+  const excluded = new Set<AgenticToolName>()
+  for (const name of options === true ? [] : options.exclude) {
+    if (isAgenticToolName(name)) {
+      excluded.add(name)
+    } else {
+      logger.warn('webmcp.unknown_excluded_tool', { tool: name })
+    }
+  }
   for (const operation of OPERATIONS) {
     if (!isAgenticOperation(operation) || excluded.has(operation.method)) {
+      continue
+    }
+    if (liveToolNames.has(operation.method)) {
+      logger.warn('webmcp.tool_already_registered', { tool: operation.method })
       continue
     }
     const tool: WebMCPTool = {
       name: operation.method,
       description: operation.description,
-      inputSchema: operation.input_schema,
+      inputSchema: TOOL_INPUT_SCHEMAS[operation.method],
       annotations: TOOL_ANNOTATIONS[operation.method],
-      // A no-input tool may be called without arguments; the wire always carries an object.
+      // A nullish input becomes an empty payload (the no-input operations' wire shape).
       execute: async (input) => toCallToolResult(await dispatch(operation.wire_type, input ?? {})),
     }
+    liveToolNames.add(tool.name)
+    signal.addEventListener('abort', () => liveToolNames.delete(tool.name), { once: true })
     // Registration is best-effort: a runtime that rejects one tool must not take the
     // others down or escape as an unhandled rejection.
     void (async (): Promise<void> => {
       try {
         await modelContext.registerTool(tool, { signal })
       } catch (error) {
+        liveToolNames.delete(tool.name)
         logger.error('webmcp.register_tool_failed', {
           tool: tool.name,
           message: error instanceof Error ? error.message : String(error),

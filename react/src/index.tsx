@@ -11,4 +11,4 @@ export type { EmbedActions, EmbedEvent, EmbedPDFProps } from './embed-pdf';
 // The imperative core (createEmbed, the bridge helpers) and the wire-protocol vocabulary stay
 // in @simplepdf/embed: a React app uses <EmbedPDF> / useEmbed, so they are intentionally not
 // re-exported here. Import them from @simplepdf/embed directly if a non-React path needs them.
-export type { EmbedDocument, FieldType, OverlayToolType } from '@simplepdf/embed';
+export type { AgenticToolName, EmbedDocument, FieldType, OverlayToolType, WebMCPOptions } from '@simplepdf/embed';

@@ -21,8 +21,16 @@ describe('EmbedPDF (inline)', () => {
     });
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool } });
     try {
-      const { unmount } = render(
+      const { container, unmount } = render(
         <EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['submit'] }} />,
+      );
+      // Tools register once the editor announces itself.
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: JSON.stringify({ type: 'EDITOR_READY', data: {} }),
+          origin: 'https://acme.simplepdf.com',
+          source: container.querySelector('iframe')?.contentWindow ?? null,
+        }),
       );
       await waitFor(() => expect(liveTools.size).toBe(13));
       expect(liveTools.has('setFieldValue')).toBe(true);
@@ -32,6 +40,15 @@ describe('EmbedPDF (inline)', () => {
     } finally {
       Reflect.deleteProperty(document, 'modelContext');
     }
+  });
+
+  it('does not remount the editor when enableWebMCP is re-rendered as an equal value', () => {
+    const { container, rerender } = render(
+      <EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['submit', 'goTo'] }} />,
+    );
+    const iframe = container.querySelector('iframe');
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['goTo', 'submit'] }} />);
+    expect(container.querySelector('iframe')).toBe(iframe);
   });
 
   it('renders the editor iframe inside the host element for the companyIdentifier origin', () => {
