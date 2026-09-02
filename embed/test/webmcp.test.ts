@@ -302,12 +302,14 @@ describe('attachEmbed({ enableWebMCP })', () => {
     await waitForTools(accepting, 1)
     expect(accepting.registered[0]?.name).toBe('download')
 
-    // A disposes: B's `download` stays owned, so C is refused it.
+    // A disposes: its 13 names are freed for C, but B's `download` stays owned, so C is refused it.
     first.embed.lifecycle.dispose()
     const logger = makeLogger()
     mountReady({ enableWebMCP: true, logger })
-    await vi.waitFor(() => expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'download' }))
-    expect(accepting.registered).toHaveLength(1)
+    await waitForTools(accepting, TOOL_COUNT)
+    expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'download' })
+    expect(logger.warn).toHaveBeenCalledTimes(1)
+    expect(accepting.registered.filter((tool) => tool.name === 'download')).toHaveLength(1)
     second.embed.lifecycle.dispose()
   })
 
