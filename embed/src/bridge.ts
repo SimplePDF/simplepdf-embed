@@ -167,8 +167,9 @@ export const attachEmbed = ({
   const webMCPController = new AbortController()
   const webMCP = normalizeWebMCPOptions(enableWebMCP)
   // Latched while a registration attempt is in flight or succeeded; released when the
-  // module finds no usable context, so every later non-booting transition probes again
-  // and a runtime that installs its context after a fast EDITOR_READY still gets the tools.
+  // module finds no usable context, so the next non-booting transition probes again and
+  // a runtime that installs its context after a fast EDITOR_READY still gets the tools
+  // (a transition during the load itself needs no replay: the module probes on arrival).
   let webMCPStarted = false
   const startWebMCP = (): void => {
     if (!webMCP.enabled || webMCPStarted) {

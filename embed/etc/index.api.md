@@ -295,7 +295,9 @@ export type MovePageInput = {
 // @public (undocumented)
 export const NOOP_LOGGER: BridgeLogger;
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "normalizeWebMCPOptions" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export const normalizeWebMCPOptions: (options: WebMCPOptions | undefined) => {
     enabled: false;
 } | {

@@ -84,7 +84,14 @@ const toCallToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
 
 // A model context is a page-level singleton keyed by tool name, so two embeds on one
 // page would collide; the first registration of a name wins and the rest are reported.
-const liveToolNames = new Set<string>()
+// Each name records the signal that owns it, so only its owner ever frees it.
+const liveTools = new Map<string, AbortSignal>()
+
+const freeTool = (name: string, owner: AbortSignal): void => {
+  if (liveTools.get(name) === owner) {
+    liveTools.delete(name)
+  }
+}
 
 // Returns whether a usable model context was found (and the tools handed to it), so
 // the bridge can keep probing on later lifecycle transitions when it was not.
@@ -112,7 +119,7 @@ export const registerWebMCPTools = ({
     if (!isAgenticOperation(operation) || excluded.has(operation.method)) {
       continue
     }
-    if (liveToolNames.has(operation.method)) {
+    if (liveTools.has(operation.method)) {
       logger.warn('webmcp.tool_already_registered', { tool: operation.method })
       continue
     }
@@ -124,15 +131,15 @@ export const registerWebMCPTools = ({
       // A nullish input becomes an empty payload (the no-input operations' wire shape).
       execute: async (input) => toCallToolResult(await dispatch(operation.wire_type, input ?? {})),
     }
-    liveToolNames.add(tool.name)
-    signal.addEventListener('abort', () => liveToolNames.delete(tool.name), { once: true })
+    liveTools.set(tool.name, signal)
+    signal.addEventListener('abort', () => freeTool(tool.name, signal), { once: true })
     // Registration is best-effort: a runtime that rejects one tool must not take the
     // others down or escape as an unhandled rejection.
     void (async (): Promise<void> => {
       try {
         await modelContext.registerTool(tool, { signal })
       } catch (error) {
-        liveToolNames.delete(tool.name)
+        freeTool(tool.name, signal)
         logger.error('webmcp.register_tool_failed', {
           tool: tool.name,
           message: error instanceof Error ? error.message : String(error),

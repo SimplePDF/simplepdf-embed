@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attachEmbed, type AttachEmbedArgs } from '../src/bridge'
 import type { BridgeLogger } from '../src/logger'
 import type { Embed } from '../src/types'
+import { AGENTIC_TOOL_NAMES } from '../src/generated/agentic-tool-names'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
 
@@ -110,22 +111,7 @@ const mountReady = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Har
 const waitForTools = (modelContext: FakeModelContext, count: number): Promise<void> =>
   vi.waitFor(() => expect(modelContext.registered).toHaveLength(count))
 
-const AGENTIC_TOOL_NAMES = [
-  'createField',
-  'deleteFields',
-  'deletePages',
-  'detectFields',
-  'download',
-  'focusField',
-  'getDocumentContent',
-  'getFields',
-  'goTo',
-  'movePage',
-  'rotatePage',
-  'selectTool',
-  'setFieldValue',
-  'submit',
-]
+const TOOL_COUNT = AGENTIC_TOOL_NAMES.length
 
 // The bridge's readiness probe posts its own GET_FIELDS requests while the editor is
 // booting, so a tool call's request is located by type rather than by position.
@@ -161,10 +147,10 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('registers every agentic operation on document.modelContext with the SDK name, description, camelCase input schema and an explicit behavior hint', async () => {
     const modelContext = installModelContext(document)
     mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
 
-    expect(modelContext.registered.map((tool) => tool.name).sort()).toEqual(AGENTIC_TOOL_NAMES)
-    expect(modelContext.liveToolNames()).toHaveLength(14)
+    expect(modelContext.registered.map((tool) => tool.name).sort()).toEqual([...AGENTIC_TOOL_NAMES].sort())
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
     const setFieldValue = findTool(modelContext, 'setFieldValue')
     expect(setFieldValue.description).toMatch(/^Set the value of an existing field/)
     expect(setFieldValue.inputSchema.type).toBe('object')
@@ -195,14 +181,14 @@ describe('attachEmbed({ enableWebMCP })', () => {
     expect(registerTool).not.toHaveBeenCalled()
 
     booting.markEditorReady()
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
   })
 
   it('withholds the excluded operations and registers the rest', async () => {
     const modelContext = installModelContext(document)
     const logger = makeLogger()
     mountReady({ enableWebMCP: { exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] }, logger })
-    await waitForTools(modelContext, 10)
+    await waitForTools(modelContext, TOOL_COUNT - 4)
 
     const names = modelContext.registered.map((tool) => tool.name)
     expect(names).toContain('setFieldValue')
@@ -215,7 +201,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('executes a tool call as the operation request on the wire and returns the editor Result as a JSON-text tool result', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
 
     const pendingResult = findTool(modelContext, 'setFieldValue').execute({ fieldId: 'f1', value: 'Jane' })
     const request = await waitForRequest(harness, 'SET_FIELD_VALUE')
@@ -229,7 +215,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('flags a failed editor Result as an error tool result that still carries the error code', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
 
     const pendingResult = findTool(modelContext, 'goTo').execute({ page: 99 })
     const request = await waitForRequest(harness, 'GO_TO')
@@ -245,7 +231,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('sends an empty payload when a no-input tool is called without arguments', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
 
     void findTool(modelContext, 'detectFields').execute(undefined)
     const request = await waitForRequest(harness, 'DETECT_FIELDS')
@@ -255,8 +241,8 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('unregisters every tool when the embed is disposed', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
-    expect(modelContext.liveToolNames()).toHaveLength(14)
+    await waitForTools(modelContext, TOOL_COUNT)
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
 
     harness.embed.lifecycle.dispose()
     expect(modelContext.liveToolNames()).toEqual([])
@@ -269,8 +255,8 @@ describe('attachEmbed({ enableWebMCP })', () => {
     // Control: a later embed on the same context registers its full set, proving the
     // early one's lazy load had every chance to run and registered nothing.
     mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
-    expect(modelContext.liveToolNames()).toHaveLength(14)
+    await waitForTools(modelContext, TOOL_COUNT)
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
   })
 
   it('registers nothing when the option is off, even with a model context present', async () => {
@@ -281,34 +267,55 @@ describe('attachEmbed({ enableWebMCP })', () => {
     // Control: a ready embed with the option on registers, proving the off ones had
     // the same chance and took none of it.
     mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
-    expect(registerTool).toHaveBeenCalledTimes(14)
+    await waitForTools(modelContext, TOOL_COUNT)
+    expect(registerTool).toHaveBeenCalledTimes(TOOL_COUNT)
   })
 
   it('lets the first embed on a page own each tool name and reports the collision for a second one', async () => {
     const modelContext = installModelContext(document)
     const logger = makeLogger()
     const first = mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
 
     mountReady({ enableWebMCP: true, logger })
     await vi.waitFor(() =>
       expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'submit' }),
     )
-    expect(logger.warn).toHaveBeenCalledTimes(14)
-    expect(modelContext.registered).toHaveLength(14)
+    expect(logger.warn).toHaveBeenCalledTimes(TOOL_COUNT)
+    expect(modelContext.registered).toHaveLength(TOOL_COUNT)
 
     // Disposing the owner frees the names for the next embed.
     first.embed.lifecycle.dispose()
     mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 28)
+    await waitForTools(modelContext, TOOL_COUNT * 2)
+  })
+
+  it('frees a rejected name only for its owner, so a later embed that took the name keeps it', async () => {
+    // A: the runtime rejects `download`; A's abort must not later free a name it never owned.
+    const modelContext = installModelContext(document, { rejectTool: 'download' })
+    const first = mountReady({ enableWebMCP: true, logger: makeLogger() })
+    await waitForTools(modelContext, TOOL_COUNT - 1)
+
+    // B: on an accepting context, takes `download` (the rest are reported as A's).
+    const accepting = installModelContext(document)
+    const second = mountReady({ enableWebMCP: true, logger: makeLogger() })
+    await waitForTools(accepting, 1)
+    expect(accepting.registered[0]?.name).toBe('download')
+
+    // A disposes: B's `download` stays owned, so C is refused it.
+    first.embed.lifecycle.dispose()
+    const logger = makeLogger()
+    mountReady({ enableWebMCP: true, logger })
+    await vi.waitFor(() => expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'download' }))
+    expect(accepting.registered).toHaveLength(1)
+    second.embed.lifecycle.dispose()
   })
 
   it('falls back to navigator.modelContext when the document exposes none', async () => {
     const modelContext = installModelContext(navigator)
     mountReady({ enableWebMCP: true })
-    await waitForTools(modelContext, 14)
-    expect(modelContext.liveToolNames()).toHaveLength(14)
+    await waitForTools(modelContext, TOOL_COUNT)
+    expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
   })
 
   it('reports an absent model context, never throws, and registers once a context appears', async () => {
@@ -322,7 +329,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
     // picked up on the next lifecycle transition.
     const modelContext = installModelContext(document)
     harness.markDocumentLoaded()
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
   })
 
   it('reports a model context without registerTool as invalid and keeps probing, so a placeholder filled in later still gets the tools', async () => {
@@ -335,14 +342,14 @@ describe('attachEmbed({ enableWebMCP })', () => {
 
     const modelContext = installModelContext(document)
     harness.markDocumentLoaded()
-    await waitForTools(modelContext, 14)
+    await waitForTools(modelContext, TOOL_COUNT)
   })
 
   it('keeps registering the other tools when the runtime rejects one, logs the failure, and frees that name', async () => {
     const modelContext = installModelContext(document, { rejectTool: 'download' })
     const logger = makeLogger()
     mountReady({ enableWebMCP: true, logger })
-    await waitForTools(modelContext, 13)
+    await waitForTools(modelContext, TOOL_COUNT - 1)
 
     expect(modelContext.registered.map((tool) => tool.name)).not.toContain('download')
     await vi.waitFor(() =>

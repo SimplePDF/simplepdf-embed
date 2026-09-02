@@ -49,6 +49,12 @@ describe('EmbedPDF (inline)', () => {
     const iframe = container.querySelector('iframe');
     rerender(<EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['goTo', 'submit'] }} />);
     expect(container.querySelector('iframe')).toBe(iframe);
+
+    // A different value does remount: registration happens at mount.
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP />);
+    const remounted = container.querySelector('iframe');
+    expect(remounted).not.toBeNull();
+    expect(remounted).not.toBe(iframe);
   });
 
   it('renders the editor iframe inside the host element for the companyIdentifier origin', () => {
