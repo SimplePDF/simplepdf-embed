@@ -3,7 +3,7 @@
 // source of truth; this script is the only consumer that re-materializes it as
 // TypeScript. Run via `npm run generate` (wired into prebuild + pretest).
 //
-// Three outputs, all derived from one source so they cannot hand-drift:
+// Four outputs, all derived from one source so they cannot hand-drift:
 //   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
 //                                  (locales, error codes, operations, events).
 //                                  The zero-dep root imports only from here.

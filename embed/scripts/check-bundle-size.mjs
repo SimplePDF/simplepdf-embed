@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
+import { LAZY_CHUNKS } from './lazy-chunks.mjs'
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 
@@ -23,12 +24,6 @@ const BUDGETS = {
   'tools.js': 5 * 1024,
   'ai-sdk.js': 5.5 * 1024,
   'tanstack-ai.js': 5.5 * 1024,
-}
-
-// Lazily-imported chunks, matched by their un-hashed name prefix. The WebMCP chunk
-// carries the tool registration + the generated input-schema table.
-const LAZY_BUDGETS = {
-  'webmcp-': 5 * 1024,
 }
 
 const importsOf = (file, pattern) => {
@@ -75,12 +70,12 @@ const entriesWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
 // with no budget row is an unmeasured download.
 const lazyChunks = [...new Set(Object.keys(BUDGETS).flatMap((entry) => closureOf(entry).flatMap(lazyImports)))]
 const lazyWithinBudget = lazyChunks.map((chunk) => {
-  const budgetEntry = Object.entries(LAZY_BUDGETS).find(([prefix]) => chunk.startsWith(prefix))
-  if (budgetEntry === undefined || !existsSync(join(DIST, chunk))) {
-    console.error(`✗ ${chunk}: lazily imported but not built or not budgeted (add a LAZY_BUDGETS row)`)
+  const lazyChunk = Object.entries(LAZY_CHUNKS).find(([prefix]) => chunk.startsWith(prefix))
+  if (lazyChunk === undefined || !existsSync(join(DIST, chunk))) {
+    console.error(`✗ ${chunk}: lazily imported but not built or not budgeted (add a row to lazy-chunks.mjs)`)
     return false
   }
-  return checkBudget(chunk, budgetEntry[1])
+  return checkBudget(chunk, lazyChunk[1].budgetBytes)
 })
 
 process.exit([...entriesWithinBudget, ...lazyWithinBudget].every(Boolean) ? 0 : 1)

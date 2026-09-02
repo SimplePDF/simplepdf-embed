@@ -295,6 +295,14 @@ export type MovePageInput = {
 // @public (undocumented)
 export const NOOP_LOGGER: BridgeLogger;
 
+// @public (undocumented)
+export const normalizeWebMCPOptions: (options: WebMCPOptions | undefined) => {
+    enabled: false;
+} | {
+    enabled: true;
+    exclude: readonly AgenticToolName[];
+};
+
 // Warning: (ae-forgotten-export) The symbol "OVERLAY_TOOL_TYPES" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)

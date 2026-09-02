@@ -15,10 +15,6 @@ import { TOOL_INPUT_SCHEMAS, type ToolInputSchema } from './generated/tool-input
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
 
-// `true` registers every agentic operation; `exclude` withholds the listed ones
-// (e.g. `submit` when only a person may finalize). `false` / omitted registers nothing.
-export type WebMCPOptions = boolean | { exclude: readonly AgenticToolName[] }
-
 // The slice of the WebMCP surface this module touches, typed structurally so the
 // zero-dependency root pulls in no type package. `readOnlyHint` and
 // `untrustedContentHint` are the specification's annotations; `destructiveHint` is
@@ -90,26 +86,28 @@ const toCallToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
 // page would collide; the first registration of a name wins and the rest are reported.
 const liveToolNames = new Set<string>()
 
+// Returns whether a usable model context was found (and the tools handed to it), so
+// the bridge can keep probing on later lifecycle transitions when it was not.
 export const registerWebMCPTools = ({
   dispatch,
-  options,
+  exclude,
   signal,
   logger,
 }: {
   dispatch: (wireType: WireType, data: unknown) => Promise<BridgeResult<unknown>>
-  options: Exclude<WebMCPOptions, false>
+  exclude: readonly AgenticToolName[]
   signal: AbortSignal
   logger: BridgeLogger
-}): void => {
+}): boolean => {
   if (signal.aborted) {
-    return
+    return false
   }
   const modelContext = readModelContext()
   if (modelContext === null) {
-    logger.warn('webmcp.unavailable', { reason: 'invalid_model_context' })
-    return
+    logger.info('webmcp.unavailable', { reason: 'invalid_model_context' })
+    return false
   }
-  const excluded = new Set<AgenticToolName>(options === true ? [] : options.exclude)
+  const excluded = new Set<AgenticToolName>(exclude)
   for (const operation of OPERATIONS) {
     if (!isAgenticOperation(operation) || excluded.has(operation.method)) {
       continue
@@ -142,4 +140,5 @@ export const registerWebMCPTools = ({
       }
     })()
   }
+  return true
 }

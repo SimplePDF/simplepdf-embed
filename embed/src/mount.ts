@@ -3,7 +3,7 @@ import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
 import { AGENTIC_TOOL_NAMES } from './generated/agentic-tool-names'
 import type { Locale } from './generated/contract'
-import type { WebMCPOptions } from './webmcp'
+import type { WebMCPOptions } from './webmcp-options'
 
 // Construction-time configuration error. createEmbed validates its config
 // synchronously and THROWS this on programmer error (bad target/companyIdentifier/document
@@ -201,11 +201,11 @@ const assertValidFileArm = (file: unknown): void => {
   }
 }
 
+const AGENTIC_TOOL_NAME_SET: ReadonlySet<string> = new Set(AGENTIC_TOOL_NAMES)
+
 // `enableWebMCP.exclude` withholds irreversible operations from an agent, so a
 // malformed value or a misspelled name from an untyped JS caller must fail loud
 // rather than register the operation it meant to withhold.
-const AGENTIC_TOOL_NAME_SET: ReadonlySet<string> = new Set(AGENTIC_TOOL_NAMES)
-
 const assertValidWebMCPOptions = (enableWebMCP: unknown): void => {
   if (enableWebMCP === undefined || typeof enableWebMCP === 'boolean') {
     return

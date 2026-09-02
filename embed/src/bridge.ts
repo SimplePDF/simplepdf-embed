@@ -12,7 +12,7 @@ import type {
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
-import type { WebMCPOptions } from './webmcp'
+import { normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-options'
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
@@ -165,23 +165,32 @@ export const attachEmbed = ({
   // table it reads load for no one else. Aborting the signal on dispose unregisters
   // every tool.
   const webMCPController = new AbortController()
-  const webMCPOptions = enableWebMCP === undefined || enableWebMCP === false ? null : enableWebMCP
+  const webMCP = normalizeWebMCPOptions(enableWebMCP)
+  // Latched while a registration attempt is in flight or succeeded; released when the
+  // module finds no usable context, so every later non-booting transition probes again
+  // and a runtime that installs its context after a fast EDITOR_READY still gets the tools.
   let webMCPStarted = false
   const startWebMCP = (): void => {
-    if (webMCPOptions === null || webMCPStarted) {
+    if (!webMCP.enabled || webMCPStarted) {
       return
     }
-    // Probed on every non-booting transition until a context shows up, so a runtime
-    // that installs one after a fast EDITOR_READY still gets the tools.
     if (!('modelContext' in document) && !('modelContext' in navigator)) {
       logger.info('webmcp.unavailable', { reason: 'no_model_context' })
       return
     }
     webMCPStarted = true
     void import('./webmcp')
-      .then(({ registerWebMCPTools }) =>
-        registerWebMCPTools({ dispatch: sendRequest, options: webMCPOptions, signal: webMCPController.signal, logger }),
-      )
+      .then(({ registerWebMCPTools }) => {
+        const registered = registerWebMCPTools({
+          dispatch: sendRequest,
+          exclude: webMCP.exclude,
+          signal: webMCPController.signal,
+          logger,
+        })
+        if (!registered) {
+          webMCPStarted = false
+        }
+      })
       .catch((error: unknown) => {
         logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
       })

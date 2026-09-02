@@ -311,7 +311,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
     expect(modelContext.liveToolNames()).toHaveLength(14)
   })
 
-  it('reports an absent model context instead of loading the module, never throws, and registers once a context appears', async () => {
+  it('reports an absent model context, never throws, and registers once a context appears', async () => {
     const logger = makeLogger()
     const harness = makeHarness({ enableWebMCP: true, logger })
     harness.markEditorReady()
@@ -325,13 +325,17 @@ describe('attachEmbed({ enableWebMCP })', () => {
     await waitForTools(modelContext, 14)
   })
 
-  it('reports a model context without registerTool as invalid', async () => {
+  it('reports a model context without registerTool as invalid and keeps probing, so a placeholder filled in later still gets the tools', async () => {
     Object.defineProperty(document, 'modelContext', { configurable: true, value: {} })
     const logger = makeLogger()
-    mountReady({ enableWebMCP: true, logger })
+    const harness = mountReady({ enableWebMCP: true, logger })
     await vi.waitFor(() =>
-      expect(logger.warn).toHaveBeenCalledWith('webmcp.unavailable', { reason: 'invalid_model_context' }),
+      expect(logger.info).toHaveBeenCalledWith('webmcp.unavailable', { reason: 'invalid_model_context' }),
     )
+
+    const modelContext = installModelContext(document)
+    harness.markDocumentLoaded()
+    await waitForTools(modelContext, 14)
   })
 
   it('keeps registering the other tools when the runtime rejects one, logs the failure, and frees that name', async () => {

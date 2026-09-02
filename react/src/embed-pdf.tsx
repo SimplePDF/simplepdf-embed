@@ -15,7 +15,7 @@
 
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { createEmbed, type EmbedDocument, type WebMCPOptions } from '@simplepdf/embed';
+import { createEmbed, normalizeWebMCPOptions, type EmbedDocument, type WebMCPOptions } from '@simplepdf/embed';
 import type {
   BridgeLogger,
   BridgeResult,
@@ -208,15 +208,8 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
   // the person's edits). Keyed on the normalized value, so a fresh `{ exclude: [...] }`
   // literal, a reordered list, or `undefined` vs `false` never remounts; the effect
   // reads the option through a ref so the literal itself stays out of its dependencies.
-  const webMCPKey = ((): string => {
-    if (enableWebMCP === undefined || enableWebMCP === false) {
-      return 'off';
-    }
-    if (enableWebMCP === true) {
-      return 'all';
-    }
-    return `exclude:${[...enableWebMCP.exclude].sort().join(',')}`;
-  })();
+  const webMCP = normalizeWebMCPOptions(enableWebMCP);
+  const webMCPKey = webMCP.enabled ? `on:${[...webMCP.exclude].sort().join(',')}` : 'off';
   const enableWebMCPRef = React.useRef(enableWebMCP);
   enableWebMCPRef.current = enableWebMCP;
 
