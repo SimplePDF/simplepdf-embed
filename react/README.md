@@ -319,6 +319,12 @@ See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction,
     <td>The document to open (same typed shape as <code>createEmbed</code>): a URL (CORS / authenticated same-origin / a SimplePDF documents URL), a data URL, or a File/Blob</td>
   </tr>
   <tr>
+    <td>enableWebMCP</td>
+    <td>boolean | { exclude: AgenticToolName[] }</td>
+    <td>No (defaults to off)</td>
+    <td>Register the editor operations as WebMCP tools on your page, where an in-browser agent (ChatGPT's browser, Chrome with WebMCP) discovers them; <code>exclude</code> withholds operations such as <code>submit</code>. See <a href="../embed/README.md#webmcp-site-tools">WebMCP site tools</a>.</td>
+  </tr>
+  <tr>
     <td>style</td>
     <td>React.CSSProperties</td>
     <td>No</td>

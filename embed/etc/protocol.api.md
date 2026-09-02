@@ -31,6 +31,41 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "CREATE_FIELD";
     readonly method: "createField";
     readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly type: {
+                readonly type: "string";
+                readonly enum: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"];
+                readonly description: "Field type to create.";
+            };
+            readonly x: {
+                readonly type: "number";
+                readonly description: "Field x position, in PDF points.";
+            };
+            readonly y: {
+                readonly type: "number";
+                readonly description: "Field y position, in PDF points.";
+            };
+            readonly width: {
+                readonly type: "number";
+                readonly description: "Field width, in PDF points.";
+            };
+            readonly height: {
+                readonly type: "number";
+                readonly description: "Field height, in PDF points.";
+            };
+            readonly page: {
+                readonly type: "integer";
+                readonly description: "1-based page to place the field on.";
+            };
+            readonly value: {
+                readonly description: "Optional initial value. A string for text/checkbox fields, or a data URL for signature/picture fields.";
+                readonly type: "string";
+            };
+        };
+        readonly required: readonly ["type", "x", "y", "width", "height", "page"];
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -39,6 +74,22 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "DELETE_FIELDS";
     readonly method: "deleteFields";
     readonly description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly fieldIds: {
+                readonly description: "IDs of the fields to delete. Omit to delete every field on the target page.";
+                readonly type: "array";
+                readonly items: {
+                    readonly type: "string";
+                };
+            };
+            readonly page: {
+                readonly description: "1-based page to scope the deletion to. Omit to target all pages.";
+                readonly type: "integer";
+            };
+        };
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_field_ids", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -47,6 +98,19 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "DELETE_PAGES";
     readonly method: "deletePages";
     readonly description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly pages: {
+                readonly type: "array";
+                readonly items: {
+                    readonly type: "integer";
+                };
+                readonly description: "1-based page numbers to delete.";
+            };
+        };
+        readonly required: readonly ["pages"];
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -55,6 +119,9 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "DETECT_FIELDS";
     readonly method: "detectFields";
     readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -63,6 +130,9 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "DOWNLOAD";
     readonly method: "download";
     readonly description: "Generate and download the current document as a PDF. Returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+    };
     readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:missing_required_fields", "bad_request:download_blocked"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -71,6 +141,16 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "FOCUS_FIELD";
     readonly method: "focusField";
     readonly description: "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly fieldId: {
+                readonly type: "string";
+                readonly description: "ID of the field to focus and scroll into view.";
+            };
+        };
+        readonly required: readonly ["fieldId"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -78,7 +158,17 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_DOCUMENT_CONTENT";
     readonly wire_type: "GET_DOCUMENT_CONTENT";
     readonly method: "getDocumentContent";
-    readonly description: "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+    readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly extractionMode: {
+                readonly description: "Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.";
+                readonly type: "string";
+                readonly enum: readonly ["auto", "ocr"];
+            };
+        };
+    };
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -87,6 +177,9 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "GET_FIELDS";
     readonly method: "getFields";
     readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.";
+    readonly input_schema: {
+        readonly type: "object";
+    };
     readonly error_codes: readonly ["bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -95,6 +188,16 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "GO_TO";
     readonly method: "goTo";
     readonly description: "Scroll the editor to a specific 1-based page. Returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly page: {
+                readonly type: "integer";
+                readonly description: "1-based page to navigate to.";
+            };
+        };
+        readonly required: readonly ["page"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_page", "bad_request:page_out_of_range"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -103,6 +206,24 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "LOAD_DOCUMENT";
     readonly method: "loadDocument";
     readonly description: "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly dataUrl: {
+                readonly type: "string";
+                readonly description: "The document to load, as a data URL.";
+            };
+            readonly name: {
+                readonly description: "Optional display name for the document.";
+                readonly type: "string";
+            };
+            readonly page: {
+                readonly description: "Optional 1-based page to open the document on.";
+                readonly type: "integer";
+            };
+        };
+        readonly required: readonly ["dataUrl"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:invalid_page"];
     readonly is_agentic_tool: false;
     readonly has_output: false;
@@ -111,6 +232,20 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "MOVE_PAGE";
     readonly method: "movePage";
     readonly description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly fromPage: {
+                readonly type: "integer";
+                readonly description: "1-based current position of the page to move.";
+            };
+            readonly toPage: {
+                readonly type: "integer";
+                readonly description: "1-based destination position for the page.";
+            };
+        };
+        readonly required: readonly ["fromPage", "toPage"];
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -119,6 +254,16 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "ROTATE_PAGE";
     readonly method: "rotatePage";
     readonly description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly page: {
+                readonly type: "integer";
+                readonly description: "1-based page to rotate 90 degrees clockwise.";
+            };
+        };
+        readonly required: readonly ["page"];
+    };
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -127,6 +272,21 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "SELECT_TOOL";
     readonly method: "selectTool";
     readonly description: "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly tool: {
+                readonly anyOf: readonly [{
+                    readonly type: "string";
+                    readonly enum: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"];
+                }, {
+                    readonly type: "null";
+                }];
+                readonly description: "Tool to activate, or null to deselect.";
+            };
+        };
+        readonly required: readonly ["tool"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_tool"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -135,6 +295,24 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "SET_FIELD_VALUE";
     readonly method: "setFieldValue";
     readonly description: "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly fieldId: {
+                readonly type: "string";
+                readonly description: "ID of the field to update.";
+            };
+            readonly value: {
+                readonly anyOf: readonly [{
+                    readonly type: "string";
+                }, {
+                    readonly type: "null";
+                }];
+                readonly description: "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL (signature/picture).";
+            };
+        };
+        readonly required: readonly ["fieldId", "value"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -143,6 +321,16 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "SUBMIT";
     readonly method: "submit";
     readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.";
+    readonly input_schema: {
+        readonly type: "object";
+        readonly properties: {
+            readonly downloadCopy: {
+                readonly type: "boolean";
+                readonly description: "When true, the signer also receives a downloaded copy on submit.";
+            };
+        };
+        readonly required: readonly ["downloadCopy"];
+    };
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:missing_required_fields"];
     readonly is_agentic_tool: true;
     readonly has_output: false;

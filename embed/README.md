@@ -71,6 +71,21 @@ import { createSimplePDFTools } from '@simplepdf/embed/tanstack-ai'
 useChat({ connection, tools: createSimplePDFTools({ embed }) })
 ```
 
+## WebMCP site tools
+
+An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `enableWebMCP` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge: the agent fills and reads the document in the tab, and the PDF never leaves the browser.
+
+```ts
+// every agentic operation (the same names + camelCase inputs as @simplepdf/embed/tools)
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url }, enableWebMCP: true })
+
+// keep the decision with the person: withhold submit (and the page operations)
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url },
+  enableWebMCP: { exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] } })
+```
+
+Off by default. Every tool declares a behavior hint (`readOnlyHint` for the readers, an explicit `destructiveHint` for the rest), the editor validates each call like any other request (its permission model applies: editing, allowlisted origin, plan), and `dispose()` unregisters everything. A browser without a model context loads none of the WebMCP code. In React, pass `enableWebMCP` to `<EmbedPDF>`.
+
 ## Subpaths
 
 | Import | Purpose | Peer |
@@ -112,6 +127,7 @@ Either way you get the same typed `Embed` handle.
 | `context` | `object` | opaque data echoed back on submissions |
 | `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write; web-share` — a custom `allow` MUST keep `web-share` or the editor's iOS share-sheet download is silently denied; a custom `sandbox` MUST include `allow-downloads` (or the editor's Download button is silently blocked) and `allow-modals` (or the editor's "Print document" action is silently ignored) |
 | `logger` | `BridgeLogger` | structured logs (ids + timing only, never payloads) |
+| `enableWebMCP` | `boolean \| { exclude: AgenticToolName[] }` | register the editor operations as WebMCP tools on your page (see [WebMCP site tools](#webmcp-site-tools)); off by default |
 
 ## Document source
 

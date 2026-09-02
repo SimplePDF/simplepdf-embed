@@ -2,6 +2,7 @@ import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
 import type { Locale } from './generated/contract'
+import type { WebMCPOptions } from './webmcp'
 
 // Construction-time configuration error. createEmbed validates its config
 // synchronously and THROWS this on programmer error (bad target/companyIdentifier/document
@@ -86,6 +87,11 @@ export type CreateEmbedArgs = {
     style?: Partial<CSSStyleDeclaration>
   }
   logger?: BridgeLogger
+  // Expose the editor operations as WebMCP tools on YOUR page (`document.modelContext`),
+  // where an in-browser agent discovers them; tools inside the editor iframe are not.
+  // `true` registers every agentic operation, `{ exclude: [...] }` withholds some (e.g.
+  // `submit` when only a person may finalize). Off by default.
+  enableWebMCP?: WebMCPOptions
 }
 
 const resolveTarget = (target: unknown): HTMLElement => {
@@ -461,7 +467,7 @@ const loadDocumentWhenReady = (params: {
 const attachToIframe = (
   iframe: HTMLIFrameElement,
   editorOrigin: string,
-  { document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  { document: embedDocument, logger = NOOP_LOGGER, enableWebMCP }: CreateEmbedArgs,
   documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
   // A documents URL loads by NAVIGATING the iframe, which we only do for an iframe
@@ -508,6 +514,7 @@ const attachToIframe = (
     logger: safeLogger,
     onDispose: () => documentFetchController.abort(),
     onStateChange: gate.onStateChange,
+    enableWebMCP,
   })
   if (embedDocument !== undefined) {
     loadDocumentWhenReady({
@@ -527,7 +534,7 @@ const attachToIframe = (
 const mountIntoContainer = (
   container: HTMLElement,
   editorOrigin: string,
-  { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER, enableWebMCP }: CreateEmbedArgs,
   documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
@@ -607,6 +614,7 @@ const mountIntoContainer = (
       documentFetchController.abort()
       iframe.remove()
     },
+    enableWebMCP,
   })
 
   // A documents URL is loaded by the navigation above; only the PDF / data-URL /

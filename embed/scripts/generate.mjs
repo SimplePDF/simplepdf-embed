@@ -342,6 +342,37 @@ for (const event of contract.events) {
 }
 contractLines.push('')
 
+// The operation's input schema as a WebMCP tool `inputSchema`: the manifest node with
+// camelCase property keys at every level (the same SDK-side shape the zod schemas and
+// IframeActions use; the bridge lowers the keys to the wire). The root description is
+// dropped (the tool description already carries it); everything else rides through.
+const toolInputSchema = (node) => {
+  assertKnownKeywords(node)
+  if (node.type !== 'object') {
+    throw new Error(`Unsupported tool input schema root (expected an object): ${JSON.stringify(node)}`)
+  }
+  const properties = node.properties ?? {}
+  const camelProperties = Object.fromEntries(
+    Object.entries(properties).map(([key, property]) => [toCamel(key), toolInputSchemaProperty(property)]),
+  )
+  return {
+    type: 'object',
+    ...(Object.keys(camelProperties).length > 0 ? { properties: camelProperties } : {}),
+    ...(Array.isArray(node.required) && node.required.length > 0 ? { required: node.required.map(toCamel) } : {}),
+  }
+}
+const toolInputSchemaProperty = (node) => {
+  assertKnownKeywords(node)
+  if (node.type === 'object') {
+    return { ...toolInputSchema(node), ...(node.description !== undefined ? { description: node.description } : {}) }
+  }
+  return {
+    ...node,
+    ...(node.items !== undefined ? { items: toolInputSchemaProperty(node.items) } : {}),
+    ...(Array.isArray(node.anyOf) ? { anyOf: node.anyOf.map(toolInputSchemaProperty) } : {}),
+  }
+}
+
 // Operation metadata table (the camelCase `method` is the SDK method + agentic tool name).
 const opMeta = contract.operations.map((op) => {
   const stem = toPascal(op.request_type)
@@ -351,6 +382,7 @@ const opMeta = contract.operations.map((op) => {
     `    wire_type: ${JSON.stringify(op.request_type.toUpperCase())},\n` +
     `    method: ${JSON.stringify(toCamel(op.request_type))},\n` +
     `    description: ${JSON.stringify(op.description)},\n` +
+    `    input_schema: ${JSON.stringify(toolInputSchema(op.input_schema))},\n` +
     `    error_codes: [${op.error_codes.map((c) => JSON.stringify(c)).join(', ')}] as const,\n` +
     `    is_agentic_tool: ${!NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase())},\n` +
     `    has_output: ${op.output_schema.type !== 'null'},\n` +

@@ -13,6 +13,27 @@ vi.mock('./styles.scss', () => ({}));
 // onEmbedEvent contract, and the useEmbed contract (null-safe before mount).
 
 describe('EmbedPDF (inline)', () => {
+  it('registers the editor operations as WebMCP tools on the host page when enableWebMCP is set, and unregisters them on unmount', async () => {
+    const liveTools = new Set<string>();
+    const registerTool = vi.fn((tool: { name: string }, { signal }: { signal: AbortSignal }) => {
+      liveTools.add(tool.name);
+      signal.addEventListener('abort', () => liveTools.delete(tool.name), { once: true });
+    });
+    Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool } });
+    try {
+      const { unmount } = render(
+        <EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['submit'] }} />,
+      );
+      await waitFor(() => expect(liveTools.size).toBe(13));
+      expect(liveTools.has('setFieldValue')).toBe(true);
+      expect(liveTools.has('submit')).toBe(false);
+      unmount();
+      expect(liveTools.size).toBe(0);
+    } finally {
+      Reflect.deleteProperty(document, 'modelContext');
+    }
+  });
+
   it('renders the editor iframe inside the host element for the companyIdentifier origin', () => {
     const { container } = render(<EmbedPDF mode="inline" companyIdentifier="acme" />);
     const iframe = container.querySelector('iframe');

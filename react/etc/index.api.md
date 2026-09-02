@@ -15,6 +15,7 @@ import { OverlayToolType } from '@simplepdf/embed';
 import * as React_2 from 'react';
 import type { SelectToolInput } from '@simplepdf/embed';
 import type { SubmitInput } from '@simplepdf/embed';
+import { WebMCPOptions } from '@simplepdf/embed';
 
 // @public (undocumented)
 export type EmbedActions = Omit<IframeActions, 'selectTool' | 'submit'> & {

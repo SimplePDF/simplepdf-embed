@@ -4,6 +4,13 @@
 
 ```ts
 
+// Warning: (ae-forgotten-export) The symbol "OPERATIONS" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type AgenticToolName = Extract<(typeof OPERATIONS)[number], {
+    is_agentic_tool: true;
+}>["method"];
+
 // @public (undocumented)
 export type BridgeError = {
     code: 'bad_request:missing_required_fields';
@@ -73,6 +80,7 @@ export type CreateEmbedArgs = {
         style?: Partial<CSSStyleDeclaration>;
     };
     logger?: BridgeLogger;
+    enableWebMCP?: WebMCPOptions;
 };
 
 // @public (undocumented)
@@ -330,6 +338,11 @@ export type SubmitInput = {
 
 // @public (undocumented)
 export const unwrap: <TData>(result: BridgeResult<TData>) => TData;
+
+// @public (undocumented)
+export type WebMCPOptions = boolean | {
+    exclude: readonly AgenticToolName[];
+};
 
 // (No @packageDocumentation comment for this package)
 

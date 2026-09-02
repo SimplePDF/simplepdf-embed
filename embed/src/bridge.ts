@@ -12,6 +12,7 @@ import type {
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
+import type { WebMCPOptions } from './webmcp'
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
@@ -26,6 +27,8 @@ export type AttachEmbedArgs = {
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
   // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
+  // Expose the editor operations as WebMCP tools on the host page (see ./webmcp).
+  enableWebMCP?: WebMCPOptions
   // Internal wiring for createEmbed's "load the document once ready" flow: called on
   // every lifecycle transition (booting -> editorReady -> documentLoaded), including
   // readiness reached via the liveness probe (which emits no editor event). NOT a
@@ -103,6 +106,7 @@ export const attachEmbed = ({
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
   onStateChange,
+  enableWebMCP,
 }: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
@@ -465,11 +469,26 @@ export const attachEmbed = ({
     submit: (input) => sendRequest('SUBMIT', input),
   } satisfies IframeActions
 
+  // The WebMCP module (and the operations table it reads) loads only for an embedder
+  // that opts in; aborting the signal on dispose unregisters every tool it registered.
+  const webMCPController = new AbortController()
+  const webMCPOptions = enableWebMCP === undefined || enableWebMCP === false ? null : enableWebMCP
+  if (webMCPOptions !== null) {
+    void import('./webmcp')
+      .then(({ registerWebMCPTools }) =>
+        registerWebMCPTools({ dispatch: sendRequest, options: webMCPOptions, signal: webMCPController.signal, logger }),
+      )
+      .catch((error: unknown) => {
+        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
+      })
+  }
+
   const dispose = (): void => {
     if (disposed) {
       return
     }
     disposed = true
+    webMCPController.abort()
     window.removeEventListener('message', onMessage)
     clearReadyTimeout()
     stopProbing()
