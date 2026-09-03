@@ -44,7 +44,7 @@ type AgenticOperation = Extract<Operation, { is_agentic_tool: true }>
 // not destructive here because the person reviews every value in the editor before
 // the one irreversible step, submit. The Record makes a new operation a compile
 // error until it is annotated. Kept identical to the editor's in-page tool hints.
-// CF: WEBMCP_TOOL_ANNOTATIONS in the editor's lib/iframe/handlers.ts (SimplePDF editor repository)
+// CF: WEBMCP_TOOL_ANNOTATIONS in the editor's lib/iframe/contract.ts (SimplePDF editor repository)
 const TOOL_ANNOTATIONS = {
   createField: { destructiveHint: false },
   deleteFields: { destructiveHint: true },
