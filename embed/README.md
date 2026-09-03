@@ -71,6 +71,23 @@ import { createSimplePDFTools } from '@simplepdf/embed/tanstack-ai'
 useChat({ connection, tools: createSimplePDFTools({ embed }) })
 ```
 
+## WebMCP site tools
+
+An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `enableWebMCP` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge. The PDF bytes stay in the tab (nothing reaches a SimplePDF server); what the agent reads through `getFields` / `getDocumentContent` (field values, extracted text) goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document.
+
+```ts
+// keep the decision with the person: withhold submit (and the page operations), the
+// recommended shape when the document can come from a third party (its text reaches
+// the agent as untrusted content, and an agent holding `submit` acts on what it reads)
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url },
+  enableWebMCP: { exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] } })
+
+// every agentic operation (the same names + camelCase inputs as @simplepdf/embed/tools)
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url }, enableWebMCP: true })
+```
+
+Off by default. Tools register once the editor is ready; while no usable model context has been found, the page is probed again on each later lifecycle transition, so a context installed after `EDITOR_READY` is still picked up, and until one appears nothing is loaded (`webmcp.unavailable` is logged, with the reason). The two readers (`getFields`, `getDocumentContent`) carry the specification's `readOnlyHint` and `untrustedContentHint` (their output is document-derived); every other tool carries MCP's `destructiveHint`, read by runtimes that honor MCP's hints. The editor validates each call like any other request (its permission model applies at call time: editing, allowlisted origin, plan, so a tool the tenant configuration refuses resolves with the matching error code), a call resolves with an MCP tool result whose text is the editor's `{ success, data | error }` Result (`isError` on failure), and `dispose()` unregisters everything. A model context is one per page and keyed by tool name, so enable WebMCP on one embed per page: a second one registers only the names the first did not take, and is reported for the rest (`webmcp.tool_already_registered`). In React, pass `enableWebMCP` to `<EmbedPDF>`.
+
 ## Subpaths
 
 | Import | Purpose | Peer |
@@ -112,6 +129,7 @@ Either way you get the same typed `Embed` handle.
 | `context` | `object` | opaque data echoed back on submissions |
 | `iframeAttrs` | `{ title, allow, sandbox, className, style }` | passthrough iframe attributes (container case only); `allow` defaults to `clipboard-read; clipboard-write; web-share` — a custom `allow` MUST keep `web-share` or the editor's iOS share-sheet download is silently denied; a custom `sandbox` MUST include `allow-downloads` (or the editor's Download button is silently blocked) and `allow-modals` (or the editor's "Print document" action is silently ignored) |
 | `logger` | `BridgeLogger` | structured logs (ids + timing only, never payloads) |
+| `enableWebMCP` | `boolean \| { exclude: AgenticToolName[] }` | register the editor operations as WebMCP tools on your page (see [WebMCP site tools](#webmcp-site-tools)); off by default |
 
 ## Document source
 

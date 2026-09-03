@@ -4,6 +4,11 @@
 
 ```ts
 
+// Warning: (ae-forgotten-export) The symbol "AGENTIC_TOOL_NAMES" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number];
+
 // @public (undocumented)
 export type BridgeError = {
     code: 'bad_request:missing_required_fields';
@@ -73,6 +78,7 @@ export type CreateEmbedArgs = {
         style?: Partial<CSSStyleDeclaration>;
     };
     logger?: BridgeLogger;
+    enableWebMCP?: WebMCPOptions;
 };
 
 // @public (undocumented)
@@ -289,6 +295,16 @@ export type MovePageInput = {
 // @public (undocumented)
 export const NOOP_LOGGER: BridgeLogger;
 
+// Warning: (ae-internal-missing-underscore) The name "normalizeWebMCPOptions" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const normalizeWebMCPOptions: (options: WebMCPOptions | undefined) => {
+    enabled: false;
+} | {
+    enabled: true;
+    exclude: readonly AgenticToolName[];
+};
+
 // Warning: (ae-forgotten-export) The symbol "OVERLAY_TOOL_TYPES" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -330,6 +346,11 @@ export type SubmitInput = {
 
 // @public (undocumented)
 export const unwrap: <TData>(result: BridgeResult<TData>) => TData;
+
+// @public (undocumented)
+export type WebMCPOptions = boolean | {
+    exclude: readonly AgenticToolName[];
+};
 
 // (No @packageDocumentation comment for this package)
 

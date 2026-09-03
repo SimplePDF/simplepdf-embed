@@ -64,7 +64,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly getDocumentContent: {
-        readonly description: "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+        readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
         readonly inputSchema: zod.ZodObject<{
             extractionMode: zod.ZodOptional<zod.ZodEnum<{
                 auto: "auto";

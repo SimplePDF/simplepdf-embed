@@ -382,4 +382,27 @@ describe(createEmbed.name, () => {
     // @ts-expect-error exercising the runtime guard for untyped JS callers
     expect(() => createEmbed({ target: '#root', companyIdentifier: 'acme', baseDomain: 123 })).toThrow(/baseDomain must be a string/)
   })
+
+  // Every malformed shape an untyped JS caller can produce fails loud: `exclude` is
+  // the control that withholds irreversible operations, so it must never fail open.
+  it.each([
+    ['a string exclude', { exclude: 'submit' }],
+    ['an option object without exclude', {}],
+    ['a stringly-typed flag', 'false'],
+    ['a number', 0],
+    ['null', null],
+    ['a non-string exclude entry', { exclude: ['submit', 7] }],
+  ])('throws EmbedConfigError when enableWebMCP is %s', (_label, enableWebMCP) => {
+    document.body.innerHTML = '<div id="root"></div>'
+    const malformedArgs: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP }
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed(malformedArgs)).toThrow(/enableWebMCP must be a boolean or \{ exclude: AgenticToolName\[\] \}/)
+  })
+
+  it('throws EmbedConfigError when exclude names no tool, so a misspelled name cannot register the operation it meant to withhold', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP: { exclude: ['sumbit'] } }
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed(misspelled)).toThrow(/enableWebMCP\.exclude names no tool: sumbit \(known: createField/)
+  })
 })

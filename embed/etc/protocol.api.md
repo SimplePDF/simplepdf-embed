@@ -78,7 +78,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_DOCUMENT_CONTENT";
     readonly wire_type: "GET_DOCUMENT_CONTENT";
     readonly method: "getDocumentContent";
-    readonly description: "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+    readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;

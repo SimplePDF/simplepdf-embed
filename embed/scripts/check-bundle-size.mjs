@@ -1,21 +1,24 @@
 // Bundle-size budget guard, run after `npm run build`. Gzips each public entry's local
-// closure (the entry file plus the dist chunks it imports; peer deps are external and
-// never counted) and fails if any entry exceeds its budget. Export loadability is guarded
+// closure (the entry file plus the dist chunks it imports statically; peer deps are
+// external and never counted) and fails if any entry exceeds its budget. A chunk an
+// entry only `import()`s lazily is budgeted on its own row (it is downloaded only by
+// the consumers that trigger it), so the two costs stay visible separately. Export loadability is guarded
 // separately by ../../scripts/check-exports.mjs (the `check:exports` script).
 
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
+import { LAZY_CHUNKS } from './lazy-chunks.mjs'
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 
-// Gzip budget (bytes) per entry's local closure. Each cap is the current size plus
-// ~1 KB of headroom, so any non-trivial growth trips the gate and gets reviewed.
+// Gzip budget (bytes) per entry's local closure. Each cap sits 0.5–1.5 KB above the
+// measured size, so any non-trivial growth trips the gate and gets reviewed.
 // The zero-dep root carries the bridge + createEmbed (create + attach paths) + its
-// actionable config validation.
+// actionable config validation + the WebMCP opt-in hook.
 const BUDGETS = {
-  'index.js': 8 * 1024,
+  'index.js': 9 * 1024,
   'protocol.js': 3.5 * 1024,
   'schemas.js': 3 * 1024,
   'tools.js': 5 * 1024,
@@ -23,10 +26,12 @@ const BUDGETS = {
   'tanstack-ai.js': 5.5 * 1024,
 }
 
-const localImports = (file) => {
+const importsOf = (file, pattern) => {
   const content = readFileSync(join(DIST, file), 'utf8')
-  return [...content.matchAll(/from\s*['"](\.\/[^'"]+)['"]/g)].map((match) => match[1].replace(/^\.\//, ''))
+  return [...content.matchAll(pattern)].map((match) => match[1].replace(/^\.\//, ''))
 }
+const localImports = (file) => importsOf(file, /from\s*['"](\.\/[^'"]+)['"]/g)
+const lazyImports = (file) => importsOf(file, /import\(['"](\.\/[^'"]+)['"]\)/g)
 
 const closureOf = (entry) => {
   const seen = new Set()
@@ -46,14 +51,31 @@ const closureOf = (entry) => {
 const gzipBytes = (files) =>
   files.reduce((total, file) => total + gzipSync(readFileSync(join(DIST, file))).length, 0)
 
-const allWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
-  if (!existsSync(join(DIST, entry))) {
-    console.error(`✗ ${entry}: missing from dist (run \`npm run build\` first)`)
-    return false
-  }
+const checkBudget = (entry, budget) => {
   const size = gzipBytes(closureOf(entry))
   const ok = size <= budget
   console.log(`${ok ? '✓' : '✗'} ${entry}: ${size} B gzip (budget ${budget} B)`)
   return ok
+}
+
+const entriesWithinBudget = Object.entries(BUDGETS).map(([entry, budget]) => {
+  if (!existsSync(join(DIST, entry))) {
+    console.error(`✗ ${entry}: missing from dist (run \`npm run build\` first)`)
+    return false
+  }
+  return checkBudget(entry, budget)
 })
-process.exit(allWithinBudget.every(Boolean) ? 0 : 1)
+
+// Every lazy chunk an entry references must be built and budgeted; a lazy import
+// with no budget row is an unmeasured download.
+const lazyChunks = [...new Set(Object.keys(BUDGETS).flatMap((entry) => closureOf(entry).flatMap(lazyImports)))]
+const lazyWithinBudget = lazyChunks.map((chunk) => {
+  const lazyChunk = Object.entries(LAZY_CHUNKS).find(([prefix]) => chunk.startsWith(prefix))
+  if (lazyChunk === undefined || !existsSync(join(DIST, chunk))) {
+    console.error(`✗ ${chunk}: lazily imported but not built or not budgeted (add a row to lazy-chunks.mjs)`)
+    return false
+  }
+  return checkBudget(chunk, lazyChunk[1].budgetBytes)
+})
+
+process.exit([...entriesWithinBudget, ...lazyWithinBudget].every(Boolean) ? 0 : 1)

@@ -3,13 +3,19 @@
 // source of truth; this script is the only consumer that re-materializes it as
 // TypeScript. Run via `npm run generate` (wired into prebuild + pretest).
 //
-// Two outputs, both derived from one source so they cannot hand-drift:
+// Four outputs, all derived from one source so they cannot hand-drift:
 //   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
 //                                  (locales, error codes, operations, events).
 //                                  The zero-dep root imports only from here.
 //   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
 //                                  drift-guarded against the plain type in contract.ts,
 //                                  so a divergence fails `tsc`.
+//   - src/generated/agentic-tool-names.ts : the agentic tool names alone, the one
+//                                  generated VALUE the zero-dep root imports (to
+//                                  validate `enableWebMCP.exclude`).
+//   - src/generated/tool-input-schemas.ts : the agentic operations' input schemas as
+//                                  plain JSON (camelCase keys), read only by the
+//                                  lazily-loaded WebMCP module.
 //
 // The JSON Schema vocabulary in embed-api.json is closed and small (object/string/
 // integer/number/boolean/null/array/enum/const/anyOf), so the emitter below covers
@@ -299,6 +305,7 @@ const constArray = (name, values, typeName) => {
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
 contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module.')
+contractLines.push("import type { AGENTIC_TOOL_NAMES } from './agentic-tool-names'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))
 contractLines.push(constArray('EDITOR_ERROR_CODES', editorErrorCodes, 'EditorErrorCode'))
@@ -342,6 +349,54 @@ for (const event of contract.events) {
 }
 contractLines.push('')
 
+// The operation's input schema as a WebMCP tool `inputSchema`: the manifest node with
+// camelCase property keys at every level (the same SDK-side shape the zod schemas and
+// IframeActions use; the bridge lowers the keys to the wire). The root description is
+// dropped (the tool description already carries it); everything else rides through.
+const toolInputSchema = (node) => {
+  assertKnownKeywords(node)
+  if (node.type !== 'object') {
+    throw new Error(`Unsupported tool input schema root (expected an object): ${JSON.stringify(node)}`)
+  }
+  const properties = node.properties ?? {}
+  for (const required of node.required ?? []) {
+    if (!(required in properties)) {
+      throw new Error(`Tool input schema requires '${required}' but declares no such property: ${JSON.stringify(node)}`)
+    }
+  }
+  const camelProperties = Object.fromEntries(
+    Object.entries(properties).map(([key, property]) => [toCamel(key), toolInputSchemaProperty(property)]),
+  )
+  return {
+    type: 'object',
+    ...(Object.keys(camelProperties).length > 0 ? { properties: camelProperties } : {}),
+    ...(Array.isArray(node.required) && node.required.length > 0 ? { required: node.required.map(toCamel) } : {}),
+  }
+}
+const toolInputSchemaProperty = (node) => {
+  assertKnownKeywords(node)
+  if (node.const !== undefined || Array.isArray(node.enum)) {
+    return node
+  }
+  if (Array.isArray(node.anyOf)) {
+    return { ...node, anyOf: node.anyOf.map(toolInputSchemaProperty) }
+  }
+  switch (node.type) {
+    case 'string':
+    case 'integer':
+    case 'number':
+    case 'boolean':
+    case 'null':
+      return node
+    case 'array':
+      return { ...node, items: toolInputSchemaProperty(node.items) }
+    case 'object':
+      return { ...toolInputSchema(node), ...(node.description !== undefined ? { description: node.description } : {}) }
+    default:
+      throw new Error(`Unsupported JSON Schema node for a tool input schema: ${JSON.stringify(node)}`)
+  }
+}
+
 // Operation metadata table (the camelCase `method` is the SDK method + agentic tool name).
 const opMeta = contract.operations.map((op) => {
   const stem = toPascal(op.request_type)
@@ -365,9 +420,11 @@ contractLines.push('export type RequestType = (typeof OPERATIONS)[number]["reque
 // the bridge transforms to the snake_case wire). The drift guard checks IframeActions
 // matches MethodName.
 contractLines.push('export type MethodName = (typeof OPERATIONS)[number]["method"]')
-contractLines.push(
-  'export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]',
-)
+// The agentic tool names live in their own tiny module (createEmbed validates an
+// untyped caller's `exclude` against the runtime list, and must not pull this whole
+// table into the zero-dep root); the type is derived from it here, and drift.ts pins
+// it to the `is_agentic_tool` operations so the two views of one fact cannot diverge.
+contractLines.push("export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number]")
 contractLines.push('')
 
 const eventMeta = contract.events.map(
@@ -398,6 +455,48 @@ schemaLines.push('')
 
 writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
 
+// --- agentic-tool-names.ts (zero runtime deps; the one generated value the root imports) ---
+
+const agenticToolNames = contract.operations
+  .filter((op) => !NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase()))
+  .map((op) => toCamel(op.request_type))
+writeFileSync(
+  join(GENERATED_DIR, 'agentic-tool-names.ts'),
+  renderFile([
+    '// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.',
+    '// The agentic tool names alone, so createEmbed can validate an `exclude` list without',
+    '// pulling the operations table into the zero-dep root; contract.ts derives',
+    '// AgenticToolName from this list.',
+    `export const AGENTIC_TOOL_NAMES = [${agenticToolNames.map((name) => JSON.stringify(name)).join(', ')}] as const`,
+  ]),
+)
+
+// --- tool-input-schemas.ts (zero runtime deps, loaded only by the WebMCP module) ---
+
+const toolInputSchemaLines = []
+toolInputSchemaLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
+toolInputSchemaLines.push('// The agentic operations\' input schemas as plain JSON Schema with camelCase keys (the')
+toolInputSchemaLines.push('// SDK-side shape; the bridge lowers the keys to the wire). Read only by src/webmcp.ts,')
+toolInputSchemaLines.push('// which is lazy-loaded, so this table never lands in an entry that did not opt in.')
+toolInputSchemaLines.push("import type { AgenticToolName } from './contract'")
+toolInputSchemaLines.push('')
+toolInputSchemaLines.push('export type ToolInputSchema = {')
+toolInputSchemaLines.push("  readonly type: 'object'")
+toolInputSchemaLines.push('  readonly properties?: Readonly<Record<string, unknown>>')
+toolInputSchemaLines.push('  readonly required?: readonly string[]')
+toolInputSchemaLines.push('}')
+toolInputSchemaLines.push('')
+toolInputSchemaLines.push('export const TOOL_INPUT_SCHEMAS = {')
+for (const op of contract.operations) {
+  if (NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase())) {
+    continue
+  }
+  toolInputSchemaLines.push(`  ${toCamel(op.request_type)}: ${JSON.stringify(toolInputSchema(op.input_schema))},`)
+}
+toolInputSchemaLines.push('} as const satisfies Record<AgenticToolName, ToolInputSchema>')
+
+writeFileSync(join(GENERATED_DIR, 'tool-input-schemas.ts'), renderFile(toolInputSchemaLines))
+
 // --- drift.ts (compile-time drift guards; type-checked, not bundled) --------
 // One exported tuple gathers every guard so noUnusedLocals stays happy while the
 // type-parameter constraints still fail the build the instant a representation
@@ -419,6 +518,9 @@ driftLines.push('// every generated outbound event must appear in the hand-maint
 driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).")
 driftLines.push('export type DriftGuards = [')
 driftLines.push("  AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,")
+driftLines.push(
+  '  AssertTrue<Exact<Contract.AgenticToolName, Extract<(typeof Contract.OPERATIONS)[number], { is_agentic_tool: true }>["method"]>>,',
+)
 driftLines.push("  AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,")
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
@@ -456,5 +558,5 @@ writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +
-    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts`,
+    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + agentic-tool-names.ts + tool-input-schemas.ts`,
 )

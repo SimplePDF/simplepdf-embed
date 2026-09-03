@@ -4,6 +4,8 @@
 
 export { createEmbed, EmbedConfigError } from './mount'
 export type { CreateEmbedArgs, EmbedDocument } from './mount'
+export { normalizeWebMCPOptions } from './webmcp-shared'
+export type { WebMCPOptions } from './webmcp-shared'
 export { NOOP_LOGGER } from './logger'
 export type { BridgeLogger, LogPayload } from './logger'
 export { BridgeUnwrapError, unwrap } from './unwrap'

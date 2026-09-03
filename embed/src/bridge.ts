@@ -12,6 +12,7 @@ import type {
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
+import { modelContextCandidates, normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-shared'
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
@@ -26,6 +27,8 @@ export type AttachEmbedArgs = {
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
   // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
+  // Expose the editor operations as WebMCP tools on the host page (see ./webmcp).
+  enableWebMCP?: WebMCPOptions
   // Internal wiring for createEmbed's "load the document once ready" flow: called on
   // every lifecycle transition (booting -> editorReady -> documentLoaded), including
   // readiness reached via the liveness probe (which emits no editor event). NOT a
@@ -103,6 +106,7 @@ export const attachEmbed = ({
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
   onStateChange,
+  enableWebMCP,
 }: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
@@ -155,9 +159,52 @@ export const attachEmbed = ({
     handler: (data: EditorEventMap[TEventType]) => void,
   ): (() => void) => channels[type].subscribe(handler)
 
+  // WebMCP tools are registered once the editor is alive (an agent enumerating tools
+  // at page load must not post into an iframe that has no listener yet), only when the
+  // embedder opted in and the page exposes a model context: the module and the schema
+  // table it reads load for no one else. Aborting the signal on dispose unregisters
+  // every tool.
+  const webMCPController = new AbortController()
+  const webMCP = normalizeWebMCPOptions(enableWebMCP)
+  // Latched while a registration attempt is in flight or succeeded; released when the
+  // module finds no usable context or fails to load, so the next non-booting transition
+  // probes again and a runtime that installs its context after a fast EDITOR_READY (or a
+  // transient chunk fetch failure) still gets the tools. A transition during the load
+  // itself needs no replay: the module probes on arrival.
+  let webMCPStarted = false
+  const startWebMCP = (): void => {
+    if (!webMCP.enabled || webMCPStarted) {
+      return
+    }
+    if (modelContextCandidates().length === 0) {
+      logger.info('webmcp.unavailable', { reason: 'no_model_context' })
+      return
+    }
+    webMCPStarted = true
+    void import('./webmcp')
+      .then(({ registerWebMCPTools }) => {
+        const registered = registerWebMCPTools({
+          dispatch: sendRequest,
+          exclude: webMCP.exclude,
+          signal: webMCPController.signal,
+          logger,
+        })
+        if (!registered) {
+          webMCPStarted = false
+        }
+      })
+      .catch((error: unknown) => {
+        webMCPStarted = false
+        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
+      })
+  }
+
   const transitionTo = (next: BridgeState): void => {
     state = next
     onStateChange?.(next)
+    if (next.kind !== 'booting') {
+      startWebMCP()
+    }
   }
 
   const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
@@ -470,6 +517,7 @@ export const attachEmbed = ({
       return
     }
     disposed = true
+    webMCPController.abort()
     window.removeEventListener('message', onMessage)
     clearReadyTimeout()
     stopProbing()

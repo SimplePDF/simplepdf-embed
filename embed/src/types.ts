@@ -29,6 +29,7 @@ import type {
 } from './generated/contract'
 
 export type {
+  AgenticToolName,
   CreateFieldInput,
   CreateFieldOutput,
   DeleteFieldsInput,
