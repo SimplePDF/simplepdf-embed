@@ -202,6 +202,7 @@ const assertValidFileArm = (file: unknown): void => {
 }
 
 const METHOD_NAME_SET: ReadonlySet<string> = new Set(METHOD_NAMES)
+const WEBMCP_OPTION_KEYS: ReadonlySet<string> = new Set(['enabled', 'exclude'] satisfies Array<keyof Extract<WebMCPOptions, { enabled: true }>>)
 
 // `webMCP.exclude` withholds irreversible operations from an agent, so a malformed
 // value or a misspelled name from an untyped JS caller must fail loud rather than
@@ -218,6 +219,14 @@ const assertValidWebMCPOptions = (webMCP: unknown): void => {
   const isObject = typeof webMCP === 'object' && webMCP !== null
   if (!isObject || !('enabled' in webMCP) || typeof webMCP.enabled !== 'boolean') {
     throw shapeError()
+  }
+  // A misspelled `exclude` key would read as "nothing withheld"; only the two known keys pass.
+  const unknownKeys = Object.keys(webMCP).filter((key) => !WEBMCP_OPTION_KEYS.has(key))
+  if (unknownKeys.length > 0) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `webMCP has no option ${unknownKeys.join(', ')} (known: ${[...WEBMCP_OPTION_KEYS].join(', ')}).`,
+    )
   }
   const exclude = 'exclude' in webMCP ? webMCP.exclude : undefined
   if (exclude === undefined) {

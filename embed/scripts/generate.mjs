@@ -502,10 +502,9 @@ webmcpToolLines.push('    readonly properties?: Readonly<Record<string, unknown>
 webmcpToolLines.push('    readonly required?: readonly string[]')
 webmcpToolLines.push('  }')
 webmcpToolLines.push('  readonly annotations: {')
-webmcpToolLines.push('    readonly destructiveHint?: boolean')
-webmcpToolLines.push('    readonly openWorldHint?: boolean')
-webmcpToolLines.push('    readonly readOnlyHint?: boolean')
-webmcpToolLines.push('    readonly untrustedContentHint?: boolean')
+for (const hint of WEBMCP_ANNOTATION_KEYS) {
+  webmcpToolLines.push(`    readonly ${hint}?: boolean`)
+}
 webmcpToolLines.push('  }')
 webmcpToolLines.push('}')
 webmcpToolLines.push('')

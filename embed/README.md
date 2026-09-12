@@ -73,7 +73,7 @@ useChat({ connection, tools: createSimplePDFTools({ embed }) })
 
 ## WebMCP site tools
 
-An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `webMCP: { enabled: true }` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge. The PDF bytes stay in the tab (nothing reaches a SimplePDF server); what the agent reads through the readers (`simplepdf_embed_get_fields`, `simplepdf_embed_get_document_content`, `simplepdf_embed_get_annotated_page`: field values, extracted text, a page render) goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document.
+An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `webMCP: { enabled: true }` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge. Editing stays in the tab (no SimplePDF server sees the document until `submit`, which sends it through the tenant's submission flow: SimplePDF-managed storage, or the BYOS bucket the tenant configured); what the agent reads through the readers (`simplepdf_embed_get_fields`, `simplepdf_embed_get_document_content`, `simplepdf_embed_get_annotated_page`: field values, extracted text, a page render) goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document.
 
 ```ts
 // keep the decision with the person: withhold submit, the page operations and

@@ -403,6 +403,13 @@ describe(createEmbed.name, () => {
     )
   })
 
+  it('throws EmbedConfigError when the exclude key itself is misspelled, so the typo cannot read as "nothing withheld"', () => {
+    document.body.innerHTML = '<div id="root"></div>'
+    const misspelledKey: unknown = { target: '#root', companyIdentifier: 'acme', webMCP: { enabled: true, exlude: ['submit'] } }
+    // @ts-expect-error exercising the runtime guard for untyped JS callers
+    expect(() => createEmbed(misspelledKey)).toThrow(/webMCP has no option exlude \(known: enabled, exclude\)/)
+  })
+
   it('throws EmbedConfigError when exclude names no tool, so a misspelled name cannot register the operation it meant to withhold', () => {
     document.body.innerHTML = '<div id="root"></div>'
     const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', webMCP: { enabled: true, exclude: ['sumbit'] } }
