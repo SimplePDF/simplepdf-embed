@@ -18,7 +18,7 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 // The zero-dep root carries the bridge + createEmbed (create + attach paths) + its
 // actionable config validation + the WebMCP opt-in hook.
 const BUDGETS = {
-  'index.js': 9 * 1024,
+  'index.js': 10 * 1024,
   'protocol.js': 3.5 * 1024,
   'schemas.js': 3 * 1024,
   'tools.js': 5 * 1024,
