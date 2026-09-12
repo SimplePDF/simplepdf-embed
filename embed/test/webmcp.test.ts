@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attachEmbed, type AttachEmbedArgs } from '../src/bridge'
 import type { BridgeLogger } from '../src/logger'
 import type { Embed } from '../src/types'
-import { AGENTIC_TOOL_NAMES } from '../src/generated/agentic-tool-names'
+import { METHOD_NAMES } from '../src/generated/method-names'
+import { WEBMCP_TOOLS } from '../src/generated/webmcp-tools'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
 
@@ -11,8 +12,11 @@ type RegisteredTool = {
   name: string
   description: string
   inputSchema: { type: string; properties?: Record<string, unknown>; required?: readonly string[] }
-  annotations: { readOnlyHint?: boolean; untrustedContentHint?: boolean; destructiveHint?: boolean }
-  execute: (input: unknown) => Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }>
+  annotations: { readOnlyHint?: boolean; untrustedContentHint?: boolean; destructiveHint?: boolean; openWorldHint?: boolean }
+  execute: (input: unknown) => Promise<{
+    content: Array<{ type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }>
+    isError?: boolean
+  }>
 }
 type FakeModelContext = {
   registerTool: (tool: RegisteredTool, options: { signal: AbortSignal }) => void
@@ -69,7 +73,7 @@ type Harness = {
 
 const harnesses: Harness[] = []
 
-const makeHarness = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Harness => {
+const makeHarness = (args: Pick<AttachEmbedArgs, 'webMCP' | 'logger'>): Harness => {
   const iframe = document.createElement('iframe')
   document.body.appendChild(iframe)
   const contentWindow = iframe.contentWindow
@@ -102,7 +106,7 @@ const makeHarness = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Ha
 // A ready embed with the option on: registration is asynchronous (the WebMCP module
 // is lazy-loaded), so callers wait for the expected tool count rather than reading it
 // synchronously.
-const mountReady = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Harness => {
+const mountReady = (args: Pick<AttachEmbedArgs, 'webMCP' | 'logger'>): Harness => {
   const harness = makeHarness(args)
   harness.markEditorReady()
   return harness
@@ -111,7 +115,8 @@ const mountReady = (args: Pick<AttachEmbedArgs, 'enableWebMCP' | 'logger'>): Har
 const waitForTools = (modelContext: FakeModelContext, count: number): Promise<void> =>
   vi.waitFor(() => expect(modelContext.registered).toHaveLength(count))
 
-const TOOL_COUNT = AGENTIC_TOOL_NAMES.length
+const TOOL_COUNT = METHOD_NAMES.length
+const toolName = (method: keyof typeof WEBMCP_TOOLS): string => WEBMCP_TOOLS[method].name
 
 // The bridge's readiness probe posts its own GET_FIELDS requests while the editor is
 // booting, so a tool call's request is located by type rather than by position.
@@ -132,7 +137,7 @@ const findTool = (modelContext: FakeModelContext, name: string): RegisteredTool 
   return tool
 }
 
-describe('attachEmbed({ enableWebMCP })', () => {
+describe('attachEmbed({ webMCP })', () => {
   afterEach(() => {
     for (const harness of harnesses) {
       harness.embed.lifecycle.dispose()
@@ -144,37 +149,51 @@ describe('attachEmbed({ enableWebMCP })', () => {
     vi.restoreAllMocks()
   })
 
-  it('registers every agentic operation on document.modelContext with the SDK name, description, camelCase input schema and an explicit behavior hint', async () => {
+  it('registers every operation on document.modelContext as the manifest tool record: prefixed name, description, snake_case input schema and behavior hints', async () => {
     const modelContext = installModelContext(document)
-    mountReady({ enableWebMCP: true })
+    mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
 
-    expect(modelContext.registered.map((tool) => tool.name).sort()).toEqual([...AGENTIC_TOOL_NAMES].sort())
+    expect(modelContext.registered.map((tool) => tool.name).sort()).toEqual(
+      Object.values(WEBMCP_TOOLS)
+        .map((tool) => tool.name)
+        .sort(),
+    )
     expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
-    const setFieldValue = findTool(modelContext, 'setFieldValue')
+    // loadDocument is a host-page tool like it is in the editor's own registration.
+    expect(modelContext.liveToolNames()).toContain('simplepdf_embed_load_document')
+    const setFieldValue = findTool(modelContext, 'simplepdf_embed_set_field_value')
     expect(setFieldValue.description).toMatch(/^Set the value of an existing field/)
     expect(setFieldValue.inputSchema.type).toBe('object')
-    expect(Object.keys(setFieldValue.inputSchema.properties ?? {})).toEqual(['fieldId', 'value'])
-    expect(setFieldValue.inputSchema.required).toEqual(['fieldId', 'value'])
+    expect(Object.keys(setFieldValue.inputSchema.properties ?? {})).toEqual(['field_id', 'value'])
+    expect(setFieldValue.inputSchema.required).toEqual(['field_id', 'value'])
     for (const tool of modelContext.registered) {
       const hasExplicitHint = tool.annotations.readOnlyHint === true || typeof tool.annotations.destructiveHint === 'boolean'
       expect(hasExplicitHint, `${tool.name} declares no behavior hint`).toBe(true)
     }
     // The readers hand document-derived content to the agent: read-only AND untrusted.
-    expect(findTool(modelContext, 'getFields').annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true })
-    expect(findTool(modelContext, 'getDocumentContent').annotations).toEqual({
+    expect(findTool(modelContext, 'simplepdf_embed_get_fields').annotations).toEqual({
       readOnlyHint: true,
       untrustedContentHint: true,
     })
-    expect(findTool(modelContext, 'submit').annotations).toEqual({ destructiveHint: true })
+    expect(findTool(modelContext, 'simplepdf_embed_get_annotated_page').annotations).toEqual({
+      readOnlyHint: true,
+      untrustedContentHint: true,
+    })
+    expect(findTool(modelContext, 'simplepdf_embed_submit').annotations).toEqual({ destructiveHint: true })
+    // The hints are the manifest's, openWorldHint included (the editor fetches an agent-supplied URL).
+    expect(findTool(modelContext, 'simplepdf_embed_set_field_value').annotations).toEqual({
+      destructiveHint: false,
+      openWorldHint: true,
+    })
   })
 
   it('waits for the editor to be ready before registering, so an early tool call cannot post into a listener-less iframe', async () => {
     const modelContext = installModelContext(document)
-    const booting = makeHarness({ enableWebMCP: true })
+    const booting = makeHarness({ webMCP: { enabled: true } })
     // Control: a ready embed on the same context proves the lazy path had time to run;
     // every live name is the control's, so the booting embed registered nothing.
-    const control = mountReady({ enableWebMCP: true })
+    const control = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
     control.embed.lifecycle.dispose()
@@ -188,60 +207,107 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('withholds the excluded operations and registers the rest', async () => {
     const modelContext = installModelContext(document)
     const logger = makeLogger()
-    mountReady({ enableWebMCP: { exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] }, logger })
+    mountReady({ webMCP: { enabled: true, exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] }, logger })
     await waitForTools(modelContext, TOOL_COUNT - 4)
 
     const names = modelContext.registered.map((tool) => tool.name)
-    expect(names).toContain('setFieldValue')
-    expect(names).toContain('getFields')
-    expect(names).not.toContain('submit')
-    expect(names).not.toContain('deletePages')
+    expect(names).toContain(toolName('setFieldValue'))
+    expect(names).toContain(toolName('getFields'))
+    expect(names).not.toContain(toolName('submit'))
+    expect(names).not.toContain(toolName('deletePages'))
     expect(logger.warn).not.toHaveBeenCalled()
   })
 
-  it('executes a tool call as the operation request on the wire and returns the editor Result as a JSON-text tool result', async () => {
+  it('executes a tool call as the operation request on the wire and returns the editor Result, wire-shaped, as a JSON-text tool result', async () => {
     const modelContext = installModelContext(document)
-    const harness = mountReady({ enableWebMCP: true })
+    const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
 
-    const pendingResult = findTool(modelContext, 'setFieldValue').execute({ fieldId: 'f1', value: 'Jane' })
+    const pendingResult = findTool(modelContext, 'simplepdf_embed_set_field_value').execute({ field_id: 'f1', value: 'Jane' })
     const request = await waitForRequest(harness, 'SET_FIELD_VALUE')
     expect(request.data).toEqual({ field_id: 'f1', value: 'Jane' })
     harness.reply(request, { success: true })
     const toolResult = await pendingResult
     expect(toolResult.isError).toBeUndefined()
-    expect(JSON.parse(toolResult.content[0]?.text ?? '')).toEqual({ success: true, data: null })
+    expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify({ success: true, data: null }) }])
+  })
+
+  it('hands the agent the wire-shaped result its tool description promises (snake_case, not the SDK camelCase)', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+
+    const pendingResult = findTool(modelContext, 'simplepdf_embed_create_field').execute({ type: 'TEXT', x: 1, y: 2, width: 3, height: 4, page: 1 })
+    const request = await waitForRequest(harness, 'CREATE_FIELD')
+    harness.reply(request, { success: true, data: { field_id: 'f_new' } })
+    const toolResult = await pendingResult
+    expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify({ success: true, data: { field_id: 'f_new' } }) }])
+  })
+
+  it('returns the annotated page render once, as an image block, with the badges map in the text block', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+
+    const pendingResult = findTool(modelContext, 'simplepdf_embed_get_annotated_page').execute({ page: 1 })
+    const request = await waitForRequest(harness, 'GET_ANNOTATED_PAGE')
+    harness.reply(request, {
+      success: true,
+      data: { page: 1, image_data_url: 'data:image/png;base64,iVBORw0KGgo=', image_width: 10, image_height: 12, badges: { '1': 'f1' } },
+    })
+    const toolResult = await pendingResult
+    expect(toolResult.isError).toBeUndefined()
+    expect(toolResult.content).toEqual([
+      { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
+      { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
+    ])
+  })
+
+  it('keeps the text envelope for a failed annotated page render', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+
+    const pendingResult = findTool(modelContext, 'simplepdf_embed_get_annotated_page').execute({ page: 99 })
+    const request = await waitForRequest(harness, 'GET_ANNOTATED_PAGE')
+    const failure = { success: false, error: { code: 'bad_request:page_out_of_range', message: 'no page 99' } }
+    harness.reply(request, failure)
+    const toolResult = await pendingResult
+    expect(toolResult.isError).toBe(true)
+    expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify(failure) }])
   })
 
   it('flags a failed editor Result as an error tool result that still carries the error code', async () => {
     const modelContext = installModelContext(document)
-    const harness = mountReady({ enableWebMCP: true })
+    const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
 
-    const pendingResult = findTool(modelContext, 'goTo').execute({ page: 99 })
+    const pendingResult = findTool(modelContext, 'simplepdf_embed_go_to').execute({ page: 99 })
     const request = await waitForRequest(harness, 'GO_TO')
     harness.reply(request, { success: false, error: { code: 'bad_request:page_out_of_range', message: 'no page 99' } })
     const toolResult = await pendingResult
     expect(toolResult.isError).toBe(true)
-    expect(JSON.parse(toolResult.content[0]?.text ?? '')).toEqual({
-      success: false,
-      error: { code: 'bad_request:page_out_of_range', message: 'no page 99' },
-    })
+    expect(toolResult.content).toEqual([
+      {
+        type: 'text',
+        text: JSON.stringify({ success: false, error: { code: 'bad_request:page_out_of_range', message: 'no page 99' } }),
+      },
+    ])
   })
 
   it('sends an empty payload when a no-input tool is called without arguments', async () => {
     const modelContext = installModelContext(document)
-    const harness = mountReady({ enableWebMCP: true })
+    const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
 
-    void findTool(modelContext, 'detectFields').execute(undefined)
+    void findTool(modelContext, 'simplepdf_embed_detect_fields').execute(undefined)
     const request = await waitForRequest(harness, 'DETECT_FIELDS')
     expect(request.data).toEqual({})
   })
 
   it('unregisters every tool when the embed is disposed', async () => {
     const modelContext = installModelContext(document)
-    const harness = mountReady({ enableWebMCP: true })
+    const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
 
@@ -251,11 +317,11 @@ describe('attachEmbed({ enableWebMCP })', () => {
 
   it('registers nothing when the embed is disposed before the lazy module resolves', async () => {
     const modelContext = installModelContext(document)
-    const disposedEarly = mountReady({ enableWebMCP: true })
+    const disposedEarly = mountReady({ webMCP: { enabled: true } })
     disposedEarly.embed.lifecycle.dispose()
     // Control: a later embed on the same context registers its full set, proving the
     // early one's lazy load had every chance to run and registered nothing.
-    mountReady({ enableWebMCP: true })
+    mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
   })
@@ -264,10 +330,10 @@ describe('attachEmbed({ enableWebMCP })', () => {
     const modelContext = installModelContext(document)
     const registerTool = vi.spyOn(modelContext, 'registerTool')
     mountReady({})
-    mountReady({ enableWebMCP: false })
+    mountReady({ webMCP: { enabled: false } })
     // Control: a ready embed with the option on registers, proving the off ones had
     // the same chance and took none of it.
-    mountReady({ enableWebMCP: true })
+    mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     expect(registerTool).toHaveBeenCalledTimes(TOOL_COUNT)
   })
@@ -275,55 +341,55 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('lets the first embed on a page own each tool name and reports the collision for a second one', async () => {
     const modelContext = installModelContext(document)
     const logger = makeLogger()
-    const first = mountReady({ enableWebMCP: true })
+    const first = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
 
-    mountReady({ enableWebMCP: true, logger })
+    mountReady({ webMCP: { enabled: true }, logger })
     await vi.waitFor(() =>
-      expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'submit' }),
+      expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'simplepdf_embed_submit' }),
     )
     expect(logger.warn).toHaveBeenCalledTimes(TOOL_COUNT)
     expect(modelContext.registered).toHaveLength(TOOL_COUNT)
 
     // Disposing the owner frees the names for the next embed.
     first.embed.lifecycle.dispose()
-    mountReady({ enableWebMCP: true })
+    mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT * 2)
   })
 
   it('frees a rejected name only for its owner, so a later embed that took the name keeps it', async () => {
     // A: the runtime rejects `download`; A's abort must not later free a name it never owned.
-    const modelContext = installModelContext(document, { rejectTool: 'download' })
-    const first = mountReady({ enableWebMCP: true, logger: makeLogger() })
+    const modelContext = installModelContext(document, { rejectTool: 'simplepdf_embed_download' })
+    const first = mountReady({ webMCP: { enabled: true }, logger: makeLogger() })
     await waitForTools(modelContext, TOOL_COUNT - 1)
 
     // B: on an accepting context, takes `download` (the rest are reported as A's).
     const accepting = installModelContext(document)
-    const second = mountReady({ enableWebMCP: true, logger: makeLogger() })
+    const second = mountReady({ webMCP: { enabled: true }, logger: makeLogger() })
     await waitForTools(accepting, 1)
-    expect(accepting.registered[0]?.name).toBe('download')
+    expect(accepting.registered[0]?.name).toBe('simplepdf_embed_download')
 
-    // A disposes: its 13 names are freed for C, but B's `download` stays owned, so C is refused it.
+    // A disposes: its names are freed for C, but B's `download` stays owned, so C is refused it.
     first.embed.lifecycle.dispose()
     const logger = makeLogger()
-    mountReady({ enableWebMCP: true, logger })
+    mountReady({ webMCP: { enabled: true }, logger })
     await waitForTools(accepting, TOOL_COUNT)
-    expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'download' })
+    expect(logger.warn).toHaveBeenCalledWith('webmcp.tool_already_registered', { tool: 'simplepdf_embed_download' })
     expect(logger.warn).toHaveBeenCalledTimes(1)
-    expect(accepting.registered.filter((tool) => tool.name === 'download')).toHaveLength(1)
+    expect(accepting.registered.filter((tool) => tool.name === 'simplepdf_embed_download')).toHaveLength(1)
     second.embed.lifecycle.dispose()
   })
 
   it('falls back to navigator.modelContext when the document exposes none', async () => {
     const modelContext = installModelContext(navigator)
-    mountReady({ enableWebMCP: true })
+    mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     expect(modelContext.liveToolNames()).toHaveLength(TOOL_COUNT)
   })
 
   it('reports an absent model context, never throws, and registers once a context appears', async () => {
     const logger = makeLogger()
-    const harness = makeHarness({ enableWebMCP: true, logger })
+    const harness = makeHarness({ webMCP: { enabled: true }, logger })
     harness.markEditorReady()
     await vi.waitFor(() => expect(logger.info).toHaveBeenCalledWith('webmcp.unavailable', { reason: 'no_model_context' }))
     expect(logger.error).not.toHaveBeenCalled()
@@ -338,7 +404,7 @@ describe('attachEmbed({ enableWebMCP })', () => {
   it('reports a model context without registerTool as invalid and keeps probing, so a placeholder filled in later still gets the tools', async () => {
     Object.defineProperty(document, 'modelContext', { configurable: true, value: {} })
     const logger = makeLogger()
-    const harness = mountReady({ enableWebMCP: true, logger })
+    const harness = mountReady({ webMCP: { enabled: true }, logger })
     await vi.waitFor(() =>
       expect(logger.info).toHaveBeenCalledWith('webmcp.unavailable', { reason: 'invalid_model_context' }),
     )
@@ -349,16 +415,16 @@ describe('attachEmbed({ enableWebMCP })', () => {
   })
 
   it('keeps registering the other tools when the runtime rejects one, logs the failure, and frees that name', async () => {
-    const modelContext = installModelContext(document, { rejectTool: 'download' })
+    const modelContext = installModelContext(document, { rejectTool: 'simplepdf_embed_download' })
     const logger = makeLogger()
-    mountReady({ enableWebMCP: true, logger })
+    mountReady({ webMCP: { enabled: true }, logger })
     await waitForTools(modelContext, TOOL_COUNT - 1)
 
-    expect(modelContext.registered.map((tool) => tool.name)).not.toContain('download')
+    expect(modelContext.registered.map((tool) => tool.name)).not.toContain('simplepdf_embed_download')
     await vi.waitFor(() =>
       expect(logger.error).toHaveBeenCalledWith('webmcp.register_tool_failed', {
-        tool: 'download',
-        message: 'runtime rejected download',
+        tool: 'simplepdf_embed_download',
+        message: 'runtime rejected simplepdf_embed_download',
       }),
     )
   })

@@ -2,78 +2,69 @@
 // and executes each call over the bridge's wire dispatch, so the
 // editor validates the agent's input exactly as it validates every other request.
 // The host page is where an in-browser agent looks: tools registered inside the
-// editor iframe are not discovered, which is why the SDK lifts them here.
+// editor iframe are not discovered, which is why the SDK lifts them here. Each tool
+// is the manifest's record, the one the editor registers on its own page: same name,
+// description, snake_case input schema and hints, and the same wire-shaped Result.
 //
-// Loaded lazily by the bridge, once the editor is ready and only when `enableWebMCP`
-// is set and the page exposes a model context, so nothing here (nor the schema table
-// it reads) is downloaded otherwise.
+// Loaded lazily by the bridge, once the editor is ready and only when `webMCP` is
+// enabled and the page exposes a model context, so nothing here (nor the record
+// table it reads) is downloaded otherwise.
 // CF: https://webmachinelearning.github.io/webmcp/
 
-import { OPERATIONS, type AgenticToolName, type WireType } from './generated/contract'
-import { TOOL_INPUT_SCHEMAS, type ToolInputSchema } from './generated/tool-input-schemas'
+import { OPERATIONS, type MethodName, type WireType } from './generated/contract'
+import { WEBMCP_TOOLS, type WebMCPToolRecord } from './generated/webmcp-tools'
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
 import { modelContextCandidates } from './webmcp-shared'
 
-// The slice of the WebMCP surface this module touches, typed structurally so the
-// zero-dependency root pulls in no type package. `readOnlyHint` and
-// `untrustedContentHint` are the specification's annotations; `destructiveHint` is
-// MCP's, read by runtimes that carry MCP's hint vocabulary and ignored by the others.
-type ToolAnnotations = { readOnlyHint?: boolean; untrustedContentHint?: boolean; destructiveHint?: boolean }
 // The MCP tool-result envelope. The specification serializes whatever `execute`
-// resolves with; this shape is what the runtimes in the field read (and what the
-// editor's own in-page tools return), a failed Result additionally flagged `isError`.
-type CallToolResult = { content: Array<{ type: 'text'; text: string }>; isError?: boolean }
-type WebMCPTool = {
-  name: string
-  description: string
-  inputSchema: ToolInputSchema
-  annotations: ToolAnnotations
-  execute: (input: unknown) => Promise<CallToolResult>
-}
+// resolves with as JSON text; this shape is what runtimes that map results onto MCP's
+// CallToolResult read (and what the editor's own in-page tools return): a failed
+// Result additionally flagged `isError`, a page render carried as an `image` block.
+type ToolContent = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: 'image/png' }
+type CallToolResult = { content: ToolContent[]; isError?: boolean }
+type WebMCPTool = WebMCPToolRecord & { execute: (input: unknown) => Promise<CallToolResult> }
 type ModelContext = {
   registerTool: (tool: WebMCPTool, options: { signal: AbortSignal }) => unknown
 }
 
-type Operation = (typeof OPERATIONS)[number]
-type AgenticOperation = Extract<Operation, { is_agentic_tool: true }>
-
-// The two readers return document-derived content (field values, extracted text),
-// which is untrusted from the page's perspective. Every writer declares whether it
-// removes or reorders content or finalizes the document; setting a field value is
-// not destructive here because the person reviews every value in the editor before
-// the one irreversible step, submit. The Record makes a new operation a compile
-// error until it is annotated. Kept identical to the editor's in-page tool hints.
-// CF: WEBMCP_TOOL_ANNOTATIONS in the editor's lib/iframe/contract.ts (SimplePDF editor repository)
-const TOOL_ANNOTATIONS = {
-  createField: { destructiveHint: false },
-  deleteFields: { destructiveHint: true },
-  deletePages: { destructiveHint: true },
-  detectFields: { destructiveHint: false },
-  download: { destructiveHint: false },
-  focusField: { destructiveHint: false },
-  getAnnotatedPage: { readOnlyHint: true, untrustedContentHint: true },
-  getDocumentContent: { readOnlyHint: true, untrustedContentHint: true },
-  getFields: { readOnlyHint: true, untrustedContentHint: true },
-  goTo: { destructiveHint: false },
-  movePage: { destructiveHint: true },
-  rotatePage: { destructiveHint: true },
-  selectTool: { destructiveHint: false },
-  setFieldValue: { destructiveHint: false },
-  submit: { destructiveHint: true },
-} satisfies Record<AgenticToolName, ToolAnnotations>
-
-const isAgenticOperation = (operation: Operation): operation is AgenticOperation => operation.is_agentic_tool
+const PNG_DATA_URL_PREFIX = 'data:image/png;base64,'
 
 const isModelContext = (value: unknown): value is ModelContext =>
   typeof value === 'object' && value !== null && 'registerTool' in value && typeof value.registerTool === 'function'
 
 const readModelContext = (): ModelContext | null => modelContextCandidates().find(isModelContext) ?? null
 
-const toCallToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
+const toTextToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
   content: [{ type: 'text', text: JSON.stringify(result) }],
   ...(result.success ? {} : { isError: true }),
 })
+
+// The render travels once, as the image block a vision-capable runtime shows the
+// model; the text block keeps the rest of the result (page, size, badges). Anything
+// but a successful PNG render takes the plain text envelope.
+const toAnnotatedPageToolResult = (result: BridgeResult<unknown>): CallToolResult => {
+  if (!result.success) {
+    return toTextToolResult(result)
+  }
+  const render: unknown = result.data
+  if (typeof render !== 'object' || render === null || !('image_data_url' in render)) {
+    return toTextToolResult(result)
+  }
+  const { image_data_url: imageDataUrl, ...renderWithoutImage } = render
+  if (typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith(PNG_DATA_URL_PREFIX)) {
+    return toTextToolResult(result)
+  }
+  return {
+    content: [
+      { type: 'image', data: imageDataUrl.slice(PNG_DATA_URL_PREFIX.length), mimeType: 'image/png' },
+      { type: 'text', text: JSON.stringify({ success: true, data: renderWithoutImage }) },
+    ],
+  }
+}
+
+const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): CallToolResult =>
+  wireType === 'GET_ANNOTATED_PAGE' ? toAnnotatedPageToolResult(result) : toTextToolResult(result)
 
 // A model context is a page-level singleton keyed by tool name, so two embeds on one
 // page would collide; the first registration of a name wins and the rest are reported.
@@ -94,8 +85,10 @@ export const registerWebMCPTools = ({
   signal,
   logger,
 }: {
+  // Resolves with the editor's wire-shaped Result (snake_case, what the record's
+  // description promises), not the SDK's camelCased one.
   dispatch: (wireType: WireType, data: unknown) => Promise<BridgeResult<unknown>>
-  exclude: readonly AgenticToolName[]
+  exclude: readonly MethodName[]
   signal: AbortSignal
   logger: BridgeLogger
 }): boolean => {
@@ -107,22 +100,23 @@ export const registerWebMCPTools = ({
     logger.info('webmcp.unavailable', { reason: 'invalid_model_context' })
     return false
   }
-  const excluded = new Set<AgenticToolName>(exclude)
+  const excluded = new Set<MethodName>(exclude)
   for (const operation of OPERATIONS) {
-    if (!isAgenticOperation(operation) || excluded.has(operation.method)) {
+    if (excluded.has(operation.method)) {
       continue
     }
-    if (liveTools.has(operation.method)) {
-      logger.warn('webmcp.tool_already_registered', { tool: operation.method })
+    const record = WEBMCP_TOOLS[operation.method]
+    if (liveTools.has(record.name)) {
+      logger.warn('webmcp.tool_already_registered', { tool: record.name })
       continue
     }
     const tool: WebMCPTool = {
-      name: operation.method,
-      description: operation.description,
-      inputSchema: TOOL_INPUT_SCHEMAS[operation.method],
-      annotations: TOOL_ANNOTATIONS[operation.method],
+      name: record.name,
+      description: record.description,
+      inputSchema: record.inputSchema,
+      annotations: record.annotations,
       // A nullish input becomes an empty payload (the no-input operations' wire shape).
-      execute: async (input) => toCallToolResult(await dispatch(operation.wire_type, input ?? {})),
+      execute: async (input) => toCallToolResult(operation.wire_type, await dispatch(operation.wire_type, input ?? {})),
     }
     liveTools.set(tool.name, signal)
     signal.addEventListener('abort', () => freeTool(tool.name, signal), { once: true })

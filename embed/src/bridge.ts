@@ -27,7 +27,7 @@ export type AttachEmbedArgs = {
   // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
   // Expose the editor operations as WebMCP tools on the host page (see ./webmcp).
-  enableWebMCP?: WebMCPOptions
+  webMCP?: WebMCPOptions
   // Internal wiring for createEmbed's "load the document once ready" flow: called on
   // every lifecycle transition (booting -> editorReady -> documentLoaded), including
   // readiness reached via the liveness probe (which emits no editor event). NOT a
@@ -73,8 +73,13 @@ const relabelResult = <TData>(result: BridgeResult<unknown>): BridgeResult<TData
   return result
 }
 
+// Op results reach SDK callers camelCased; the WebMCP tools hand the agent the wire
+// shape (snake_case), the one the manifest's tool descriptions promise.
+type ResultShape = 'sdk' | 'wire'
+
 type PendingRequest = {
   resolve: (result: BridgeResult<unknown>) => void
+  resultShape: ResultShape
   wireType: WireType
   startedAtMs: number
   timeoutId: ReturnType<typeof setTimeout>
@@ -109,7 +114,7 @@ export const attachEmbed = ({
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
   onStateChange,
-  enableWebMCP,
+  webMCP,
 }: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
@@ -168,7 +173,7 @@ export const attachEmbed = ({
   // table it reads load for no one else. Aborting the signal on dispose unregisters
   // every tool.
   const webMCPController = new AbortController()
-  const webMCP = normalizeWebMCPOptions(enableWebMCP)
+  const webMCPOptions = normalizeWebMCPOptions(webMCP)
   // Latched while a registration attempt is in flight or succeeded; released when the
   // module finds no usable context or fails to load, so the next non-booting transition
   // probes again and a runtime that installs its context after a fast EDITOR_READY (or a
@@ -176,7 +181,7 @@ export const attachEmbed = ({
   // itself needs no replay: the module probes on arrival.
   let webMCPStarted = false
   const startWebMCP = (): void => {
-    if (!webMCP.enabled || webMCPStarted) {
+    if (!webMCPOptions.enabled || webMCPStarted) {
       return
     }
     if (modelContextCandidates().length === 0) {
@@ -187,8 +192,8 @@ export const attachEmbed = ({
     void import('./webmcp')
       .then(({ registerWebMCPTools }) => {
         const registered = registerWebMCPTools({
-          dispatch: sendRequest,
-          exclude: webMCP.exclude,
+          dispatch: (wireType, data) => postRequest(wireType, data, 'wire'),
+          exclude: webMCPOptions.exclude,
           signal: webMCPController.signal,
           logger,
         })
@@ -210,7 +215,7 @@ export const attachEmbed = ({
     }
   }
 
-  const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
+  const postRequest = <TData>(wireType: WireType, data: unknown, resultShape: ResultShape): Promise<BridgeResult<TData>> =>
     new Promise<BridgeResult<TData>>((resolve) => {
       if (disposed) {
         resolve({
@@ -248,6 +253,7 @@ export const attachEmbed = ({
 
       pending.set(requestId, {
         resolve: (result) => resolve(relabelResult<TData>(result)),
+        resultShape,
         wireType,
         startedAtMs,
         timeoutId,
@@ -271,6 +277,9 @@ export const attachEmbed = ({
         })
       }
     })
+
+  const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
+    postRequest<TData>(wireType, data, 'sdk')
 
   // --- Editor-readiness probing ---------------------------------------------
   // Fire a GET_FIELDS every 500ms until the editor confirms a document is loaded
@@ -470,17 +479,26 @@ export const attachEmbed = ({
       if (rawResult.success === true && !('data' in rawResult)) {
         return { success: true, data: null }
       }
-      // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
-      // The transform preserves the envelope shape, so re-narrowing with the same
-      // guard re-types it without a cast.
-      const camelCased = fromWireData(rawResult)
-      if (!isBridgeResultLike(camelCased)) {
-        return {
-          success: false,
-          error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
+      switch (entry.resultShape) {
+        case 'wire':
+          return rawResult
+        case 'sdk': {
+          // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
+          // The transform preserves the envelope shape, so re-narrowing with the same
+          // guard re-types it without a cast.
+          const camelCased = fromWireData(rawResult)
+          if (!isBridgeResultLike(camelCased)) {
+            return {
+              success: false,
+              error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
+            }
+          }
+          return camelCased
         }
+        default:
+          entry.resultShape satisfies never
+          return rawResult
       }
-      return camelCased
     })()
     logger.info('iframe.request_received', {
       request_id: requestId,

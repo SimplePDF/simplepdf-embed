@@ -98,9 +98,9 @@ type CommonEmbedPDFProps = {
   // Optional: structured logging of the bridge lifecycle + errors.
   logger?: BridgeLogger;
   // Register the editor operations as WebMCP tools on YOUR page (same option as
-  // createEmbed): `true` for every agentic operation, `{ exclude: [...] }` to withhold
-  // some (e.g. `submit`). Off by default.
-  enableWebMCP?: WebMCPOptions;
+  // createEmbed): `{ enabled: true }` for every operation, `exclude` to withhold some
+  // by method name (e.g. `submit`). Off by default.
+  webMCP?: WebMCPOptions;
 };
 
 type InlineEmbedPDFProps = CommonEmbedPDFProps & {
@@ -127,7 +127,7 @@ type SurfaceProps = {
   context?: Record<string, unknown>;
   logger?: BridgeLogger;
   onEmbedEvent?: (event: EmbedEvent) => void | Promise<void>;
-  enableWebMCP?: WebMCPOptions;
+  webMCP?: WebMCPOptions;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -136,16 +136,7 @@ type SurfaceProps = {
 // Mount/unmount of this component drives create/dispose, so the modal gets the
 // same lifecycle for free (it mounts the surface only while open).
 const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props, ref) => {
-  const {
-    companyIdentifier,
-    baseDomain,
-    document: embedDocument,
-    locale,
-    context,
-    enableWebMCP,
-    className,
-    style,
-  } = props;
+  const { companyIdentifier, baseDomain, document: embedDocument, locale, context, webMCP, className, style } = props;
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Keep callbacks + logger in a ref so changing them does not remount the iframe.
@@ -205,13 +196,13 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
     }
   }, [context]);
   // Registration happens at mount, so a changed option remounts the editor (and drops
-  // the person's edits). Keyed on the normalized value, so a fresh `{ exclude: [...] }`
-  // literal, a reordered list, or `undefined` vs `false` never remounts; the effect
-  // reads the option through a ref so the literal itself stays out of its dependencies.
-  const webMCP = normalizeWebMCPOptions(enableWebMCP);
-  const webMCPKey = webMCP.enabled ? `on:${[...webMCP.exclude].sort().join(',')}` : 'off';
-  const enableWebMCPRef = React.useRef(enableWebMCP);
-  enableWebMCPRef.current = enableWebMCP;
+  // the person's edits). Keyed on the normalized value, so a fresh option literal, a
+  // reordered `exclude`, or `undefined` vs `{ enabled: false }` never remounts; the
+  // effect reads the option through a ref so the literal itself stays out of its dependencies.
+  const webMCPOptions = normalizeWebMCPOptions(webMCP);
+  const webMCPKey = webMCPOptions.enabled ? `on:${[...webMCPOptions.exclude].sort().join(',')}` : 'off';
+  const webMCPRef = React.useRef(webMCP);
+  webMCPRef.current = webMCP;
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -226,7 +217,7 @@ const EmbedSurface = React.forwardRef<EmbedActions | null, SurfaceProps>((props,
       locale,
       context,
       logger: stableLogger,
-      enableWebMCP: enableWebMCPRef.current,
+      webMCP: webMCPRef.current,
     });
     assignRef(ref, toEmbedActions(embed));
     // Forward each editor event to onEmbedEvent as the verbatim { type, data }. The
@@ -363,7 +354,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions | null, EmbedPDFProps>((pr
           context={props.context}
           logger={props.logger}
           onEmbedEvent={props.onEmbedEvent}
-          enableWebMCP={props.enableWebMCP}
+          webMCP={props.webMCP}
           className="simplePDF_iframe"
         />
       </ModalChrome>
@@ -380,7 +371,7 @@ export const EmbedPDF = React.forwardRef<EmbedActions | null, EmbedPDFProps>((pr
       context={props.context}
       logger={props.logger}
       onEmbedEvent={props.onEmbedEvent}
-      enableWebMCP={props.enableWebMCP}
+      webMCP={props.webMCP}
       className={props.className}
       style={props.style}
     />

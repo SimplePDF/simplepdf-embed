@@ -33,7 +33,6 @@ import type {
 } from './generated/contract'
 
 export type {
-  AgenticToolName,
   CreateFieldInput,
   CreateFieldOutput,
   DeleteFieldsInput,
@@ -57,6 +56,7 @@ export type {
   GoToInput,
   Locale,
   LoadDocumentInput,
+  MethodName,
   MissingRequiredFieldsDetails,
   MovePageInput,
   OverlayToolType,

@@ -1,6 +1,6 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 // Zero runtime dependencies: the zero-dep root imports only from this module.
-import type { AGENTIC_TOOL_NAMES } from './agentic-tool-names'
+import type { METHOD_NAMES } from './method-names'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
@@ -209,8 +209,7 @@ export const OPERATIONS = [
 
 export type WireType = (typeof OPERATIONS)[number]["wire_type"]
 export type RequestType = (typeof OPERATIONS)[number]["request_type"]
-export type MethodName = (typeof OPERATIONS)[number]["method"]
-export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number]
+export type MethodName = (typeof METHOD_NAMES)[number]
 
 export const OUTBOUND_EVENTS = [
   { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, every operation fails with bad_request:editor_not_ready. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },

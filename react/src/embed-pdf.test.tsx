@@ -13,7 +13,7 @@ vi.mock('./styles.scss', () => ({}));
 // onEmbedEvent contract, and the useEmbed contract (null-safe before mount).
 
 describe('EmbedPDF (inline)', () => {
-  it('registers the editor operations as WebMCP tools on the host page when enableWebMCP is set, and unregisters them on unmount', async () => {
+  it('registers the editor operations as WebMCP tools on the host page when webMCP is enabled, and unregisters them on unmount', async () => {
     const liveTools = new Set<string>();
     const registerTool = vi.fn((tool: { name: string }, { signal }: { signal: AbortSignal }) => {
       liveTools.add(tool.name);
@@ -22,7 +22,7 @@ describe('EmbedPDF (inline)', () => {
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool } });
     try {
       const { container, unmount } = render(
-        <EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['submit'] }} />,
+        <EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: true, exclude: ['submit'] }} />,
       );
       // Tools register once the editor announces itself.
       window.dispatchEvent(
@@ -32,9 +32,9 @@ describe('EmbedPDF (inline)', () => {
           source: container.querySelector('iframe')?.contentWindow ?? null,
         }),
       );
-      await waitFor(() => expect(liveTools.has('setFieldValue')).toBe(true));
+      await waitFor(() => expect(liveTools.has('simplepdf_embed_set_field_value')).toBe(true));
       expect(liveTools.size).toBeGreaterThan(1);
-      expect(liveTools.has('submit')).toBe(false);
+      expect(liveTools.has('simplepdf_embed_submit')).toBe(false);
       unmount();
       expect(liveTools.size).toBe(0);
     } finally {
@@ -42,16 +42,18 @@ describe('EmbedPDF (inline)', () => {
     }
   });
 
-  it('does not remount the editor when enableWebMCP is re-rendered as an equal value', () => {
+  it('does not remount the editor when webMCP is re-rendered as an equal value', () => {
     const { container, rerender } = render(
-      <EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['submit', 'goTo'] }} />,
+      <EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: true, exclude: ['submit', 'goTo'] }} />,
     );
     const iframe = container.querySelector('iframe');
-    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP={{ exclude: ['goTo', 'submit'] }} />);
+    rerender(
+      <EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: true, exclude: ['goTo', 'submit'] }} />,
+    );
     expect(container.querySelector('iframe')).toBe(iframe);
 
     // A different value does remount: registration happens at mount.
-    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" enableWebMCP />);
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: true }} />);
     const remounted = container.querySelector('iframe');
     expect(remounted).not.toBeNull();
     expect(remounted).not.toBe(iframe);

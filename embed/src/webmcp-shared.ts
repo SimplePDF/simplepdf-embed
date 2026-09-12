@@ -1,7 +1,7 @@
 // What the zero-dep root needs to know about WebMCP without loading the module:
 // the option shape and where a model context lives.
 
-import type { AgenticToolName } from './generated/contract'
+import type { MethodName } from './generated/contract'
 
 // Every value a page may expose as its model context, document first (the canonical
 // install location since Chrome 150; `navigator.modelContext` is the deprecated alias
@@ -17,22 +17,28 @@ export const modelContextCandidates = (): unknown[] => {
   return candidates
 }
 
-// `true` registers every agentic operation; `exclude` withholds the listed ones
-// (e.g. `submit` when only a person may finalize). `false` / omitted registers nothing.
-export type WebMCPOptions = boolean | { exclude: readonly AgenticToolName[] }
+// `{ enabled: true }` registers every operation; `exclude` withholds the listed ones
+// by SDK method name (e.g. `submit` when only a person may finalize). `{ enabled: false }`
+// and omitted are one state. The object is the home of every WebMCP-specific setting.
+export type WebMCPOptions = { enabled: false } | { enabled: true; exclude?: readonly MethodName[] }
 
 // The one decoder of the option shape: the bridge (start or not), the WebMCP module
 // (what to withhold) and the React layer (a remount key) all read this instead of
-// re-deriving the `undefined | false | true | { exclude }` cases.
+// re-deriving the `undefined | { enabled: false } | { enabled: true, exclude? }` cases.
 /** @internal Shared with @simplepdf/react-embed-pdf; not part of the consumer contract. */
 export const normalizeWebMCPOptions = (
   options: WebMCPOptions | undefined,
-): { enabled: false } | { enabled: true; exclude: readonly AgenticToolName[] } => {
-  if (options === undefined || options === false) {
+): { enabled: false } | { enabled: true; exclude: readonly MethodName[] } => {
+  if (options === undefined) {
     return { enabled: false }
   }
-  if (options === true) {
-    return { enabled: true, exclude: [] }
+  switch (options.enabled) {
+    case false:
+      return { enabled: false }
+    case true:
+      return { enabled: true, exclude: options.exclude ?? [] }
+    default:
+      options satisfies never
+      return { enabled: false }
   }
-  return { enabled: true, exclude: options.exclude }
 }

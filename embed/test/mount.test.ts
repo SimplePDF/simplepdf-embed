@@ -386,23 +386,27 @@ describe(createEmbed.name, () => {
   // Every malformed shape an untyped JS caller can produce fails loud: `exclude` is
   // the control that withholds irreversible operations, so it must never fail open.
   it.each([
-    ['a string exclude', { exclude: 'submit' }],
-    ['an option object without exclude', {}],
+    ['a bare boolean', true],
+    ['an object without enabled', { exclude: ['submit'] }],
+    ['a stringly-typed enabled', { enabled: 'true' }],
     ['a stringly-typed flag', 'false'],
     ['a number', 0],
     ['null', null],
-    ['a non-string exclude entry', { exclude: ['submit', 7] }],
-  ])('throws EmbedConfigError when enableWebMCP is %s', (_label, enableWebMCP) => {
+    ['a string exclude', { enabled: true, exclude: 'submit' }],
+    ['a non-string exclude entry', { enabled: true, exclude: ['submit', 7] }],
+  ])('throws EmbedConfigError when webMCP is %s', (_label, webMCP) => {
     document.body.innerHTML = '<div id="root"></div>'
-    const malformedArgs: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP }
+    const malformedArgs: unknown = { target: '#root', companyIdentifier: 'acme', webMCP }
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed(malformedArgs)).toThrow(/enableWebMCP must be a boolean or \{ exclude: AgenticToolName\[\] \}/)
+    expect(() => createEmbed(malformedArgs)).toThrow(
+      /webMCP must be \{ enabled: false \} or \{ enabled: true, exclude\?: MethodName\[\] \}/,
+    )
   })
 
   it('throws EmbedConfigError when exclude names no tool, so a misspelled name cannot register the operation it meant to withhold', () => {
     document.body.innerHTML = '<div id="root"></div>'
-    const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', enableWebMCP: { exclude: ['sumbit'] } }
+    const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', webMCP: { enabled: true, exclude: ['sumbit'] } }
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed(misspelled)).toThrow(/enableWebMCP\.exclude names no tool: sumbit \(known: createField/)
+    expect(() => createEmbed(misspelled)).toThrow(/webMCP\.exclude names no tool: sumbit \(known: createField/)
   })
 })

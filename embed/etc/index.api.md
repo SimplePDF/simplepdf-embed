@@ -4,11 +4,6 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "AGENTIC_TOOL_NAMES" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export type AgenticToolName = (typeof AGENTIC_TOOL_NAMES)[number];
-
 // @public (undocumented)
 export type BridgeError = {
     code: 'bad_request:missing_required_fields';
@@ -78,7 +73,7 @@ export type CreateEmbedArgs = {
         style?: Partial<CSSStyleDeclaration>;
     };
     logger?: BridgeLogger;
-    enableWebMCP?: WebMCPOptions;
+    webMCP?: WebMCPOptions;
 };
 
 // @public (undocumented)
@@ -302,6 +297,11 @@ export type Locale = (typeof LOCALES)[number];
 // @public (undocumented)
 export type LogPayload = Record<string, unknown>;
 
+// Warning: (ae-forgotten-export) The symbol "METHOD_NAMES" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type MethodName = (typeof METHOD_NAMES)[number];
+
 // @public (undocumented)
 export type MissingRequiredFieldsDetails = {
     unfilledRequiredFieldsCount: number;
@@ -323,7 +323,7 @@ export const normalizeWebMCPOptions: (options: WebMCPOptions | undefined) => {
     enabled: false;
 } | {
     enabled: true;
-    exclude: readonly AgenticToolName[];
+    exclude: readonly MethodName[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "OVERLAY_TOOL_TYPES" needs to be exported by the entry point index.d.ts
@@ -369,8 +369,11 @@ export type SubmitInput = {
 export const unwrap: <TData>(result: BridgeResult<TData>) => TData;
 
 // @public (undocumented)
-export type WebMCPOptions = boolean | {
-    exclude: readonly AgenticToolName[];
+export type WebMCPOptions = {
+    enabled: false;
+} | {
+    enabled: true;
+    exclude?: readonly MethodName[];
 };
 
 // (No @packageDocumentation comment for this package)
