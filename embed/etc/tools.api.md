@@ -58,9 +58,15 @@ export const SIMPLEPDF_TOOLS: {
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly focusField: {
-        readonly description: "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.";
+        readonly description: "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.";
         readonly inputSchema: zod.ZodObject<{
             fieldId: zod.ZodString;
+        }, zod_v4_core.$strip>;
+    };
+    readonly getAnnotatedPage: {
+        readonly description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.";
+        readonly inputSchema: zod.ZodObject<{
+            page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
     };
     readonly getDocumentContent: {
@@ -73,7 +79,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly getFields: {
-        readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.";
+        readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.";
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly goTo: {
@@ -108,7 +114,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly setFieldValue: {
-        readonly description: "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.";
+        readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             fieldId: zod.ZodString;
             value: zod.ZodNullable<zod.ZodString>;

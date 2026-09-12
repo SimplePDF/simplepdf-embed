@@ -1,7 +1,6 @@
-// Wire protocol constants. The PUBLIC operation + outbound-event vocabulary is
-// generated from embed-api.json (the editor iframe lib is the source); the
-// INTERNAL protocol frames the editor uses to drive the bridge are hand-authored
-// here and are never part of the public operation/event surface. Zero runtime
+// Wire protocol constants: the operation + outbound-event vocabulary, generated
+// from embed-api.json (the editor iframe lib is the source). The REQUEST_RESULT
+// reply envelope is not an event and lives with the bridge. Zero runtime
 // dependencies.
 
 import { OPERATIONS, OUTBOUND_EVENTS } from './generated/contract'

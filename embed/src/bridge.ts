@@ -1,5 +1,4 @@
 import { fromWireData, toWireData } from './case-transform'
-import { INTERNAL_PROTOCOL } from './internal-protocol'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
@@ -49,8 +48,12 @@ const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 // remain members of the generated vocabulary, or `tsc` fails (an editor rename
 // would otherwise silently stop the bridge emitting that event). Type-only, so
 // no generated value (the OPERATIONS table) is pulled into the zero-dep root.
+const EDITOR_READY_EVENT: Extract<OutboundEventType, 'EDITOR_READY'> = 'EDITOR_READY'
+const DOCUMENT_LOADED_EVENT: Extract<OutboundEventType, 'DOCUMENT_LOADED'> = 'DOCUMENT_LOADED'
 const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
 const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
+// The reply envelope (manifest `protocol`), not an event: never part of OutboundEventType.
+const REQUEST_RESULT_TYPE = 'REQUEST_RESULT'
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -387,13 +390,13 @@ export const attachEmbed = ({
     // Log the message type + correlation id only — never the body (PII).
     logger.debug('iframe.message_received', { type: payload.type, request_id: payload.request_id })
 
-    if (payload.type === INTERNAL_PROTOCOL.EDITOR_READY) {
+    if (payload.type === EDITOR_READY_EVENT) {
       markEditorReady('editor_ready_event')
       channels.EDITOR_READY.emit({})
       return
     }
 
-    if (payload.type === INTERNAL_PROTOCOL.DOCUMENT_LOADED) {
+    if (payload.type === DOCUMENT_LOADED_EVENT) {
       const rawDocId = payload.data?.document_id
       if (typeof rawDocId === 'string' && rawDocId !== '') {
         // Forward every real DOCUMENT_LOADED verbatim (snake wire data).
@@ -428,7 +431,7 @@ export const attachEmbed = ({
       return
     }
 
-    if (payload.type !== INTERNAL_PROTOCOL.REQUEST_RESULT) {
+    if (payload.type !== REQUEST_RESULT_TYPE) {
       return
     }
 
@@ -501,6 +504,7 @@ export const attachEmbed = ({
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
     download: () => sendRequest('DOWNLOAD', {}),
     focusField: (input) => sendRequest('FOCUS_FIELD', input),
+    getAnnotatedPage: (input) => sendRequest('GET_ANNOTATED_PAGE', input),
     getDocumentContent: (input) => sendRequest('GET_DOCUMENT_CONTENT', input ?? {}),
     getFields: () => sendRequest('GET_FIELDS', {}),
     goTo: (input) => sendRequest('GO_TO', input),

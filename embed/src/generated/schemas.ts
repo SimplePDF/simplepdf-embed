@@ -8,7 +8,7 @@ export const CreateFieldInput = z.object({
   width: z.number().describe("Field width, in PDF points."),
   height: z.number().describe("Field height, in PDF points."),
   page: z.number().int().describe("1-based page to place the field on."),
-  value: z.string().describe("Optional initial value. A string for text/checkbox fields, or a data URL for signature/picture fields.").optional(),
+  value: z.string().describe("Optional initial value. A string for text/checkbox fields, or a data URL or http(s) URL (fetched by the editor) for signature/picture fields.").optional(),
 }).describe("Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.")
 export type CreateFieldInput = z.infer<typeof CreateFieldInput>
 export const DeleteFieldsInput = z.object({
@@ -26,23 +26,27 @@ export const DownloadInput = z.object({}).describe("Generate and download the cu
 export type DownloadInput = z.infer<typeof DownloadInput>
 export const FocusFieldInput = z.object({
   fieldId: z.string().describe("ID of the field to focus and scroll into view."),
-}).describe("Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.")
+}).describe("Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.")
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
+export const GetAnnotatedPageInput = z.object({
+  page: z.number().int().describe("1-based page to render, at its current position."),
+}).describe("Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.")
+export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>
 export const GetDocumentContentInput = z.object({
   extractionMode: z.enum(["auto", "ocr"]).describe("Extraction strategy: 'auto' (default) or 'ocr' to force optical recognition.").optional(),
 }).describe("Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.")
 export type GetDocumentContentInput = z.infer<typeof GetDocumentContentInput>
-export const GetFieldsInput = z.object({}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.")
+export const GetFieldsInput = z.object({}).describe("List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.")
 export type GetFieldsInput = z.infer<typeof GetFieldsInput>
 export const GoToInput = z.object({
   page: z.number().int().describe("1-based page to navigate to."),
 }).describe("Scroll the editor to a specific 1-based page. Returns no data.")
 export type GoToInput = z.infer<typeof GoToInput>
 export const LoadDocumentInput = z.object({
-  dataUrl: z.string().describe("The document to load, as a data URL."),
+  dataUrl: z.string().describe("The document to load: a data URL, or an http(s) URL the editor fetches."),
   name: z.string().describe("Optional display name for the document.").optional(),
   page: z.number().int().describe("Optional 1-based page to open the document on.").optional(),
-}).describe("Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data.")
+}).describe("Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.")
 export type LoadDocumentInput = z.infer<typeof LoadDocumentInput>
 export const MovePageInput = z.object({
   fromPage: z.number().int().describe("1-based current position of the page to move."),
@@ -59,8 +63,8 @@ export const SelectToolInput = z.object({
 export type SelectToolInput = z.infer<typeof SelectToolInput>
 export const SetFieldValueInput = z.object({
   fieldId: z.string().describe("ID of the field to update."),
-  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL (signature/picture)."),
-}).describe("Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.")
+  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
+}).describe("Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.")
 export type SetFieldValueInput = z.infer<typeof SetFieldValueInput>
 export const SubmitInput = z.object({
   downloadCopy: z.boolean().describe("When true, the signer also receives a downloaded copy on submit."),

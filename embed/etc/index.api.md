@@ -124,6 +124,11 @@ export type DocumentContentPage = GetDocumentContentOutput['pages'][number];
 // @public (undocumented)
 export type DocumentContentResult = GetDocumentContentOutput;
 
+// @public (undocumented)
+export type DocumentLoadedPayload = {
+    document_id: string;
+};
+
 // Warning: (ae-forgotten-export) The symbol "EDITOR_ERROR_CODES" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -132,12 +137,10 @@ export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number];
 // @public (undocumented)
 export type EditorEvent = {
     type: 'EDITOR_READY';
-    data: Record<string, never>;
+    data: EditorReadyPayload;
 } | {
     type: 'DOCUMENT_LOADED';
-    data: {
-        document_id: string;
-    };
+    data: DocumentLoadedPayload;
 } | {
     type: 'PAGE_FOCUSED';
     data: PageFocusedPayload;
@@ -150,6 +153,9 @@ export type EditorEvent = {
 export type EditorEventMap = {
     [TEvent in EditorEvent as TEvent['type']]: TEvent['data'];
 };
+
+// @public (undocumented)
+export type EditorReadyPayload = Record<string, never>;
 
 // @public (undocumented)
 export type Embed = {
@@ -217,6 +223,20 @@ export type FocusFieldOutput = {
 };
 
 // @public (undocumented)
+export type GetAnnotatedPageInput = {
+    page: number;
+};
+
+// @public (undocumented)
+export type GetAnnotatedPageOutput = {
+    page: number;
+    imageDataUrl: string;
+    imageWidth: number;
+    imageHeight: number;
+    badges: Record<string, string>;
+};
+
+// @public (undocumented)
 export type GetDocumentContentInput = {
     extractionMode?: ExtractionMode;
 };
@@ -255,6 +275,7 @@ export type IframeActions = {
     detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>;
     download: () => Promise<BridgeResult>;
     focusField: (input: FocusFieldInput) => Promise<BridgeResult<FocusFieldOutput>>;
+    getAnnotatedPage: (input: GetAnnotatedPageInput) => Promise<BridgeResult<GetAnnotatedPageOutput>>;
     getDocumentContent: (input?: GetDocumentContentInput) => Promise<BridgeResult<GetDocumentContentOutput>>;
     getFields: () => Promise<BridgeResult<GetFieldsOutput>>;
     goTo: (input: GoToInput) => Promise<BridgeResult>;

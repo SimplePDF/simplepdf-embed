@@ -157,7 +157,7 @@ Actions are camelCase (the editor's snake_case wire is transformed for you). `us
 | `actions.setFieldValue({ fieldId, value })`      | Set a field's value                                                                                     |
 | `actions.submit({ downloadCopy })`               | Submit the document                                                                                     |
 
-…plus `createField`, `getFields`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
+…plus `createField`, `getFields`, `getAnnotatedPage`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
 ```jsx
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';

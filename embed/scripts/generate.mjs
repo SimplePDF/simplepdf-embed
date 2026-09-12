@@ -65,15 +65,17 @@ const NAMED_ENUMS = new Map()
 // ---------------------------------------------------------------------------
 
 // The closed vocabulary the emitter understands. A node carrying any other
-// keyword (minLength, pattern, format, minimum, additionalProperties, oneOf,
-// allOf, $ref, ...) fails loud so a new manifest constraint can never be
-// silently dropped from the generated types/schemas.
+// keyword (minLength, pattern, format, minimum, oneOf, allOf, $ref, ...) fails
+// loud so a new manifest constraint can never be silently dropped from the
+// generated types/schemas. `additionalProperties` is honored only as a schema on
+// an object with no `properties` (a map: Record<string, T> / z.record).
 const KNOWN_SCHEMA_KEYWORDS = new Set([
   'type',
   'enum',
   'const',
   'anyOf',
   'properties',
+  'additionalProperties',
   'required',
   'items',
   'description',
@@ -86,7 +88,20 @@ const assertKnownKeywords = (node) => {
       )
     }
   }
+  if (node.additionalProperties !== undefined && !isMapNode(node)) {
+    throw new Error(
+      `Unsupported 'additionalProperties' in ${JSON.stringify(node)} — only a schema on an object without 'properties' is honored (a map)`,
+    )
+  }
 }
+
+// An object whose every key maps to one value schema (`{ additionalProperties: <schema> }`
+// with no `properties`): emitted as Record<string, T> / z.record.
+const isMapNode = (node) =>
+  node.type === 'object' &&
+  node.properties === undefined &&
+  typeof node.additionalProperties === 'object' &&
+  node.additionalProperties !== null
 
 // Recursively assert every node in a schema tree carries only known keywords, so
 // a new constraint anywhere in the manifest (op I/O, events, the error schema, or
@@ -103,6 +118,9 @@ const preflightSchema = (node) => {
   }
   if (node.items !== undefined) {
     preflightSchema(node.items)
+  }
+  if (isMapNode(node)) {
+    preflightSchema(node.additionalProperties)
   }
   if (Array.isArray(node.anyOf)) {
     for (const sub of node.anyOf) {
@@ -156,6 +174,9 @@ const tsForNode = (node, camelKeys) => {
 }
 
 const tsForObject = (node, camelKeys) => {
+  if (isMapNode(node)) {
+    return `Record<string, ${tsForNode(node.additionalProperties, camelKeys)}>`
+  }
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
@@ -217,6 +238,9 @@ const zodForNode = (node, { withDescription }) => {
 }
 
 const zodForObject = (node) => {
+  if (isMapNode(node)) {
+    return `z.record(z.string(), ${zodForNode(node.additionalProperties, { withDescription: false })})`
+  }
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
@@ -355,8 +379,8 @@ contractLines.push('')
 // dropped (the tool description already carries it); everything else rides through.
 const toolInputSchema = (node) => {
   assertKnownKeywords(node)
-  if (node.type !== 'object') {
-    throw new Error(`Unsupported tool input schema root (expected an object): ${JSON.stringify(node)}`)
+  if (node.type !== 'object' || isMapNode(node)) {
+    throw new Error(`Unsupported tool input schema root (expected an object with properties): ${JSON.stringify(node)}`)
   }
   const properties = node.properties ?? {}
   for (const required of node.required ?? []) {
@@ -509,19 +533,18 @@ driftLines.push("import type * as Schemas from './schemas'")
 driftLines.push("import type * as Contract from './contract'")
 driftLines.push('')
 driftLines.push('type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false')
-driftLines.push('type Extends<A, B> = [A] extends [B] ? true : false')
 driftLines.push('type AssertTrue<T extends true> = T')
 driftLines.push('')
 driftLines.push('// IframeActions method set must exactly equal the generated operation methods,')
 driftLines.push('// each zod schema must stay mutually assignable to its plain contract type, and')
-driftLines.push('// every generated outbound event must appear in the hand-maintained EditorEvent union')
-driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).")
+driftLines.push('// the hand-maintained EditorEvent union must exactly match the generated outbound events')
+driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss or invent one).")
 driftLines.push('export type DriftGuards = [')
 driftLines.push("  AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,")
 driftLines.push(
   '  AssertTrue<Exact<Contract.AgenticToolName, Extract<(typeof Contract.OPERATIONS)[number], { is_agentic_tool: true }>["method"]>>,',
 )
-driftLines.push("  AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,")
+driftLines.push("  AssertTrue<Exact<Contract.OutboundEventType, EditorEvent['type']>>,")
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
   driftLines.push(`  AssertTrue<Exact<Schemas.${stem}Input, Contract.${stem}Input>>,`)

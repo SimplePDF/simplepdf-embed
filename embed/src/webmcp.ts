@@ -52,6 +52,7 @@ const TOOL_ANNOTATIONS = {
   detectFields: { destructiveHint: false },
   download: { destructiveHint: false },
   focusField: { destructiveHint: false },
+  getAnnotatedPage: { readOnlyHint: true, untrustedContentHint: true },
   getDocumentContent: { readOnlyHint: true, untrustedContentHint: true },
   getFields: { readOnlyHint: true, untrustedContentHint: true },
   goTo: { destructiveHint: false },
