@@ -11,7 +11,8 @@
 // table it reads) is downloaded otherwise.
 // CF: https://webmachinelearning.github.io/webmcp/
 
-import { OPERATIONS, type MethodName, type WireType } from './generated/contract'
+import type { MethodName, WireType } from './generated/contract'
+import { METHOD_NAMES } from './generated/method-names'
 import { WEBMCP_TOOLS, type WebMCPToolRecord } from './generated/webmcp-tools'
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
@@ -23,7 +24,7 @@ import { modelContextCandidates } from './webmcp-shared'
 // Result additionally flagged `isError`, a page render carried as an `image` block.
 type ToolContent = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: 'image/png' }
 type CallToolResult = { content: ToolContent[]; isError?: boolean }
-type WebMCPTool = WebMCPToolRecord & { execute: (input: unknown) => Promise<CallToolResult> }
+type WebMCPTool = Omit<WebMCPToolRecord, 'wireType'> & { execute: (input: unknown) => Promise<CallToolResult> }
 type ModelContext = {
   registerTool: (tool: WebMCPTool, options: { signal: AbortSignal }) => unknown
 }
@@ -101,11 +102,11 @@ export const registerWebMCPTools = ({
     return false
   }
   const excluded = new Set<MethodName>(exclude)
-  for (const operation of OPERATIONS) {
-    if (excluded.has(operation.method)) {
+  for (const method of METHOD_NAMES) {
+    if (excluded.has(method)) {
       continue
     }
-    const record = WEBMCP_TOOLS[operation.method]
+    const record = WEBMCP_TOOLS[method]
     if (liveTools.has(record.name)) {
       logger.warn('webmcp.tool_already_registered', { tool: record.name })
       continue
@@ -116,7 +117,7 @@ export const registerWebMCPTools = ({
       inputSchema: record.inputSchema,
       annotations: record.annotations,
       // A nullish input becomes an empty payload (the no-input operations' wire shape).
-      execute: async (input) => toCallToolResult(operation.wire_type, await dispatch(operation.wire_type, input ?? {})),
+      execute: async (input) => toCallToolResult(record.wireType, await dispatch(record.wireType, input ?? {})),
     }
     liveTools.set(tool.name, signal)
     signal.addEventListener('abort', () => freeTool(tool.name, signal), { once: true })

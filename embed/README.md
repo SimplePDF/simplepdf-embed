@@ -76,13 +76,14 @@ useChat({ connection, tools: createSimplePDFTools({ embed }) })
 An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `webMCP: { enabled: true }` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge. The PDF bytes stay in the tab (nothing reaches a SimplePDF server); what the agent reads through the readers (`simplepdf_embed_get_fields`, `simplepdf_embed_get_document_content`, `simplepdf_embed_get_annotated_page`: field values, extracted text, a page render) goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document.
 
 ```ts
-// keep the decision with the person: withhold submit (and the page operations), the
-// recommended shape when the document can come from a third party (its text reaches
-// the agent as untrusted content, and an agent holding `submit` acts on what it reads)
+// keep the decision with the person: withhold submit, the page operations and
+// loadDocument (an agent could otherwise swap the document), the recommended shape when
+// the document can come from a third party (its text reaches the agent as untrusted
+// content, and an agent holding `submit` acts on what it reads)
 createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url },
-  webMCP: { enabled: true, exclude: ['submit', 'deletePages', 'movePage', 'rotatePage'] } })
+  webMCP: { enabled: true, exclude: ['submit', 'loadDocument', 'deletePages', 'movePage', 'rotatePage'] } })
 
-// every operation
+// every operation, loadDocument included (the editor registers it on its own page too)
 createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url }, webMCP: { enabled: true } })
 ```
 

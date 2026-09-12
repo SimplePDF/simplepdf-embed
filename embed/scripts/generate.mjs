@@ -35,8 +35,9 @@ const contract = JSON.parse(readFileSync(join(PKG_ROOT, 'embed-api.json'), 'utf8
 // `git diff --check` would flag).
 const renderFile = (lines) => `${lines.join('\n').replace(/\n+$/, '')}\n`
 
-// Operations that exist on the wire but are NOT exposed as agentic tools.
-// load_document is a host/setup action (the contract description says so).
+// Operations withheld from the /tools, /ai-sdk and /tanstack-ai subpaths (the WebMCP
+// surface registers all of them, like the editor): load_document is a host/setup action
+// there (the contract description says so).
 const NON_AGENTIC_OPERATIONS = new Set(['load_document'])
 
 // ---------------------------------------------------------------------------
@@ -92,6 +93,9 @@ const assertKnownKeywords = (node) => {
     throw new Error(
       `Unsupported 'additionalProperties' in ${JSON.stringify(node)} — only a schema on an object without 'properties' is honored (a map)`,
     )
+  }
+  if (isMapNode(node) && node.required !== undefined) {
+    throw new Error(`Unsupported 'required' on a map node ${JSON.stringify(node)} — a map has no fixed keys to require`)
   }
 }
 
@@ -373,7 +377,7 @@ for (const event of contract.events) {
 }
 contractLines.push('')
 
-// Operation metadata table (the camelCase `method` is the SDK method + agentic tool name).
+// Operation metadata table (the camelCase `method` is the SDK method name, also the /tools tool name).
 const opMeta = contract.operations.map((op) => {
   const stem = toPascal(op.request_type)
   return (
@@ -475,7 +479,7 @@ const webmcpToolRecord = (op) => {
       throw new Error(`Unsupported tool annotation '${hint}' on ${op.request_type} — extend the generator to honor it`)
     }
   }
-  return { name, description, inputSchema, annotations }
+  return { name, description, inputSchema, annotations, wireType: op.request_type.toUpperCase() }
 }
 
 const webmcpToolLines = []
@@ -484,10 +488,12 @@ webmcpToolLines.push('// The WebMCP tool each operation publishes (the manifest 
 webmcpToolLines.push('// input schema, behavior hints), verbatim, keyed by SDK method name so `webMCP.exclude`')
 webmcpToolLines.push('// maps straight onto it. The editor registers the same record on its own page. Read')
 webmcpToolLines.push('// only by src/webmcp.ts, which is lazy-loaded, so this table never lands in an entry')
-webmcpToolLines.push('// that did not opt in.')
-webmcpToolLines.push("import type { MethodName } from './contract'")
+webmcpToolLines.push('// that did not opt in. `wireType` is the operation the record dispatches to, carried')
+webmcpToolLines.push('// here so the lazy module needs nothing from the OPERATIONS table.')
+webmcpToolLines.push("import type { MethodName, WireType } from './contract'")
 webmcpToolLines.push('')
 webmcpToolLines.push('export type WebMCPToolRecord = {')
+webmcpToolLines.push('  readonly wireType: WireType')
 webmcpToolLines.push('  readonly name: string')
 webmcpToolLines.push('  readonly description: string')
 webmcpToolLines.push('  readonly inputSchema: {')
@@ -552,7 +558,7 @@ toolLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. D
 toolLines.push("import * as Schemas from './schemas'")
 toolLines.push('')
 toolLines.push('// The agentic tool registry. Each tool name is the camelCase operation name;')
-toolLines.push('// load_document is excluded (it is a host/setup action, not an agentic tool).')
+toolLines.push('// load_document is excluded here (a host/setup action; the WebMCP surface registers it).')
 toolLines.push('export const TOOL_DEFINITIONS = {')
 for (const op of agenticOperations) {
   const stem = toPascal(op.request_type)

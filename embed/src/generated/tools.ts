@@ -2,7 +2,7 @@
 import * as Schemas from './schemas'
 
 // The agentic tool registry. Each tool name is the camelCase operation name;
-// load_document is excluded (it is a host/setup action, not an agentic tool).
+// load_document is excluded here (a host/setup action; the WebMCP surface registers it).
 export const TOOL_DEFINITIONS = {
   createField: { description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.", inputSchema: Schemas.CreateFieldInput },
   deleteFields: { description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.", inputSchema: Schemas.DeleteFieldsInput },

@@ -2,5 +2,5 @@
 // prefix: the gzip budget each closure must stay under (check-bundle-size.mjs) and the
 // export the chunk must expose when loaded in either module format (check-lazy-chunks.mjs).
 export const LAZY_CHUNKS = {
-  'webmcp-': { budgetBytes: 7.5 * 1024, exportName: 'registerWebMCPTools' },
+  'webmcp-': { budgetBytes: 4.5 * 1024, exportName: 'registerWebMCPTools' },
 }

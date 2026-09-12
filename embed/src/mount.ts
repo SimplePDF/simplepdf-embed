@@ -210,24 +210,25 @@ const assertValidWebMCPOptions = (webMCP: unknown): void => {
   if (webMCP === undefined) {
     return
   }
-  const shapeError = new EmbedConfigError(
-    'invalid_config',
-    `webMCP must be { enabled: false } or { enabled: true, exclude?: MethodName[] } (received ${describeValue(webMCP)}).`,
-  )
+  const shapeError = (): EmbedConfigError =>
+    new EmbedConfigError(
+      'invalid_config',
+      `webMCP must be { enabled: false } or { enabled: true, exclude?: MethodName[] } (received ${describeValue(webMCP)}).`,
+    )
   const isObject = typeof webMCP === 'object' && webMCP !== null
   if (!isObject || !('enabled' in webMCP) || typeof webMCP.enabled !== 'boolean') {
-    throw shapeError
+    throw shapeError()
   }
   const exclude = 'exclude' in webMCP ? webMCP.exclude : undefined
   if (exclude === undefined) {
     return
   }
   if (!Array.isArray(exclude)) {
-    throw shapeError
+    throw shapeError()
   }
   const entries: unknown[] = exclude
   if (!entries.every((name): name is string => typeof name === 'string')) {
-    throw shapeError
+    throw shapeError()
   }
   const unknownNames = entries.filter((name) => !METHOD_NAME_SET.has(name))
   if (unknownNames.length > 0) {

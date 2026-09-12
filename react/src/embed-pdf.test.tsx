@@ -57,6 +57,15 @@ describe('EmbedPDF (inline)', () => {
     const remounted = container.querySelector('iframe');
     expect(remounted).not.toBeNull();
     expect(remounted).not.toBe(iframe);
+
+    // The two equivalent spellings of each state never remount.
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: true, exclude: [] }} />);
+    expect(container.querySelector('iframe')).toBe(remounted);
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" webMCP={{ enabled: false }} />);
+    const off = container.querySelector('iframe');
+    expect(off).not.toBe(remounted);
+    rerender(<EmbedPDF mode="inline" companyIdentifier="acme" />);
+    expect(container.querySelector('iframe')).toBe(off);
   });
 
   it('renders the editor iframe inside the host element for the companyIdentifier origin', () => {
