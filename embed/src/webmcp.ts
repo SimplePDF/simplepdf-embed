@@ -64,8 +64,33 @@ const toAnnotatedPageToolResult = (result: BridgeResult<unknown>): CallToolResul
   }
 }
 
-const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): CallToolResult =>
-  wireType === 'GET_ANNOTATED_PAGE' ? toAnnotatedPageToolResult(result) : toTextToolResult(result)
+// One arm per operation on purpose: a new operation must decide here whether its result
+// is text or a picture instead of taking the text envelope unnoticed.
+const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): CallToolResult => {
+  switch (wireType) {
+    case 'GET_ANNOTATED_PAGE':
+      return toAnnotatedPageToolResult(result)
+    case 'CREATE_FIELD':
+    case 'DELETE_FIELDS':
+    case 'DELETE_PAGES':
+    case 'DETECT_FIELDS':
+    case 'DOWNLOAD':
+    case 'FOCUS_FIELD':
+    case 'GET_DOCUMENT_CONTENT':
+    case 'GET_FIELDS':
+    case 'GO_TO':
+    case 'LOAD_DOCUMENT':
+    case 'MOVE_PAGE':
+    case 'ROTATE_PAGE':
+    case 'SELECT_TOOL':
+    case 'SET_FIELD_VALUE':
+    case 'SUBMIT':
+      return toTextToolResult(result)
+    default:
+      wireType satisfies never
+      return toTextToolResult(result)
+  }
+}
 
 // A model context is a page-level singleton keyed by tool name, so two embeds on one
 // page would collide; the first registration of a name wins and the rest are reported.
