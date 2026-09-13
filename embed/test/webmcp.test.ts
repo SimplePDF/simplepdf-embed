@@ -13,7 +13,10 @@ type RegisteredTool = {
   description: string
   inputSchema: { type: string; properties?: Record<string, unknown>; required?: readonly string[] }
   annotations: { readOnlyHint?: boolean; untrustedContentHint?: boolean; destructiveHint?: boolean; openWorldHint?: boolean }
-  execute: (input: unknown) => Promise<{
+  execute: (
+    input: unknown,
+    options?: { signal: AbortSignal },
+  ) => Promise<{
     content: Array<{ type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string }>
     isError?: boolean
   }>
@@ -293,6 +296,20 @@ describe('attachEmbed({ webMCP })', () => {
         text: JSON.stringify({ success: false, error: { code: 'bad_request:page_out_of_range', message: 'no page 99' } }),
       },
     ])
+  })
+
+  it('rejects a call whose signal is already aborted and posts nothing to the editor', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+
+    const aborted = new AbortController()
+    aborted.abort()
+    const postedBefore = harness.posted.length
+    await expect(
+      findTool(modelContext, 'simplepdf_embed_submit').execute({ download_copy: false }, { signal: aborted.signal }),
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(harness.posted).toHaveLength(postedBefore)
   })
 
   it('sends an empty payload when a no-input tool is called without arguments', async () => {

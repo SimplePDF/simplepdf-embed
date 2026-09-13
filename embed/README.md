@@ -73,21 +73,30 @@ useChat({ connection, tools: createSimplePDFTools({ embed }) })
 
 ## WebMCP site tools
 
-An agent running in the user's browser (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `webMCP: { enabled: true }` registers the editor's operations on **your** page's `document.modelContext`, forwarding each call to the editor over the bridge. Editing stays in the tab (no SimplePDF server sees the document until `submit`, which sends it through the tenant's submission flow: SimplePDF-managed storage, or the BYOS bucket the tenant configured); what the agent reads through the readers (`simplepdf_embed_get_fields`, `simplepdf_embed_get_document_content`, `simplepdf_embed_get_annotated_page`: field values, extracted text, a page render) goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document.
+An agent running in the user's browser (ChatGPT's browser, Chrome with [WebMCP](https://webmachinelearning.github.io/webmcp/)) discovers tools on the page it is looking at, not inside iframes. `webMCP: { enabled: true }` registers the editor's operations on **your** page's model context (`document.modelContext`, or the older `navigator.modelContext`), forwarding each call to the editor over the bridge.
 
 ```ts
 // keep the decision with the person: withhold submit, the page operations and
 // loadDocument (an agent could otherwise swap the document), the recommended shape when
 // the document can come from a third party (its text reaches the agent as untrusted
 // content, and an agent holding `submit` acts on what it reads)
-createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url },
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url: 'https://example.com/form.pdf' },
   webMCP: { enabled: true, exclude: ['submit', 'loadDocument', 'deletePages', 'movePage', 'rotatePage'] } })
 
 // every operation, loadDocument included (the editor registers it on its own page too)
-createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url }, webMCP: { enabled: true } })
+createEmbed({ target: '#editor', companyIdentifier: 'acme', document: { url: 'https://example.com/form.pdf' }, webMCP: { enabled: true } })
 ```
 
-Off by default (`{ enabled: false }` and omitting the option are the same state). Each tool is the record the editor publishes in its manifest (`https://simplepdf.com/embed/json`, `operations[].tool`) and registers on its own page: the `simplepdf_embed_*` name, description, snake_case input schema and behavior hints (the readers carry the specification's `readOnlyHint` and `untrustedContentHint`; every other tool MCP's `destructiveHint`; the three that fetch an agent-supplied URL `openWorldHint`), so a page gets the same tools whether the editor is embedded or opened directly. `exclude` takes SDK method names. Tools register once the editor is ready; while no usable model context has been found, the page is probed again on each later lifecycle transition, so a context installed after `EDITOR_READY` is still picked up, and until one appears nothing is loaded (`webmcp.unavailable` is logged, with the reason). The editor validates each call like any other request (its permission model applies at call time: editing, allowlisted origin, plan, so a tool the tenant configuration refuses resolves with the matching error code). A call resolves with an MCP tool result whose text is the editor's wire-shaped `{ success, data | error }` Result (`isError` on failure); `simplepdf_embed_get_annotated_page` carries its PNG as an `image` content block, with the badges map in the text block. `dispose()` unregisters everything. A model context is one per page and keyed by tool name, so enable WebMCP on one embed per page: a second one registers only the names the first did not take, and is reported for the rest (`webmcp.tool_already_registered`). In React, pass `webMCP` to `<EmbedPDF>`.
+```tsx
+<EmbedPDF mode="inline" companyIdentifier="acme" document={{ url: 'https://example.com/form.pdf' }} webMCP={{ enabled: true, exclude: ['submit'] }} />
+```
+
+- **Off by default.** `{ enabled: false }` and omitting the option are the same state.
+- **The tools are the editor's own.** Each one is the record the editor publishes in its manifest (`https://simplepdf.com/embed/json`, `operations[].tool`) and registers on its own page: the `simplepdf_embed_*` name, description, snake_case input schema and behavior hints (the readers carry the specification's `readOnlyHint` and `untrustedContentHint`; every other tool MCP's `destructiveHint`; the three that fetch an agent-supplied URL `openWorldHint`). A page gets the same tools whether the editor is embedded or opened directly. `exclude` takes SDK method names.
+- **Data path.** Every operation an agent can call runs in the browser, and nothing the agent reads (field values, extracted text, a page render) is computed server-side; it goes to the agent runtime the person attached, so treat that runtime as you would any other party that sees the filled document. Document storage is unchanged by this option: it follows your account's configuration exactly as it does without WebMCP (SimplePDF-managed storage, or your own S3, Azure Blob Storage or SharePoint), and `submit` sends the document through the same submission flow as a click on Submit.
+- **Timing.** Tools register once the editor is ready. While no usable model context has been found, the page is probed again on each later lifecycle transition, so a context installed after `EDITOR_READY` is still picked up, and until one appears nothing is loaded (`webmcp.unavailable` is logged, with the reason).
+- **Results.** The editor validates each call like any other request (its permission model applies at call time: editing, allowlisted origin, plan, so a tool your configuration refuses resolves with the matching error code). A call resolves with an MCP tool result whose text is the editor's wire-shaped `{ success, data | error }` Result (`isError` on failure); `simplepdf_embed_get_annotated_page` carries its PNG as an `image` content block, with the badges map in the text block. A call the runtime aborted before it ran rejects and never reaches the editor.
+- **One embed per page.** A model context is one per page and keyed by tool name: a second WebMCP-enabled embed registers only the names the first did not take, and is reported for the rest (`webmcp.tool_already_registered`). `dispose()` unregisters everything.
 
 ## Subpaths
 

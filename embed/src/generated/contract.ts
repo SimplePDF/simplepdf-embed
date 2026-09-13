@@ -1,5 +1,5 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
-// Zero runtime dependencies: the zero-dep root imports only from this module.
+// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.
 import type { METHOD_NAMES } from './method-names'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const

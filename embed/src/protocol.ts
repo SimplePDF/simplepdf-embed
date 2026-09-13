@@ -1,8 +1,8 @@
 // Wire protocol constants: the operation + outbound-event vocabulary, generated
 // from embed-api.json (the editor iframe lib is the source). The REQUEST_RESULT
 // reply envelope is not an event and lives with the bridge. `is_agentic_tool`
-// scopes the /tools, /ai-sdk and /tanstack-ai registries; the WebMCP surface
-// registers every operation. Zero runtime dependencies.
+// marks the operations the /tools, /ai-sdk and /tanstack-ai registries carry; the
+// WebMCP surface registers every operation. Zero runtime dependencies.
 
 import { OPERATIONS, OUTBOUND_EVENTS } from './generated/contract'
 

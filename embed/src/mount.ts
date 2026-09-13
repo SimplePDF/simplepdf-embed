@@ -202,7 +202,9 @@ const assertValidFileArm = (file: unknown): void => {
 }
 
 const METHOD_NAME_SET: ReadonlySet<string> = new Set(METHOD_NAMES)
-const WEBMCP_OPTION_KEYS: ReadonlySet<string> = new Set(['enabled', 'exclude'] satisfies Array<keyof Extract<WebMCPOptions, { enabled: true }>>)
+const WEBMCP_OPTION_KEYS: ReadonlySet<string> = new Set(
+  Object.keys({ enabled: true, exclude: true } satisfies Record<keyof Extract<WebMCPOptions, { enabled: true }>, true>),
+)
 
 // `webMCP.exclude` withholds irreversible operations from an agent, so a malformed
 // value or a misspelled name from an untyped JS caller must fail loud rather than

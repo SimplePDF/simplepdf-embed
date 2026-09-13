@@ -139,6 +139,8 @@ Typical operations: `getFields()`, `setFieldValue({ fieldId, value })`, `getDocu
 
 Editor events arrive via the `onEmbedEvent` prop (React) or `embed.events` (core) — the outbound events are `EDITOR_READY`, `DOCUMENT_LOADED`, `PAGE_FOCUSED` and `SUBMISSION_SENT` (`submit()` itself resolves with `data: null`; the event carries the resulting ids). Wait for `DOCUMENT_LOADED` before operating on the document; until then actions other than `loadDocument()` fail with `bad_request:editor_not_ready` or `bad_request:no_document_loaded` (and `getFields()` may report an incomplete list) — handle or retry rather than racing mount.
 
+Browser agents (WebMCP): `webMCP: { enabled: true, exclude: ['submit'] }` on `createEmbed` / `<EmbedPDF>` registers the editor's operations as tools on the host page (`simplepdf_embed_*`, the same records the editor registers on its own page; `exclude` takes SDK method names). Off by default; one WebMCP-enabled embed per page.
+
 When relevant (`AskUserQuestion`, header `Editor UI`):
 
 **"Should SimplePDF's built-in controls remain visible, or should your app own most of the PDF controls?"**

@@ -24,7 +24,9 @@ import { modelContextCandidates } from './webmcp-shared'
 // Result additionally flagged `isError`, a page render carried as an `image` block.
 type ToolContent = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: 'image/png' }
 type CallToolResult = { content: ToolContent[]; isError?: boolean }
-type WebMCPTool = Omit<WebMCPToolRecord, 'wireType'> & { execute: (input: unknown) => Promise<CallToolResult> }
+type WebMCPTool = Omit<WebMCPToolRecord, 'wireType'> & {
+  execute: (input: unknown, options?: { signal: AbortSignal }) => Promise<CallToolResult>
+}
 type ModelContext = {
   registerTool: (tool: WebMCPTool, options: { signal: AbortSignal }) => unknown
 }
@@ -141,8 +143,13 @@ export const registerWebMCPTools = ({
       description: record.description,
       inputSchema: record.inputSchema,
       annotations: record.annotations,
-      // A nullish input becomes an empty payload (the no-input operations' wire shape).
-      execute: async (input) => toCallToolResult(record.wireType, await dispatch(record.wireType, input ?? {})),
+      // A call the runtime already aborted never reaches the editor; one aborted after it
+      // was posted still runs there (the wire has no cancel frame). A nullish input becomes
+      // an empty payload (the no-input operations' wire shape).
+      execute: async (input, options) => {
+        options?.signal.throwIfAborted()
+        return toCallToolResult(record.wireType, await dispatch(record.wireType, input ?? {}))
+      },
     }
     liveTools.set(tool.name, signal)
     signal.addEventListener('abort', () => freeTool(tool.name, signal), { once: true })

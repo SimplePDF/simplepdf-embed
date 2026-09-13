@@ -6,7 +6,8 @@
 // Four outputs, all derived from one source so they cannot hand-drift:
 //   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
 //                                  (locales, error codes, operations, events).
-//                                  The zero-dep root imports only from here.
+//                                  The zero-dep root imports only from here and
+//                                  from method-names.ts.
 //   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
 //                                  drift-guarded against the plain type in contract.ts,
 //                                  so a divergence fails `tsc`.
@@ -332,7 +333,7 @@ const constArray = (name, values, typeName) => {
 
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
-contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module.')
+contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.')
 contractLines.push("import type { METHOD_NAMES } from './method-names'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))

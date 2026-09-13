@@ -45,6 +45,12 @@ describe(routeToolCall.name, () => {
     expect(actions.goTo).not.toHaveBeenCalled()
   })
 
+  it('routes getAnnotatedPage to its action with the validated page', async () => {
+    const actions = makeActionsStub()
+    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
+    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
+  })
+
   it('dispatches no-input tools without requiring input', async () => {
     const actions = makeActionsStub()
     await routeToolCall(actions, 'getFields', undefined)
