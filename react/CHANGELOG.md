@@ -1,5 +1,24 @@
 # @simplepdf/react-embed-pdf
 
+## 1.13.0
+
+### Minor Changes
+
+- 06a5946: Add `webMCP`: register the editor operations as WebMCP tools on the host page.
+
+  An in-browser agent (ChatGPT's browser, Chrome with WebMCP) discovers tools on the page it is looking at, not inside iframes. `createEmbed({ webMCP: { enabled: true } })` and `<EmbedPDF mode="inline" webMCP={{ enabled: true }} />` register every operation (`loadDocument` included) on the page's model context and forward each call to the editor over the bridge. Each tool is the record the editor publishes in its manifest and registers on its own page (the `simplepdf_embed_*` name, description, snake_case input schema and behavior hints), so a page gets the same tools whether the editor is embedded or opened directly. `exclude: ['submit', ...]` withholds operations by SDK method name so a person keeps the decision; a malformed value, an unknown key or an unknown name throws `EmbedConfigError`. Every operation runs in the browser and nothing the agent reads is computed server-side; document storage follows your account's configuration exactly as it does without WebMCP. Each call resolves with an MCP tool result carrying the editor's wire-shaped Result (`isError` on failure; the annotated page render as an `image` block); a call aborted before it ran rejects; `dispose()` unregisters everything. Off by default (`{ enabled: false }` and omitting the option are the same): the WebMCP module loads lazily, once the editor is ready and only when the page exposes a model context. One WebMCP-enabled embed per page (tool names are page-level).
+
+- 06a5946: Add `getAnnotatedPage({ page })` (the editor's `GET_ANNOTATED_PAGE`): a PNG render of one page with every field outlined and numbered, plus a `badges` map from each number to its `field_id`, so a vision model can label fields by looking at the printed form. Available as `embed.actions.getAnnotatedPage` / `useEmbed().actions.getAnnotatedPage`, as the `getAnnotatedPage` agentic tool on every tool subpath, and as a WebMCP tool (a reader: `readOnlyHint` + `untrustedContentHint`).
+
+  The contract pin follows the live manifest: `loadDocument` also accepts an http(s) URL the editor fetches and its description states that it discards the current document and every edit in it; `getFields` points agents at `get_annotated_page`.
+
+### Patch Changes
+
+- Updated dependencies [06a5946]
+- Updated dependencies [06a5946]
+- Updated dependencies [06a5946]
+  - @simplepdf/embed@0.7.0
+
 ## 1.12.1
 
 ### Patch Changes
