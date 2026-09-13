@@ -11,10 +11,12 @@ import { EmbedDocument } from '@simplepdf/embed';
 import { FieldType } from '@simplepdf/embed';
 import type { IframeActions } from '@simplepdf/embed';
 import type { Locale } from '@simplepdf/embed';
+import { MethodName } from '@simplepdf/embed';
 import { OverlayToolType } from '@simplepdf/embed';
 import * as React_2 from 'react';
 import type { SelectToolInput } from '@simplepdf/embed';
 import type { SubmitInput } from '@simplepdf/embed';
+import { WebMCPOptions } from '@simplepdf/embed';
 
 // @public (undocumented)
 export type EmbedActions = Omit<IframeActions, 'selectTool' | 'submit'> & {
@@ -40,6 +42,8 @@ export type EmbedPDFProps = InlineEmbedPDFProps | ModalEmbedPDFProps;
 
 export { FieldType }
 
+export { MethodName }
+
 export { OverlayToolType }
 
 // @public (undocumented)
@@ -47,6 +51,8 @@ export const useEmbed: () => {
     embedRef: React_2.RefObject<EmbedActions | null>;
     actions: EmbedActions;
 };
+
+export { WebMCPOptions }
 
 // (No @packageDocumentation comment for this package)
 

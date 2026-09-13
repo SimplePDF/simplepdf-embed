@@ -1,5 +1,4 @@
 import { fromWireData, toWireData } from './case-transform'
-import { INTERNAL_PROTOCOL } from './internal-protocol'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
@@ -12,6 +11,7 @@ import type {
   PageFocusedPayload,
   SubmissionSentPayload,
 } from './types'
+import { modelContextCandidates, normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-shared'
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
@@ -26,6 +26,8 @@ export type AttachEmbedArgs = {
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
   // up (createEmbed's create path uses it to remove the iframe it created).
   onDispose?: () => void
+  // Expose the editor operations as WebMCP tools on the host page (see ./webmcp).
+  webMCP?: WebMCPOptions
   // Internal wiring for createEmbed's "load the document once ready" flow: called on
   // every lifecycle transition (booting -> editorReady -> documentLoaded), including
   // readiness reached via the liveness probe (which emits no editor event). NOT a
@@ -46,8 +48,12 @@ const EDITOR_READY_HARD_FALLBACK_MS = 30_000
 // remain members of the generated vocabulary, or `tsc` fails (an editor rename
 // would otherwise silently stop the bridge emitting that event). Type-only, so
 // no generated value (the OPERATIONS table) is pulled into the zero-dep root.
+const EDITOR_READY_EVENT: Extract<OutboundEventType, 'EDITOR_READY'> = 'EDITOR_READY'
+const DOCUMENT_LOADED_EVENT: Extract<OutboundEventType, 'DOCUMENT_LOADED'> = 'DOCUMENT_LOADED'
 const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
 const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
+// The reply envelope (manifest `protocol`), not an event: never part of OutboundEventType.
+const REQUEST_RESULT_TYPE = 'REQUEST_RESULT'
 
 const generateRequestId = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -67,8 +73,13 @@ const relabelResult = <TData>(result: BridgeResult<unknown>): BridgeResult<TData
   return result
 }
 
+// Op results reach SDK callers camelCased; the WebMCP tools hand the agent the wire
+// shape (snake_case), the one the manifest's tool descriptions promise.
+type ResultShape = 'sdk' | 'wire'
+
 type PendingRequest = {
   resolve: (result: BridgeResult<unknown>) => void
+  resultShape: ResultShape
   wireType: WireType
   startedAtMs: number
   timeoutId: ReturnType<typeof setTimeout>
@@ -103,6 +114,7 @@ export const attachEmbed = ({
   logger: providedLogger = NOOP_LOGGER,
   onDispose,
   onStateChange,
+  webMCP,
 }: AttachEmbedArgs): Embed => {
   const logger = makeSafeLogger(providedLogger)
   const pending = new Map<string, PendingRequest>()
@@ -155,12 +167,55 @@ export const attachEmbed = ({
     handler: (data: EditorEventMap[TEventType]) => void,
   ): (() => void) => channels[type].subscribe(handler)
 
+  // WebMCP tools are registered once the editor is alive (an agent enumerating tools
+  // at page load must not post into an iframe that has no listener yet), only when the
+  // embedder opted in and the page exposes a model context: the module and the schema
+  // table it reads load for no one else. Aborting the signal on dispose unregisters
+  // every tool.
+  const webMCPController = new AbortController()
+  const webMCPOptions = normalizeWebMCPOptions(webMCP)
+  // Latched while a registration attempt is in flight or succeeded; released when the
+  // module finds no usable context or fails to load, so the next non-booting transition
+  // probes again and a runtime that installs its context after a fast EDITOR_READY (or a
+  // transient chunk fetch failure) still gets the tools. A transition during the load
+  // itself needs no replay: the module probes on arrival.
+  let webMCPStarted = false
+  const startWebMCP = (): void => {
+    if (!webMCPOptions.enabled || webMCPStarted) {
+      return
+    }
+    if (modelContextCandidates().length === 0) {
+      logger.info('webmcp.unavailable', { reason: 'no_model_context' })
+      return
+    }
+    webMCPStarted = true
+    void import('./webmcp')
+      .then(({ registerWebMCPTools }) => {
+        const registered = registerWebMCPTools({
+          dispatch: (wireType, data) => postRequest(wireType, data, 'wire'),
+          exclude: webMCPOptions.exclude,
+          signal: webMCPController.signal,
+          logger,
+        })
+        if (!registered) {
+          webMCPStarted = false
+        }
+      })
+      .catch((error: unknown) => {
+        webMCPStarted = false
+        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
+      })
+  }
+
   const transitionTo = (next: BridgeState): void => {
     state = next
     onStateChange?.(next)
+    if (next.kind !== 'booting') {
+      startWebMCP()
+    }
   }
 
-  const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
+  const postRequest = <TData>(wireType: WireType, data: unknown, resultShape: ResultShape): Promise<BridgeResult<TData>> =>
     new Promise<BridgeResult<TData>>((resolve) => {
       if (disposed) {
         resolve({
@@ -198,6 +253,7 @@ export const attachEmbed = ({
 
       pending.set(requestId, {
         resolve: (result) => resolve(relabelResult<TData>(result)),
+        resultShape,
         wireType,
         startedAtMs,
         timeoutId,
@@ -221,6 +277,9 @@ export const attachEmbed = ({
         })
       }
     })
+
+  const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
+    postRequest<TData>(wireType, data, 'sdk')
 
   // --- Editor-readiness probing ---------------------------------------------
   // Fire a GET_FIELDS every 500ms until the editor confirms a document is loaded
@@ -340,13 +399,13 @@ export const attachEmbed = ({
     // Log the message type + correlation id only — never the body (PII).
     logger.debug('iframe.message_received', { type: payload.type, request_id: payload.request_id })
 
-    if (payload.type === INTERNAL_PROTOCOL.EDITOR_READY) {
+    if (payload.type === EDITOR_READY_EVENT) {
       markEditorReady('editor_ready_event')
       channels.EDITOR_READY.emit({})
       return
     }
 
-    if (payload.type === INTERNAL_PROTOCOL.DOCUMENT_LOADED) {
+    if (payload.type === DOCUMENT_LOADED_EVENT) {
       const rawDocId = payload.data?.document_id
       if (typeof rawDocId === 'string' && rawDocId !== '') {
         // Forward every real DOCUMENT_LOADED verbatim (snake wire data).
@@ -381,7 +440,7 @@ export const attachEmbed = ({
       return
     }
 
-    if (payload.type !== INTERNAL_PROTOCOL.REQUEST_RESULT) {
+    if (payload.type !== REQUEST_RESULT_TYPE) {
       return
     }
 
@@ -420,17 +479,26 @@ export const attachEmbed = ({
       if (rawResult.success === true && !('data' in rawResult)) {
         return { success: true, data: null }
       }
-      // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
-      // The transform preserves the envelope shape, so re-narrowing with the same
-      // guard re-types it without a cast.
-      const camelCased = fromWireData(rawResult)
-      if (!isBridgeResultLike(camelCased)) {
-        return {
-          success: false,
-          error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
+      switch (entry.resultShape) {
+        case 'wire':
+          return rawResult
+        case 'sdk': {
+          // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
+          // The transform preserves the envelope shape, so re-narrowing with the same
+          // guard re-types it without a cast.
+          const camelCased = fromWireData(rawResult)
+          if (!isBridgeResultLike(camelCased)) {
+            return {
+              success: false,
+              error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
+            }
+          }
+          return camelCased
         }
+        default:
+          entry.resultShape satisfies never
+          return rawResult
       }
-      return camelCased
     })()
     logger.info('iframe.request_received', {
       request_id: requestId,
@@ -454,6 +522,7 @@ export const attachEmbed = ({
     detectFields: () => sendRequest('DETECT_FIELDS', {}),
     download: () => sendRequest('DOWNLOAD', {}),
     focusField: (input) => sendRequest('FOCUS_FIELD', input),
+    getAnnotatedPage: (input) => sendRequest('GET_ANNOTATED_PAGE', input),
     getDocumentContent: (input) => sendRequest('GET_DOCUMENT_CONTENT', input ?? {}),
     getFields: () => sendRequest('GET_FIELDS', {}),
     goTo: (input) => sendRequest('GO_TO', input),
@@ -470,6 +539,7 @@ export const attachEmbed = ({
       return
     }
     disposed = true
+    webMCPController.abort()
     window.removeEventListener('message', onMessage)
     clearReadyTimeout()
     stopProbing()

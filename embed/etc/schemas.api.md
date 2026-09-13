@@ -64,6 +64,14 @@ export const FocusFieldInput: z.ZodObject<{
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>;
 
 // @public (undocumented)
+export const GetAnnotatedPageInput: z.ZodObject<{
+    page: z.ZodNumber;
+}, z.core.$strip>;
+
+// @public (undocumented)
+export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>;
+
+// @public (undocumented)
 export const GetDocumentContentInput: z.ZodObject<{
     extractionMode: z.ZodOptional<z.ZodEnum<{
         auto: "auto";

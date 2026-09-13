@@ -157,7 +157,7 @@ Actions are camelCase (the editor's snake_case wire is transformed for you). `us
 | `actions.setFieldValue({ fieldId, value })`      | Set a field's value                                                                                     |
 | `actions.submit({ downloadCopy })`               | Submit the document                                                                                     |
 
-…plus `createField`, `getFields`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
+…plus `createField`, `getFields`, `getAnnotatedPage`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
 ```jsx
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';
@@ -317,6 +317,12 @@ See [Retrieving PDF Data](../README.md#retrieving-pdf-data) for text extraction,
     <td>{ url: string } | { dataUrl: string } | { file: File | Blob }</td>
     <td>No</td>
     <td>The document to open (same typed shape as <code>createEmbed</code>): a URL (CORS / authenticated same-origin / a SimplePDF documents URL), a data URL, or a File/Blob</td>
+  </tr>
+  <tr>
+    <td>webMCP</td>
+    <td>{ enabled: false } | { enabled: true; exclude?: MethodName[] }</td>
+    <td>No (defaults to off)</td>
+    <td>Register the editor operations as WebMCP tools on your page, where an in-browser agent (ChatGPT's browser, Chrome with WebMCP) discovers them; <code>exclude</code> withholds operations by method name, such as <code>submit</code>. Changing the value remounts the editor (registration happens at mount), so keep it stable while the person is editing. See <a href="../embed/README.md#webmcp-site-tools">WebMCP site tools</a>.</td>
   </tr>
   <tr>
     <td>style</td>

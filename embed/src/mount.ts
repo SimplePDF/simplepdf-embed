@@ -1,7 +1,9 @@
 import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
+import { METHOD_NAMES } from './generated/method-names'
 import type { Locale } from './generated/contract'
+import type { WebMCPOptions } from './webmcp-shared'
 
 // Construction-time configuration error. createEmbed validates its config
 // synchronously and THROWS this on programmer error (bad target/companyIdentifier/document
@@ -86,6 +88,11 @@ export type CreateEmbedArgs = {
     style?: Partial<CSSStyleDeclaration>
   }
   logger?: BridgeLogger
+  // Expose the editor operations as WebMCP tools on YOUR page (`document.modelContext`),
+  // where an in-browser agent discovers them; tools inside the editor iframe are not.
+  // `{ enabled: true }` registers every operation, `exclude` withholds some by method
+  // name (e.g. `submit` when only a person may finalize). Off by default.
+  webMCP?: WebMCPOptions
 }
 
 const resolveTarget = (target: unknown): HTMLElement => {
@@ -191,6 +198,55 @@ const assertValidFileArm = (file: unknown): void => {
   if (!(file instanceof Blob)) {
     const hint = typeof file === 'string' ? ' For a URL or a data URL, use document: { url } or document: { dataUrl }.' : ''
     throw new EmbedConfigError('invalid_document', `document.file must be a Blob or File (received ${describeValue(file)}).${hint}`)
+  }
+}
+
+const METHOD_NAME_SET: ReadonlySet<string> = new Set(METHOD_NAMES)
+const WEBMCP_OPTION_KEYS: ReadonlySet<string> = new Set(
+  Object.keys({ enabled: true, exclude: true } satisfies Record<keyof Extract<WebMCPOptions, { enabled: true }>, true>),
+)
+
+// `webMCP.exclude` withholds irreversible operations from an agent, so a malformed
+// value or a misspelled name from an untyped JS caller must fail loud rather than
+// register the operation it meant to withhold.
+const assertValidWebMCPOptions = (webMCP: unknown): void => {
+  if (webMCP === undefined) {
+    return
+  }
+  const shapeError = (): EmbedConfigError =>
+    new EmbedConfigError(
+      'invalid_config',
+      `webMCP must be { enabled: false } or { enabled: true, exclude?: MethodName[] } (received ${describeValue(webMCP)}).`,
+    )
+  const isObject = typeof webMCP === 'object' && webMCP !== null
+  if (!isObject || !('enabled' in webMCP) || typeof webMCP.enabled !== 'boolean') {
+    throw shapeError()
+  }
+  // A misspelled `exclude` key would read as "nothing withheld"; only the two known keys pass.
+  const unknownKeys = Object.keys(webMCP).filter((key) => !WEBMCP_OPTION_KEYS.has(key))
+  if (unknownKeys.length > 0) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `webMCP has no option ${unknownKeys.join(', ')} (known: ${[...WEBMCP_OPTION_KEYS].join(', ')}).`,
+    )
+  }
+  const exclude = 'exclude' in webMCP ? webMCP.exclude : undefined
+  if (exclude === undefined) {
+    return
+  }
+  if (!Array.isArray(exclude)) {
+    throw shapeError()
+  }
+  const entries: unknown[] = exclude
+  if (!entries.every((name): name is string => typeof name === 'string')) {
+    throw shapeError()
+  }
+  const unknownNames = entries.filter((name) => !METHOD_NAME_SET.has(name))
+  if (unknownNames.length > 0) {
+    throw new EmbedConfigError(
+      'invalid_config',
+      `webMCP.exclude names no tool: ${unknownNames.join(', ')} (known: ${METHOD_NAMES.join(', ')}).`,
+    )
   }
 }
 
@@ -461,7 +517,7 @@ const loadDocumentWhenReady = (params: {
 const attachToIframe = (
   iframe: HTMLIFrameElement,
   editorOrigin: string,
-  { document: embedDocument, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  { document: embedDocument, logger = NOOP_LOGGER, webMCP }: CreateEmbedArgs,
   documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
   // A documents URL loads by NAVIGATING the iframe, which we only do for an iframe
@@ -508,6 +564,7 @@ const attachToIframe = (
     logger: safeLogger,
     onDispose: () => documentFetchController.abort(),
     onStateChange: gate.onStateChange,
+    webMCP,
   })
   if (embedDocument !== undefined) {
     loadDocumentWhenReady({
@@ -527,7 +584,7 @@ const attachToIframe = (
 const mountIntoContainer = (
   container: HTMLElement,
   editorOrigin: string,
-  { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER }: CreateEmbedArgs,
+  { document: mountDocument, locale, context, iframeAttrs, logger = NOOP_LOGGER, webMCP }: CreateEmbedArgs,
   documentsUrl: { url: URL; origin: string } | null,
 ): Embed => {
   const hasDocumentUrl = mountDocument !== undefined && 'url' in mountDocument
@@ -607,6 +664,7 @@ const mountIntoContainer = (
       documentFetchController.abort()
       iframe.remove()
     },
+    webMCP,
   })
 
   // A documents URL is loaded by the navigation above; only the PDF / data-URL /
@@ -655,6 +713,7 @@ export const createEmbed = (args: CreateEmbedArgs): Embed => {
     throw new EmbedConfigError('invalid_config', `baseDomain must be a string (received ${describeValue(args.baseDomain)}).`)
   }
   assertValidDocument(args.document)
+  assertValidWebMCPOptions(args.webMCP)
   const baseDomain = args.baseDomain ?? DEFAULT_BASE_DOMAIN
   // A SimplePDF documents URL carries its own origin (a possibly-different
   // companyIdentifier subdomain); the bridge then targets that origin instead of

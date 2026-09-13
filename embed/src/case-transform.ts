@@ -3,10 +3,11 @@
 // while the wire stays snake_case.
 //
 // KEYS ONLY: string / number / boolean values pass through untouched, so a field
-// value that happens to contain underscores is never mangled. A generic deep
-// key-map is safe here because NO operation payload carries an object with
-// arbitrary (data-controlled) keys — the only such value, the editor `context`,
-// is baked into the iframe URL at mount and never travels as an op payload.
+// value that happens to contain underscores is never mangled. Payload keys are the
+// contract's (SDK callers) or an agent's (the WebMCP path forwards its input as-is);
+// `__proto__` is dropped below and the editor validates every payload, so a
+// data-controlled key can neither pollute a prototype nor reach an operation unchecked.
+// The editor `context` is baked into the iframe URL at mount and never travels as an op payload.
 
 const camelToSnakeKey = (key: string): string => key.replace(/[A-Z]/g, (char) => `_${char.toLowerCase()}`)
 

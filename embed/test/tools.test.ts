@@ -17,9 +17,9 @@ describe(isSimplePDFToolName.name, () => {
 })
 
 describe('SIMPLEPDF_TOOLS', () => {
-  it('exposes the 14 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
+  it('exposes the 15 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
     const names = Object.keys(SIMPLEPDF_TOOLS)
-    expect(names).toHaveLength(14)
+    expect(names).toHaveLength(15)
     expect(names).not.toContain('loadDocument')
     for (const definition of Object.values(SIMPLEPDF_TOOLS)) {
       expect(typeof definition.description).toBe('string')
@@ -43,6 +43,12 @@ describe(routeToolCall.name, () => {
       expect(result.error.code).toBe('bad_request:invalid_input')
     }
     expect(actions.goTo).not.toHaveBeenCalled()
+  })
+
+  it('routes getAnnotatedPage to its action with the validated page', async () => {
+    const actions = makeActionsStub()
+    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
+    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
   })
 
   it('dispatches no-input tools without requiring input', async () => {

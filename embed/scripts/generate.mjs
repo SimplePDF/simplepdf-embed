@@ -3,13 +3,20 @@
 // source of truth; this script is the only consumer that re-materializes it as
 // TypeScript. Run via `npm run generate` (wired into prebuild + pretest).
 //
-// Two outputs, both derived from one source so they cannot hand-drift:
+// Four outputs, all derived from one source so they cannot hand-drift:
 //   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
 //                                  (locales, error codes, operations, events).
-//                                  The zero-dep root imports only from here.
+//                                  The zero-dep root imports only from here and
+//                                  from method-names.ts.
 //   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
 //                                  drift-guarded against the plain type in contract.ts,
 //                                  so a divergence fails `tsc`.
+//   - src/generated/method-names.ts : the SDK method names alone, the one generated
+//                                  VALUE the zero-dep root imports (to validate
+//                                  `webMCP.exclude`).
+//   - src/generated/webmcp-tools.ts : each operation's WebMCP tool record (manifest
+//                                  `tool`), verbatim, read only by the lazily-loaded
+//                                  WebMCP module.
 //
 // The JSON Schema vocabulary in embed-api.json is closed and small (object/string/
 // integer/number/boolean/null/array/enum/const/anyOf), so the emitter below covers
@@ -29,8 +36,9 @@ const contract = JSON.parse(readFileSync(join(PKG_ROOT, 'embed-api.json'), 'utf8
 // `git diff --check` would flag).
 const renderFile = (lines) => `${lines.join('\n').replace(/\n+$/, '')}\n`
 
-// Operations that exist on the wire but are NOT exposed as agentic tools.
-// load_document is a host/setup action (the contract description says so).
+// Operations withheld from the /tools, /ai-sdk and /tanstack-ai subpaths (the WebMCP
+// surface registers all of them, like the editor): load_document is a host/setup action
+// there (the contract description says so).
 const NON_AGENTIC_OPERATIONS = new Set(['load_document'])
 
 // ---------------------------------------------------------------------------
@@ -59,15 +67,17 @@ const NAMED_ENUMS = new Map()
 // ---------------------------------------------------------------------------
 
 // The closed vocabulary the emitter understands. A node carrying any other
-// keyword (minLength, pattern, format, minimum, additionalProperties, oneOf,
-// allOf, $ref, ...) fails loud so a new manifest constraint can never be
-// silently dropped from the generated types/schemas.
+// keyword (minLength, pattern, format, minimum, oneOf, allOf, $ref, ...) fails
+// loud so a new manifest constraint can never be silently dropped from the
+// generated types/schemas. `additionalProperties` is honored only as a schema on
+// an object with no `properties` (a map: Record<string, T> / z.record).
 const KNOWN_SCHEMA_KEYWORDS = new Set([
   'type',
   'enum',
   'const',
   'anyOf',
   'properties',
+  'additionalProperties',
   'required',
   'items',
   'description',
@@ -80,7 +90,23 @@ const assertKnownKeywords = (node) => {
       )
     }
   }
+  if (node.additionalProperties !== undefined && !isMapNode(node)) {
+    throw new Error(
+      `Unsupported 'additionalProperties' in ${JSON.stringify(node)} — only a schema on an object without 'properties' is honored (a map)`,
+    )
+  }
+  if (isMapNode(node) && node.required !== undefined) {
+    throw new Error(`Unsupported 'required' on a map node ${JSON.stringify(node)} — a map has no fixed keys to require`)
+  }
 }
+
+// An object whose every key maps to one value schema (`{ additionalProperties: <schema> }`
+// with no `properties`): emitted as Record<string, T> / z.record.
+const isMapNode = (node) =>
+  node.type === 'object' &&
+  node.properties === undefined &&
+  typeof node.additionalProperties === 'object' &&
+  node.additionalProperties !== null
 
 // Recursively assert every node in a schema tree carries only known keywords, so
 // a new constraint anywhere in the manifest (op I/O, events, the error schema, or
@@ -97,6 +123,9 @@ const preflightSchema = (node) => {
   }
   if (node.items !== undefined) {
     preflightSchema(node.items)
+  }
+  if (isMapNode(node)) {
+    preflightSchema(node.additionalProperties)
   }
   if (Array.isArray(node.anyOf)) {
     for (const sub of node.anyOf) {
@@ -150,6 +179,9 @@ const tsForNode = (node, camelKeys) => {
 }
 
 const tsForObject = (node, camelKeys) => {
+  if (isMapNode(node)) {
+    return `Record<string, ${tsForNode(node.additionalProperties, camelKeys)}>`
+  }
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
@@ -211,6 +243,9 @@ const zodForNode = (node, { withDescription }) => {
 }
 
 const zodForObject = (node) => {
+  if (isMapNode(node)) {
+    return `z.record(z.string(), ${zodForNode(node.additionalProperties, { withDescription: false })})`
+  }
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
@@ -298,7 +333,8 @@ const constArray = (name, values, typeName) => {
 
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
-contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module.')
+contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.')
+contractLines.push("import type { METHOD_NAMES } from './method-names'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))
 contractLines.push(constArray('EDITOR_ERROR_CODES', editorErrorCodes, 'EditorErrorCode'))
@@ -342,7 +378,7 @@ for (const event of contract.events) {
 }
 contractLines.push('')
 
-// Operation metadata table (the camelCase `method` is the SDK method + agentic tool name).
+// Operation metadata table (the camelCase `method` is the SDK method name, also the /tools tool name).
 const opMeta = contract.operations.map((op) => {
   const stem = toPascal(op.request_type)
   return (
@@ -361,13 +397,13 @@ contractLines.push(`export const OPERATIONS = [\n${opMeta.join(',\n')},\n] as co
 contractLines.push('')
 contractLines.push('export type WireType = (typeof OPERATIONS)[number]["wire_type"]')
 contractLines.push('export type RequestType = (typeof OPERATIONS)[number]["request_type"]')
-// The JS method/tool name is the camelCase of the wire op (the SDK is camelCase;
-// the bridge transforms to the snake_case wire). The drift guard checks IframeActions
-// matches MethodName.
-contractLines.push('export type MethodName = (typeof OPERATIONS)[number]["method"]')
-contractLines.push(
-  'export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]',
-)
+// The JS method name is the camelCase of the wire op (the SDK is camelCase; the
+// bridge transforms to the snake_case wire). The names live in their own tiny module
+// (createEmbed validates an untyped caller's `webMCP.exclude` against the runtime
+// list, and must not pull this whole table into the zero-dep root); the type derives
+// from it here, and drift.ts pins it to the OPERATIONS methods (and IframeActions to
+// it) so the views of one fact cannot diverge.
+contractLines.push('export type MethodName = (typeof METHOD_NAMES)[number]')
 contractLines.push('')
 
 const eventMeta = contract.events.map(
@@ -398,6 +434,89 @@ schemaLines.push('')
 
 writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
 
+// --- method-names.ts (zero runtime deps; the one generated value the root imports) ---
+
+const methodNames = contract.operations.map((op) => toCamel(op.request_type))
+writeFileSync(
+  join(GENERATED_DIR, 'method-names.ts'),
+  renderFile([
+    '// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.',
+    '// The SDK method names alone, so createEmbed can validate a `webMCP.exclude` list',
+    '// without pulling the operations table into the zero-dep root; contract.ts derives',
+    '// MethodName from this list.',
+    `export const METHOD_NAMES = [${methodNames.map((name) => JSON.stringify(name)).join(', ')}] as const`,
+  ]),
+)
+
+// --- webmcp-tools.ts (zero runtime deps, loaded only by the WebMCP module) ---
+// The manifest's `tool` record per operation, verbatim: the same record the editor
+// registers on its own page. The generator only checks the record's shape (a new key
+// or hint fails loud) and renames `input_schema` to WebMCP's `inputSchema`.
+
+const WEBMCP_ANNOTATION_KEYS = new Set(['destructiveHint', 'openWorldHint', 'readOnlyHint', 'untrustedContentHint'])
+
+const webmcpToolRecord = (op) => {
+  const tool = op.tool
+  if (typeof tool !== 'object' || tool === null) {
+    throw new Error(`Operation ${op.request_type} publishes no tool record`)
+  }
+  const { name, description, input_schema: inputSchema, annotations, ...unknownKeys } = tool
+  if (Object.keys(unknownKeys).length > 0) {
+    throw new Error(
+      `Unsupported tool record keys on ${op.request_type}: ${Object.keys(unknownKeys).join(', ')} — extend the generator to honor them`,
+    )
+  }
+  const isWellFormed =
+    typeof name === 'string' &&
+    typeof description === 'string' &&
+    inputSchema?.type === 'object' &&
+    typeof annotations === 'object' &&
+    annotations !== null
+  if (!isWellFormed) {
+    throw new Error(`Malformed tool record on ${op.request_type}: ${JSON.stringify(tool)}`)
+  }
+  for (const hint of Object.keys(annotations)) {
+    if (!WEBMCP_ANNOTATION_KEYS.has(hint)) {
+      throw new Error(`Unsupported tool annotation '${hint}' on ${op.request_type} — extend the generator to honor it`)
+    }
+  }
+  return { name, description, inputSchema, annotations, wireType: op.request_type.toUpperCase() }
+}
+
+const webmcpToolLines = []
+webmcpToolLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
+webmcpToolLines.push('// The WebMCP tool each operation publishes (the manifest `tool`: name, description,')
+webmcpToolLines.push('// input schema, behavior hints), verbatim, keyed by SDK method name so `webMCP.exclude`')
+webmcpToolLines.push('// maps straight onto it. The editor registers the same record on its own page. Read')
+webmcpToolLines.push('// only by src/webmcp.ts, which is lazy-loaded, so this table never lands in an entry')
+webmcpToolLines.push('// that did not opt in. `wireType` is the operation the record dispatches to, carried')
+webmcpToolLines.push('// here so the lazy module needs nothing from the OPERATIONS table.')
+webmcpToolLines.push("import type { MethodName, WireType } from './contract'")
+webmcpToolLines.push('')
+webmcpToolLines.push('export type WebMCPToolRecord = {')
+webmcpToolLines.push('  readonly wireType: WireType')
+webmcpToolLines.push('  readonly name: string')
+webmcpToolLines.push('  readonly description: string')
+webmcpToolLines.push('  readonly inputSchema: {')
+webmcpToolLines.push("    readonly type: 'object'")
+webmcpToolLines.push('    readonly properties?: Readonly<Record<string, unknown>>')
+webmcpToolLines.push('    readonly required?: readonly string[]')
+webmcpToolLines.push('  }')
+webmcpToolLines.push('  readonly annotations: {')
+for (const hint of WEBMCP_ANNOTATION_KEYS) {
+  webmcpToolLines.push(`    readonly ${hint}?: boolean`)
+}
+webmcpToolLines.push('  }')
+webmcpToolLines.push('}')
+webmcpToolLines.push('')
+webmcpToolLines.push('export const WEBMCP_TOOLS = {')
+for (const op of contract.operations) {
+  webmcpToolLines.push(`  ${toCamel(op.request_type)}: ${JSON.stringify(webmcpToolRecord(op))},`)
+}
+webmcpToolLines.push('} as const satisfies Record<MethodName, WebMCPToolRecord>')
+
+writeFileSync(join(GENERATED_DIR, 'webmcp-tools.ts'), renderFile(webmcpToolLines))
+
 // --- drift.ts (compile-time drift guards; type-checked, not bundled) --------
 // One exported tuple gathers every guard so noUnusedLocals stays happy while the
 // type-parameter constraints still fail the build the instant a representation
@@ -410,16 +529,16 @@ driftLines.push("import type * as Schemas from './schemas'")
 driftLines.push("import type * as Contract from './contract'")
 driftLines.push('')
 driftLines.push('type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false')
-driftLines.push('type Extends<A, B> = [A] extends [B] ? true : false')
 driftLines.push('type AssertTrue<T extends true> = T')
 driftLines.push('')
 driftLines.push('// IframeActions method set must exactly equal the generated operation methods,')
 driftLines.push('// each zod schema must stay mutually assignable to its plain contract type, and')
-driftLines.push('// every generated outbound event must appear in the hand-maintained EditorEvent union')
-driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss one).")
+driftLines.push('// the hand-maintained EditorEvent union must exactly match the generated outbound events')
+driftLines.push("// (so React's onEmbedEvent forwarders, guarded against EditorEvent, can't miss or invent one).")
 driftLines.push('export type DriftGuards = [')
 driftLines.push("  AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,")
-driftLines.push("  AssertTrue<Extends<Contract.OutboundEventType, EditorEvent['type']>>,")
+driftLines.push('  AssertTrue<Exact<Contract.MethodName, (typeof Contract.OPERATIONS)[number]["method"]>>,')
+driftLines.push("  AssertTrue<Exact<Contract.OutboundEventType, EditorEvent['type']>>,")
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
   driftLines.push(`  AssertTrue<Exact<Schemas.${stem}Input, Contract.${stem}Input>>,`)
@@ -439,7 +558,7 @@ toolLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. D
 toolLines.push("import * as Schemas from './schemas'")
 toolLines.push('')
 toolLines.push('// The agentic tool registry. Each tool name is the camelCase operation name;')
-toolLines.push('// load_document is excluded (it is a host/setup action, not an agentic tool).')
+toolLines.push('// load_document is excluded here (a host/setup action; the WebMCP surface registers it).')
 toolLines.push('export const TOOL_DEFINITIONS = {')
 for (const op of agenticOperations) {
   const stem = toPascal(op.request_type)
@@ -456,5 +575,5 @@ writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +
-    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts`,
+    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + method-names.ts + webmcp-tools.ts`,
 )

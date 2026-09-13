@@ -1,5 +1,6 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
-// Zero runtime dependencies: the zero-dep root imports only from this module.
+// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.
+import type { METHOD_NAMES } from './method-names'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
@@ -28,6 +29,8 @@ export type DownloadInput = Record<string, never>
 export type DownloadOutput = null
 export type FocusFieldInput = { fieldId: string }
 export type FocusFieldOutput = { hint: { type: "user_action_expected"; message: string } }
+export type GetAnnotatedPageInput = { page: number }
+export type GetAnnotatedPageOutput = { page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> }
 export type GetDocumentContentInput = { extractionMode?: ExtractionMode }
 export type GetDocumentContentOutput = { name: string; pages: Array<{ page: number; content: string }> }
 export type GetFieldsInput = Record<string, never>
@@ -52,6 +55,8 @@ export type DocumentContentPage = GetDocumentContentOutput['pages'][number]
 
 export type MissingRequiredFieldsDetails = { unfilledRequiredFieldsCount: number }
 
+export type EditorReadyPayload = Record<string, never>
+export type DocumentLoadedPayload = { document_id: string }
 export type PageFocusedPayload = { previous_page: number | null; current_page: number; total_pages: number }
 export type SubmissionSentPayload = { document_id: string; submission_id: string }
 
@@ -105,11 +110,20 @@ export const OPERATIONS = [
     request_type: "FOCUS_FIELD",
     wire_type: "FOCUS_FIELD",
     method: "focusField",
-    description: "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.",
+    description: "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.",
     error_codes: ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* FocusField */,
+  {
+    request_type: "GET_ANNOTATED_PAGE",
+    wire_type: "GET_ANNOTATED_PAGE",
+    method: "getAnnotatedPage",
+    description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.",
+    error_codes: ["bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
+    is_agentic_tool: true,
+    has_output: true,
+  } /* GetAnnotatedPage */,
   {
     request_type: "GET_DOCUMENT_CONTENT",
     wire_type: "GET_DOCUMENT_CONTENT",
@@ -123,7 +137,7 @@ export const OPERATIONS = [
     request_type: "GET_FIELDS",
     wire_type: "GET_FIELDS",
     method: "getFields",
-    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.",
+    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.",
     error_codes: ["bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -141,7 +155,7 @@ export const OPERATIONS = [
     request_type: "LOAD_DOCUMENT",
     wire_type: "LOAD_DOCUMENT",
     method: "loadDocument",
-    description: "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data.",
+    description: "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.",
     error_codes: ["bad_request:invalid_value", "bad_request:invalid_page"] as const,
     is_agentic_tool: false,
     has_output: false,
@@ -177,7 +191,7 @@ export const OPERATIONS = [
     request_type: "SET_FIELD_VALUE",
     wire_type: "SET_FIELD_VALUE",
     method: "setFieldValue",
-    description: "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.",
+    description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.",
     error_codes: ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -195,10 +209,11 @@ export const OPERATIONS = [
 
 export type WireType = (typeof OPERATIONS)[number]["wire_type"]
 export type RequestType = (typeof OPERATIONS)[number]["request_type"]
-export type MethodName = (typeof OPERATIONS)[number]["method"]
-export type AgenticToolName = Extract<(typeof OPERATIONS)[number], { is_agentic_tool: true }>["method"]
+export type MethodName = (typeof METHOD_NAMES)[number]
 
 export const OUTBOUND_EVENTS = [
+  { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, every operation fails with bad_request:editor_not_ready. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },
+  { event_type: "DOCUMENT_LOADED", description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. Wait for it before operating on the document: until it fires, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded or bad_request:editor_not_ready, and GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user." },
   { event_type: "PAGE_FOCUSED", description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page." },
   { event_type: "SUBMISSION_SENT", description: "Pushed after a SUBMIT completes successfully. This is how you confirm a submission landed: the SUBMIT operation itself resolves with data: null, so listen for this event to get the resulting document_id and submission_id." },
 ] as const

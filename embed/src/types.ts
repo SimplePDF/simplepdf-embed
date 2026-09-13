@@ -10,9 +10,13 @@ import type {
   DeleteFieldsOutput,
   DeletePagesInput,
   DetectFieldsOutput,
+  DocumentLoadedPayload,
   EditorErrorCode,
+  EditorReadyPayload,
   FocusFieldInput,
   FocusFieldOutput,
+  GetAnnotatedPageInput,
+  GetAnnotatedPageOutput,
   GetDocumentContentInput,
   GetDocumentContentOutput,
   GetFieldsOutput,
@@ -37,17 +41,22 @@ export type {
   DetectFieldsOutput,
   DocumentContentPage,
   DocumentContentResult,
+  DocumentLoadedPayload,
   EditorErrorCode,
+  EditorReadyPayload,
   ExtractionMode,
   FieldType,
   FocusFieldInput,
   FocusFieldOutput,
+  GetAnnotatedPageInput,
+  GetAnnotatedPageOutput,
   GetDocumentContentInput,
   GetDocumentContentOutput,
   GetFieldsOutput,
   GoToInput,
   Locale,
   LoadDocumentInput,
+  MethodName,
   MissingRequiredFieldsDetails,
   MovePageInput,
   OverlayToolType,
@@ -109,11 +118,10 @@ export type BridgeState =
 
 // The editor's outbound events, forwarded to onEmbedEvent VERBATIM: SCREAMING_SNAKE
 // `type` + snake_case `data` (the stable, established contract — deliberately NOT
-// camelCased, unlike op payloads). EDITOR_READY / DOCUMENT_LOADED are the lifecycle
-// wire events; PAGE_FOCUSED / SUBMISSION_SENT take their payloads from the manifest.
+// camelCased, unlike op payloads). Every payload comes from the manifest `events`.
 export type EditorEvent =
-  | { type: 'EDITOR_READY'; data: Record<string, never> }
-  | { type: 'DOCUMENT_LOADED'; data: { document_id: string } }
+  | { type: 'EDITOR_READY'; data: EditorReadyPayload }
+  | { type: 'DOCUMENT_LOADED'; data: DocumentLoadedPayload }
   | { type: 'PAGE_FOCUSED'; data: PageFocusedPayload }
   | { type: 'SUBMISSION_SENT'; data: SubmissionSentPayload }
 
@@ -134,6 +142,7 @@ export type IframeActions = {
   detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>
   download: () => Promise<BridgeResult>
   focusField: (input: FocusFieldInput) => Promise<BridgeResult<FocusFieldOutput>>
+  getAnnotatedPage: (input: GetAnnotatedPageInput) => Promise<BridgeResult<GetAnnotatedPageOutput>>
   getDocumentContent: (input?: GetDocumentContentInput) => Promise<BridgeResult<GetDocumentContentOutput>>
   getFields: () => Promise<BridgeResult<GetFieldsOutput>>
   goTo: (input: GoToInput) => Promise<BridgeResult>

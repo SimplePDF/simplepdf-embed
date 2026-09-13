@@ -73,6 +73,7 @@ export type CreateEmbedArgs = {
         style?: Partial<CSSStyleDeclaration>;
     };
     logger?: BridgeLogger;
+    webMCP?: WebMCPOptions;
 };
 
 // @public (undocumented)
@@ -118,6 +119,11 @@ export type DocumentContentPage = GetDocumentContentOutput['pages'][number];
 // @public (undocumented)
 export type DocumentContentResult = GetDocumentContentOutput;
 
+// @public (undocumented)
+export type DocumentLoadedPayload = {
+    document_id: string;
+};
+
 // Warning: (ae-forgotten-export) The symbol "EDITOR_ERROR_CODES" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -126,12 +132,10 @@ export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number];
 // @public (undocumented)
 export type EditorEvent = {
     type: 'EDITOR_READY';
-    data: Record<string, never>;
+    data: EditorReadyPayload;
 } | {
     type: 'DOCUMENT_LOADED';
-    data: {
-        document_id: string;
-    };
+    data: DocumentLoadedPayload;
 } | {
     type: 'PAGE_FOCUSED';
     data: PageFocusedPayload;
@@ -144,6 +148,9 @@ export type EditorEvent = {
 export type EditorEventMap = {
     [TEvent in EditorEvent as TEvent['type']]: TEvent['data'];
 };
+
+// @public (undocumented)
+export type EditorReadyPayload = Record<string, never>;
 
 // @public (undocumented)
 export type Embed = {
@@ -211,6 +218,20 @@ export type FocusFieldOutput = {
 };
 
 // @public (undocumented)
+export type GetAnnotatedPageInput = {
+    page: number;
+};
+
+// @public (undocumented)
+export type GetAnnotatedPageOutput = {
+    page: number;
+    imageDataUrl: string;
+    imageWidth: number;
+    imageHeight: number;
+    badges: Record<string, string>;
+};
+
+// @public (undocumented)
 export type GetDocumentContentInput = {
     extractionMode?: ExtractionMode;
 };
@@ -249,6 +270,7 @@ export type IframeActions = {
     detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>;
     download: () => Promise<BridgeResult>;
     focusField: (input: FocusFieldInput) => Promise<BridgeResult<FocusFieldOutput>>;
+    getAnnotatedPage: (input: GetAnnotatedPageInput) => Promise<BridgeResult<GetAnnotatedPageOutput>>;
     getDocumentContent: (input?: GetDocumentContentInput) => Promise<BridgeResult<GetDocumentContentOutput>>;
     getFields: () => Promise<BridgeResult<GetFieldsOutput>>;
     goTo: (input: GoToInput) => Promise<BridgeResult>;
@@ -275,6 +297,11 @@ export type Locale = (typeof LOCALES)[number];
 // @public (undocumented)
 export type LogPayload = Record<string, unknown>;
 
+// Warning: (ae-forgotten-export) The symbol "METHOD_NAMES" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type MethodName = (typeof METHOD_NAMES)[number];
+
 // @public (undocumented)
 export type MissingRequiredFieldsDetails = {
     unfilledRequiredFieldsCount: number;
@@ -288,6 +315,16 @@ export type MovePageInput = {
 
 // @public (undocumented)
 export const NOOP_LOGGER: BridgeLogger;
+
+// Warning: (ae-internal-missing-underscore) The name "normalizeWebMCPOptions" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const normalizeWebMCPOptions: (options: WebMCPOptions | undefined) => {
+    enabled: false;
+} | {
+    enabled: true;
+    exclude: readonly MethodName[];
+};
 
 // Warning: (ae-forgotten-export) The symbol "OVERLAY_TOOL_TYPES" needs to be exported by the entry point index.d.ts
 //
@@ -330,6 +367,14 @@ export type SubmitInput = {
 
 // @public (undocumented)
 export const unwrap: <TData>(result: BridgeResult<TData>) => TData;
+
+// @public (undocumented)
+export type WebMCPOptions = {
+    enabled: false;
+} | {
+    enabled: true;
+    exclude?: readonly MethodName[];
+};
 
 // (No @packageDocumentation comment for this package)
 

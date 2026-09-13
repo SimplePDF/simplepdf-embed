@@ -70,15 +70,23 @@ export const OPERATIONS: readonly [{
     readonly request_type: "FOCUS_FIELD";
     readonly wire_type: "FOCUS_FIELD";
     readonly method: "focusField";
-    readonly description: "Scroll an existing field into view and focus it, addressed by its id (from get_fields). Returns a hint describing the user action expected next.";
+    readonly description: "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"];
+    readonly is_agentic_tool: true;
+    readonly has_output: true;
+}, {
+    readonly request_type: "GET_ANNOTATED_PAGE";
+    readonly wire_type: "GET_ANNOTATED_PAGE";
+    readonly method: "getAnnotatedPage";
+    readonly description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.";
+    readonly error_codes: readonly ["bad_request:invalid_page", "bad_request:page_out_of_range"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
 }, {
     readonly request_type: "GET_DOCUMENT_CONTENT";
     readonly wire_type: "GET_DOCUMENT_CONTENT";
     readonly method: "getDocumentContent";
-    readonly description: "Extract the document's text content page by page (pass extraction_mode 'ocr' to force optical recognition). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+    readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -86,7 +94,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_FIELDS";
     readonly wire_type: "GET_FIELDS";
     readonly method: "getFields";
-    readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. Returns { fields }.";
+    readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.";
     readonly error_codes: readonly ["bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -102,7 +110,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "LOAD_DOCUMENT";
     readonly wire_type: "LOAD_DOCUMENT";
     readonly method: "loadDocument";
-    readonly description: "Load a document into the editor from a base64 data URL. This is a host/setup action (no agentic tool); it returns no data.";
+    readonly description: "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:invalid_page"];
     readonly is_agentic_tool: false;
     readonly has_output: false;
@@ -134,7 +142,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "SET_FIELD_VALUE";
     readonly wire_type: "SET_FIELD_VALUE";
     readonly method: "setFieldValue";
-    readonly description: "Set the value of an existing field addressed by its id (from get_fields), or clear it with null. If the field has options (see get_fields), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL (signature, picture). Returns no data.";
+    readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -149,10 +157,16 @@ export const OPERATIONS: readonly [{
 }];
 
 // @public (undocumented)
-export const OUTBOUND_EVENT_TYPES: ("PAGE_FOCUSED" | "SUBMISSION_SENT")[];
+export const OUTBOUND_EVENT_TYPES: ("EDITOR_READY" | "DOCUMENT_LOADED" | "PAGE_FOCUSED" | "SUBMISSION_SENT")[];
 
 // @public (undocumented)
 export const OUTBOUND_EVENTS: readonly [{
+    readonly event_type: "EDITOR_READY";
+    readonly description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, every operation fails with bad_request:editor_not_ready. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.";
+}, {
+    readonly event_type: "DOCUMENT_LOADED";
+    readonly description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. Wait for it before operating on the document: until it fires, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded or bad_request:editor_not_ready, and GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.";
+}, {
     readonly event_type: "PAGE_FOCUSED";
     readonly description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page.";
 }, {
@@ -170,13 +184,13 @@ export const OVERLAY_TOOL_TYPES: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHEC
 export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number];
 
 // @public (undocumented)
-export const REQUEST_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const REQUEST_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type RequestType = (typeof OPERATIONS)[number]["request_type"];
 
 // @public (undocumented)
-export const WIRE_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const WIRE_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type WireType = (typeof OPERATIONS)[number]["wire_type"];
