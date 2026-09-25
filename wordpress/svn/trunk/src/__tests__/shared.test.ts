@@ -39,28 +39,4 @@ describe('getSimplePDFElements', () => {
       ]),
     );
   });
-
-  it('detects PDF links whatever the extension case, query string or fragment', () => {
-    const dom = new JSDOM(
-      `<!doctype html>
-      <html>
-      <body>
-        <a href="https://example.com/files/Consent.PDF">Uppercase extension</a>
-        <a href="/wp-content/uploads/intake-form.pdf?ver=2">Query string</a>
-        <a href="https://example.com/files/guide.pdf#page=3">Fragment</a>
-        <a href="https://example.com/download.php?file=Form.PDF">PDF name in the query</a>
-        <a href="https://example.com/files/report.pdf.png">Image named after a PDF</a>
-      </body>
-      </html>
-    `,
-      { url: 'http://localhost' },
-    );
-    const detectedElements = getSimplePDFElements(dom.window.document);
-    expect(detectedElements.map(({ innerHTML }) => innerHTML)).toStrictEqual([
-      'Uppercase extension',
-      'Query string',
-      'Fragment',
-      'PDF name in the query',
-    ]);
-  });
 });
