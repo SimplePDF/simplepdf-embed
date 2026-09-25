@@ -16,7 +16,7 @@ define('SIMPLEPDF_PLUGIN_VERSION', '1.1.3');
 define('SIMPLEPDF_SETTINGS_SCREEN', 'settings_page_simplepdf_settings');
 define('SIMPLEPDF_POST_LIST_LIMIT', 300);
 define('SIMPLEPDF_PDF_PAGE_LIMIT', 100);
-define('SIMPLEPDF_WEB_EMBED_VERSION', '1.8.5');
+define('SIMPLEPDF_WEB_EMBED_VERSION', '1.8.4');
 define('SIMPLEPDF_PRICING_URL', 'https://simplepdf.com/pricing?ref=wordpress');
 
 function simplepdf_settings_init() {
