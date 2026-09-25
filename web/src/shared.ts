@@ -42,7 +42,17 @@ const isSimplePDFLink = (url: string) => {
   return regex.test(url);
 };
 
-const isPDFLink = (url: string) => url.endsWith('.pdf');
+const isPDFLink = (url: string): boolean => {
+  if (url.toLowerCase().endsWith('.pdf')) {
+    return true;
+  }
+
+  try {
+    return new URL(url).pathname.toLowerCase().endsWith('.pdf');
+  } catch {
+    return false;
+  }
+};
 
 const isLocale = (value: string): value is Locale => Object.prototype.hasOwnProperty.call(SUPPORTED_LOCALES, value);
 
