@@ -17,6 +17,7 @@ define('SIMPLEPDF_SETTINGS_SCREEN', 'settings_page_simplepdf_settings');
 define('SIMPLEPDF_POST_LIST_LIMIT', 300);
 define('SIMPLEPDF_PDF_PAGE_LIMIT', 100);
 define('SIMPLEPDF_WEB_EMBED_VERSION', '1.8.4');
+define('SIMPLEPDF_REVIEW_URL', 'https://wordpress.org/support/plugin/simplepdf-embed/reviews/#new-post');
 define('SIMPLEPDF_PRICING_URL', 'https://simplepdf.com/pricing?ref=wordpress');
 
 function simplepdf_settings_init() {
@@ -135,7 +136,22 @@ function simplepdf_enqueue_script() {
     wp_add_inline_script('simplepdf-web-embed-pdf', $inline_script, 'after');
 }
 
-function simplepdf_enqueue_admin_styles($hook_suffix) {
+function simplepdf_should_show_review_notice() {
+    $company_identifier = simplepdf_get_company_identifier();
+
+    $is_eligible = $company_identifier !== ''
+        && ! get_option('simplepdf_review_notice_dismissed')
+        && simplepdf_get_account_status($company_identifier) === 'found';
+    if ( ! $is_eligible ) {
+        return false;
+    }
+
+    $report = simplepdf_get_pdf_link_report();
+
+    return $report['counts']['simplepdf'] > 0;
+}
+
+function simplepdf_enqueue_admin_assets($hook_suffix) {
     if ( $hook_suffix !== SIMPLEPDF_SETTINGS_SCREEN ) {
         return;
     }
@@ -143,7 +159,66 @@ function simplepdf_enqueue_admin_styles($hook_suffix) {
     wp_register_style('simplepdf-settings', false, array(), SIMPLEPDF_PLUGIN_VERSION);
     wp_enqueue_style('simplepdf-settings');
     wp_add_inline_style('simplepdf-settings', simplepdf_admin_css());
+
+    wp_register_script('simplepdf-review-notice', false, array(), SIMPLEPDF_PLUGIN_VERSION, true);
+    wp_enqueue_script('simplepdf-review-notice');
+    wp_add_inline_script('simplepdf-review-notice', simplepdf_review_notice_script());
 }
+
+function simplepdf_review_notice_script() {
+    $dismiss_request = array(
+        'url' => admin_url('admin-ajax.php'),
+        'action' => 'simplepdf_dismiss_review_notice',
+        'nonce' => wp_create_nonce('simplepdf_dismiss_review_notice'),
+    );
+
+    return 'const simplepdfReviewNotice = ' . wp_json_encode($dismiss_request) . ';' . <<<'JS'
+
+document.addEventListener('click', (event) => {
+  const notice = event.target.closest('.simplepdf-review-notice');
+  const isDismissal = notice !== null && event.target.closest('.notice-dismiss, .simplepdf-review-link') !== null;
+  if (!isDismissal) {
+    return;
+  }
+
+  const body = new URLSearchParams({ action: simplepdfReviewNotice.action, _ajax_nonce: simplepdfReviewNotice.nonce });
+  fetch(simplepdfReviewNotice.url, { method: 'POST', credentials: 'same-origin', body });
+  if (event.target.closest('.simplepdf-review-link') !== null) {
+    notice.remove();
+  }
+});
+JS;
+}
+
+function simplepdf_render_review_notice() {
+    $screen = get_current_screen();
+    $is_settings_screen = $screen !== null && $screen->id === SIMPLEPDF_SETTINGS_SCREEN;
+    if ( ! $is_settings_screen || ! simplepdf_should_show_review_notice() ) {
+        return;
+    }
+    ?>
+    <div class="notice notice-info is-dismissible simplepdf-review-notice">
+        <p>
+            <?php esc_html_e('Is SimplePDF bringing your filled PDFs back? A short review on WordPress.org helps other site owners find it.', 'simplepdf-embed'); ?>
+            <a class="button button-small simplepdf-review-link" href="<?php echo esc_url(SIMPLEPDF_REVIEW_URL); ?>" target="_blank" rel="noopener">
+                <?php esc_html_e('Leave a review', 'simplepdf-embed'); ?>
+                <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'simplepdf-embed'); ?></span>
+            </a>
+        </p>
+    </div>
+    <?php
+}
+
+function simplepdf_dismiss_review_notice() {
+    check_ajax_referer('simplepdf_dismiss_review_notice');
+    if ( ! current_user_can('manage_options') ) {
+        wp_send_json_error(null, 403);
+    }
+
+    update_option('simplepdf_review_notice_dismissed', true, false);
+    wp_send_json_success();
+}
+
 function simplepdf_admin_css() {
     return <<<CSS
 .simplepdf-settings { max-width: 880px; }
@@ -199,6 +274,7 @@ function simplepdf_admin_css() {
 .simplepdf-pill-on { background: #edfaef; color: #007017; }
 .simplepdf-pill-error { background: #fcf0f1; color: #b32d2e; }
 .simplepdf-save { margin: 16px 0 0; }
+.simplepdf-review-notice .button { margin-left: 8px; vertical-align: baseline; }
 .simplepdf-help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .simplepdf-help h3 { margin: 0 0 8px; font-size: 13px; }
 .simplepdf-help ul { margin: 0; }
@@ -887,5 +963,7 @@ function simplepdf_settings_page() {
 
 add_action('admin_menu', 'simplepdf_settings_init');
 add_action('admin_init', 'simplepdf_register_settings');
-add_action('admin_enqueue_scripts', 'simplepdf_enqueue_admin_styles');
+add_action('admin_enqueue_scripts', 'simplepdf_enqueue_admin_assets');
+add_action('admin_notices', 'simplepdf_render_review_notice');
+add_action('wp_ajax_simplepdf_dismiss_review_notice', 'simplepdf_dismiss_review_notice');
 add_action('wp_enqueue_scripts', 'simplepdf_enqueue_script');
