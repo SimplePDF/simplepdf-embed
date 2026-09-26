@@ -31,6 +31,7 @@
     "start": "rollup -c -w"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/jsdom": "^21.1.7",
     "jsdom": "^26.0.0",
@@ -50,5 +51,8 @@
     "typescript",
     "npm",
     "pdf"
-  ]
+  ],
+  "dependencies": {
+    "@simplepdf/embed": "0.7.0"
+  }
 }
