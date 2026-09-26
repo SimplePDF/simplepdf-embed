@@ -1,15 +1,27 @@
-import { EditorConfig, EditorContext, Locale, ConfigSetter, OutgoingIframeEvent, IncomingIframeEvent } from './types';
+import { createEmbed, type EmbedDocument, type WebMCPOptions } from '@simplepdf/embed';
+import type { ConfigSetter, EditorConfig, EditorContext, Locale } from './types';
 
 const MODAL_ID = 'simplePDF_modal' as const;
 const MODAL_CLOSE_BUTTON_ID = 'simplePDF_modal_close_button' as const;
 const MODAL_STYLE_ID = 'simplePDF_modal_style' as const;
 const IFRAME_ID = 'simplePDF_iframe' as const;
+const IFRAME_CONTAINER_SELECTOR = `#${MODAL_ID} .simplePDF_iframeContainer`;
+const BASE_DOMAIN_PATTERN = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d{1,5})?$/;
 
 const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: window.simplePDF not initialized';
-const UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED = 'Unexpected: SimplePDF iframe not instantiated';
+
+const SUPPORTED_LOCALES = {
+  de: true,
+  en: true,
+  es: true,
+  fr: true,
+  it: true,
+  ja: true,
+  nl: true,
+  pt: true,
+} satisfies Record<Locale, true>;
 
 const editorContext: EditorContext = {
-  getFromConfig: (key: 'companyIdentifier' | 'locale') => window.simplePDF?.config?.[key] ?? null,
   log: (message: string, details: Record<string, unknown>) => {
     const debugAttribute = document.currentScript?.getAttribute('debug');
     const isDebug = debugAttribute !== null && debugAttribute !== undefined;
@@ -21,23 +33,30 @@ const editorContext: EditorContext = {
     console.warn(`@simplepdf/web-embed-pdf: ${message}`, details);
   },
   autoOpenListeners: window.simplePDF?._ctx.listenersMap ?? new Map(),
-  outgoingEventsQueue: [],
-  isIframeReady: false,
-  getEditor: () => {
-    return {
-      iframe: document.getElementById(IFRAME_ID) as HTMLIFrameElement | null,
-      modal: document.getElementById(MODAL_ID) as HTMLDivElement | null,
-      styles: document.getElementById(MODAL_STYLE_ID) as HTMLStyleElement | null,
-    };
-  },
+  activeEmbed: null,
+  activeModal: null,
 };
+
+const readScriptAttribute = (name: string): string | null => document.currentScript?.getAttribute(name) ?? null;
 
 const isSimplePDFLink = (url: string) => {
   const regex = /^https:\/\/[^.]+\.simplepdf\.com(\/[^\/]+)?\/(form|documents)\/.+/;
   return regex.test(url);
 };
 
-const isPDFLink = (url: string) => url.endsWith('.pdf');
+const isPDFLink = (url: string): boolean => {
+  if (url.toLowerCase().endsWith('.pdf')) {
+    return true;
+  }
+
+  try {
+    return new URL(url).pathname.toLowerCase().endsWith('.pdf');
+  } catch {
+    return false;
+  }
+};
+
+const isLocale = (value: string): value is Locale => Object.prototype.hasOwnProperty.call(SUPPORTED_LOCALES, value);
 
 const getLocale = (): Locale => {
   const languageCode = (() => {
@@ -49,66 +68,58 @@ const getLocale = (): Locale => {
     }
   })();
 
-  const inputLocale = (editorContext.getFromConfig('locale') ??
-    document.currentScript?.getAttribute('locale') ??
-    languageCode ??
-    'en') as Locale;
+  const inputLocale = window.simplePDF?.config?.locale ?? readScriptAttribute('locale') ?? languageCode ?? 'en';
 
-  switch (inputLocale) {
-    case 'en':
-    case 'de':
-    case 'es':
-    case 'fr':
-    case 'it':
-    case 'pt':
-      return inputLocale;
-    default:
-      inputLocale satisfies never;
-      return 'en';
-  }
+  return isLocale(inputLocale) ? inputLocale : 'en';
 };
+
+const readWebMCPAttribute = (): WebMCPOptions | null => {
+  const webMCPAttribute = readScriptAttribute('webmcp');
+  if (webMCPAttribute === null) {
+    return null;
+  }
+
+  return webMCPAttribute === 'false' ? { enabled: false } : { enabled: true };
+};
+
+const scriptBaseDomain = readScriptAttribute('baseDomain');
+const scriptWebMCP = readWebMCPAttribute();
 
 export const config: EditorConfig = {
   locale: getLocale(),
-  companyIdentifier:
-    editorContext.getFromConfig('companyIdentifier') ??
-    document.currentScript?.getAttribute('companyIdentifier') ??
-    'embed',
+  companyIdentifier: window.simplePDF?.config?.companyIdentifier ?? readScriptAttribute('companyIdentifier') ?? 'embed',
   autoOpen: false,
+  ...(scriptBaseDomain !== null ? { baseDomain: scriptBaseDomain } : {}),
+  ...(scriptWebMCP !== null ? { webMCP: scriptWebMCP } : {}),
 };
 
 export const setConfig: ConfigSetter = (params) => {
-  let config = window.simplePDF?.config;
-
-  if (!config) {
+  if (!window.simplePDF) {
     throw Error(UNEXPECTED_ERROR_INITIALIZATION);
   }
 
-  Object.keys(params).forEach((paramKey) => {
-    const configKey = paramKey as keyof EditorConfig;
-    const configValue = params[configKey];
+  editorContext.log('Update config', params);
 
-    if (configValue === undefined) {
-      return;
+  if (params.autoOpen !== undefined) {
+    if (params.autoOpen) {
+      enableAutoOpen();
+    } else {
+      disableAutoOpen();
     }
-
-    editorContext.log('Update config', { configKey, configValue });
-
-    switch (configKey) {
-      case 'autoOpen': {
-        if (configValue === true) {
-          enableAutoOpen();
-        } else {
-          disableAutoOpen();
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
-    (config[configKey] as any) = configValue as any;
-  });
+    config.autoOpen = params.autoOpen;
+  }
+  if (params.companyIdentifier !== undefined) {
+    config.companyIdentifier = params.companyIdentifier;
+  }
+  if (params.locale !== undefined) {
+    config.locale = params.locale;
+  }
+  if (params.baseDomain !== undefined) {
+    config.baseDomain = params.baseDomain;
+  }
+  if (params.webMCP !== undefined) {
+    config.webMCP = params.webMCP;
+  }
 
   return config;
 };
@@ -139,116 +150,55 @@ export const getSimplePDFElements = (document: Document): Element[] => {
   return [...getNonAnchors(), ...getAnchors()];
 };
 
-export const closeEditor = (): void => {
-  removeIframe();
+const removeModal = (): void => {
+  document.getElementById(MODAL_ID)?.remove();
+  document.getElementById(MODAL_STYLE_ID)?.remove();
   document.body.style.overflow = 'initial';
 };
 
-const eventsListener = (event: MessageEvent) => {
-  const { getEditor, outgoingEventsQueue, getFromConfig, log } = editorContext;
-  const iframe = getEditor().iframe;
-  const editorDomain = `https://${getFromConfig('companyIdentifier')}.simplepdf.com`;
-
-  const eventOrigin = new URL(event.origin).origin;
-  const iframeOrigin = new URL(editorDomain).origin;
-
-  if (eventOrigin !== iframeOrigin) {
-    log('Incoming message from untrusted origin', { eventOrigin, iframeOrigin });
-    return;
-  }
-
-  const isTrustedIframe = event.source === iframe?.contentWindow;
-
-  if (!isTrustedIframe) {
-    log('Incoming message from untrusted iframe', { eventOrigin, iframeOrigin });
-    return;
-  }
-
-  const payload: IncomingIframeEvent | null = (() => {
-    try {
-      return JSON.parse(event.data);
-    } catch (e) {
-      console.error('Failed to parse iFrame event payload');
-      return null;
-    }
-  })();
-
-  switch (payload?.type) {
-    case 'EDITOR_READY':
-      editorContext.isIframeReady = true;
-      outgoingEventsQueue.forEach((queuedEvent) => {
-        sendEventToIframe(queuedEvent);
-      });
-      outgoingEventsQueue.length = 0;
-      return;
-    case 'DOCUMENT_LOADED':
-    case 'SUBMISSION_SENT':
-    default:
-      return;
-  }
+export const closeEditor = (): void => {
+  editorContext.activeEmbed?.lifecycle.dispose();
+  editorContext.activeEmbed = null;
+  editorContext.activeModal = null;
+  removeModal();
 };
 
-const onIframeLoaded = () => {
-  window.addEventListener('message', eventsListener);
-};
-
-const removeIframe = () => {
-  window.removeEventListener('message', eventsListener);
-  editorContext.getEditor().modal?.remove();
-  editorContext.getEditor().styles?.remove();
-  editorContext.isIframeReady = false;
-  editorContext.outgoingEventsQueue.length = 0;
-};
-
-function sendEventToIframe(event: OutgoingIframeEvent) {
-  const { outgoingEventsQueue, log, isIframeReady } = editorContext;
-  const editorDomainURL = new URL(editorContext.getEditor().iframe?.src ?? '');
-
-  if (isIframeReady) {
-    log('Send iframe event', { event });
-    editorContext.getEditor().iframe?.contentWindow?.postMessage(JSON.stringify(event), editorDomainURL.origin);
-    return;
-  }
-
-  log('Push event to queue', { event });
-  outgoingEventsQueue.push(event);
-}
-
-export const openEditor = ({ href, context }: { href: string | null; context?: Record<string, unknown> }): void => {
-  const { getFromConfig, log, getEditor } = editorContext;
-
-  if (getEditor().iframe) {
-    log('Editor already opened', {});
-    return;
-  }
-
-  const companyIdentifier = getFromConfig('companyIdentifier');
-  const locale = getFromConfig('locale');
-
-  const encodedContext = (() => {
-    if (!context) {
-      return null;
+// The script tag and openEditor take untyped input; the core accepts absolute http(s) URLs, data
+// URLs and Blobs, so a relative, data: or blob: href is turned into the matching document.
+const resolveEmbedDocument = (href: string | null): Promise<EmbedDocument | undefined> =>
+  Promise.resolve().then((): EmbedDocument | undefined | Promise<EmbedDocument> => {
+    if (!href) {
+      return undefined;
     }
 
-    try {
-      return encodeURIComponent(btoa(JSON.stringify(context)));
-    } catch (e) {
-      log(`Failed to encode the context: ${JSON.stringify(e)}`, { context });
-      return null;
+    const documentUrl = new URL(href, document.baseURI);
+    switch (documentUrl.protocol) {
+      case 'data:':
+        return { dataUrl: href };
+      case 'blob:':
+        return fetch(href)
+          .then((response) => response.blob())
+          .then((file) => ({ file }));
+      default: {
+        const name = documentUrl.pathname.substring(documentUrl.pathname.lastIndexOf('/') + 1);
+        return name === '' ? { url: documentUrl.href } : { url: documentUrl.href, name };
+      }
     }
-  })();
+  });
 
-  const iframeURL = new URL(`/${locale}/editor`, `https://${companyIdentifier}.simplepdf.com`);
-
-  if (href) {
-    iframeURL.searchParams.set('loadingPlaceholder', 'true');
+const normalizeBaseDomain = (baseDomain: string | undefined): { isValid: boolean; baseDomain: string | undefined } => {
+  if (baseDomain === undefined) {
+    return { isValid: true, baseDomain: undefined };
   }
 
-  if (encodedContext) {
-    iframeURL.searchParams.set('context', encodedContext);
-  }
+  const normalizedBaseDomain = baseDomain
+    .trim()
+    .toLowerCase()
+    .replace(/:(80|443)$/, '');
+  return { isValid: BASE_DOMAIN_PATTERN.test(normalizedBaseDomain), baseDomain: normalizedBaseDomain };
+};
 
-  const modal = `
+const MODAL_HTML = `
     <style id="${MODAL_STYLE_ID}">
       .simplePDF_container {
         user-select: none;
@@ -328,69 +278,60 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
         </svg>
       </button>
       <div class="simplePDF_iframeContainer">
-        <iframe id="${IFRAME_ID}" referrerPolicy="no-referrer-when-downgrade" allow="clipboard-read; clipboard-write; web-share" class="simplePDF_iframe" src="${
-          iframeURL.href
-        }" onload="${onIframeLoaded()}"/>
       </div>
     </div>
   </div>
  `;
 
-  log('Creating the modal', {
-    companyIdentifier: getFromConfig('companyIdentifier'),
-    iframeURL: iframeURL,
-  });
-  document.body.style.overflow = 'hidden';
-  document.body.insertAdjacentHTML('beforebegin', modal);
+export const openEditor = ({ href, context }: { href: string | null; context?: Record<string, unknown> }): void => {
+  const { log } = editorContext;
 
-  if (href) {
-    const fetchedDocumentBlob = async (): Promise<string> => {
-      const response = await fetch(href ?? '', {
-        method: 'GET',
-        credentials: 'same-origin',
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to retrieve the document: ${JSON.stringify({
-            status: response.status,
-            href,
-          })}`,
-        );
-      }
-
-      const blob = await response.blob();
-
-      const reader = new FileReader();
-      await new Promise((resolve, reject) => {
-        reader.onload = resolve;
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      return reader.result as string;
-    };
-
-    fetchedDocumentBlob()
-      .then((dataURL) => {
-        const [documentName] = href.substring(href.lastIndexOf('/') + 1).split('?');
-        sendEventToIframe({ type: 'LOAD_DOCUMENT', data: { data_url: dataURL, name: documentName } });
-      })
-      .catch(() => {
-        const iframe = getEditor().iframe;
-        if (!iframe) {
-          throw Error(UNEXPECTED_ERROR_IFRAME_NOT_INSTANTIATED);
-        }
-
-        iframeURL.searchParams.delete('loadingPlaceholder');
-        iframeURL.searchParams.set('open', href);
-
-        iframe.src = iframeURL.href;
-      });
+  if (document.getElementById(MODAL_ID)) {
+    log('Editor already opened', {});
+    return;
   }
 
-  log('Attach close modal listener', {});
+  const editorConfig = window.simplePDF?.config ?? config;
+  const { isValid: isValidBaseDomain, baseDomain } = normalizeBaseDomain(editorConfig.baseDomain);
+  if (!isValidBaseDomain) {
+    console.error(`@simplepdf/web-embed-pdf: baseDomain '${editorConfig.baseDomain}' is not a domain name`);
+    return;
+  }
+
+  const companyIdentifier = editorConfig.companyIdentifier.trim().toLowerCase();
+  log('Creating the modal', { companyIdentifier, href });
+  editorContext.activeEmbed?.lifecycle.dispose();
+  editorContext.activeEmbed = null;
+  document.body.style.overflow = 'hidden';
+  document.body.insertAdjacentHTML('beforebegin', MODAL_HTML);
   document.getElementById(MODAL_CLOSE_BUTTON_ID)?.addEventListener('click', closeEditor);
+  const modal = {};
+  editorContext.activeModal = modal;
+
+  resolveEmbedDocument(href)
+    .then((embedDocument) => {
+      if (editorContext.activeModal !== modal) {
+        return;
+      }
+
+      editorContext.activeEmbed = createEmbed({
+        target: IFRAME_CONTAINER_SELECTOR,
+        companyIdentifier,
+        baseDomain,
+        locale: editorConfig.locale,
+        context,
+        document: embedDocument,
+        iframeAttrs: { className: 'simplePDF_iframe' },
+        webMCP: editorConfig.webMCP,
+      });
+      document.querySelector(`${IFRAME_CONTAINER_SELECTOR} iframe`)?.setAttribute('id', IFRAME_ID);
+    })
+    .catch((error: unknown) => {
+      console.error('@simplepdf/web-embed-pdf: the editor could not open', error);
+      if (editorContext.activeModal === modal) {
+        closeEditor();
+      }
+    });
 };
 
 const isAnchor = (element: HTMLAnchorElement | Element): element is HTMLAnchorElement => element.hasAttribute('href');

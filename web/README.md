@@ -58,7 +58,7 @@ See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentif
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`, in any case, with or without a query string or fragment) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
 
 ### I don't want every PDF document to be opened in SimplePDF
 
@@ -89,6 +89,8 @@ SimplePDF automatically detects the language of the page (using the `lang` attri
 - Spanish (`es`)
 - French (`fr`)
 - Italian (`it`)
+- Japanese (`ja`)
+- Dutch (`nl`)
 - Portuguese (`pt`)
 
 **If you wish to override the automatic detection, you can specify the `locale` attribute on the script tag as follows**:
@@ -103,6 +105,29 @@ SimplePDF automatically detects the language of the page (using the `lang` attri
 ></script>
 ```
 <!-- prettier-ignore-end -->
+
+### Letting in-browser agents use the editor (WebMCP)
+
+Add the `webmcp` attribute and an agent running in the visitor's browser (for example Chrome with WebMCP) finds the editor's operations as tools on your page while the editor is open: read and fill fields, move between pages, submit. Off by default.
+
+<!-- prettier-ignore-start -->
+```html
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="yourcompany"
+  webmcp
+  defer
+></script>
+```
+<!-- prettier-ignore-end -->
+
+The same option from JavaScript, withholding the operations a person must do themselves:
+
+```javascript
+window.simplePDF.setConfig({ webMCP: { enabled: true, exclude: ['submit'] } });
+```
+
+The option applies to the next editor opened: an editor already open keeps the tools it registered until it closes.
 
 ### Opening the editor programmatically
 

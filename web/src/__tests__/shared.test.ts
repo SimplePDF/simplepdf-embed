@@ -1,42 +1,33 @@
 import { JSDOM } from 'jsdom';
 import { describe, it, expect } from 'vitest';
 import { getSimplePDFElements } from '../shared';
+import pdfLinkCases from './fixtures/pdf-link-cases.json';
 
+// The link cases live in a fixture so the WordPress plugin's PHP mirror of this rule (its
+// "PDFs on your site" report) can assert the same file.
 describe('getSimplePDFElements', () => {
-  it('detects elements to open with SimplePDF', () => {
+  it('opens exactly the links the shared cases expect in SimplePDF', () => {
+    const anchors = pdfLinkCases
+      .map(({ href, classes }, index) => `<a href="${href}" class="${classes.join(' ')}">case ${index}</a>`)
+      .join('');
+    const dom = new JSDOM(`<!doctype html><html><body>${anchors}</body></html>`, { url: 'http://localhost' });
+
+    const detectedCases = getSimplePDFElements(dom.window.document).map(({ innerHTML }) => innerHTML);
+    const expectedCases = pdfLinkCases.flatMap(({ opens_in_simplepdf }, index) =>
+      opens_in_simplepdf ? [`case ${index}`] : [],
+    );
+
+    expect(detectedCases).toStrictEqual(expectedCases);
+  });
+
+  it('opens a non-link element with the simplepdf class', () => {
     const dom = new JSDOM(
-      `<!doctype html>
-      <html>
-      <body>
-        <!--Should detect below-->
-        <a href="https://pdfobject.com/pdf/sample-3pp.pdf">PDF link</a>
-        <a href="https://example.com/some-pdf-without-extension" class="simplepdf">Regular link with class</a>
-        <button class="simplepdf">Button with class</button>
-        <a href="https://yourcompany.simplepdf.com/form/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0">SimplePDF form link</a>
-        <a href="https://yourcompany.simplepdf.com/documents/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0">SimplePDF document link</a>
-        <!--Should NOT detect below-->
-        <a href="https://pdfobject.com/pdf/sample-3pp.pdf" class="exclude-simplepdf">PDF link with class exclusion</a>
-        <a href="https://yourcompany.simplepdf.com/form/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0" class="exclude-simplepdf">SimplePDF form link with exclusion</a>
-        <a href="https://www.pdfsomething.com/anything">Regular link containing .pdf</a>
-        <a href="https://www.website.com/some-pdf">Should not be opened with SimplePDF</a>
-        <a href="https://www.website.com/some-other.pdf.png">Should not be opened with SimplePDF</a>
-        <a href="https://www.simplepdf.app/s/article/How-to-Manage-PDF-Settings">Should not be opened with SimplePDF</a>
-        <a href="https://www.app.pdf/some-url">Should not be opened with SimplePDF</a>
-      </body>
-      </html>
-    `,
+      `<!doctype html><html><body><button class="simplepdf">Button with class</button><span>Plain text</span></body></html>`,
       { url: 'http://localhost' },
     );
-    const detectedElements = getSimplePDFElements(dom.window.document);
-    expect(detectedElements).toHaveLength(5);
-    expect(detectedElements.map(({ innerHTML }) => innerHTML)).toStrictEqual(
-      expect.arrayContaining([
-        'Button with class',
-        'PDF link',
-        'Regular link with class',
-        'SimplePDF form link',
-        'SimplePDF document link',
-      ]),
-    );
+
+    expect(getSimplePDFElements(dom.window.document).map(({ innerHTML }) => innerHTML)).toStrictEqual([
+      'Button with class',
+    ]);
   });
 });

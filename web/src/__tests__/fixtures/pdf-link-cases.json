@@ -1,0 +1,33 @@
+[
+  { "href": "https://pdfobject.com/pdf/sample-3pp.pdf", "classes": [], "opens_in_simplepdf": true },
+  { "href": "https://example.com/files/Consent.PDF", "classes": [], "opens_in_simplepdf": true },
+  { "href": "https://example.com/uploads/intake-form.pdf?ver=2", "classes": [], "opens_in_simplepdf": true },
+  { "href": "https://example.com/files/guide.pdf#page=3", "classes": [], "opens_in_simplepdf": true },
+  { "href": "https://example.com/download.php?file=Form.PDF", "classes": [], "opens_in_simplepdf": true },
+  { "href": "https://example.com/some-pdf-without-extension", "classes": ["simplepdf"], "opens_in_simplepdf": true },
+  {
+    "href": "https://yourcompany.simplepdf.com/form/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0",
+    "classes": [],
+    "opens_in_simplepdf": true
+  },
+  {
+    "href": "https://yourcompany.simplepdf.com/documents/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0",
+    "classes": [],
+    "opens_in_simplepdf": true
+  },
+  { "href": "https://pdfobject.com/pdf/sample-3pp.pdf", "classes": ["exclude-simplepdf"], "opens_in_simplepdf": false },
+  {
+    "href": "https://yourcompany.simplepdf.com/form/d8d57ec7-f3e9-4fc9-8cc5-4a92c02d30d0",
+    "classes": ["exclude-simplepdf"],
+    "opens_in_simplepdf": false
+  },
+  { "href": "https://www.pdfsomething.com/anything", "classes": [], "opens_in_simplepdf": false },
+  { "href": "https://www.website.com/some-pdf", "classes": [], "opens_in_simplepdf": false },
+  { "href": "https://www.website.com/some-other.pdf.png", "classes": [], "opens_in_simplepdf": false },
+  {
+    "href": "https://www.simplepdf.app/s/article/How-to-Manage-PDF-Settings",
+    "classes": [],
+    "opens_in_simplepdf": false
+  },
+  { "href": "https://www.app.pdf/some-url", "classes": [], "opens_in_simplepdf": false }
+]
