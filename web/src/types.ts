@@ -6,6 +6,7 @@ export type EditorContext = {
   log: (message: string, details: Record<string, unknown>) => void;
   autoOpenListeners: Map<Element, EventListener>;
   activeEmbed: Embed | null;
+  activeModal: object | null;
 };
 
 export type EditorConfig = {
