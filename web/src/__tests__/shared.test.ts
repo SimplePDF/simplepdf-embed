@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { getSimplePDFElements } from '../shared';
 import pdfLinkCases from './fixtures/pdf-link-cases.json';
 
-// The link cases are shared with the WordPress plugin's PHP mirror of this rule (the plugin's
-// "PDFs on your site" report), which asserts the same file.
+// The link cases live in a fixture so the WordPress plugin's PHP mirror of this rule (its
+// "PDFs on your site" report) can assert the same file.
 describe('getSimplePDFElements', () => {
   it('opens exactly the links the shared cases expect in SimplePDF', () => {
     const anchors = pdfLinkCases

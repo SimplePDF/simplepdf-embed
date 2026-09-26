@@ -127,6 +127,8 @@ The same option from JavaScript, withholding the operations a person must do the
 window.simplePDF.setConfig({ webMCP: { enabled: true, exclude: ['submit'] } });
 ```
 
+The option applies to the next editor opened: an editor already open keeps the tools it registered until it closes.
+
 ### Opening the editor programmatically
 
 #### Open the editor with a specific PDF
