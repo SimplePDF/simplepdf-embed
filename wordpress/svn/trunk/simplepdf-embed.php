@@ -264,9 +264,14 @@ function simplepdf_admin_css() {
 .simplepdf-settings .card { max-width: none; padding: 20px 24px; margin-top: 16px; }
 .simplepdf-settings .card h2 { margin: 0 0 8px; font-size: 16px; }
 .simplepdf-settings .card > p:last-child { margin-bottom: 0; }
-.simplepdf-card-attention .simplepdf-card-header { margin: -20px -24px 16px; padding: 16px 24px 12px; background: #fcf2e3; border-bottom: 1px solid #f2d5a4; border-top-left-radius: inherit; border-top-right-radius: inherit; }
+.simplepdf-card-attention .simplepdf-card-header, .simplepdf-card-welcome .simplepdf-card-header { margin: -20px -24px 16px; padding: 16px 24px 12px; border-top-left-radius: inherit; border-top-right-radius: inherit; }
+.simplepdf-card-attention .simplepdf-card-header .simplepdf-lede, .simplepdf-card-welcome .simplepdf-card-header .simplepdf-lede { margin-bottom: 0; }
+.simplepdf-card-attention .simplepdf-card-header { background: #fcf2e3; border-bottom: 1px solid #f2d5a4; }
 .simplepdf-card-attention .simplepdf-card-header h2 { color: #6b3f00; }
-.simplepdf-card-attention .simplepdf-card-header .simplepdf-lede { margin-bottom: 0; color: #50330d; }
+.simplepdf-card-attention .simplepdf-card-header .simplepdf-lede { color: #50330d; }
+.simplepdf-card-welcome .simplepdf-card-header { background: #eef3fd; border-bottom: 1px solid #c9d8f8; }
+.simplepdf-card-welcome .simplepdf-card-header h2 { color: #1d3a8f; }
+.simplepdf-card-welcome .simplepdf-card-header .simplepdf-lede { color: #243b6b; }
 .simplepdf-lede { font-size: 14px; color: #3c434a; }
 .simplepdf-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 12px; }
 .simplepdf-compare > div { border-radius: 6px; padding: 12px 16px; }
@@ -454,8 +459,10 @@ function simplepdf_render_scan_scope_note($is_capped) {
 
 function simplepdf_render_get_started() {
     ?>
-    <h2><?php esc_html_e('No PDF links found in your pages and posts', 'simplepdf-embed'); ?></h2>
-    <p class="simplepdf-lede"><?php esc_html_e('Link a PDF and visitors fill it right on your site:', 'simplepdf-embed'); ?></p>
+    <div class="simplepdf-card-header">
+        <h2><?php esc_html_e('No PDF links found in your pages and posts', 'simplepdf-embed'); ?></h2>
+        <p class="simplepdf-lede"><?php esc_html_e('Link a PDF and visitors fill it right on your site:', 'simplepdf-embed'); ?></p>
+    </div>
     <ol class="simplepdf-get-started">
         <li>
             <span class="simplepdf-step-text">
@@ -634,7 +641,7 @@ function simplepdf_render_pdfs_card() {
     $report = simplepdf_get_pdf_link_report();
     if ( $report['link_count'] === 0 ) {
         ?>
-        <div class="card">
+        <div class="card simplepdf-card-welcome">
             <?php simplepdf_render_get_started(); ?>
             <?php simplepdf_render_scan_scope_note($report['is_capped']); ?>
         </div>
