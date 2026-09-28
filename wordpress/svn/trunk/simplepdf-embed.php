@@ -745,8 +745,8 @@ function simplepdf_render_account_pitch() {
         __('Export the form data to CSV or Excel', 'simplepdf-embed'),
     );
     $proof_points = array(
-        __('Email notifications', 'simplepdf-embed'),
         __('Excel export', 'simplepdf-embed'),
+        __('Email notifications', 'simplepdf-embed'),
         __('Required fields', 'simplepdf-embed'),
         __('Team dashboard', 'simplepdf-embed'),
         __('Webhooks', 'simplepdf-embed'),
