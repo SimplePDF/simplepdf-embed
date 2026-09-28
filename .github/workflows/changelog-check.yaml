@@ -30,8 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # The version PR regenerates every CHANGELOG from the pending changesets with this exact
-      # script; running it here fails the pull request instead of the release.
+      # The version PR is pure `changeset version` output. Running it here, then the formatting
+      # checks the version PR runs, fails the pull request that adds a changeset whose generated
+      # CHANGELOG is not formatted, so the release never needs a fix.
       - name: Generate the changelogs the release will write
         run: npm run version
 
