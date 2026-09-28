@@ -43,7 +43,7 @@ function simplepdf_register_settings() {
     register_setting('simplepdf_scope', 'simplepdf_selected_post_ids', array(
         'sanitize_callback' => 'simplepdf_sanitize_selected_post_ids',
     ));
-    register_setting('simplepdf_webmcp', 'simplepdf_webmcp', array(
+    register_setting('simplepdf_scope', 'simplepdf_webmcp', array(
         'sanitize_callback' => 'simplepdf_sanitize_webmcp',
     ));
 }
@@ -315,14 +315,8 @@ function simplepdf_admin_css() {
 .simplepdf-pill-on { background: #edfaef; color: #007017; }
 .simplepdf-pill-error { background: #fcf0f1; color: #b32d2e; }
 .simplepdf-save { margin: 16px 0 0; }
-.simplepdf-card-title { display: flex; align-items: center; gap: 8px; }
-.simplepdf-card-title h2 { margin: 0; }
-.simplepdf-new { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #3665e1; color: #fff; font-size: 11px; font-weight: 600; vertical-align: middle; }
-.simplepdf-webmcp-benefits { margin: 12px 0 16px; }
-.simplepdf-webmcp-benefits li { position: relative; padding-left: 24px; margin-bottom: 8px; }
-.simplepdf-webmcp-benefits li::before { content: "✓"; content: "✓" / ""; position: absolute; left: 0; color: #00a32a; font-weight: 600; }
-.simplepdf-webmcp-toggle { font-weight: 600; }
-.simplepdf-webmcp-toggle + .description { margin: 4px 0 0 24px; }
+.simplepdf-webmcp { display: block; margin: 16px 0 0; }
+.simplepdf-webmcp .description { display: block; margin: 2px 0 0 24px; }
 .simplepdf-review-notice .button { margin-left: 8px; vertical-align: baseline; }
 .simplepdf-help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .simplepdf-help h3 { margin: 0 0 8px; font-size: 13px; }
@@ -751,9 +745,10 @@ function simplepdf_render_account_pitch() {
         __('Export the form data to CSV or Excel', 'simplepdf-embed'),
     );
     $proof_points = array(
+        __('Email notifications', 'simplepdf-embed'),
         __('Required fields', 'simplepdf-embed'),
+        __('Team dashboard', 'simplepdf-embed'),
         __('Webhooks', 'simplepdf-embed'),
-        __('Team dashboard (5 seats)', 'simplepdf-embed'),
     );
     ?>
     <h2><?php esc_html_e('Get every filled PDF back, automatically', 'simplepdf-embed'); ?></h2>
@@ -793,52 +788,6 @@ function simplepdf_render_account_pitch() {
         <summary><?php esc_html_e('I already have an account', 'simplepdf-embed'); ?></summary>
         <?php simplepdf_render_identifier_field(); ?>
     </details>
-    <?php
-}
-
-function simplepdf_render_webmcp_card() {
-    $is_webmcp_enabled = simplepdf_is_webmcp_enabled();
-    $webmcp_benefits = array(
-        array(
-            'title' => __('Forms get done in one go.', 'simplepdf-embed'),
-            'detail' => __('The assistant reads every field on every page and fills it in for your visitor.', 'simplepdf-embed'),
-        ),
-        array(
-            'title' => __('Your visitor stays in charge.', 'simplepdf-embed'),
-            'detail' => __('Everything happens in the editor on your page, where they can check every answer.', 'simplepdf-embed'),
-        ),
-        array(
-            'title' => __('Your rules still apply.', 'simplepdf-embed'),
-            'detail' => __('Required fields, read-only fields and your editor\'s permissions hold for assistants too.', 'simplepdf-embed'),
-        ),
-        array(
-            'title' => __('Nothing to set up.', 'simplepdf-embed'),
-            'detail' => __('It works on its own, separate from the Browser AI agents setting in your SimplePDF dashboard, and changes nothing for visitors without an assistant.', 'simplepdf-embed'),
-        ),
-    );
-    $heading = $is_webmcp_enabled
-        ? __('Your forms are ready for AI assistants', 'simplepdf-embed')
-        : __('AI assistants get no direct access to your forms', 'simplepdf-embed');
-    ?>
-    <form class="card simplepdf-webmcp" method="post" action="options.php">
-        <?php settings_fields('simplepdf_webmcp'); ?>
-        <div class="simplepdf-card-title">
-            <h2><?php echo esc_html($heading); ?></h2>
-            <span class="simplepdf-new"><?php esc_html_e('New', 'simplepdf-embed'); ?></span>
-        </div>
-        <p class="simplepdf-lede"><?php esc_html_e('Long form? A visitor browsing with an AI assistant, like ChatGPT\'s browser or Chrome with WebMCP, can ask it to fill your PDF for them.', 'simplepdf-embed'); ?></p>
-        <ul class="simplepdf-webmcp-benefits">
-            <?php foreach ( $webmcp_benefits as $webmcp_benefit ) : ?>
-                <li><strong><?php echo esc_html($webmcp_benefit['title']); ?></strong> <?php echo esc_html($webmcp_benefit['detail']); ?></li>
-            <?php endforeach; ?>
-        </ul>
-        <label class="simplepdf-webmcp-toggle">
-            <input type="checkbox" name="simplepdf_webmcp" value="on" <?php checked($is_webmcp_enabled); ?>>
-            <?php esc_html_e('Give AI assistants direct access to your forms (WebMCP)', 'simplepdf-embed'); ?>
-        </label>
-        <p class="description"><?php esc_html_e('Turned off, assistants that click and type like a person can still fill your forms, as on any website.', 'simplepdf-embed'); ?></p>
-        <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-webmcp', false); ?></p>
-    </form>
     <?php
 }
 
@@ -968,6 +917,11 @@ function simplepdf_render_scope_card() {
                 <?php endif; ?>
             </div>
         </fieldset>
+        <label class="simplepdf-webmcp">
+            <input type="checkbox" name="simplepdf_webmcp" value="on" <?php checked(simplepdf_is_webmcp_enabled()); ?>>
+            <strong><?php esc_html_e('Give AI assistants direct access to your forms (WebMCP)', 'simplepdf-embed'); ?></strong>
+            <span class="description"><?php esc_html_e('Visitors browsing with ChatGPT\'s browser or Chrome with WebMCP can have it fill the PDF for them.', 'simplepdf-embed'); ?></span>
+        </label>
         <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-scope', false); ?></p>
     </form>
     <?php
@@ -1036,7 +990,6 @@ function simplepdf_settings_page() {
         <?php simplepdf_render_header(); ?>
         <?php simplepdf_render_pdfs_card(); ?>
         <?php simplepdf_render_scope_card(); ?>
-        <?php simplepdf_render_webmcp_card(); ?>
         <?php simplepdf_render_account_card(); ?>
         <?php simplepdf_render_help_card(); ?>
     </div>
