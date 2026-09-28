@@ -1,96 +1,180 @@
 === SimplePDF Embed ===
 Contributors:      bendersej
-Tags:              pdf, embed pdf, fill & sign PDF, pdf editor
-Tested up to:      6.9.4
-Stable tag:        1.1.3
+Tags:              pdf, pdf form, fill pdf, sign pdf, form submissions
+Tested up to:      7.1.2
+Stable tag:        1.2.0
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
 Requires PHP:      5.6.20
 
-Your visitors can fill & sign PDFs without leaving your website.
+Visitors fill and sign your PDFs right on your site. With a SimplePDF account, every filled PDF comes back to you, automatically.
 
 == Description ==
 
-A lightweight plugin that automatically opens any PDF file with SimplePDF: allowing your visitors to fill and edit PDFs (merge, rotate, delete pages) without leaving your website.
+You put a PDF form on your site. Visitors download it, print it, fill it, scan it and email it back, if they remember. Then you retype the answers.
 
-== Try it out! ==
+SimplePDF Embed turns every PDF link on your site into a form your visitors fill and sign right on the page. Nothing to rebuild: link a PDF the way you always have.
+
+**Get every filled PDF back, automatically**
+
+With a SimplePDF account, visitors click Submit and the filled PDF lands in your dashboard. No chasing.
+
+* Email alerts on every submission
+* Webhooks to send filled PDFs to your own systems
+* Export the form data to CSV or Excel
+* Required fields, so forms come back complete
+* Your logo in the editor (Pro and above)
+* Filled PDFs saved to your own storage (S3 or Azure Blob Storage on Pro, SharePoint on Premium)
+
+Every plan starts with a 7-day free trial: [see the plans](https://simplepdf.com/pricing?ref=wordpress).
+
+**Free, without an account**
+
+Visitors fill and sign your PDFs, then download them. The document is filled in their browser.
+
+**Works the way your site already works**
+
+* Every PDF link opens in SimplePDF by default, whatever the extension case (`Consent.PDF`) or query string (`form.pdf?ver=2`)
+* Or limit it to the pages and posts you pick, and try it on a draft before going live
+* The settings page lists the PDF links on your pages and posts, and where each one opens
+* Add the `exclude-simplepdf` class to a link to keep the browser's own PDF viewer
+* Visitors who browse with an AI assistant (ChatGPT's browser, Chrome with WebMCP) can ask it to fill the form for them, and check every answer before they submit. One checkbox turns it off.
+
+**The settings page**
+
+See every PDF link on your pages and posts, and where each one opens:
+
+![The PDF links on your site and where each one opens](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-pdf-links.png)
+
+Try it on one page before going live:
+
+![Where it runs: everywhere, or only on the pages and posts you pick](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-where-it-runs.png)
+
+Let AI assistants fill your forms, or turn it off:
+
+![AI assistants settings](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-ai-assistants.png)
+
+See what an account adds before you sign up:
+
+![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-pitch.png)
+
+**What visitors can do in the editor**
+
+* Fill fillable forms, or add text, checkboxes, pictures and signatures to any PDF
+* Add, delete, rotate and merge pages
+* Works on desktop and mobile, in every modern browser
+* Works with the block editor and the classic editor
+
+== Try it out ==
 
 https://wordpress.simplepdf.co/
 
-== Features ==
-- Any .pdf link on your website is automatically opened with SimplePDF
-- Add text, checkboxes, pictures, signatures to PDFs
-- Fill fillable form
-- Add, delete, rotate, merge PDFs
-- Download the resulting PDF
-- Works on all browsers and mobile devices
-- Works with both Gutenber and the classic editor
-- Fully responsive
-
 == Screenshots ==
 
-1. SimplePDF Embed
-2. Admin settings of SimplePDF Embed
-3. Adding a PDF link using the Gutenber editor
+1. Filled PDFs land in your SimplePDF dashboard
+2. The settings page: the PDF links on your site and where each one opens
+3. Adding a PDF link using the block editor
 4. Adding a PDF link using the classic editor
-5. The PDF is opened on top of the existing website
+5. The PDF opens on top of your page
 
 == Installation ==
 
-This section describes how to install the plugin and get it working.
-
-e.g.
-
-1. Install using the WordPress built-in Plugin installer, or Extract the zip file and drop the contents in the wp-content/plugins/ directory of your WordPress installation.
-2. Activate the plugin through the ‘Plugins’ menu in WordPress.
-3. Optional: Go to Settings > SimplePDF Embed and enter your "Company Identifier" (requires a SimplePDF account)
-4. Now any PDF links in your wordpress pages are opened using SimplePDF (you can disable this behaviour in the settings: see 3.)
+1. Install the plugin from Plugins > Add New, or upload the zip file to `wp-content/plugins/`.
+2. Activate it from the Plugins menu.
+3. Go to Settings > SimplePDF Embed: it lists the PDF links on your site and where each one opens.
+4. Optional: to get the filled PDFs back, enter your company identifier (for `acme.simplepdf.com`, enter `acme`).
 
 == Frequently Asked Questions ==
-= I have installed the plugin: what should I do next? =
 
-All the existing PDF files will now open with SimplePDF.
+= What changes with a SimplePDF account? =
 
-If you wish to add new PDFs to your website, simply upload them to your Wordpress, copy the link and add it as a link to any page or paragraph in your wordpress.
+Without an account, visitors fill your PDF and download it. It is then up to them to send it to you.
 
-= The PDF is not opened with SimplePDF =
+With an account, they click Submit and the filled PDF lands in your dashboard, with an email alert or a webhook if you want one. You can export the answers to CSV or Excel, make fields required, and add your logo. [See the plans](https://simplepdf.com/pricing?ref=wordpress).
 
-Make sure that the link ends with ".pdf".
+= Where do the filled PDFs go? =
 
-Example: https://wordpress.simplepdf.co/wp-content/uploads/2024/01/example_wordpress.pdf
+Without an account, the visitor downloads the filled PDF: it is not sent to SimplePDF.
 
-= Do I need a SimplePDF account to use this plugin? =
+With an account, submitted PDFs are stored in your SimplePDF dashboard, or in your own storage (S3, Azure Blob Storage or SharePoint) on the plans that include it.
 
-No: the plugin does not require an account to work: all features are available without any account.
+= Do I need a SimplePDF account? =
 
-= What are the differences between using the plugin without and with a SimplePDF account? =
+No. Visitors can fill, sign and download PDFs without one. An account is what brings the filled PDFs back to you.
 
-Without an account, the plugin will open the PDF editor allowing your visitors to fill in documents and download them.
+= Can I try it on one page first? =
 
-With an account, the filled in documents will be automatically transmitted to you. You can configure to receive email notifications as well as use your own logo and loading animation.
+Yes. In Settings > SimplePDF Embed, set "Where it runs" to "Only on pages and posts I pick" and pick a draft or private page. Every other PDF link keeps opening in the browser.
 
-= Where should I submit my feature request or bug report? =
+= I installed the plugin: what next? =
 
-Feel free to reach out to us at wordpress@simplepdf.com!
+Every PDF link on your site now opens in SimplePDF. Open Settings > SimplePDF Embed to see which pages link a PDF and where each link opens. To add a new form, upload the PDF to your Media Library and link to it from any page or post.
+
+= A PDF link does not open in SimplePDF =
+
+Settings > SimplePDF Embed lists the PDF links on your pages and posts, with the reason next to any link that opens in the browser. The usual causes:
+
+* The link does not point to a `.pdf` file
+* The link has the `exclude-simplepdf` class
+* The page is not picked in "Where it runs"
+
+Links added by a page builder, a menu or a widget open the same way but are not listed.
+
+= How do I keep one PDF in the browser's viewer? =
+
+Add the `exclude-simplepdf` class to that link.
+
+= Can AI assistants fill my forms? =
+
+Yes, when a visitor browses with one (ChatGPT's browser, Chrome with WebMCP). The assistant fills the form in the editor on your page, where the visitor checks every answer, and required and read-only fields still apply. To turn it off, untick "Give AI assistants direct access to your forms" in Settings > SimplePDF Embed. Assistants that click and type like a person can still fill your forms, as on any website.
+
+= Where do I send a feature request or a bug report? =
+
+Email us at wordpress@simplepdf.com.
 
 = Where can I see the code? =
 
-Our Github repository contains both the code for the Wordpress plugin as well as the underlying @simplepdf/web-embed-pdf code upon which it relies:
-- [Wordpress plugin source code](https://github.com/SimplePDF/simplepdf-embed/tree/main/wordpress)
-- [@simplepdf/web-embed-pdf](https://github.com/SimplePDF/simplepdf-embed/tree/main/web)
+The plugin and the script it bundles are open source:
+
+* [WordPress plugin](https://github.com/SimplePDF/simplepdf-embed/tree/main/wordpress)
+* [@simplepdf/web-embed-pdf](https://github.com/SimplePDF/simplepdf-embed/tree/main/web)
+
+== External services ==
+
+This plugin connects to SimplePDF (https://simplepdf.com) in two ways.
+
+**The PDF editor.** When a visitor clicks a PDF link, the plugin opens the SimplePDF editor from `https://<your company identifier>.simplepdf.com` (`wordpress.simplepdf.com` without an account) in a frame on your page. The visitor's browser loads the PDF and hands it to the editor (or passes the PDF's address when it cannot load it), and the PDF is filled in the browser. When the visitor submits a filled PDF to your SimplePDF account, the filled PDF is sent to SimplePDF, or to your own storage if you set one up. Nothing is sent before a visitor clicks a PDF link.
+
+**The account check.** On the plugin's settings page only, the plugin sends one request to `https://<your company identifier>.simplepdf.com` to check that the account exists. It sends the plugin's version and nothing about your site or your visitors, and the result is cached for up to an hour.
+
+* [Terms of service](https://simplepdf.com/terms-of-service)
+* [Privacy policy](https://simplepdf.com/privacy-policy)
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release
-= 1.1.0 =
-* Add support for SimplePDF form links
-= 1.1.1 =
-* Move to SimplePDF.com (from SimplePDF.eu)
-= 1.1.2 =
-* Plugin tested with the latest wordpress version (6.7.1)
+= 1.2.0 =
+* New settings page: see every PDF link on your pages and posts, and where each one opens
+* Choose where it runs: everywhere, or only on the pages and posts you pick, drafts included
+* Your company identifier is checked, so a typo shows up right away
+* PDF links open in SimplePDF whatever the extension case (`Consent.PDF`), query string or `#page` fragment
+* AI assistants in your visitors' browser can now fill your forms (WebMCP). This is on after the update: to turn it off, untick "Give AI assistants direct access to your forms" in Settings > SimplePDF Embed
+* Uninstalling the plugin removes its settings
+* Update web-embed-pdf to 1.9.0
+* Plugin tested with the latest WordPress version (7.1.2)
+
 = 1.1.3 =
 * Update web-embed-pdf to 1.8.4
-* Plugin tested with the latest wordpress version (6.9.4)
+* Plugin tested with the latest WordPress version (6.9.4)
 
+= 1.1.2 =
+* Plugin tested with the latest WordPress version (6.7.1)
+
+= 1.1.1 =
+* Move to SimplePDF.com (from SimplePDF.eu)
+
+= 1.1.0 =
+* Add support for SimplePDF form links
+
+= 1.0.0 =
+* Initial release

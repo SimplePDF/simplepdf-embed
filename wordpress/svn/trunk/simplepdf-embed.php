@@ -4,8 +4,8 @@ Plugin Name:       SimplePDF Embed
 Plugin URI:        https://simplepdf.com/embed
 Author:            SimplePDF
 Author URI:        https://simplepdf.com
-Description:       Your visitors can fill & sign PDFs without leaving your website.
-Version:           1.1.3
+Description:       Visitors fill and sign your PDFs right on your site. With a SimplePDF account, every filled PDF comes back to you, automatically.
+Version:           1.2.0
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once __DIR__ . '/pdf-links.php';
 
-define('SIMPLEPDF_PLUGIN_VERSION', '1.1.3');
+define('SIMPLEPDF_PLUGIN_VERSION', '1.2.0');
 define('SIMPLEPDF_SETTINGS_SCREEN', 'settings_page_simplepdf_settings');
 define('SIMPLEPDF_POST_LIST_LIMIT', 300);
 define('SIMPLEPDF_PDF_PAGE_LIMIT', 100);
