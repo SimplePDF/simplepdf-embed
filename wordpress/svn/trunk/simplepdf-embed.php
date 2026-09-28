@@ -460,8 +460,8 @@ function simplepdf_render_scan_scope_note($is_capped) {
 function simplepdf_render_get_started() {
     ?>
     <div class="simplepdf-card-header">
-        <h2><?php esc_html_e('No PDF links found in your pages and posts', 'simplepdf-embed'); ?></h2>
-        <p class="simplepdf-lede"><?php esc_html_e('Link a PDF and visitors fill it right on your site:', 'simplepdf-embed'); ?></p>
+        <h2><?php esc_html_e('Get started', 'simplepdf-embed'); ?></h2>
+        <p class="simplepdf-lede"><?php esc_html_e('Link a PDF and visitors fill it right on your site.', 'simplepdf-embed'); ?></p>
     </div>
     <ol class="simplepdf-get-started">
         <li>
@@ -481,7 +481,7 @@ function simplepdf_render_get_started() {
         <li>
             <span class="simplepdf-step-text">
                 <strong><?php esc_html_e('Come back here', 'simplepdf-embed'); ?></strong>
-                <span class="description"><?php esc_html_e('The page shows up in this list, with where each PDF opens.', 'simplepdf-embed'); ?></span>
+                <span class="description"><?php esc_html_e('Your page shows up here, with where each PDF opens.', 'simplepdf-embed'); ?></span>
             </span>
         </li>
     </ol>
