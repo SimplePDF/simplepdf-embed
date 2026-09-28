@@ -53,7 +53,7 @@ Try it on one page before going live, and choose whether AI assistants can fill 
 
 See what an account adds before you sign up:
 
-![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-pitch-v2.png)
+![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-pitch-v3.png)
 
 **What visitors can do in the editor**
 

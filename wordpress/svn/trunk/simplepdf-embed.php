@@ -746,6 +746,7 @@ function simplepdf_render_account_pitch() {
     );
     $proof_points = array(
         __('Email notifications', 'simplepdf-embed'),
+        __('Excel export', 'simplepdf-embed'),
         __('Required fields', 'simplepdf-embed'),
         __('Team dashboard', 'simplepdf-embed'),
         __('Webhooks', 'simplepdf-embed'),
