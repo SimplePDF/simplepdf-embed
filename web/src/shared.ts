@@ -6,7 +6,7 @@ const MODAL_CLOSE_BUTTON_ID = 'simplePDF_modal_close_button' as const;
 const MODAL_STYLE_ID = 'simplePDF_modal_style' as const;
 const IFRAME_ID = 'simplePDF_iframe' as const;
 const IFRAME_CONTAINER_SELECTOR = `#${MODAL_ID} .simplePDF_iframeContainer`;
-const BASE_DOMAIN_PATTERN = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d{1,5})?$/;
+const HOST_NAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
 
 const UNEXPECTED_ERROR_INITIALIZATION = 'Unexpected: window.simplePDF not initialized';
 
@@ -75,11 +75,20 @@ const getLocale = (): Locale => {
 
 const readWebMCPAttribute = (): WebMCPOptions | null => {
   const webMCPAttribute = readScriptAttribute('webmcp');
-  if (webMCPAttribute === null) {
-    return null;
+  switch (webMCPAttribute) {
+    case null:
+      return null;
+    case '':
+    case 'true':
+      return { enabled: true };
+    case 'false':
+      return { enabled: false };
+    default:
+      console.error(
+        `@simplepdf/web-embed-pdf: webmcp="${webMCPAttribute}" is neither "true" nor "false", WebMCP is turned off`,
+      );
+      return { enabled: false };
   }
-
-  return webMCPAttribute === 'false' ? { enabled: false } : { enabled: true };
 };
 
 const scriptBaseDomain = readScriptAttribute('baseDomain');
@@ -174,28 +183,63 @@ const resolveEmbedDocument = (href: string | null): Promise<EmbedDocument | unde
     const documentUrl = new URL(href, document.baseURI);
     switch (documentUrl.protocol) {
       case 'data:':
-        return { dataUrl: href };
+        return { dataUrl: documentUrl.href };
       case 'blob:':
         return fetch(href)
           .then((response) => response.blob())
           .then((file) => ({ file }));
-      default: {
+      case 'http:':
+      case 'https:': {
         const name = documentUrl.pathname.substring(documentUrl.pathname.lastIndexOf('/') + 1);
         return name === '' ? { url: documentUrl.href } : { url: documentUrl.href, name };
       }
+      default:
+        // A `simplepdf` element whose href is not a document (javascript:, mailto:) opens an empty editor.
+        return undefined;
     }
   });
 
-const normalizeBaseDomain = (baseDomain: string | undefined): { isValid: boolean; baseDomain: string | undefined } => {
-  if (baseDomain === undefined) {
-    return { isValid: true, baseDomain: undefined };
+// The core compares the editor's messages against the origin it builds from `baseDomain`, so the
+// value is canonicalized the way the browser writes the iframe's origin (lowercase, default and
+// zero-padded ports dropped) and anything beyond a host and a port is refused.
+const normalizeBaseDomain = (
+  baseDomain: unknown,
+):
+  | { success: true; data: string | null }
+  | { success: false; error: { code: 'not_a_domain_name'; message: string } } => {
+  if (baseDomain === undefined || baseDomain === null) {
+    return { success: true, data: null };
   }
 
-  const normalizedBaseDomain = baseDomain
-    .trim()
-    .toLowerCase()
-    .replace(/:(80|443)$/, '');
-  return { isValid: BASE_DOMAIN_PATTERN.test(normalizedBaseDomain), baseDomain: normalizedBaseDomain };
+  const notADomainName = (): { success: false; error: { code: 'not_a_domain_name'; message: string } } => ({
+    success: false,
+    error: { code: 'not_a_domain_name', message: `baseDomain '${String(baseDomain)}' is not a domain name` },
+  });
+  if (typeof baseDomain !== 'string') {
+    return notADomainName();
+  }
+
+  const parsedBaseDomain = ((): URL | null => {
+    try {
+      return new URL(`https://${baseDomain}`);
+    } catch {
+      return null;
+    }
+  })();
+  const isHostOnly =
+    parsedBaseDomain !== null &&
+    parsedBaseDomain.username === '' &&
+    parsedBaseDomain.password === '' &&
+    parsedBaseDomain.pathname === '/' &&
+    parsedBaseDomain.search === '' &&
+    parsedBaseDomain.hash === '' &&
+    HOST_NAME_PATTERN.test(parsedBaseDomain.hostname);
+  if (parsedBaseDomain === null || !isHostOnly) {
+    return notADomainName();
+  }
+
+  const port = parsedBaseDomain.port === '80' ? '' : parsedBaseDomain.port;
+  return { success: true, data: port === '' ? parsedBaseDomain.hostname : `${parsedBaseDomain.hostname}:${port}` };
 };
 
 const MODAL_HTML = `
@@ -292,14 +336,13 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
   }
 
   const editorConfig = window.simplePDF?.config ?? config;
-  const { isValid: isValidBaseDomain, baseDomain } = normalizeBaseDomain(editorConfig.baseDomain);
-  if (!isValidBaseDomain) {
-    console.error(`@simplepdf/web-embed-pdf: baseDomain '${editorConfig.baseDomain}' is not a domain name`);
+  const baseDomain = normalizeBaseDomain(editorConfig.baseDomain);
+  if (!baseDomain.success) {
+    console.error(`@simplepdf/web-embed-pdf: ${baseDomain.error.message}`);
     return;
   }
 
-  const companyIdentifier = editorConfig.companyIdentifier.toLowerCase();
-  log('Creating the modal', { companyIdentifier, href });
+  log('Creating the modal', { companyIdentifier: editorConfig.companyIdentifier, href });
   editorContext.activeEmbed?.lifecycle.dispose();
   editorContext.activeEmbed = null;
   document.body.style.overflow = 'hidden';
@@ -316,8 +359,8 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
 
       editorContext.activeEmbed = createEmbed({
         target: IFRAME_CONTAINER_SELECTOR,
-        companyIdentifier,
-        baseDomain,
+        companyIdentifier: editorConfig.companyIdentifier.toLowerCase(),
+        baseDomain: baseDomain.data ?? undefined,
         locale: editorConfig.locale,
         context,
         document: embedDocument,

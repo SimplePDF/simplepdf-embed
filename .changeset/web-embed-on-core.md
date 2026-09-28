@@ -8,4 +8,4 @@
 - **Japanese and Dutch**: pages in either language open the editor in that language.
 - **Stored documents open directly**: a link to a SimplePDF document (`/documents/<id>`) opens it in the editor.
 - **Clear errors for invalid company identifiers**: a value that cannot form an editor address (a URL, spaces, dots, underscores) logs an error and opens nothing. An identifier without an account still opens the editor, which explains the problem.
-- **Same script, same API**: now built on `@simplepdf/embed`, the engine behind the React component. `window.simplePDF`, the script-tag attributes and the modal work exactly as before.
+- **Same script, same API**: now built on `@simplepdf/embed`, the engine behind the React component. `window.simplePDF`, the script-tag attributes and the modal are unchanged.

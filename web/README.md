@@ -108,9 +108,9 @@ SimplePDF automatically detects the language of the page (using the `lang` attri
 
 ### In-browser agents (WebMCP)
 
-While the editor is open, an agent running in the visitor's browser (for example Chrome with WebMCP) finds the editor's operations as tools on your page: read and fill fields, move between pages, submit. Every call goes through the same permissions as any other integration. Nothing happens in browsers without an agent.
+While the editor is open, an agent running in the visitor's browser (ChatGPT's browser, Chrome with WebMCP) finds the editor's operations as tools on your page: read and fill fields, move between pages, submit. Every call goes through the same permissions as any other integration. Nothing happens in browsers without an agent.
 
-To turn it off, add `webmcp="false"` to the script tag:
+To turn it off, add `webmcp="false"` to the script tag (any value other than `true` or `false` turns it off and logs an error):
 
 <!-- prettier-ignore-start -->
 ```html
@@ -123,9 +123,13 @@ To turn it off, add `webmcp="false"` to the script tag:
 ```
 <!-- prettier-ignore-end -->
 
-Or from JavaScript, to turn it off or withhold the operations a person must do themselves:
+Or from JavaScript:
 
 ```javascript
+// Turn it off
+window.simplePDF.setConfig({ webMCP: { enabled: false } });
+
+// Keep it on, but withhold the operations a person must do themselves
 window.simplePDF.setConfig({ webMCP: { enabled: true, exclude: ['submit'] } });
 ```
 
