@@ -24,7 +24,7 @@ $keep_href = function ($href) {
     return $href;
 };
 
-$cases = json_decode(file_get_contents(__DIR__ . '/../svn/trunk/src/__tests__/fixtures/pdf-link-cases.json'), true);
+$cases = json_decode(file_get_contents(__DIR__ . '/fixtures/pdf-link-cases.json'), true);
 $check('the shared link cases load', is_array($cases) && count($cases) > 0);
 foreach ( $cases as $case ) {
     $opens_in_simplepdf = simplepdf_classify_link($case['href'], $case['classes']) === 'opens_in_simplepdf';

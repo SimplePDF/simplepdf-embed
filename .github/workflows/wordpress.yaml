@@ -44,8 +44,9 @@ jobs:
           npm ci
           npm run copy-src
           npm run copy-build
-          git diff --exit-code -- svn/trunk/src svn/trunk/build
-          test -z "$(git status --porcelain -- svn/trunk/src svn/trunk/build)"
+          npm run copy-fixtures
+          git diff --exit-code -- svn/trunk/src svn/trunk/build tests/fixtures
+          test -z "$(git status --porcelain -- svn/trunk/src svn/trunk/build tests/fixtures)"
 
       - name: The plugin enqueues the pinned version
         working-directory: wordpress

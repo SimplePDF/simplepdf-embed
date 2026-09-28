@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "copy-src": "rm -rf ./svn/trunk/src && mkdir ./svn/trunk/src && cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* ./svn/trunk/src/",
+    "copy-src": "rm -rf ./svn/trunk/src && cp -r ./node_modules/@simplepdf/web-embed-pdf/src ./svn/trunk/src && rm -rf ./svn/trunk/src/__tests__",
+    "copy-fixtures": "mkdir -p ./tests/fixtures && cp ./node_modules/@simplepdf/web-embed-pdf/src/__tests__/fixtures/pdf-link-cases.json ./tests/fixtures/",
     "copy-build": "cp -r ./node_modules/@simplepdf/web-embed-pdf/dist/index.min.js ./svn/trunk/build/web-embed-pdf.js",
-    "package-plugin": "npm install && npm run copy-src && npm run copy-build"
+    "package-plugin": "npm install && npm run copy-src && npm run copy-build && npm run copy-fixtures"
   },
   "dependencies": {
     "@simplepdf/web-embed-pdf": "1.9.0"

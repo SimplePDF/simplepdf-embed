@@ -17,7 +17,7 @@ function simplepdf_get_anchor_attribute($anchor_tag, $attribute_name) {
 }
 
 // Mirrors getSimplePDFElements in the bundled web-embed script, so the report predicts what visitors get.
-// The shared cases in src/__tests__/fixtures/pdf-link-cases.json pin both rules (tests/pdf-links-test.php).
+// The web package's shared link cases pin both rules (wordpress/tests/pdf-links-test.php).
 // CF: src/shared.ts
 function simplepdf_classify_link($href, $classes) {
     if ( in_array('exclude-simplepdf', $classes, true) ) {
