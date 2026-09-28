@@ -2,10 +2,10 @@
 '@simplepdf/web-embed-pdf': minor
 ---
 
-Rebuilt on `@simplepdf/embed`; `window.simplePDF`, the script-tag attributes and the modal are unchanged.
+**Your pages are now ready for AI agents.** While the editor is open, an agent in your visitor's browser (ChatGPT's browser, Chrome with WebMCP) can read and fill the form, move between pages and submit it, with the same permissions as any other integration. It is on by default: add `webmcp="false"` to the script tag to turn it off.
 
-- WebMCP, on by default: while the editor is open, an in-browser agent on your page finds the editor's tools. Turn it off with `webmcp="false"` on the script tag or `setConfig({ webMCP: { enabled: false } })`; `exclude` withholds single operations.
-- PDF links open in SimplePDF whatever the extension case, query string or fragment: `Consent.PDF`, `form.pdf?ver=2` and `guide.pdf#page=3` were left to the browser. Links already detected keep opening in SimplePDF.
-- Japanese and Dutch pages open the editor in their language instead of English.
-- A SimplePDF `/documents/<id>` link opens the stored document directly.
-- A `companyIdentifier` that cannot form an editor address (a URL, spaces, dots, underscores) logs an error and opens nothing. An identifier with no account behind it still opens the editor, which shows its own error page, and uppercase keeps working.
+- **More PDF links open in SimplePDF**: `Report.PDF`, `form.pdf?v=2` and `guide.pdf#page=3` used to open in the browser.
+- **Japanese and Dutch**: pages in either language open the editor in that language.
+- **Stored documents open directly**: a link to a SimplePDF document (`/documents/<id>`) opens it in the editor.
+- **Clear errors for invalid company identifiers**: a value that cannot form an editor address (a URL, spaces, dots, underscores) logs an error and opens nothing. An identifier without an account still opens the editor, which explains the problem.
+- **Same script, same API**: now built on `@simplepdf/embed`, the engine behind the React component. `window.simplePDF`, the script-tag attributes and the modal work exactly as before.
