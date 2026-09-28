@@ -298,7 +298,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
     return;
   }
 
-  const companyIdentifier = editorConfig.companyIdentifier.trim().toLowerCase();
+  const companyIdentifier = editorConfig.companyIdentifier.toLowerCase();
   log('Creating the modal', { companyIdentifier, href });
   editorContext.activeEmbed?.lifecycle.dispose();
   editorContext.activeEmbed = null;
@@ -322,7 +322,7 @@ export const openEditor = ({ href, context }: { href: string | null; context?: R
         context,
         document: embedDocument,
         iframeAttrs: { className: 'simplePDF_iframe' },
-        webMCP: editorConfig.webMCP,
+        webMCP: editorConfig.webMCP ?? { enabled: true },
       });
       document.querySelector(`${IFRAME_CONTAINER_SELECTOR} iframe`)?.setAttribute('id', IFRAME_ID);
     })
