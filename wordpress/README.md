@@ -27,3 +27,5 @@ svn up
 svn cp trunk tags/<TAG>
 svn commit -m 'Tagging version <TAG>'
 ```
+
+7. Once https://wordpress.org/plugins/simplepdf-embed/ shows the new version, announce it on Discord: run the **WordPress release** workflow (`gh workflow run wordpress-release.yaml --repo SimplePDF/simplepdf-embed`). It posts the `README.txt` changelog for the Stable tag, and refuses to post until WordPress.org serves that version.

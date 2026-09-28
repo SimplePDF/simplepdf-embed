@@ -13,9 +13,9 @@ export const EXIT_CODES = {
   discord_rejected_message: 4,
 }
 
-const BRAND_BLUE = 0x3665e1
+export const BRAND_BLUE = 0x3665e1
 const BREAKING_RED = 0xcc2222
-const LOGO_URL = 'https://simplepdf.com/android-chrome-512x512.png'
+export const LOGO_URL = 'https://simplepdf.com/android-chrome-512x512.png'
 // Discord caps an embed description at 4096 characters; the headroom keeps the closing link line.
 const DESCRIPTION_LIMIT = 3800
 
@@ -170,7 +170,7 @@ const parsePublishedPackages = (value) => {
   }
 }
 
-const postToDiscord = async ({ webhookUrl, message }) => {
+export const postToDiscord = async ({ webhookUrl, message }) => {
   const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
