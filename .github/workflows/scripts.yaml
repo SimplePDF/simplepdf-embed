@@ -1,0 +1,25 @@
+name: Scripts
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - scripts/**
+
+jobs:
+  test:
+    name: Test repository scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Run the script tests
+        run: node --test 'scripts/**/*.test.mjs'
