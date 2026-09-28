@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - wordpress/**
+      - .github/workflows/wordpress.yaml
 
 jobs:
   test:
@@ -28,3 +29,26 @@ jobs:
 
       - name: Test the PDF link rule against the shared cases
         run: docker run --rm -v "$PWD":/w php:${{ matrix.php }}-cli php /w/wordpress/tests/pdf-links-test.php
+
+  vendored-bundle:
+    name: Vendored web-embed matches the pinned version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Re-vendor from npm and compare
+        working-directory: wordpress
+        run: |
+          npm ci
+          npm run copy-src
+          npm run copy-build
+          git diff --exit-code -- svn/trunk/src svn/trunk/build
+          test -z "$(git status --porcelain -- svn/trunk/src svn/trunk/build)"
+
+      - name: The plugin enqueues the pinned version
+        working-directory: wordpress
+        run: |
+          pinned_version=$(node -p "require('./package.json').dependencies['@simplepdf/web-embed-pdf']")
+          grep -q "define('SIMPLEPDF_WEB_EMBED_VERSION', '${pinned_version}');" svn/trunk/simplepdf-embed.php

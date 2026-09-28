@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "copy-src": "cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* ./svn/trunk/src/",
+    "copy-src": "rm -rf ./svn/trunk/src && mkdir ./svn/trunk/src && cp -r ./node_modules/@simplepdf/web-embed-pdf/src/* ./svn/trunk/src/",
     "copy-build": "cp -r ./node_modules/@simplepdf/web-embed-pdf/dist/index.min.js ./svn/trunk/build/web-embed-pdf.js",
     "package-plugin": "npm install && npm run copy-src && npm run copy-build"
   },

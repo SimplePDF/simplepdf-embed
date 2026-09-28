@@ -43,8 +43,8 @@ function simplepdf_register_settings() {
     register_setting('simplepdf_scope', 'simplepdf_selected_post_ids', array(
         'sanitize_callback' => 'simplepdf_sanitize_selected_post_ids',
     ));
-    register_setting('simplepdf_agents', 'simplepdf_agents', array(
-        'sanitize_callback' => 'simplepdf_sanitize_agents',
+    register_setting('simplepdf_webmcp', 'simplepdf_webmcp', array(
+        'sanitize_callback' => 'simplepdf_sanitize_webmcp',
     ));
 }
 
@@ -74,12 +74,12 @@ function simplepdf_sanitize_load_scope($value) {
 }
 
 // An unticked checkbox posts nothing, which saves 'off'.
-function simplepdf_sanitize_agents($value) {
+function simplepdf_sanitize_webmcp($value) {
     return $value === 'on' ? 'on' : 'off';
 }
 
-function simplepdf_are_agents_enabled() {
-    return get_option('simplepdf_agents', 'on') === 'on';
+function simplepdf_is_webmcp_enabled() {
+    return get_option('simplepdf_webmcp', 'on') === 'on';
 }
 
 function simplepdf_sanitize_selected_post_ids($value) {
@@ -146,8 +146,7 @@ function simplepdf_should_load_on_current_request() {
 
     $queried_object = get_queried_object();
 
-    return $queried_object instanceof WP_Post
-        && in_array($queried_object->ID, simplepdf_get_selected_post_ids(), true);
+    return $queried_object instanceof WP_Post && simplepdf_runs_on_post($queried_object->ID);
 }
 
 function simplepdf_enqueue_script() {
@@ -161,8 +160,8 @@ function simplepdf_enqueue_script() {
 
     $saved_company_identifier = simplepdf_get_company_identifier();
     $company_identifier = $saved_company_identifier === '' ? 'wordpress' : $saved_company_identifier;
-    $agents_option = simplepdf_are_agents_enabled() ? '' : ', webMCP: { enabled: false }';
-    $inline_script = "window.simplePDF.setConfig({ companyIdentifier: '" . esc_js($company_identifier) . "'" . $agents_option . ' });';
+    $webmcp_option = simplepdf_is_webmcp_enabled() ? '' : ', webMCP: { enabled: false }';
+    $inline_script = "window.simplePDF.setConfig({ companyIdentifier: '" . esc_js($company_identifier) . "'" . $webmcp_option . ' });';
 
     wp_add_inline_script('simplepdf-web-embed-pdf', $inline_script, 'after');
 }
@@ -190,6 +189,10 @@ function simplepdf_enqueue_admin_assets($hook_suffix) {
     wp_register_style('simplepdf-settings', false, array(), SIMPLEPDF_PLUGIN_VERSION);
     wp_enqueue_style('simplepdf-settings');
     wp_add_inline_style('simplepdf-settings', simplepdf_admin_css());
+
+    if ( ! simplepdf_should_show_review_notice() ) {
+        return;
+    }
 
     wp_register_script('simplepdf-review-notice', false, array(), SIMPLEPDF_PLUGIN_VERSION, true);
     wp_enqueue_script('simplepdf-review-notice');
@@ -307,11 +310,14 @@ function simplepdf_admin_css() {
 .simplepdf-pill-on { background: #edfaef; color: #007017; }
 .simplepdf-pill-error { background: #fcf0f1; color: #b32d2e; }
 .simplepdf-save { margin: 16px 0 0; }
-.simplepdf-new { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: #3665e1; color: #fff; font-size: 11px; font-weight: 600; vertical-align: middle; }
-.simplepdf-agent-benefits { margin: 12px 0 16px; }
-.simplepdf-agent-benefits li { position: relative; padding-left: 24px; margin-bottom: 8px; }
-.simplepdf-agent-benefits li::before { content: "✓"; position: absolute; left: 0; color: #00a32a; font-weight: 600; }
-.simplepdf-agents-toggle { font-weight: 600; }
+.simplepdf-card-title { display: flex; align-items: center; gap: 8px; }
+.simplepdf-card-title h2 { margin: 0; }
+.simplepdf-new { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #3665e1; color: #fff; font-size: 11px; font-weight: 600; vertical-align: middle; }
+.simplepdf-webmcp-benefits { margin: 12px 0 16px; }
+.simplepdf-webmcp-benefits li { position: relative; padding-left: 24px; margin-bottom: 8px; }
+.simplepdf-webmcp-benefits li::before { content: "✓"; content: "✓" / ""; position: absolute; left: 0; color: #00a32a; font-weight: 600; }
+.simplepdf-webmcp-toggle { font-weight: 600; }
+.simplepdf-webmcp-toggle + .description { margin: 4px 0 0 24px; }
 .simplepdf-review-notice .button { margin-left: 8px; vertical-align: baseline; }
 .simplepdf-help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .simplepdf-help h3 { margin: 0 0 8px; font-size: 13px; }
@@ -319,7 +325,8 @@ function simplepdf_admin_css() {
 .simplepdf-help li { margin-bottom: 6px; }
 @media (max-width: 782px) {
   .simplepdf-compare, .simplepdf-help { grid-template-columns: 1fr; }
-  .simplepdf-header nav { display: none; }
+  .simplepdf-header { flex-wrap: wrap; }
+  .simplepdf-header nav { margin-left: 0; width: 100%; }
 }
 CSS;
 }
@@ -339,7 +346,7 @@ function simplepdf_render_header() {
         <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . 'assets/icon-128x128.png'); ?>" alt="">
         <h1><?php esc_html_e('SimplePDF Embed', 'simplepdf-embed'); ?></h1>
         <span class="simplepdf-version">v<?php echo esc_html(SIMPLEPDF_PLUGIN_VERSION); ?></span>
-        <nav>
+        <nav aria-label="<?php esc_attr_e('SimplePDF help', 'simplepdf-embed'); ?>">
             <?php echo wp_kses_post(simplepdf_external_link('https://simplepdf.com/help', __('Help center', 'simplepdf-embed'))); ?>
             <a href="mailto:support@simplepdf.com"><?php esc_html_e('Contact support', 'simplepdf-embed'); ?></a>
         </nav>
@@ -435,8 +442,8 @@ function simplepdf_render_scan_scope_note($is_capped) {
         <?php if ( $is_capped ) : ?>
             <?php
             echo esc_html(sprintf(
-                /* translators: %d: how many recently edited pages are scanned */
-                __('Showing your %d most recently edited pages.', 'simplepdf-embed'),
+                /* translators: %d: how many recently edited pages and posts are checked */
+                __('Only your %d most recently edited pages and posts were checked.', 'simplepdf-embed'),
                 SIMPLEPDF_PDF_PAGE_LIMIT
             ));
             ?>
@@ -538,6 +545,15 @@ function simplepdf_render_pdf_table($pages_with_pdf_links) {
 }
 
 function simplepdf_get_pdf_link_report() {
+    static $report = null;
+    if ( $report === null ) {
+        $report = simplepdf_build_pdf_link_report();
+    }
+
+    return $report;
+}
+
+function simplepdf_build_pdf_link_report() {
     $scan = simplepdf_get_pages_with_pdf_links();
     $company_identifier = simplepdf_get_company_identifier();
     $has_missing_account = $company_identifier !== '' && simplepdf_get_account_status($company_identifier) === 'not_found';
@@ -773,8 +789,9 @@ function simplepdf_render_account_pitch() {
     <?php
 }
 
-function simplepdf_render_agents_card() {
-    $agent_benefits = array(
+function simplepdf_render_webmcp_card() {
+    $is_webmcp_enabled = simplepdf_is_webmcp_enabled();
+    $webmcp_benefits = array(
         array(
             'title' => __('Forms get done in one go.', 'simplepdf-embed'),
             'detail' => __('The assistant reads every field on every page and fills it in for your visitor.', 'simplepdf-embed'),
@@ -785,31 +802,35 @@ function simplepdf_render_agents_card() {
         ),
         array(
             'title' => __('Your rules still apply.', 'simplepdf-embed'),
-            'detail' => __('Required fields, read-only fields and your account settings hold for assistants too.', 'simplepdf-embed'),
+            'detail' => __('Required fields, read-only fields and your editor\'s permissions hold for assistants too.', 'simplepdf-embed'),
         ),
         array(
             'title' => __('Nothing to set up.', 'simplepdf-embed'),
-            'detail' => __('It works whenever a visitor brings an assistant, and changes nothing for everyone else.', 'simplepdf-embed'),
+            'detail' => __('It works on its own, separate from the Browser AI agents setting in your SimplePDF dashboard, and changes nothing for visitors without an assistant.', 'simplepdf-embed'),
         ),
     );
+    $heading = $is_webmcp_enabled
+        ? __('Your forms are ready for AI assistants', 'simplepdf-embed')
+        : __('AI assistants get no direct access to your forms', 'simplepdf-embed');
     ?>
-    <form class="card simplepdf-agents" method="post" action="options.php">
-        <?php settings_fields('simplepdf_agents'); ?>
-        <h2>
-            <?php esc_html_e('Your forms are ready for AI assistants', 'simplepdf-embed'); ?>
+    <form class="card simplepdf-webmcp" method="post" action="options.php">
+        <?php settings_fields('simplepdf_webmcp'); ?>
+        <div class="simplepdf-card-title">
+            <h2><?php echo esc_html($heading); ?></h2>
             <span class="simplepdf-new"><?php esc_html_e('New', 'simplepdf-embed'); ?></span>
-        </h2>
-        <p class="simplepdf-lede"><?php esc_html_e('More and more people browse with an AI assistant, like ChatGPT\'s browser or Chrome with WebMCP. When one of your visitors does, they can ask it to fill your PDF for them.', 'simplepdf-embed'); ?></p>
-        <ul class="simplepdf-agent-benefits">
-            <?php foreach ( $agent_benefits as $agent_benefit ) : ?>
-                <li><strong><?php echo esc_html($agent_benefit['title']); ?></strong> <?php echo esc_html($agent_benefit['detail']); ?></li>
+        </div>
+        <p class="simplepdf-lede"><?php esc_html_e('Long form? A visitor browsing with an AI assistant, like ChatGPT\'s browser or Chrome with WebMCP, can ask it to fill your PDF for them.', 'simplepdf-embed'); ?></p>
+        <ul class="simplepdf-webmcp-benefits">
+            <?php foreach ( $webmcp_benefits as $webmcp_benefit ) : ?>
+                <li><strong><?php echo esc_html($webmcp_benefit['title']); ?></strong> <?php echo esc_html($webmcp_benefit['detail']); ?></li>
             <?php endforeach; ?>
         </ul>
-        <label class="simplepdf-agents-toggle">
-            <input type="checkbox" name="simplepdf_agents" value="on" <?php checked(simplepdf_are_agents_enabled()); ?>>
-            <?php esc_html_e('Let AI assistants fill forms on this site', 'simplepdf-embed'); ?>
+        <label class="simplepdf-webmcp-toggle">
+            <input type="checkbox" name="simplepdf_webmcp" value="on" <?php checked($is_webmcp_enabled); ?>>
+            <?php esc_html_e('Give AI assistants direct access to your forms (WebMCP)', 'simplepdf-embed'); ?>
         </label>
-        <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-agents', false); ?></p>
+        <p class="description"><?php esc_html_e('Turned off, assistants that click and type like a person can still fill your forms, as on any website.', 'simplepdf-embed'); ?></p>
+        <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-webmcp', false); ?></p>
     </form>
     <?php
 }
@@ -1008,7 +1029,7 @@ function simplepdf_settings_page() {
         <?php simplepdf_render_header(); ?>
         <?php simplepdf_render_pdfs_card(); ?>
         <?php simplepdf_render_scope_card(); ?>
-        <?php simplepdf_render_agents_card(); ?>
+        <?php simplepdf_render_webmcp_card(); ?>
         <?php simplepdf_render_account_card(); ?>
         <?php simplepdf_render_help_card(); ?>
     </div>

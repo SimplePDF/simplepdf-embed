@@ -13,7 +13,9 @@ function wp_parse_url($url, $component = -1) {
 require __DIR__ . '/../svn/trunk/pdf-links.php';
 
 $failures = array();
-$check = function ($label, $is_expected) use (&$failures) {
+$check_count = 0;
+$check = function ($label, $is_expected) use (&$failures, &$check_count) {
+    $check_count++;
     if ( ! $is_expected ) {
         $failures[] = $label;
     }
@@ -47,4 +49,4 @@ if ( ! empty($failures) ) {
     fwrite(STDERR, "FAILED:\n  " . implode("\n  ", $failures) . "\n");
     exit(1);
 }
-echo 'pdf-links: ' . (count($cases) + 5) . " checks passed\n";
+echo "pdf-links: {$check_count} checks passed\n";
