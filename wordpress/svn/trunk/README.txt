@@ -49,11 +49,11 @@ See every PDF link on your pages and posts, and where each one opens:
 
 Try it on one page before going live, and choose whether AI assistants can fill your forms:
 
-![Where it runs: everywhere, or only on the pages and posts you pick](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-where-it-runs-v2.png)
+![Where it runs: everywhere, or only on the pages and posts you pick](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-where-it-runs-and-ai-assistants.png)
 
 See what an account adds before you sign up:
 
-![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-pitch-v4.png)
+![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-before-after.png)
 
 **What visitors can do in the editor**
 
