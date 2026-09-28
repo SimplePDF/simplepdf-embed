@@ -58,7 +58,7 @@ See [Data Privacy & companyIdentifier](../README.md#data-privacy--companyidentif
 
 ## How does it work?
 
-**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
+**Anchor links (`a`) with an href pointing to a PDF file (`.pdf`, in any case, with or without a query string or fragment) or [SimplePDF forms](https://simplepdf.com/portal) are automatically opened in [SimplePDF](https://simplepdf.com)**
 
 ### I don't want every PDF document to be opened in SimplePDF
 
@@ -89,6 +89,8 @@ SimplePDF automatically detects the language of the page (using the `lang` attri
 - Spanish (`es`)
 - French (`fr`)
 - Italian (`it`)
+- Japanese (`ja`)
+- Dutch (`nl`)
 - Portuguese (`pt`)
 
 **If you wish to override the automatic detection, you can specify the `locale` attribute on the script tag as follows**:
@@ -103,6 +105,35 @@ SimplePDF automatically detects the language of the page (using the `lang` attri
 ></script>
 ```
 <!-- prettier-ignore-end -->
+
+### In-browser agents (WebMCP)
+
+While the editor is open, an agent running in the visitor's browser (ChatGPT's browser, Chrome with WebMCP) finds the editor's operations as tools on your page: read and fill fields, move between pages, submit. Every call goes through the same permissions as any other integration. Nothing happens in browsers without an agent.
+
+To turn it off, add `webmcp="false"` to the script tag (any value other than `true` or `false` turns it off and logs an error):
+
+<!-- prettier-ignore-start -->
+```html
+<script
+  src="https://unpkg.com/@simplepdf/web-embed-pdf"
+  companyIdentifier="yourcompany"
+  webmcp="false"
+  defer
+></script>
+```
+<!-- prettier-ignore-end -->
+
+Or from JavaScript:
+
+```javascript
+// Turn it off
+window.simplePDF.setConfig({ webMCP: { enabled: false } });
+
+// Keep it on, but withhold the operations a person must do themselves
+window.simplePDF.setConfig({ webMCP: { enabled: true, exclude: ['submit'] } });
+```
+
+The option applies to the next editor opened: an editor already open keeps the tools it registered until it closes.
 
 ### Opening the editor programmatically
 
