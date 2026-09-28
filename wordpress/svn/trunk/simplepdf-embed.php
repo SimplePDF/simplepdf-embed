@@ -12,6 +12,8 @@ License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+require_once __DIR__ . '/pdf-links.php';
+
 define('SIMPLEPDF_PLUGIN_VERSION', '1.1.3');
 define('SIMPLEPDF_SETTINGS_SCREEN', 'settings_page_simplepdf_settings');
 define('SIMPLEPDF_POST_LIST_LIMIT', 300);
@@ -32,21 +34,36 @@ function simplepdf_settings_init() {
 }
 
 function simplepdf_register_settings() {
-    register_setting('simplepdf_settings', 'simplepdf_company_identifier', array(
+    register_setting('simplepdf_account', 'simplepdf_company_identifier', array(
         'sanitize_callback' => 'simplepdf_sanitize_company_identifier',
     ));
-    register_setting('simplepdf_settings', 'simplepdf_load_scope', array(
+    register_setting('simplepdf_scope', 'simplepdf_load_scope', array(
         'sanitize_callback' => 'simplepdf_sanitize_load_scope',
     ));
-    register_setting('simplepdf_settings', 'simplepdf_selected_post_ids', array(
+    register_setting('simplepdf_scope', 'simplepdf_selected_post_ids', array(
         'sanitize_callback' => 'simplepdf_sanitize_selected_post_ids',
     ));
 }
 
-function simplepdf_sanitize_company_identifier($value) {
+function simplepdf_normalize_company_identifier($value) {
     $subdomain = preg_replace('#^(?:https?://)?(?:[^/]*\.)?([a-z0-9-]+)\.simplepdf\.com.*$#i', '$1', trim((string) $value));
 
     return preg_replace('/[^a-z0-9-]/', '', strtolower($subdomain));
+}
+
+function simplepdf_sanitize_company_identifier($value) {
+    $company_identifier = simplepdf_normalize_company_identifier($value);
+    $is_subdomain_label = $company_identifier === '' || preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $company_identifier) === 1;
+    if ( ! $is_subdomain_label ) {
+        add_settings_error(
+            'simplepdf_company_identifier',
+            'simplepdf_invalid_company_identifier',
+            __('That company identifier is not valid: use the first part of your SimplePDF address, for example acme for acme.simplepdf.com.', 'simplepdf-embed')
+        );
+        return get_option('simplepdf_company_identifier');
+    }
+
+    return $company_identifier;
 }
 
 function simplepdf_sanitize_load_scope($value) {
@@ -62,13 +79,14 @@ function simplepdf_sanitize_selected_post_ids($value) {
 }
 
 function simplepdf_get_company_identifier() {
-    return simplepdf_sanitize_company_identifier(get_option('simplepdf_company_identifier'));
+    return simplepdf_normalize_company_identifier(get_option('simplepdf_company_identifier'));
 }
 
 function simplepdf_fetch_account_status($company_identifier) {
     $response = wp_remote_head('https://' . $company_identifier . '.simplepdf.com/', array(
         'redirection' => 0,
         'timeout' => 5,
+        'user-agent' => 'SimplePDF-WordPress/' . SIMPLEPDF_PLUGIN_VERSION,
     ));
     if ( is_wp_error($response) ) {
         return 'unreachable';
@@ -310,56 +328,6 @@ function simplepdf_render_header() {
     <?php
 }
 
-function simplepdf_get_anchor_attribute($anchor_tag, $attribute_name) {
-    $attribute_pattern = '/\s' . $attribute_name . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))/i';
-    if ( ! preg_match($attribute_pattern, $anchor_tag, $attribute_match) ) {
-        return '';
-    }
-
-    $attribute_value = implode('', array_slice($attribute_match, 1));
-
-    return trim(html_entity_decode($attribute_value, ENT_QUOTES));
-}
-
-// Mirrors getSimplePDFElements in the bundled web-embed script, so the table predicts what visitors get
-// CF: src/shared.ts
-function simplepdf_classify_link($href, $classes) {
-    if ( in_array('exclude-simplepdf', $classes, true) ) {
-        return 'excluded';
-    }
-
-    $is_pdf_link = substr(strtolower($href), -4) === '.pdf'
-        || substr(strtolower((string) wp_parse_url($href, PHP_URL_PATH)), -4) === '.pdf';
-    $is_simplepdf_link = preg_match('#^https://[^.]+\.simplepdf\.com(/[^/]+)?/(form|documents)/.+#', $href) === 1;
-    if ( $is_pdf_link || $is_simplepdf_link || in_array('simplepdf', $classes, true) ) {
-        return 'opens_in_simplepdf';
-    }
-
-    return 'not_recognised';
-}
-
-function simplepdf_extract_pdf_links($post_content) {
-    preg_match_all('/<a\s[^>]*>/i', $post_content, $anchor_matches);
-
-    $pdf_links = array();
-    foreach ( $anchor_matches[0] as $anchor_tag ) {
-        $href = simplepdf_get_anchor_attribute($anchor_tag, 'href');
-        $classes = preg_split('/\s+/', simplepdf_get_anchor_attribute($anchor_tag, 'class'), -1, PREG_SPLIT_NO_EMPTY);
-        $link_type = simplepdf_classify_link($href, $classes);
-        $mentions_pdf = stripos($href, '.pdf') !== false;
-        if ( $link_type === 'not_recognised' && ! $mentions_pdf ) {
-            continue;
-        }
-
-        $pdf_links[] = array(
-            'href' => $href,
-            'link_type' => $link_type,
-        );
-    }
-
-    return $pdf_links;
-}
-
 function simplepdf_scan_pages_with_pdf_links() {
     global $wpdb;
 
@@ -390,7 +358,10 @@ function simplepdf_scan_pages_with_pdf_links() {
 
     $pages = array();
     foreach ( $posts as $post ) {
-        $pdf_links = simplepdf_extract_pdf_links($post->post_content);
+        $page_url = get_permalink($post);
+        $pdf_links = simplepdf_extract_pdf_links($post->post_content, function ($href) use ($page_url) {
+            return $href === '' ? $href : WP_Http::make_absolute_url($href, $page_url);
+        });
         if ( ! empty($pdf_links) ) {
             $pages[] = array('post' => $post, 'pdf_links' => $pdf_links);
         }
@@ -457,7 +428,7 @@ function simplepdf_render_scan_scope_note($is_capped) {
 function simplepdf_render_get_started() {
     ?>
     <h2><?php esc_html_e('No PDF links found in your pages and posts', 'simplepdf-embed'); ?></h2>
-    <p class="simplepdf-lede"><?php esc_html_e('Visitors can\'t fill your forms on your site until you link a PDF. It takes two minutes:', 'simplepdf-embed'); ?></p>
+    <p class="simplepdf-lede"><?php esc_html_e('Link a PDF and visitors fill it right on your site:', 'simplepdf-embed'); ?></p>
     <ol class="simplepdf-get-started">
         <li>
             <span class="simplepdf-step-text">
@@ -550,7 +521,7 @@ function simplepdf_get_pdf_link_report() {
     $scan = simplepdf_get_pages_with_pdf_links();
     $company_identifier = simplepdf_get_company_identifier();
     $has_missing_account = $company_identifier !== '' && simplepdf_get_account_status($company_identifier) === 'not_found';
-    $counts = array('simplepdf' => 0, 'browser' => 0, 'error' => 0);
+    $counts = array('simplepdf' => 0, 'browser' => 0, 'error' => 0, 'not_picked' => 0);
 
     $pages = array();
     foreach ( $scan['pages'] as $page ) {
@@ -559,6 +530,7 @@ function simplepdf_get_pdf_link_report() {
         foreach ( $page['pdf_links'] as $pdf_link ) {
             $outcome = simplepdf_get_link_outcome($pdf_link, $runs_on_page, $has_missing_account);
             $counts[$outcome['opens_in']]++;
+            $counts['not_picked'] += $pdf_link['link_type'] === 'opens_in_simplepdf' && ! $runs_on_page ? 1 : 0;
             $pdf_links[] = array_merge($pdf_link, array('outcome' => $outcome));
         }
         $pages[] = array('post' => $page['post'], 'runs_on_page' => $runs_on_page, 'pdf_links' => $pdf_links);
@@ -568,7 +540,7 @@ function simplepdf_get_pdf_link_report() {
         'pages' => $pages,
         'is_capped' => $scan['is_capped'],
         'counts' => $counts,
-        'link_count' => array_sum($counts),
+        'link_count' => $counts['simplepdf'] + $counts['browser'] + $counts['error'],
         'account_address' => $company_identifier . '.simplepdf.com',
     );
 }
@@ -613,8 +585,10 @@ function simplepdf_render_pdfs_card() {
                 ));
                 ?>
             </h2>
-            <?php if ( $counts['simplepdf'] === 0 ) : ?>
+            <?php if ( $counts['simplepdf'] === 0 && $counts['not_picked'] > 0 ) : ?>
                 <p class="simplepdf-lede"><?php esc_html_e('Your PDF links open in the browser, not in SimplePDF. Switch "Where it runs" to Everywhere, or pick these pages.', 'simplepdf-embed'); ?></p>
+            <?php elseif ( $counts['simplepdf'] === 0 ) : ?>
+                <p class="simplepdf-lede"><?php esc_html_e('None of these links opens in SimplePDF: the reason is next to each one.', 'simplepdf-embed'); ?></p>
             <?php else : ?>
                 <p class="simplepdf-lede"><?php esc_html_e('Open a page to see exactly what your visitors see.', 'simplepdf-embed'); ?></p>
             <?php endif; ?>
@@ -691,7 +665,7 @@ function simplepdf_render_linked_account($company_identifier) {
             ?>
             <h2><?php esc_html_e('Filled PDFs come back to your SimplePDF account', 'simplepdf-embed'); ?></h2>
             <p class="simplepdf-status"><strong><?php echo esc_html($account_address); ?></strong></p>
-            <p class="description"><?php esc_html_e('We couldn\'t reach SimplePDF to confirm this account just now. We will check again next time you open this page.', 'simplepdf-embed'); ?></p>
+            <p class="description"><?php esc_html_e('We couldn\'t reach SimplePDF to confirm this account just now. We will check again in a few minutes.', 'simplepdf-embed'); ?></p>
             <?php simplepdf_render_account_next_steps($account_address); ?>
             <details>
                 <summary><?php esc_html_e('Change identifier', 'simplepdf-embed'); ?></summary>
@@ -713,7 +687,7 @@ function simplepdf_render_account_pitch() {
         __('A visitor fills and signs your PDF', 'simplepdf-embed'),
         __('They click Submit', 'simplepdf-embed'),
         __('The PDF lands in your dashboard, with an email alert if you want one', 'simplepdf-embed'),
-        __('Export every answer to CSV or Excel', 'simplepdf-embed'),
+        __('Export the form data to CSV or Excel', 'simplepdf-embed'),
     );
     $proof_points = array(
         __('Required fields', 'simplepdf-embed'),
@@ -764,7 +738,8 @@ function simplepdf_render_account_pitch() {
 function simplepdf_render_account_card() {
     $company_identifier = simplepdf_get_company_identifier();
     ?>
-    <div class="card">
+    <form class="card" method="post" action="options.php">
+        <?php settings_fields('simplepdf_account'); ?>
         <?php
         if ( $company_identifier === '' ) {
             simplepdf_render_account_pitch();
@@ -772,7 +747,7 @@ function simplepdf_render_account_card() {
             simplepdf_render_linked_account($company_identifier);
         }
         ?>
-    </div>
+    </form>
     <?php
 }
 
@@ -785,7 +760,8 @@ function simplepdf_get_selectable_posts() {
         'update_post_meta_cache' => false,
         'update_post_term_cache' => false,
     );
-    $latest_posts = get_posts(array_merge($query_args, array('numberposts' => SIMPLEPDF_POST_LIST_LIMIT)));
+    $all_pages = get_posts(array_merge($query_args, array('post_type' => 'page', 'numberposts' => -1)));
+    $latest_posts = get_posts(array_merge($query_args, array('post_type' => 'post', 'numberposts' => SIMPLEPDF_POST_LIST_LIMIT)));
     $pinned_post_ids = array_values(array_unique(array_merge(
         simplepdf_get_selected_post_ids(),
         array_map(function ($page) {
@@ -797,7 +773,7 @@ function simplepdf_get_selectable_posts() {
         : get_posts(array_merge($query_args, array('post__in' => $pinned_post_ids, 'numberposts' => -1)));
 
     $posts_by_id = array();
-    foreach ( array_merge($pinned_posts, $latest_posts) as $post ) {
+    foreach ( array_merge($pinned_posts, $all_pages, $latest_posts) as $post ) {
         $posts_by_id[$post->ID] = $post;
     }
 
@@ -850,7 +826,8 @@ function simplepdf_render_scope_card() {
     $selectable_posts = simplepdf_get_selectable_posts();
     $selected_post_ids = simplepdf_get_selected_post_ids();
     ?>
-    <div class="card simplepdf-scope">
+    <form class="card simplepdf-scope" method="post" action="options.php">
+        <?php settings_fields('simplepdf_scope'); ?>
         <h2><?php esc_html_e('Where it runs', 'simplepdf-embed'); ?></h2>
         <fieldset>
             <legend class="screen-reader-text"><?php esc_html_e('Where it runs', 'simplepdf-embed'); ?></legend>
@@ -874,8 +851,8 @@ function simplepdf_render_scope_card() {
                         <p class="description">
                             <?php
                             echo esc_html(sprintf(
-                                /* translators: %d: how many of the latest pages and posts are listed */
-                                __('Showing your %d latest pages and posts.', 'simplepdf-embed'),
+                                /* translators: %d: how many of the latest posts are listed */
+                                __('Every page is listed, and your %d latest posts.', 'simplepdf-embed'),
                                 SIMPLEPDF_POST_LIST_LIMIT
                             ));
                             ?>
@@ -885,7 +862,7 @@ function simplepdf_render_scope_card() {
             </div>
         </fieldset>
         <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-scope', false); ?></p>
-    </div>
+    </form>
     <?php
 }
 
@@ -950,12 +927,9 @@ function simplepdf_settings_page() {
     ?>
     <div class="wrap simplepdf-settings">
         <?php simplepdf_render_header(); ?>
-        <form method="post" action="options.php">
-            <?php settings_fields('simplepdf_settings'); ?>
-            <?php simplepdf_render_pdfs_card(); ?>
-            <?php simplepdf_render_scope_card(); ?>
-            <?php simplepdf_render_account_card(); ?>
-        </form>
+        <?php simplepdf_render_pdfs_card(); ?>
+        <?php simplepdf_render_scope_card(); ?>
+        <?php simplepdf_render_account_card(); ?>
         <?php simplepdf_render_help_card(); ?>
     </div>
     <?php

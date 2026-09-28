@@ -1,0 +1,30 @@
+name: WordPress
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - wordpress/**
+
+jobs:
+  test:
+    name: Plugin on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 5.6 is the plugin's "Requires PHP" floor (wordpress/svn/trunk/README.txt).
+        php: ["5.6", "8.3"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lint the plugin
+        run: |
+          for file in wordpress/svn/trunk/*.php; do
+            docker run --rm -v "$PWD":/w php:${{ matrix.php }}-cli php -l "/w/$file"
+          done
+
+      - name: Test the PDF link rule against the shared cases
+        run: docker run --rm -v "$PWD":/w php:${{ matrix.php }}-cli php /w/wordpress/tests/pdf-links-test.php
