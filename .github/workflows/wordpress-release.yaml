@@ -6,8 +6,10 @@ on:
 
 jobs:
   announce:
-    name: Announce the plugin release on Discord
+    name: Record the plugin release on GitHub and announce it on Discord
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -22,3 +24,4 @@ jobs:
         run: node scripts/announce-wordpress-release.mjs
         env:
           DISCORD_RELEASES_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASES_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
