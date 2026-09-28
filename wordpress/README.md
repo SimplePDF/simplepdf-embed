@@ -6,26 +6,38 @@ The plugin is published to the Wordpress SVN registry https://plugins.svn.wordpr
 
 
 ## How to publish
-_Pre-requisites_
-```
+
+`svn/` is both the git folder and the WordPress.org SVN working copy (its `.svn` is gitignored). Git `main` is the source of truth: publish from `main`, and SVN only carries it to WordPress.org.
+
+_Pre-requisites (once per clone)_
+```bash
 brew install svn
-svn checkout https://plugins.svn.wordpress.org/simplepdf-embed svn
+cd wordpress
+# --force: svn/ already holds the git files; they stay as local changes. Older tags are not fetched.
+svn checkout --force --depth immediates https://plugins.svn.wordpress.org/simplepdf-embed svn
+cd svn && svn update --force --set-depth infinity trunk assets
+git checkout -- .   # SVN may have written its own copies over the git files: git wins
 ```
+Never run `svn revert`: it replaces the git files with the last published version. To discard a change, restore from git.
 
 1. Set `SIMPLEPDF_WEB_EMBED_VERSION` in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php) to the `@simplepdf/web-embed-pdf` version pinned in [package.json](./package.json) (CI fails on a mismatch)
-
 2. Update the TAG / version in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php)
 3. Update the TAG / version in [README.txt](./svn/trunk/README.txt)
 4. Update the TAG / version in [blueprint.json](./svn/assets/blueprints/blueprint.json)
 5. Update changelog in [README.txt](./svn/trunk/README.txt)
-6. Run the following
+6. Merge to `main`, check it out, then run the following
 
 ```bash
 npm run package-plugin
 cd svn
-svn up
+svn update
+svn status                          # "?" = new file, "!" = removed file
+svn add <each new file in trunk/ or assets/>
+svn rm <each removed file>
 svn cp trunk tags/<TAG>
-svn commit -m 'Tagging version <TAG>'
+svn commit -m 'Release <TAG>' --username bendersej   # the SVN password from WordPress.org > Profile > Account & Security
 ```
+Leave the older `tags/*` folders git tracks out of `svn add`: they already exist on WordPress.org.
 
 7. Once https://wordpress.org/plugins/simplepdf-embed/ shows the new version, announce it on Discord: run the **WordPress release** workflow (`gh workflow run wordpress-release.yaml --repo SimplePDF/simplepdf-embed`). It posts the `README.txt` changelog for the Stable tag, and refuses to post until WordPress.org serves that version.
+8. Commit the new `svn/tags/<TAG>/` to git.
