@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* TypeSafe-inspired dark palette (typesafe.ai): near-black canvas, pink/magenta
+   brand accents, calibrated-confidence semantics (green=valid, amber=low, red=error).
+   Tokens are defined once on :root and mapped into Tailwind v4's theme below. */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-brand: hsl(var(--brand));
+  --color-brand-2: hsl(var(--brand-2));
+  --color-valid: hsl(var(--valid));
+  --color-warn: hsl(var(--warn));
+  --color-error: hsl(var(--error));
+  --color-info: hsl(var(--info));
+}
+
+:root {
+  --background: 0 0% 12%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 15%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 345 82% 74%;
+  --primary-foreground: 0 0% 12%;
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 18%;
+  --muted-foreground: 0 0% 52%;
+  --accent: 0 0% 18%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
+  --ring: 345 82% 74%;
+  --brand: 345 82% 74%;
+  --brand-2: 314 58% 59%;
+  --valid: 152 95% 34%;
+  --warn: 38 92% 50%;
+  --error: 0 84% 60%;
+  --info: 175 90% 36%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  /* Tailwind v4 drops the default button pointer; restore it for interactive elements. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
