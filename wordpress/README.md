@@ -25,6 +25,7 @@ Never run `svn revert`: it replaces the git files with the last published versio
 3. Update the TAG / version in [README.txt](./svn/trunk/README.txt)
 4. Update the TAG / version in [blueprint.json](./svn/assets/blueprints/blueprint.json)
 5. Update changelog in [README.txt](./svn/trunk/README.txt)
+   WordPress.org strips images from `README.txt`: show the plugin through `svn/assets/screenshot-N.png`, captioned under `== Screenshots ==`. It reads the description from the Stable tag's folder, so a readme fix after release goes in both `trunk/` and `tags/<TAG>/`.
 6. Merge to `main`, check it out, then run the following
 
 ```bash
