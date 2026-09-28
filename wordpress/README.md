@@ -40,5 +40,5 @@ svn commit -m 'Release <TAG>' --username bendersej   # the SVN password from Wor
 ```
 Leave the older `tags/*` folders git tracks out of `svn add`: they already exist on WordPress.org.
 
-7. Once https://wordpress.org/plugins/simplepdf-embed/ shows the new version, announce it on Discord: run the **WordPress release** workflow (`gh workflow run wordpress-release.yaml --repo SimplePDF/simplepdf-embed`). It posts the `README.txt` changelog for the Stable tag, and refuses to post until WordPress.org serves that version.
+7. Once https://wordpress.org/plugins/simplepdf-embed/ shows the new version, run the **WordPress release** workflow (`gh workflow run wordpress-release.yaml --repo SimplePDF/simplepdf-embed`). It creates the `wordpress@<TAG>` GitHub release and posts the `README.txt` changelog for the Stable tag to Discord. It refuses to run until WordPress.org serves that version, and does nothing when the GitHub release already exists.
 8. Commit the new `svn/tags/<TAG>/` to git.

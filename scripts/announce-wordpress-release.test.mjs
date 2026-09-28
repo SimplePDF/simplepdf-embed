@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
-import { buildWordPressReleaseMessage, parseReadme } from './announce-wordpress-release.mjs'
+import { buildGitHubRelease, buildWordPressReleaseMessage, parseReadme } from './announce-wordpress-release.mjs'
 
 const README = `=== SimplePDF Embed ===
 Stable tag:        1.2.0
@@ -39,4 +39,14 @@ test('the message links the plugin page, never pings, and lists every entry', ()
   assert.equal(embed.url, 'https://wordpress.org/plugins/simplepdf-embed/')
   assert.equal(embed.description, "**What's new**\n- New settings page\n- Update web-embed-pdf to 1.9.0")
   assert.match(embed.fields[1].value, /\[Plugin page\]\(https:\/\/wordpress\.org\/plugins\/simplepdf-embed\/\)/)
+})
+
+test('the GitHub release is tagged wordpress@<version> on the workflow commit and never takes the Latest badge', () => {
+  const githubRelease = buildGitHubRelease({ ...parseReadme(README), commitSha: 'abc1234' })
+
+  assert.equal(githubRelease.tag_name, 'wordpress@1.2.0')
+  assert.equal(githubRelease.target_commitish, 'abc1234')
+  assert.equal(githubRelease.name, 'SimplePDF Embed for WordPress 1.2.0')
+  assert.equal(githubRelease.make_latest, 'false')
+  assert.match(githubRelease.body, /^## What's new\n\n- New settings page\n- Update web-embed-pdf to 1\.9\.0\n/)
 })
