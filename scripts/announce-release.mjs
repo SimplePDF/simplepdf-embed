@@ -86,9 +86,11 @@ const buildDescription = ({ sections, releaseUrl }) => {
     return entries.length === 0 ? [] : [{ title, entries }]
   })
 
+  // A section with one entry reads as a paragraph (its own bullets become the list); several
+  // entries read as a list.
   const additions = blocks.flatMap((block) =>
     block.entries.map((entry, index) =>
-      [...(index === 0 ? [`**${block.title}**`] : []), toBulletedEntry(entry)].join('\n'),
+      [...(index === 0 ? [`**${block.title}**`] : []), block.entries.length === 1 ? entry : toBulletedEntry(entry)].join('\n'),
     ),
   )
   // Entries are cut at an entry boundary, in order: once one does not fit, the rest go to the link.
@@ -99,11 +101,9 @@ const buildDescription = ({ sections, releaseUrl }) => {
   const counts = { shown: lines.length, total: additions.length }
 
   const hidden = counts.total - counts.shown
-  const readMore =
-    hidden > 0
-      ? `…and ${hidden} more in the [full release notes](${releaseUrl}).`
-      : `[Full release notes](${releaseUrl})`
-  return [...lines, readMore].join('\n\n')
+  return hidden > 0
+    ? [...lines, `…and ${hidden} more in the [full release notes](${releaseUrl}).`].join('\n\n')
+    : lines.join('\n\n')
 }
 
 const buildGetStarted = (packageJson) => {
