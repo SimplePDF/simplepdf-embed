@@ -1,0 +1,42 @@
+name: Changelog Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .changeset/**
+      - package.json
+      - embed/**
+      - react/**
+      - web/**
+
+jobs:
+  check:
+    name: Generated changelogs are formatted
+    runs-on: ubuntu-latest
+    # The version PR itself is checked by each package's Formatting job.
+    if: github.head_ref != 'changeset-release/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The version PR is pure `changeset version` output. Running it here, then the formatting
+      # checks the version PR runs, fails the pull request that adds a changeset whose generated
+      # CHANGELOG is not formatted, so the release never needs a fix.
+      - name: Generate the changelogs the release will write
+        run: npm run version
+
+      - name: Check they are formatted
+        run: |
+          npm run --prefix react test:format
+          npm run --prefix web test:format
