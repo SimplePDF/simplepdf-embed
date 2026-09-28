@@ -41,20 +41,6 @@ Visitors fill and sign your PDFs, then download them. The document is filled in 
 * Add the `exclude-simplepdf` class to a link to keep the browser's own PDF viewer
 * Visitors who browse with an AI assistant (ChatGPT's browser, Chrome with WebMCP) can ask it to fill the form for them, and check every answer before they submit. One checkbox turns it off.
 
-**The settings page**
-
-See every PDF link on your pages and posts, and where each one opens:
-
-![The PDF links on your site and where each one opens](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-pdf-links.png)
-
-Try it on one page before going live, and choose whether AI assistants can fill your forms:
-
-![Where it runs: everywhere, or only on the pages and posts you pick](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-where-it-runs-and-ai-assistants.png)
-
-See what an account adds before you sign up:
-
-![Today versus with a SimplePDF account](https://cdn.simplepdf.com/simple-pdf/assets/wordpress/plugin-settings-account-before-after.png)
-
 **What visitors can do in the editor**
 
 * Fill fillable forms, or add text, checkboxes, pictures and signatures to any PDF
@@ -70,9 +56,12 @@ https://wordpress.simplepdf.co/
 
 1. Filled PDFs land in your SimplePDF dashboard
 2. The settings page: the PDF links on your site and where each one opens
-3. Adding a PDF link using the block editor
-4. Adding a PDF link using the classic editor
-5. The PDF opens on top of your page
+3. Every PDF link on your pages and posts, and where each one opens
+4. Where it runs: everywhere, or only on the pages and posts you pick, and whether AI assistants can fill your forms
+5. What a SimplePDF account adds
+6. Adding a PDF link using the block editor
+7. Adding a PDF link using the classic editor
+8. The PDF opens on top of your page
 
 == Installation ==
 
