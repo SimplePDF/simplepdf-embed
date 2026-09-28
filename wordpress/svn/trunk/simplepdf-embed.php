@@ -43,6 +43,9 @@ function simplepdf_register_settings() {
     register_setting('simplepdf_scope', 'simplepdf_selected_post_ids', array(
         'sanitize_callback' => 'simplepdf_sanitize_selected_post_ids',
     ));
+    register_setting('simplepdf_agents', 'simplepdf_agents', array(
+        'sanitize_callback' => 'simplepdf_sanitize_agents',
+    ));
 }
 
 function simplepdf_normalize_company_identifier($value) {
@@ -68,6 +71,15 @@ function simplepdf_sanitize_company_identifier($value) {
 
 function simplepdf_sanitize_load_scope($value) {
     return $value === 'selected' ? 'selected' : 'everywhere';
+}
+
+// An unticked checkbox posts nothing, which saves 'off'.
+function simplepdf_sanitize_agents($value) {
+    return $value === 'on' ? 'on' : 'off';
+}
+
+function simplepdf_are_agents_enabled() {
+    return get_option('simplepdf_agents', 'on') === 'on';
 }
 
 function simplepdf_sanitize_selected_post_ids($value) {
@@ -149,7 +161,8 @@ function simplepdf_enqueue_script() {
 
     $saved_company_identifier = simplepdf_get_company_identifier();
     $company_identifier = $saved_company_identifier === '' ? 'wordpress' : $saved_company_identifier;
-    $inline_script = "window.simplePDF.setConfig({ companyIdentifier: '" . esc_js($company_identifier) . "' });";
+    $agents_option = simplepdf_are_agents_enabled() ? '' : ', webMCP: { enabled: false }';
+    $inline_script = "window.simplePDF.setConfig({ companyIdentifier: '" . esc_js($company_identifier) . "'" . $agents_option . ' });';
 
     wp_add_inline_script('simplepdf-web-embed-pdf', $inline_script, 'after');
 }
@@ -248,7 +261,9 @@ function simplepdf_admin_css() {
 .simplepdf-settings .card { max-width: none; padding: 20px 24px; margin-top: 16px; }
 .simplepdf-settings .card h2 { margin: 0 0 8px; font-size: 16px; }
 .simplepdf-settings .card > p:last-child { margin-bottom: 0; }
-.simplepdf-card-attention { border-left: 4px solid #dba617; }
+.simplepdf-card-attention .simplepdf-card-header { margin: -20px -24px 16px; padding: 16px 24px 12px; background: #fcf2e3; border-bottom: 1px solid #f2d5a4; border-top-left-radius: inherit; border-top-right-radius: inherit; }
+.simplepdf-card-attention .simplepdf-card-header h2 { color: #6b3f00; }
+.simplepdf-card-attention .simplepdf-card-header .simplepdf-lede { margin-bottom: 0; color: #50330d; }
 .simplepdf-lede { font-size: 14px; color: #3c434a; }
 .simplepdf-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 12px; }
 .simplepdf-compare > div { border-radius: 6px; padding: 12px 16px; }
@@ -282,7 +297,7 @@ function simplepdf_admin_css() {
 .simplepdf-get-started li:first-child { border-top: 0; }
 .simplepdf-get-started li::before { content: counter(simplepdf-step); flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #f0f0f1; font-weight: 600; }
 .simplepdf-step-text { display: flex; flex-direction: column; gap: 2px; }
-.simplepdf-get-started .button { margin-left: auto; }
+.simplepdf-get-started .button { margin-left: auto; min-width: 11rem; text-align: center; }
 .simplepdf-pdf-table { margin-top: 12px; }
 .simplepdf-pdf-table td:first-child { width: 30%; }
 .simplepdf-pdf-links { margin: 0; }
@@ -292,6 +307,11 @@ function simplepdf_admin_css() {
 .simplepdf-pill-on { background: #edfaef; color: #007017; }
 .simplepdf-pill-error { background: #fcf0f1; color: #b32d2e; }
 .simplepdf-save { margin: 16px 0 0; }
+.simplepdf-new { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: #3665e1; color: #fff; font-size: 11px; font-weight: 600; vertical-align: middle; }
+.simplepdf-agent-benefits { margin: 12px 0 16px; }
+.simplepdf-agent-benefits li { position: relative; padding-left: 24px; margin-bottom: 8px; }
+.simplepdf-agent-benefits li::before { content: "✓"; position: absolute; left: 0; color: #00a32a; font-weight: 600; }
+.simplepdf-agents-toggle { font-weight: 600; }
 .simplepdf-review-notice .button { margin-left: 8px; vertical-align: baseline; }
 .simplepdf-help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .simplepdf-help h3 { margin: 0 0 8px; font-size: 13px; }
@@ -545,57 +565,75 @@ function simplepdf_get_pdf_link_report() {
     );
 }
 
-function simplepdf_render_pdfs_card() {
-    $report = simplepdf_get_pdf_link_report();
+function simplepdf_get_pdfs_card_header($report) {
     $counts = $report['counts'];
     $link_count = $report['link_count'];
-    $needs_attention = $counts['error'] > 0 || ($link_count > 0 && $counts['simplepdf'] === 0);
-    ?>
-    <div class="card<?php echo $needs_attention ? ' simplepdf-card-attention' : ''; ?>">
-        <?php if ( $link_count === 0 ) : ?>
+
+    if ( $counts['error'] > 0 ) {
+        return array(
+            'needs_attention' => true,
+            'title' => sprintf(
+                /* translators: 1: PDF links that show an error, 2: all PDF links found */
+                _n('%1$d of %2$d PDF link shows an error', '%1$d of %2$d PDF links show an error', $link_count, 'simplepdf-embed'),
+                $counts['error'],
+                $link_count
+            ),
+            'lede' => sprintf(
+                /* translators: %s: the account address, e.g. acme.simplepdf.com */
+                __('They open %s, which does not exist. Fix your company identifier below.', 'simplepdf-embed'),
+                $report['account_address']
+            ),
+        );
+    }
+
+    $title = sprintf(
+        /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
+        _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
+        $counts['simplepdf'],
+        $link_count
+    );
+    if ( $counts['simplepdf'] === 0 && $counts['not_picked'] > 0 ) {
+        return array(
+            'needs_attention' => true,
+            'title' => $title,
+            'lede' => __('Your PDF links open in the browser, not in SimplePDF. Switch "Where it runs" to Everywhere, or pick these pages.', 'simplepdf-embed'),
+        );
+    }
+    if ( $counts['simplepdf'] === 0 ) {
+        return array(
+            'needs_attention' => true,
+            'title' => $title,
+            'lede' => __('None of these links opens in SimplePDF: the reason is next to each one.', 'simplepdf-embed'),
+        );
+    }
+
+    return array(
+        'needs_attention' => false,
+        'title' => $title,
+        'lede' => __('Open a page to see exactly what your visitors see.', 'simplepdf-embed'),
+    );
+}
+
+function simplepdf_render_pdfs_card() {
+    $report = simplepdf_get_pdf_link_report();
+    if ( $report['link_count'] === 0 ) {
+        ?>
+        <div class="card">
             <?php simplepdf_render_get_started(); ?>
-        <?php elseif ( $counts['error'] > 0 ) : ?>
-            <h2>
-                <?php
-                echo esc_html(sprintf(
-                    /* translators: 1: PDF links that show an error, 2: all PDF links found */
-                    _n('%1$d of %2$d PDF link shows an error', '%1$d of %2$d PDF links show an error', $link_count, 'simplepdf-embed'),
-                    $counts['error'],
-                    $link_count
-                ));
-                ?>
-            </h2>
-            <p class="simplepdf-lede">
-                <?php
-                echo esc_html(sprintf(
-                    /* translators: %s: the account address, e.g. acme.simplepdf.com */
-                    __('They open %s, which does not exist. Fix your company identifier below.', 'simplepdf-embed'),
-                    $report['account_address']
-                ));
-                ?>
-            </p>
-        <?php else : ?>
-            <h2>
-                <?php
-                echo esc_html(sprintf(
-                    /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
-                    _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
-                    $counts['simplepdf'],
-                    $link_count
-                ));
-                ?>
-            </h2>
-            <?php if ( $counts['simplepdf'] === 0 && $counts['not_picked'] > 0 ) : ?>
-                <p class="simplepdf-lede"><?php esc_html_e('Your PDF links open in the browser, not in SimplePDF. Switch "Where it runs" to Everywhere, or pick these pages.', 'simplepdf-embed'); ?></p>
-            <?php elseif ( $counts['simplepdf'] === 0 ) : ?>
-                <p class="simplepdf-lede"><?php esc_html_e('None of these links opens in SimplePDF: the reason is next to each one.', 'simplepdf-embed'); ?></p>
-            <?php else : ?>
-                <p class="simplepdf-lede"><?php esc_html_e('Open a page to see exactly what your visitors see.', 'simplepdf-embed'); ?></p>
-            <?php endif; ?>
-        <?php endif; ?>
-        <?php if ( $link_count > 0 ) : ?>
-            <?php simplepdf_render_pdf_table($report['pages']); ?>
-        <?php endif; ?>
+            <?php simplepdf_render_scan_scope_note($report['is_capped']); ?>
+        </div>
+        <?php
+        return;
+    }
+
+    $header = simplepdf_get_pdfs_card_header($report);
+    ?>
+    <div class="card<?php echo $header['needs_attention'] ? ' simplepdf-card-attention' : ''; ?>">
+        <div class="simplepdf-card-header">
+            <h2><?php echo esc_html($header['title']); ?></h2>
+            <p class="simplepdf-lede"><?php echo esc_html($header['lede']); ?></p>
+        </div>
+        <?php simplepdf_render_pdf_table($report['pages']); ?>
         <?php simplepdf_render_scan_scope_note($report['is_capped']); ?>
     </div>
     <?php
@@ -732,6 +770,47 @@ function simplepdf_render_account_pitch() {
         <summary><?php esc_html_e('I already have an account', 'simplepdf-embed'); ?></summary>
         <?php simplepdf_render_identifier_field(); ?>
     </details>
+    <?php
+}
+
+function simplepdf_render_agents_card() {
+    $agent_benefits = array(
+        array(
+            'title' => __('Forms get done in one go.', 'simplepdf-embed'),
+            'detail' => __('The assistant reads every field on every page and fills it in for your visitor.', 'simplepdf-embed'),
+        ),
+        array(
+            'title' => __('Your visitor stays in charge.', 'simplepdf-embed'),
+            'detail' => __('Everything happens in the editor on your page, where they can check every answer.', 'simplepdf-embed'),
+        ),
+        array(
+            'title' => __('Your rules still apply.', 'simplepdf-embed'),
+            'detail' => __('Required fields, read-only fields and your account settings hold for assistants too.', 'simplepdf-embed'),
+        ),
+        array(
+            'title' => __('Nothing to set up.', 'simplepdf-embed'),
+            'detail' => __('It works whenever a visitor brings an assistant, and changes nothing for everyone else.', 'simplepdf-embed'),
+        ),
+    );
+    ?>
+    <form class="card simplepdf-agents" method="post" action="options.php">
+        <?php settings_fields('simplepdf_agents'); ?>
+        <h2>
+            <?php esc_html_e('Your forms are ready for AI assistants', 'simplepdf-embed'); ?>
+            <span class="simplepdf-new"><?php esc_html_e('New', 'simplepdf-embed'); ?></span>
+        </h2>
+        <p class="simplepdf-lede"><?php esc_html_e('More and more people browse with an AI assistant, like ChatGPT\'s browser or Chrome with WebMCP. When one of your visitors does, they can ask it to fill your PDF for them.', 'simplepdf-embed'); ?></p>
+        <ul class="simplepdf-agent-benefits">
+            <?php foreach ( $agent_benefits as $agent_benefit ) : ?>
+                <li><strong><?php echo esc_html($agent_benefit['title']); ?></strong> <?php echo esc_html($agent_benefit['detail']); ?></li>
+            <?php endforeach; ?>
+        </ul>
+        <label class="simplepdf-agents-toggle">
+            <input type="checkbox" name="simplepdf_agents" value="on" <?php checked(simplepdf_are_agents_enabled()); ?>>
+            <?php esc_html_e('Let AI assistants fill forms on this site', 'simplepdf-embed'); ?>
+        </label>
+        <p class="simplepdf-save"><?php submit_button(__('Save', 'simplepdf-embed'), 'secondary', 'simplepdf-save-agents', false); ?></p>
+    </form>
     <?php
 }
 
@@ -929,6 +1008,7 @@ function simplepdf_settings_page() {
         <?php simplepdf_render_header(); ?>
         <?php simplepdf_render_pdfs_card(); ?>
         <?php simplepdf_render_scope_card(); ?>
+        <?php simplepdf_render_agents_card(); ?>
         <?php simplepdf_render_account_card(); ?>
         <?php simplepdf_render_help_card(); ?>
     </div>
