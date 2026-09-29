@@ -136,7 +136,9 @@ This plugin uses [SimplePDF](https://simplepdf.com) to open your PDFs in an edit
 
 = 1.2.1 =
 * The PDF links report now also lists the links in your Site Editor templates, template parts, synced patterns and navigation menus, like your home page, header and footer
-* The report shows 20 rows at a time, with page navigation
+* It lists only what visitors can reach: published pages and posts, the drafts you picked to try it, and the templates, patterns and menus your site actually shows
+* One line per PDF link, with where it opens in its own column, 20 pages at a time
+* In "Only on pages and posts I pick" mode, the report says once which pages it runs on, instead of a note on every row
 
 = 1.2.0 =
 * New settings page: see every PDF link on your pages and posts, and where each one opens
