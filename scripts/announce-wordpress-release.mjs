@@ -3,6 +3,7 @@
 // run by hand after the SVN commit. It refuses to run until WordPress.org serves the Stable tag, and the GitHub release
 // (`wordpress@<version>`) is the record that the version was announced, so a second run posts nothing.
 // Usage: DISCORD_RELEASES_WEBHOOK_URL=… GITHUB_TOKEN=… GITHUB_REPOSITORY=… GITHUB_SHA=… node scripts/announce-wordpress-release.mjs
+// WAIT_FOR_LIVE_MINUTES=… polls WordPress.org once a minute until it serves the Stable tag (its import lags the SVN commit).
 // Without DISCORD_RELEASES_WEBHOOK_URL, or with DRY_RUN=1, it prints the Discord message and the GitHub release instead.
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -110,6 +111,19 @@ const createGitHubRelease = async ({ token, repository, release }) => {
   return response.ok ? null : `${response.status} ${await response.text()}`
 }
 
+const LIVE_VERSION_POLL_MS = 60_000
+
+const waitForLiveVersion = async ({ version, minutes }) => {
+  const deadline = Date.now() + minutes * 60_000
+  const liveVersion = await fetchLiveVersion()
+  if (liveVersion === version || Date.now() >= deadline) {
+    return liveVersion
+  }
+  console.log(`WordPress.org serves ${liveVersion ?? 'nothing yet'}, waiting for ${version}…`)
+  await new Promise((resolve) => setTimeout(resolve, LIVE_VERSION_POLL_MS))
+  return waitForLiveVersion({ version, minutes: (deadline - Date.now()) / 60_000 })
+}
+
 const fetchLiveVersion = async () => {
   try {
     const response = await fetch(PLUGIN_INFO_URL)
@@ -141,7 +155,7 @@ const main = async () => {
     return EXIT_CODES.success
   }
 
-  const liveVersion = await fetchLiveVersion()
+  const liveVersion = await waitForLiveVersion({ version: release.version, minutes: Number(process.env.WAIT_FOR_LIVE_MINUTES ?? 0) })
   if (liveVersion === null) {
     console.error(`Could not read the live version from ${PLUGIN_INFO_URL}`)
     return EXIT_CODES.wordpress_org_unreachable

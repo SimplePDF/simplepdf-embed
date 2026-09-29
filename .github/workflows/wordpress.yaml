@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - wordpress/**
+      - scripts/publish-wordpress-svn.sh
       - .github/workflows/wordpress.yaml
 
 jobs:
@@ -53,3 +54,17 @@ jobs:
         run: |
           pinned_version=$(node -p "require('./package.json').dependencies['@simplepdf/web-embed-pdf']")
           grep -q "define('SIMPLEPDF_WEB_EMBED_VERSION', '${pinned_version}');" svn/trunk/simplepdf-embed.php
+
+  publish-preview:
+    name: WordPress.org publish preview (dry run)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Subversion
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq subversion
+
+      - name: What merging this sends to WordPress.org
+        run: DRY_RUN=1 scripts/publish-wordpress-svn.sh

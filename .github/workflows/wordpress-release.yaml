@@ -1,12 +1,49 @@
 name: WordPress release
 
-# Run by hand once the SVN tag is committed: WordPress.org releases happen outside GitHub.
+# A merge to main that changes the plugin publishes it to WordPress.org SVN, then records the GitHub release and
+# announces it on Discord once WordPress.org serves it. Safe to re-run: an unchanged plugin publishes nothing, and a
+# version already released on GitHub is not announced twice. Release steps: wordpress/README.md
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - wordpress/svn/**
   workflow_dispatch:
 
+concurrency:
+  group: wordpress-release
+  cancel-in-progress: false
+
 jobs:
+  publish:
+    name: Publish to WordPress.org SVN
+    runs-on: ubuntu-latest
+    # SVN_USERNAME and SVN_PASSWORD live in this environment, deployable from main only: whoever holds them ships
+    # code to every site that auto-updates the plugin.
+    environment: wordpress-org
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.publish.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Subversion
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq subversion
+
+      - name: Publish
+        id: publish
+        run: scripts/publish-wordpress-svn.sh
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
   announce:
-    name: Record the plugin release on GitHub and announce it on Discord
+    name: Record the release on GitHub and announce it on Discord
+    needs: publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,5 +60,6 @@ jobs:
       - name: Announce the release
         run: node scripts/announce-wordpress-release.mjs
         env:
+          WAIT_FOR_LIVE_MINUTES: "45"
           DISCORD_RELEASES_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASES_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
