@@ -2,7 +2,7 @@
 Contributors:      bendersej
 Tags:              pdf, pdf form, fill pdf, sign pdf, form submissions
 Tested up to:      7.1.2
-Stable tag:        1.2.1
+Stable tag:        1.2.2
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
@@ -27,7 +27,7 @@ With a SimplePDF account, visitors click Submit and the filled PDF lands in your
 * Your logo in the editor (Pro and above)
 * Filled PDFs saved to your own storage (S3 or Azure Blob Storage on Pro, SharePoint on Premium)
 
-Every plan starts with a 7-day free trial: [see the plans](https://simplepdf.com/pricing?ref=wordpress).
+Every plan starts with a 7-day free trial: [see the plans](https://simplepdf.com/pricing?ref=wordpress_plugin_directory).
 
 **Free, without an account**
 
@@ -76,7 +76,7 @@ https://wordpress.simplepdf.co/
 
 Without an account, visitors fill your PDF and download it. It is then up to them to send it to you.
 
-With an account, they click Submit and the filled PDF lands in your dashboard, with an email alert or a webhook if you want one. You can export the answers to CSV or Excel, make fields required, and add your logo. [See the plans](https://simplepdf.com/pricing?ref=wordpress).
+With an account, they click Submit and the filled PDF lands in your dashboard, with an email alert or a webhook if you want one. You can export the answers to CSV or Excel, make fields required, and add your logo. [See the plans](https://simplepdf.com/pricing?ref=wordpress_plugin_directory).
 
 = Where do the filled PDFs go? =
 
@@ -127,12 +127,15 @@ The plugin and the script it bundles are open source:
 
 == External services ==
 
-This plugin uses [SimplePDF](https://simplepdf.com) to open your PDFs in an editor on your page. Filled PDFs stay in your visitors' browser, unless you have a SimplePDF account and they click Submit. The settings page also checks that your SimplePDF account exists.
+This plugin uses [SimplePDF](https://simplepdf.com/?ref=wordpress_plugin_directory) to open your PDFs in an editor on your page. Filled PDFs stay in your visitors' browser, unless you have a SimplePDF account and they click Submit. The settings page also checks that your SimplePDF account exists.
 
-* [Terms of service](https://simplepdf.com/terms-of-service)
-* [Privacy policy](https://simplepdf.com/privacy-policy)
+* [Terms of service](https://simplepdf.com/terms-of-service?ref=wordpress_plugin_directory)
+* [Privacy policy](https://simplepdf.com/privacy-policy?ref=wordpress_plugin_directory)
 
 == Changelog ==
+
+= 1.2.2 =
+* Links from the plugin to simplepdf.com now say where they come from (the plugin's settings page or its WordPress.org listing), so we can see which of them help people. They carry nothing about your site or your visitors
 
 = 1.2.1 =
 * The PDF links report now also lists the links in your Site Editor templates, template parts, synced patterns and navigation menus, like your home page, header and footer
