@@ -7,7 +7,8 @@ on:
     paths:
       - react/**
       - embed/**
-      - scripts/**
+      - scripts/check-api.mjs
+      - scripts/check-exports.mjs
       - package.json
       - package-lock.json
       - .github/workflows/react.yaml
@@ -17,7 +18,8 @@ on:
     paths:
       - react/**
       - embed/**
-      - scripts/**
+      - scripts/check-api.mjs
+      - scripts/check-exports.mjs
       - package.json
       - package-lock.json
       - .github/workflows/react.yaml
