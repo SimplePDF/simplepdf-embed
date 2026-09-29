@@ -56,7 +56,7 @@ https://wordpress.simplepdf.co/
 
 1. Filled PDFs land in your SimplePDF dashboard
 2. The settings page: the PDF links on your site and where each one opens
-3. Every PDF link on your pages and posts, and where each one opens
+3. Every PDF link visitors can reach, on pages, templates and menus, and where each one opens
 4. Where it runs: everywhere, or only on the pages and posts you pick, and whether AI assistants can fill your forms
 5. What a SimplePDF account adds
 6. Adding a PDF link using the block editor
