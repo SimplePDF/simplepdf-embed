@@ -127,11 +127,7 @@ The plugin and the script it bundles are open source:
 
 == External services ==
 
-This plugin connects to SimplePDF (https://simplepdf.com) in two ways.
-
-**The PDF editor.** When a visitor clicks a PDF link, the plugin opens the SimplePDF editor from `https://<your company identifier>.simplepdf.com` (`wordpress.simplepdf.com` without an account) in a frame on your page. The visitor's browser loads the PDF and hands it to the editor (or passes the PDF's address when it cannot load it), and the PDF is filled in the browser. When the visitor submits a filled PDF to your SimplePDF account, the filled PDF is sent to SimplePDF, or to your own storage if you set one up. Nothing is sent before a visitor clicks a PDF link.
-
-**The account check.** On the plugin's settings page only, the plugin sends one request to `https://<your company identifier>.simplepdf.com` to check that the account exists. It sends the plugin's version and nothing about your site or your visitors, and the result is cached for up to an hour.
+This plugin uses [SimplePDF](https://simplepdf.com) to open your PDFs in an editor on your page. Filled PDFs stay in your visitors' browser, unless you have a SimplePDF account and they click Submit. The settings page also checks that your SimplePDF account exists.
 
 * [Terms of service](https://simplepdf.com/terms-of-service)
 * [Privacy policy](https://simplepdf.com/privacy-policy)

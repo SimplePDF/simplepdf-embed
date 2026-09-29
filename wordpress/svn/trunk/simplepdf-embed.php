@@ -374,28 +374,12 @@ function simplepdf_is_site_part($post) {
     return array_key_exists($post->post_type, simplepdf_site_part_label_formats());
 }
 
-// A theme's customized templates stay in wp_posts after a theme switch, and an unsynced pattern is only ever
-// copied into posts: neither shows on the site as itself.
-function simplepdf_is_shown_on_site($post) {
-    switch ( $post->post_type ) {
-        case 'page':
-        case 'post':
-            return true;
-        case 'wp_template':
-        case 'wp_template_part':
-            return $post->post_status === 'publish' && has_term(get_stylesheet(), 'wp_theme', $post);
-        case 'wp_block':
-            return $post->post_status === 'publish' && get_post_meta($post->ID, 'wp_pattern_sync_status', true) !== 'unsynced';
-        default:
-            return $post->post_status === 'publish';
-    }
-}
-
-// A navigation menu saves each item's URL as a block attribute, not as an <a> tag.
+// A navigation link saves its URL as a block attribute, not as an <a> tag, wherever the block sits.
 function simplepdf_get_navigation_link_html($blocks) {
     $link_html = '';
     foreach ( $blocks as $block ) {
-        $url = isset($block['attrs']['url']) && is_string($block['attrs']['url']) ? $block['attrs']['url'] : '';
+        $is_navigation_link = in_array($block['blockName'], array('core/navigation-link', 'core/navigation-submenu'), true);
+        $url = $is_navigation_link && isset($block['attrs']['url']) && is_string($block['attrs']['url']) ? $block['attrs']['url'] : '';
         $link_html .= $url === '' ? '' : '<a href="' . esc_attr($url) . '">';
         $link_html .= simplepdf_get_navigation_link_html($block['innerBlocks']);
     }
@@ -404,29 +388,51 @@ function simplepdf_get_navigation_link_html($blocks) {
 }
 
 function simplepdf_get_linked_html($post) {
-    switch ( $post->post_type ) {
-        case 'wp_navigation':
-            return simplepdf_get_navigation_link_html(parse_blocks($post->post_content));
-        default:
-            return $post->post_content;
-    }
+    $has_navigation_links = strpos($post->post_content, '<!-- wp:navigation-') !== false;
+
+    return $has_navigation_links
+        ? $post->post_content . simplepdf_get_navigation_link_html(parse_blocks($post->post_content))
+        : $post->post_content;
 }
 
 function simplepdf_scan_pages_with_pdf_links() {
     global $wpdb;
 
     $post_types = array_merge(array('page', 'post'), array_keys(simplepdf_site_part_label_formats()));
-    // Site parts first: a handful of rows that show on every page, never pushed out of the cap by recent posts.
+    // A site part counts only when the site shows it as itself: published, from the active theme (customized templates
+    // stay in wp_posts after a theme switch), and not an unsynced pattern (only ever copied into posts). These rules
+    // run before the cap, and site parts sort first so recent posts never push them out.
     $post_ids = $wpdb->get_col($wpdb->prepare(
-        "SELECT ID FROM {$wpdb->posts}
-        WHERE post_type IN (" . implode(', ', array_fill(0, count($post_types), '%s')) . ")
-          AND post_status IN ('publish', 'private', 'draft')
-          AND (post_content LIKE %s OR post_content LIKE %s)
-        ORDER BY post_type IN ('page', 'post'), post_modified DESC
+        "SELECT scanned_post.ID FROM {$wpdb->posts} scanned_post
+        WHERE scanned_post.post_type IN (" . implode(', ', array_fill(0, count($post_types), '%s')) . ")
+          AND scanned_post.post_status IN ('publish', 'private', 'draft')
+          AND (scanned_post.post_content LIKE %s OR scanned_post.post_content LIKE %s)
+          AND (
+            scanned_post.post_type IN ('page', 'post')
+            OR (
+              scanned_post.post_status = 'publish'
+              AND (
+                scanned_post.post_type NOT IN ('wp_template', 'wp_template_part')
+                OR scanned_post.ID IN (
+                  SELECT theme_relationship.object_id
+                  FROM {$wpdb->term_relationships} theme_relationship
+                  JOIN {$wpdb->term_taxonomy} theme_taxonomy ON theme_taxonomy.term_taxonomy_id = theme_relationship.term_taxonomy_id
+                  JOIN {$wpdb->terms} theme_term ON theme_term.term_id = theme_taxonomy.term_id
+                  WHERE theme_taxonomy.taxonomy = 'wp_theme' AND theme_term.slug = %s
+                )
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} sync_status
+                WHERE sync_status.post_id = scanned_post.ID AND sync_status.meta_key = 'wp_pattern_sync_status' AND sync_status.meta_value = 'unsynced'
+              )
+            )
+          )
+        ORDER BY scanned_post.post_type IN ('page', 'post'), scanned_post.post_modified DESC, scanned_post.ID DESC
         LIMIT %d",
         array_merge($post_types, array(
             '%' . $wpdb->esc_like('.pdf') . '%',
             '%' . $wpdb->esc_like('simplepdf') . '%',
+            get_stylesheet(),
             SIMPLEPDF_PDF_PAGE_LIMIT,
         ))
     ));
@@ -440,10 +446,12 @@ function simplepdf_scan_pages_with_pdf_links() {
         'post_status' => array('publish', 'private', 'draft'),
         'orderby' => 'post__in',
         'numberposts' => -1,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
     ));
 
     $pages = array();
-    foreach ( array_filter($posts, 'simplepdf_is_shown_on_site') as $post ) {
+    foreach ( $posts as $post ) {
         $page_url = simplepdf_is_site_part($post) ? home_url('/') : get_permalink($post);
         $pdf_links = simplepdf_extract_pdf_links(simplepdf_get_linked_html($post), function ($href) use ($page_url) {
             return $href === '' ? $href : WP_Http::make_absolute_url($href, $page_url);
@@ -547,8 +555,8 @@ function simplepdf_render_scan_scope_note($is_capped) {
         <?php if ( $is_capped ) : ?>
             <?php
             echo esc_html(sprintf(
-                /* translators: %d: how many recently edited pages and posts are checked */
-                __('Only your %d most recently edited pages and posts were checked.', 'simplepdf-embed'),
+                /* translators: %d: how many pages, posts, templates, patterns and menus are checked */
+                __('Only %d were checked: templates, patterns and menus first, then your most recently edited pages and posts.', 'simplepdf-embed'),
                 SIMPLEPDF_PDF_PAGE_LIMIT
             ));
             ?>
@@ -624,7 +632,7 @@ function simplepdf_render_pdf_table($pages_with_pdf_links) {
     <table class="widefat striped simplepdf-pdf-table">
         <thead>
             <tr>
-                <th scope="col"><?php esc_html_e('Page', 'simplepdf-embed'); ?></th>
+                <th scope="col"><?php esc_html_e('Page or template', 'simplepdf-embed'); ?></th>
                 <th scope="col"><?php esc_html_e('PDF links and where they open', 'simplepdf-embed'); ?></th>
             </tr>
         </thead>
