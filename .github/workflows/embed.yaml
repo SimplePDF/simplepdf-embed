@@ -6,7 +6,8 @@ on:
       - main
     paths:
       - embed/**
-      - scripts/**
+      - scripts/check-api.mjs
+      - scripts/check-exports.mjs
       - package.json
       - package-lock.json
       - .github/workflows/embed.yaml
@@ -15,7 +16,8 @@ on:
       - main
     paths:
       - embed/**
-      - scripts/**
+      - scripts/check-api.mjs
+      - scripts/check-exports.mjs
       - package.json
       - package-lock.json
       - .github/workflows/embed.yaml
