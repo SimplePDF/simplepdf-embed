@@ -21,7 +21,9 @@ To release a new version:
 1. Set `SIMPLEPDF_WEB_EMBED_VERSION` in [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php) to the `@simplepdf/web-embed-pdf` version pinned in [package.json](./package.json) (CI fails on a mismatch), and run `npm run package-plugin`
 2. Set the new version in the [simplepdf-embed.php](./svn/trunk/simplepdf-embed.php) header and `SIMPLEPDF_PLUGIN_VERSION`, the `Stable tag` of [README.txt](./svn/trunk/README.txt) and [blueprint.json](./svn/assets/blueprints/blueprint.json)
 3. Add the changelog entry in [README.txt](./svn/trunk/README.txt): it is posted to Discord as written
-4. Merge. Then commit the new `svn/tags/<version>/` folder to git (it mirrors WordPress.org)
+4. Merge
+
+Each published version is recorded as the `wordpress@<version>` GitHub release, on the commit it was published from; `svn/tags/` is not kept in git.
 
 WordPress.org strips images from `README.txt`: show the plugin through `svn/assets/screenshot-N.png`, captioned under `== Screenshots ==`.
 
