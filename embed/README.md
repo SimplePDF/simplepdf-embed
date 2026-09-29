@@ -151,7 +151,7 @@ createEmbed({ target, companyIdentifier: 'acme', document: { dataUrl: 'data:appl
 createEmbed({ target, companyIdentifier: 'acme', document: { file: pdfFileOrBlob } })
 ```
 
-- **`url`**: any `http(s)` URL. Fetched from your page first (50 MB cap); on CORS / size / network failure it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`). A **SimplePDF documents URL** on your base-domain family (e.g. `https://acme.simplepdf.com/documents/<id>?prefill=<id>`) is navigated to directly, so the editor loads + prefills the stored document itself (your `context` is carried through).
+- **`url`**: any `http(s)` URL. Fetched from your page first; on a CORS, HTTP or network failure, or a file too large for the browser to pass on, it falls back to the editor's `?open` loader, so CORS-restricted public URLs still load. `user:pass@` credentials are allowed (they route via `?open`). A **SimplePDF documents URL** on your base-domain family (e.g. `https://acme.simplepdf.com/documents/<id>?prefill=<id>`) is navigated to directly, so the editor loads + prefills the stored document itself (your `context` is carried through).
 - **`file`**: a `File` (e.g. from `<input type="file">`) or any `Blob`. Converted for you, no `FileReader`.
 - **`dataUrl`**: a `data:` URL string.
 

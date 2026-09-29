@@ -105,6 +105,9 @@ describe(createEmbed.name, () => {
     }
     mounted.length = 0
     document.body.innerHTML = ''
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 
   // Defaults companyIdentifier so the document/target tests stay terse; pass companyIdentifier to override.
@@ -112,6 +115,45 @@ describe(createEmbed.name, () => {
     const embed = createEmbed({ companyIdentifier: 'acme', ...args })
     mounted.push(embed)
     return embed
+  }
+
+  // Mounts under #root and answers the first readiness probe, so readiness is reached with NO
+  // EDITOR_READY / DOCUMENT_LOADED event (only the probe). Returns every message posted to the editor.
+  const mountUntilReady = async (
+    args: Omit<Parameters<typeof createEmbed>[0], 'companyIdentifier' | 'target'>,
+  ): Promise<{ iframe: HTMLIFrameElement; posted: { type: string; request_id: string }[] }> => {
+    vi.useFakeTimers()
+    document.body.innerHTML = '<div id="root"></div>'
+    mount({ target: '#root', ...args })
+    const iframe = document.querySelector('#root iframe')
+    if (!(iframe instanceof HTMLIFrameElement) || iframe.contentWindow === null) {
+      throw new Error('expected an iframe with a contentWindow')
+    }
+    const contentWindow = iframe.contentWindow
+    const posted: { type: string; request_id: string }[] = []
+    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
+      if (typeof message === 'string') {
+        posted.push(JSON.parse(message))
+      }
+    })
+    await vi.advanceTimersByTimeAsync(500)
+    const probe = posted.find((message) => message.type === 'GET_FIELDS')
+    if (probe === undefined) {
+      throw new Error('expected a readiness probe')
+    }
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: JSON.stringify({
+          type: 'REQUEST_RESULT',
+          data: { request_id: probe.request_id, result: { success: true, data: { fields: [] } } },
+        }),
+        origin: 'https://acme.simplepdf.com',
+        source: contentWindow,
+      }),
+    )
+    // Flush the gate's microtask + the async data-URL resolution.
+    await vi.advanceTimersByTimeAsync(0)
+    return { iframe, posted }
   }
 
   it('throws EmbedConfigError when the target selector matches nothing', () => {
@@ -289,42 +331,25 @@ describe(createEmbed.name, () => {
   })
 
   it('loads the document once readiness is reached via the probe (gate posts LOAD_DOCUMENT)', async () => {
-    vi.useFakeTimers()
-    document.body.innerHTML = '<div id="root"></div>'
-    mount({ target: '#root', document: { dataUrl: 'data:application/pdf;base64,AAAA' } })
-    const iframe = document.querySelector('#root iframe')
-    if (!(iframe instanceof HTMLIFrameElement) || iframe.contentWindow === null) {
-      throw new Error('expected an iframe with a contentWindow')
-    }
-    const contentWindow = iframe.contentWindow
-    const posted: { type: string; request_id: string }[] = []
-    vi.spyOn(contentWindow, 'postMessage').mockImplementation((message: unknown) => {
-      if (typeof message === 'string') {
-        posted.push(JSON.parse(message))
-      }
-    })
-    // Advance to a probe tick: readiness reached with NO EDITOR_READY / DOCUMENT_LOADED
-    // event — only the probe. The readiness gate must still fire the deferred load.
-    await vi.advanceTimersByTimeAsync(500)
-    const probe = posted.find((message) => message.type === 'GET_FIELDS')
-    if (probe === undefined) {
-      throw new Error('expected a readiness probe')
-    }
-    window.dispatchEvent(
-      new MessageEvent('message', {
-        data: JSON.stringify({
-          type: 'REQUEST_RESULT',
-          data: { request_id: probe.request_id, result: { success: true, data: { fields: [] } } },
-        }),
-        origin: 'https://acme.simplepdf.com',
-        source: contentWindow,
-      }),
-    )
-    // Flush the gate's microtask + the async data-URL resolution.
-    await vi.advanceTimersByTimeAsync(0)
+    const { posted } = await mountUntilReady({ document: { dataUrl: 'data:application/pdf;base64,AAAA' } })
     expect(posted.some((message) => message.type === 'LOAD_DOCUMENT')).toBe(true)
-    vi.restoreAllMocks()
-    vi.useRealTimers()
+  })
+
+  it('hands a url document to the editor whatever its size, the editor being the one owner of a size ceiling', async () => {
+    const declaredBytes = 500 * 1024 * 1024
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(new Uint8Array([37, 80, 68, 70]), {
+            headers: { 'content-length': String(declaredBytes), 'content-type': 'application/pdf' },
+          }),
+        ),
+      ),
+    )
+    const { iframe, posted } = await mountUntilReady({ document: { url: 'https://example.com/large.pdf' } })
+    expect(posted.some((message) => message.type === 'LOAD_DOCUMENT')).toBe(true)
+    expect(recoverDocumentUrlFromOpen(iframe.src)).toBeNull()
   })
 
   it('attaches to an existing <iframe> target instead of creating one, and leaves it on dispose', () => {

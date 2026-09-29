@@ -25,7 +25,6 @@ export class EmbedConfigError extends Error {
 const DNS_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
 
 const DEFAULT_BASE_DOMAIN = 'simplepdf.com'
-const DOCUMENT_SIZE_CAP_BYTES = 50 * 1024 * 1024
 
 // Local dev domains (a *.nil checkout host or localhost) are served over http;
 // every real domain is https.
@@ -361,39 +360,21 @@ export const buildEditorURL = ({
   return url.href
 }
 
+// Past the engine's maximum string length (~384 MiB of input in Chromium), FileReader
+// fires `load` with an empty result instead of `error`.
 const blobToDataUrl = (blob: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+    reader.onload = () => {
+      if (typeof reader.result !== 'string' || reader.result === '') {
+        reject(new Error('The browser could not encode the document as a data URL'))
+        return
+      }
+      resolve(reader.result)
+    }
     reader.onerror = () => reject(reader.error ?? new Error('Failed to read document'))
     reader.readAsDataURL(blob)
   })
-
-// Read the body stream with a running byte cap so an over-sized (or
-// Content-Length-less) response is aborted mid-stream instead of buffered whole.
-const readStreamCapped = async (
-  body: ReadableStream<Uint8Array>,
-  capBytes: number,
-): Promise<BlobPart[] | null> => {
-  const reader = body.getReader()
-  const chunks: BlobPart[] = []
-  // Streaming accumulation: the running counter must mutate as chunks arrive.
-  let receivedBytes = 0
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) {
-      return chunks
-    }
-    receivedBytes += value.byteLength
-    if (receivedBytes > capBytes) {
-      await reader.cancel()
-      return null
-    }
-    // Copy into a fresh ArrayBuffer-backed view so it is a valid BlobPart
-    // (the reader yields ArrayBufferLike-backed chunks).
-    chunks.push(new Uint8Array(value))
-  }
-}
 
 const fetchDocumentAsDataUrl = async (url: string, signal: AbortSignal): Promise<string | null> => {
   try {
@@ -402,25 +383,8 @@ const fetchDocumentAsDataUrl = async (url: string, signal: AbortSignal): Promise
       await response.body?.cancel().catch(() => {})
       return null
     }
-    const contentLength = response.headers.get('content-length')
-    if (contentLength !== null && Number(contentLength) > DOCUMENT_SIZE_CAP_BYTES) {
-      await response.body?.cancel().catch(() => {})
-      return null
-    }
-    const body = response.body
-    if (body === null) {
-      // No readable stream (e.g. an opaque response): we can't enforce the cap
-      // without buffering the whole body, so decline and let the editor's ?open
-      // loader fetch it instead.
-      return null
-    }
-    // readStreamCapped cancels the reader (stopping the download) if the cap is hit.
-    const chunks = await readStreamCapped(body, DOCUMENT_SIZE_CAP_BYTES)
-    if (chunks === null) {
-      return null
-    }
     const contentType = response.headers.get('content-type') ?? 'application/pdf'
-    return await blobToDataUrl(new Blob(chunks, { type: contentType }))
+    return await blobToDataUrl(new Blob([await response.arrayBuffer()], { type: contentType }))
   } catch {
     return null
   }
@@ -475,8 +439,8 @@ const makeReadinessGate = (): {
 }
 
 // Loads `document` into the editor once it is ready. `onHostFetchFail` is the
-// create path's ?open fallback (re-navigate the iframe we own); the attach path
-// passes none, because it must never touch an iframe the consumer rendered.
+// create path's ?open fallback for a url document (re-navigate the iframe we own);
+// the attach path passes none, because it must never touch an iframe the consumer rendered.
 const loadDocumentWhenReady = (params: {
   embed: Embed
   embedDocument: EmbedDocument
@@ -500,7 +464,8 @@ const loadDocumentWhenReady = (params: {
       }
       safeLogger.error('load_document_failed', {
         code: 'unexpected:unknown',
-        message: 'could not resolve the document to a data URL; ?open fallback is unavailable on an attached iframe',
+        message:
+          'could not resolve the document to a data URL; the ?open fallback only applies to a url document in an iframe createEmbed created',
       })
       return
     }
@@ -670,25 +635,27 @@ const mountIntoContainer = (
   // A documents URL is loaded by the navigation above; only the PDF / data-URL /
   // file arms need the async host-fetch + LOAD_DOCUMENT (with the ?open fallback).
   if (mountDocument !== undefined && documentsUrl === null) {
+    const documentUrl = 'url' in mountDocument ? mountDocument.url : null
     loadDocumentWhenReady({
       embed,
       embedDocument: mountDocument,
       signal: documentFetchController.signal,
       safeLogger,
       whenReady: gate.whenReady,
-      // Host-fetch failed (CORS/size/network): re-navigate the iframe we own
-      // through the editor's ?open loader, which fetches the URL inside the editor.
-      onHostFetchFail: () => {
-        if ('url' in mountDocument) {
-          iframe.src = buildEditorURL({
-            editorOrigin,
-            locale,
-            encodedContext,
-            hasDocumentUrl: false,
-            openFallbackUrl: mountDocument.url,
-          })
-        }
-      },
+      // Host-fetch failed (CORS, HTTP error, network, or too large to encode): re-navigate
+      // the iframe we own through the editor's ?open loader, which fetches the URL inside the editor.
+      onHostFetchFail:
+        documentUrl === null
+          ? undefined
+          : () => {
+              iframe.src = buildEditorURL({
+                editorOrigin,
+                locale,
+                encodedContext,
+                hasDocumentUrl: false,
+                openFallbackUrl: documentUrl,
+              })
+            },
     })
   }
 
