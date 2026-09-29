@@ -5,7 +5,7 @@ Plugin URI:        https://simplepdf.com/embed
 Author:            SimplePDF
 Author URI:        https://simplepdf.com
 Description:       Visitors fill and sign your PDFs right on your site. With a SimplePDF account, every filled PDF comes back to you, automatically.
-Version:           1.2.1
+Version:           1.2.2
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 */
@@ -14,14 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once __DIR__ . '/pdf-links.php';
 
-define('SIMPLEPDF_PLUGIN_VERSION', '1.2.1');
+define('SIMPLEPDF_PLUGIN_VERSION', '1.2.2');
 define('SIMPLEPDF_SETTINGS_SCREEN', 'settings_page_simplepdf_settings');
 define('SIMPLEPDF_POST_LIST_LIMIT', 300);
 define('SIMPLEPDF_PDF_PAGE_LIMIT', 100);
 define('SIMPLEPDF_PDF_TABLE_PAGE_SIZE', 20);
 define('SIMPLEPDF_WEB_EMBED_VERSION', '1.9.0');
 define('SIMPLEPDF_REVIEW_URL', 'https://wordpress.org/support/plugin/simplepdf-embed/reviews/#new-post');
-define('SIMPLEPDF_PRICING_URL', 'https://simplepdf.com/pricing?ref=wordpress');
 
 function simplepdf_settings_init() {
     add_submenu_page(
@@ -363,6 +362,11 @@ function simplepdf_admin_css() {
 CSS;
 }
 
+// A link to simplepdf.com from this settings page: the `ref` says where it came from, nothing about the visitor.
+function simplepdf_site_url($path) {
+    return add_query_arg('ref', 'wordpress_admin_settings', 'https://simplepdf.com' . $path);
+}
+
 function simplepdf_external_link($url, $label) {
     return sprintf(
         '<a href="%s" target="_blank" rel="noopener">%s <span aria-hidden="true">↗</span><span class="screen-reader-text">%s</span></a>',
@@ -379,7 +383,7 @@ function simplepdf_render_header() {
         <h1><?php esc_html_e('SimplePDF Embed', 'simplepdf-embed'); ?></h1>
         <span class="simplepdf-version">v<?php echo esc_html(SIMPLEPDF_PLUGIN_VERSION); ?></span>
         <nav aria-label="<?php esc_attr_e('SimplePDF help', 'simplepdf-embed'); ?>">
-            <?php echo wp_kses_post(simplepdf_external_link('https://simplepdf.com/help', __('Help center', 'simplepdf-embed'))); ?>
+            <?php echo wp_kses_post(simplepdf_external_link(simplepdf_site_url('/help'), __('Help center', 'simplepdf-embed'))); ?>
             <a href="mailto:support@simplepdf.com"><?php esc_html_e('Contact support', 'simplepdf-embed'); ?></a>
         </nav>
     </div>
@@ -1102,8 +1106,8 @@ function simplepdf_render_account_next_steps($account_address) {
     ?>
     <ul class="simplepdf-next-steps">
         <li><?php echo wp_kses_post(simplepdf_external_link('https://' . $account_address . '/account/documents', __('Open your dashboard', 'simplepdf-embed'))); ?></li>
-        <li><?php echo wp_kses_post(simplepdf_external_link('https://simplepdf.com/help/how-to/get-email-notifications-for-pdf-form-submissions', __('Turn on email alerts for your forms', 'simplepdf-embed'))); ?></li>
-        <li><?php echo wp_kses_post(simplepdf_external_link('https://simplepdf.com/help/how-to/configure-webhooks-pdf-form-submissions', __('Send filled PDFs to your own systems with a webhook', 'simplepdf-embed'))); ?></li>
+        <li><?php echo wp_kses_post(simplepdf_external_link(simplepdf_site_url('/help/how-to/get-email-notifications-for-pdf-form-submissions'), __('Turn on email alerts for your forms', 'simplepdf-embed'))); ?></li>
+        <li><?php echo wp_kses_post(simplepdf_external_link(simplepdf_site_url('/help/how-to/configure-webhooks-pdf-form-submissions'), __('Send filled PDFs to your own systems with a webhook', 'simplepdf-embed'))); ?></li>
     </ul>
     <?php
 }
@@ -1204,7 +1208,7 @@ function simplepdf_render_account_pitch() {
     </ul>
     <p class="description"><?php esc_html_e('On Pro and above: your logo in the editor, and filled PDFs saved to your own storage (S3 or Azure Blob Storage on Pro, SharePoint on Premium).', 'simplepdf-embed'); ?></p>
     <div class="simplepdf-cta">
-        <a class="button button-primary button-hero" href="<?php echo esc_url(SIMPLEPDF_PRICING_URL); ?>" target="_blank" rel="noopener">
+        <a class="button button-primary button-hero" href="<?php echo esc_url(simplepdf_site_url('/pricing')); ?>" target="_blank" rel="noopener">
             <?php esc_html_e('Get filled PDFs back', 'simplepdf-embed'); ?>
             <span class="screen-reader-text"><?php esc_html_e('(opens in a new tab)', 'simplepdf-embed'); ?></span>
         </a>
@@ -1402,7 +1406,7 @@ function simplepdf_render_help_card() {
                     <h3><?php echo esc_html($section['heading']); ?></h3>
                     <ul>
                         <?php foreach ( $section['links'] as $article_path => $label ) : ?>
-                            <li><?php echo wp_kses_post(simplepdf_external_link('https://simplepdf.com/help/' . $article_path, $label)); ?></li>
+                            <li><?php echo wp_kses_post(simplepdf_external_link(simplepdf_site_url('/help/' . $article_path), $label)); ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
