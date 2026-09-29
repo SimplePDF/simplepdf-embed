@@ -2,7 +2,7 @@
 Contributors:      bendersej
 Tags:              pdf, pdf form, fill pdf, sign pdf, form submissions
 Tested up to:      7.1.2
-Stable tag:        1.2.0
+Stable tag:        1.2.1
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
@@ -37,7 +37,7 @@ Visitors fill and sign your PDFs, then download them. The document is filled in 
 
 * Every PDF link opens in SimplePDF by default, whatever the extension case (`Consent.PDF`) or query string (`form.pdf?ver=2`)
 * Or limit it to the pages and posts you pick, and try it on a draft before going live
-* The settings page lists the PDF links on your pages and posts, and where each one opens
+* The settings page lists the PDF links on your pages, posts, Site Editor templates, patterns and menus, and where each one opens
 * Add the `exclude-simplepdf` class to a link to keep the browser's own PDF viewer
 * Visitors who browse with an AI assistant (ChatGPT's browser, Chrome with WebMCP) can ask it to fill the form for them, and check every answer before they submit. One checkbox turns it off.
 
@@ -56,7 +56,7 @@ https://wordpress.simplepdf.co/
 
 1. Filled PDFs land in your SimplePDF dashboard
 2. The settings page: the PDF links on your site and where each one opens
-3. Every PDF link on your pages and posts, and where each one opens
+3. Every PDF link visitors can reach, on pages, templates and menus, and where each one opens
 4. Where it runs: everywhere, or only on the pages and posts you pick, and whether AI assistants can fill your forms
 5. What a SimplePDF account adds
 6. Adding a PDF link using the block editor
@@ -98,13 +98,13 @@ Every PDF link on your site now opens in SimplePDF. Open Settings > SimplePDF Em
 
 = A PDF link does not open in SimplePDF =
 
-Settings > SimplePDF Embed lists the PDF links on your pages and posts, with the reason next to any link that opens in the browser. The usual causes:
+Settings > SimplePDF Embed lists the PDF links visitors can reach on your pages, posts, Site Editor templates, patterns and menus, and where each one opens. A link opens in the browser when:
 
 * The link does not point to a `.pdf` file
 * The link has the `exclude-simplepdf` class
 * The page is not picked in "Where it runs"
 
-Links added by a page builder, a menu or a widget open the same way but are not listed.
+Links added by a page builder, a classic menu or a widget open the same way but are not listed.
 
 = How do I keep one PDF in the browser's viewer? =
 
@@ -127,16 +127,18 @@ The plugin and the script it bundles are open source:
 
 == External services ==
 
-This plugin connects to SimplePDF (https://simplepdf.com) in two ways.
-
-**The PDF editor.** When a visitor clicks a PDF link, the plugin opens the SimplePDF editor from `https://<your company identifier>.simplepdf.com` (`wordpress.simplepdf.com` without an account) in a frame on your page. The visitor's browser loads the PDF and hands it to the editor (or passes the PDF's address when it cannot load it), and the PDF is filled in the browser. When the visitor submits a filled PDF to your SimplePDF account, the filled PDF is sent to SimplePDF, or to your own storage if you set one up. Nothing is sent before a visitor clicks a PDF link.
-
-**The account check.** On the plugin's settings page only, the plugin sends one request to `https://<your company identifier>.simplepdf.com` to check that the account exists. It sends the plugin's version and nothing about your site or your visitors, and the result is cached for up to an hour.
+This plugin uses [SimplePDF](https://simplepdf.com) to open your PDFs in an editor on your page. Filled PDFs stay in your visitors' browser, unless you have a SimplePDF account and they click Submit. The settings page also checks that your SimplePDF account exists.
 
 * [Terms of service](https://simplepdf.com/terms-of-service)
 * [Privacy policy](https://simplepdf.com/privacy-policy)
 
 == Changelog ==
+
+= 1.2.1 =
+* The PDF links report now also lists the links in your Site Editor templates, template parts, synced patterns and navigation menus, like your home page, header and footer
+* It lists only what visitors can reach: published pages and posts, the drafts or private pages you picked to try it, and the templates, patterns and menus your site actually shows
+* One line per PDF link, with where it opens in its own column, 20 pages or templates at a time
+* In "Only on pages and posts I pick" mode, the report says once which pages it runs on, instead of a note on every row
 
 = 1.2.0 =
 * New settings page: see every PDF link on your pages and posts, and where each one opens
