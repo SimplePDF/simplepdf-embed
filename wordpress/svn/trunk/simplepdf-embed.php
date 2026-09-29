@@ -374,14 +374,20 @@ function simplepdf_is_site_part($post) {
     return array_key_exists($post->post_type, simplepdf_site_part_label_formats());
 }
 
-// A theme's customized templates stay in wp_posts after a theme switch; only the active theme's show on the site.
+// A theme's customized templates stay in wp_posts after a theme switch, and an unsynced pattern is only ever
+// copied into posts: neither shows on the site as itself.
 function simplepdf_is_shown_on_site($post) {
     switch ( $post->post_type ) {
+        case 'page':
+        case 'post':
+            return true;
         case 'wp_template':
         case 'wp_template_part':
-            return has_term(get_stylesheet(), 'wp_theme', $post);
+            return $post->post_status === 'publish' && has_term(get_stylesheet(), 'wp_theme', $post);
+        case 'wp_block':
+            return $post->post_status === 'publish' && get_post_meta($post->ID, 'wp_pattern_sync_status', true) !== 'unsynced';
         default:
-            return true;
+            return $post->post_status === 'publish';
     }
 }
 
@@ -410,11 +416,10 @@ function simplepdf_scan_pages_with_pdf_links() {
     global $wpdb;
 
     $post_types = array_merge(array('page', 'post'), array_keys(simplepdf_site_part_label_formats()));
-    $post_type_placeholders = implode(', ', array_fill(0, count($post_types), '%s'));
     // Site parts first: a handful of rows that show on every page, never pushed out of the cap by recent posts.
     $post_ids = $wpdb->get_col($wpdb->prepare(
         "SELECT ID FROM {$wpdb->posts}
-        WHERE post_type IN ($post_type_placeholders)
+        WHERE post_type IN (" . implode(', ', array_fill(0, count($post_types), '%s')) . ")
           AND post_status IN ('publish', 'private', 'draft')
           AND (post_content LIKE %s OR post_content LIKE %s)
         ORDER BY post_type IN ('page', 'post'), post_modified DESC
@@ -435,7 +440,6 @@ function simplepdf_scan_pages_with_pdf_links() {
         'post_status' => array('publish', 'private', 'draft'),
         'orderby' => 'post__in',
         'numberposts' => -1,
-        'update_post_meta_cache' => false,
     ));
 
     $pages = array();
@@ -470,15 +474,31 @@ function simplepdf_runs_on_post($post_id) {
 }
 
 // 'runs' | 'not_picked' | 'picked_pages': whether the script loads where the link shows.
+// A site part's ID is never picked, so under picked pages it opens wherever a picked page shows it.
 function simplepdf_get_page_scope($post) {
-    if ( simplepdf_is_site_part($post) && simplepdf_get_load_scope() === 'everywhere' ) {
+    if ( simplepdf_runs_on_post($post->ID) ) {
         return 'runs';
     }
-    if ( simplepdf_is_site_part($post) ) {
-        return empty(simplepdf_get_selected_post_ids()) ? 'not_picked' : 'picked_pages';
+    if ( ! simplepdf_is_site_part($post) || empty(simplepdf_get_selected_post_ids()) ) {
+        return 'not_picked';
     }
 
-    return simplepdf_runs_on_post($post->ID) ? 'runs' : 'not_picked';
+    return 'picked_pages';
+}
+
+function simplepdf_get_page_scope_note($post, $page_scope) {
+    switch ( $page_scope ) {
+        case 'runs':
+            return '';
+        case 'picked_pages':
+            return __('Shows on several pages: opens in SimplePDF on the picked pages that use it', 'simplepdf-embed');
+        case 'not_picked':
+            return simplepdf_is_site_part($post)
+                ? __('Opens in SimplePDF once you pick a page that shows it, or choose Everywhere', 'simplepdf-embed')
+                : __('Not picked in "Where it runs"', 'simplepdf-embed');
+        default:
+            return '';
+    }
 }
 
 function simplepdf_get_link_outcome($pdf_link, $page_scope, $has_missing_account) {
@@ -488,7 +508,9 @@ function simplepdf_get_link_outcome($pdf_link, $page_scope, $has_missing_account
                 case 'runs':
                     return array('opens_in' => $has_missing_account ? 'error' : 'simplepdf', 'reason' => '');
                 case 'picked_pages':
-                    return array('opens_in' => 'picked_pages', 'reason' => '');
+                    return array('opens_in' => $has_missing_account ? 'error' : 'picked_pages', 'reason' => '');
+                case 'not_picked':
+                    return array('opens_in' => 'browser', 'reason' => '');
                 default:
                     return array('opens_in' => 'browser', 'reason' => '');
             }
@@ -507,7 +529,13 @@ function simplepdf_get_view_url($post) {
         return $post->post_status === 'publish' ? get_permalink($post) : get_preview_post_link($post);
     }
 
-    $is_home_template = $post->post_type === 'wp_template' && in_array($post->post_name, array('home', 'front-page', 'index'), true);
+    $is_posts_page = $post->post_type === 'wp_template' && $post->post_name === 'home' && get_option('show_on_front') === 'page';
+    if ( $is_posts_page ) {
+        $posts_page_url = get_permalink((int) get_option('page_for_posts'));
+
+        return $posts_page_url === false ? '' : $posts_page_url;
+    }
+    $is_home_template = $post->post_type === 'wp_template' && in_array($post->post_name, array('home', 'front-page'), true);
 
     return $is_home_template ? home_url('/') : '';
 }
@@ -610,17 +638,16 @@ function simplepdf_render_pdf_table($pages_with_pdf_links) {
                         <?php else : ?>
                             <?php echo wp_kses_post(simplepdf_external_link($view_url, simplepdf_get_post_label($page['post']))); ?>
                         <?php endif; ?>
-                        <?php switch ( $page['page_scope'] ) : ?>
-<?php case 'not_picked': ?>
-                            <span class="description simplepdf-page-note"><?php esc_html_e('Not picked in "Where it runs"', 'simplepdf-embed'); ?></span>
-                            <?php break; ?>
-<?php case 'picked_pages': ?>
-                            <span class="description simplepdf-page-note"><?php esc_html_e('Shows on several pages: opens in SimplePDF on the ones picked in "Where it runs"', 'simplepdf-embed'); ?></span>
-                            <?php break; ?>
-<?php endswitch; ?>
-                        <div class="row-actions visible">
-                            <a href="<?php echo esc_url(get_edit_post_link($page['post'])); ?>"><?php esc_html_e('Edit', 'simplepdf-embed'); ?></a>
-                        </div>
+                        <?php $page_scope_note = simplepdf_get_page_scope_note($page['post'], $page['page_scope']); ?>
+                        <?php if ( $page_scope_note !== '' ) : ?>
+                            <span class="description simplepdf-page-note"><?php echo esc_html($page_scope_note); ?></span>
+                        <?php endif; ?>
+                        <?php $edit_url = get_edit_post_link($page['post']); ?>
+                        <?php if ( $edit_url !== null && $edit_url !== '' ) : ?>
+                            <div class="row-actions visible">
+                                <a href="<?php echo esc_url($edit_url); ?>"><?php esc_html_e('Edit', 'simplepdf-embed'); ?></a>
+                            </div>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <ul class="simplepdf-pdf-links">
@@ -694,12 +721,20 @@ function simplepdf_get_pdfs_card_header($report) {
         );
     }
 
-    $title = sprintf(
-        /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
-        _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
-        $counts['simplepdf'],
-        $link_count
-    );
+    $title = $counts['picked_pages'] === 0
+        ? sprintf(
+            /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
+            _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
+            $counts['simplepdf'],
+            $link_count
+        )
+        : sprintf(
+            /* translators: 1: PDF links that open in SimplePDF everywhere they show, 2: all PDF links found, 3: PDF links that open on the picked pages only */
+            _n('%1$d of %2$d PDF link opens in SimplePDF, %3$d on picked pages', '%1$d of %2$d PDF links open in SimplePDF, %3$d on picked pages', $link_count, 'simplepdf-embed'),
+            $counts['simplepdf'],
+            $link_count,
+            $counts['picked_pages']
+        );
     $opens_somewhere = $counts['simplepdf'] + $counts['picked_pages'] > 0;
     if ( ! $opens_somewhere && $counts['not_picked'] > 0 ) {
         return array(
@@ -986,8 +1021,9 @@ function simplepdf_get_selectable_posts() {
 function simplepdf_get_post_label($post) {
     $title = wp_strip_all_tags(get_the_title($post));
     $label = $title !== '' ? $title : __('(no title)', 'simplepdf-embed');
-    $site_part_label_formats = simplepdf_site_part_label_formats();
-    if ( array_key_exists($post->post_type, $site_part_label_formats) ) {
+    if ( simplepdf_is_site_part($post) ) {
+        $site_part_label_formats = simplepdf_site_part_label_formats();
+
         return sprintf($site_part_label_formats[$post->post_type], $label);
     }
 
