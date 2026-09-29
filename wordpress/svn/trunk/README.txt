@@ -98,7 +98,7 @@ Every PDF link on your site now opens in SimplePDF. Open Settings > SimplePDF Em
 
 = A PDF link does not open in SimplePDF =
 
-Settings > SimplePDF Embed lists the PDF links on your pages, posts, Site Editor templates, patterns and menus, with the reason next to any link that opens in the browser. The usual causes:
+Settings > SimplePDF Embed lists the PDF links visitors can reach on your pages, posts, Site Editor templates, patterns and menus, and where each one opens. A link opens in the browser when:
 
 * The link does not point to a `.pdf` file
 * The link has the `exclude-simplepdf` class

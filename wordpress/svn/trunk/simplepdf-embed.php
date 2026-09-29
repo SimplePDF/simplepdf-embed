@@ -313,10 +313,11 @@ function simplepdf_admin_css() {
 .simplepdf-pdf-table th:last-child { width: 30%; }
 .simplepdf-pdf-table tbody + tbody { border-top: 1px solid #f0f0f1; }
 .simplepdf-pdf-table tbody:nth-of-type(odd) { background: #f6f7f7; }
-.simplepdf-pdf-table td { padding-top: 6px; padding-bottom: 6px; }
+.simplepdf-pdf-table tbody th, .simplepdf-pdf-table td { padding-top: 6px; padding-bottom: 6px; }
+.simplepdf-pdf-table tbody th { font-weight: 400; }
 .simplepdf-pdf-table td .description { display: block; }
 .simplepdf-edit-link { color: #a7aaad; }
-.simplepdf-pill { flex: none; display: inline-block; min-width: 64px; padding: 1px 8px; border-radius: 999px; background: #f0f0f1; color: #50575e; font-size: 12px; text-align: center; }
+.simplepdf-pill { display: inline-block; min-width: 64px; padding: 1px 8px; border-radius: 999px; background: #f0f0f1; color: #50575e; font-size: 12px; text-align: center; }
 .simplepdf-pill-on { background: #edfaef; color: #007017; }
 .simplepdf-pill-error { background: #fcf0f1; color: #b32d2e; }
 .simplepdf-save { margin: 16px 0 0; }
@@ -398,61 +399,35 @@ function simplepdf_get_linked_html($post) {
         : $post->post_content;
 }
 
-function simplepdf_get_empty_block_references() {
-    return array('template_part_slugs' => array(), 'navigation_ids' => array(), 'has_fallback_navigation' => false, 'pattern_ids' => array());
+// Templates offered in a page's Template picker show only on the pages that use them; every other template (index,
+// page-contact, category-news...) is served by the template hierarchy.
+function simplepdf_is_picker_template($template) {
+    $theme_custom_templates = class_exists('WP_Theme_JSON_Resolver') && method_exists(WP_Theme_JSON_Resolver::get_theme_data(), 'get_custom_templates')
+        ? WP_Theme_JSON_Resolver::get_theme_data()->get_custom_templates()
+        : array();
+
+    return array_key_exists($template->slug, $theme_custom_templates) || strpos($template->slug, 'wp-custom-template-') === 0;
 }
 
-// The template parts, menus and patterns one block points to (not its inner blocks).
-function simplepdf_get_own_block_references($block) {
-    $attrs = $block['attrs'];
-    $references = simplepdf_get_empty_block_references();
-    switch ( $block['blockName'] ) {
-        case 'core/template-part':
-            $is_active_theme = ! isset($attrs['theme']) || $attrs['theme'] === get_stylesheet();
-            $references['template_part_slugs'] = $is_active_theme && isset($attrs['slug']) ? array($attrs['slug']) : array();
-            return $references;
-        case 'core/navigation':
-            // Without a menu and without its own links, the block shows the most recently published menu.
-            $references['navigation_ids'] = isset($attrs['ref']) ? array((int) $attrs['ref']) : array();
-            $references['has_fallback_navigation'] = ! isset($attrs['ref']) && empty($block['innerBlocks']);
-            return $references;
-        case 'core/block':
-            $references['pattern_ids'] = isset($attrs['ref']) ? array((int) $attrs['ref']) : array();
-            return $references;
-        default:
-            return $references;
-    }
-}
-
-// The template parts, menus and patterns a list of blocks shows, wherever they sit in it.
-function simplepdf_get_block_references($blocks) {
-    $references = simplepdf_get_empty_block_references();
-    foreach ( $blocks as $block ) {
-        $references = simplepdf_merge_block_references($references, simplepdf_get_own_block_references($block));
-        $references = simplepdf_merge_block_references($references, simplepdf_get_block_references($block['innerBlocks']));
-    }
-
-    return $references;
-}
-
-function simplepdf_merge_block_references($references, $more_references) {
-    return array(
-        'template_part_slugs' => array_values(array_unique(array_merge($references['template_part_slugs'], $more_references['template_part_slugs']))),
-        'navigation_ids' => array_values(array_unique(array_merge($references['navigation_ids'], $more_references['navigation_ids']))),
-        'has_fallback_navigation' => $references['has_fallback_navigation'] || $more_references['has_fallback_navigation'],
-        'pattern_ids' => array_values(array_unique(array_merge($references['pattern_ids'], $more_references['pattern_ids']))),
-    );
-}
-
-// Custom templates (the "Template" picker on a page) show only on the pages that use them.
+// The picker templates assigned to a page visitors can reach (a picked draft included, like the draft itself).
 function simplepdf_get_assigned_template_slugs() {
     global $wpdb;
 
-    return $wpdb->get_col(
-        "SELECT DISTINCT page_template.meta_value FROM {$wpdb->postmeta} page_template
+    $picked_post_ids = simplepdf_get_load_scope() === 'selected' ? simplepdf_get_selected_post_ids() : array();
+    $picked_clause = empty($picked_post_ids)
+        ? ''
+        : ' OR assigned_post.ID IN (' . implode(', ', array_fill(0, count($picked_post_ids), '%d')) . ')';
+    $query = "SELECT DISTINCT page_template.meta_value FROM {$wpdb->postmeta} page_template
         JOIN {$wpdb->posts} assigned_post ON assigned_post.ID = page_template.post_id
-        WHERE page_template.meta_key = '_wp_page_template' AND assigned_post.post_status = 'publish'"
-    );
+        WHERE page_template.meta_key = '_wp_page_template' AND (assigned_post.post_status = 'publish'" . $picked_clause . ')';
+
+    return $wpdb->get_col(empty($picked_post_ids) ? $query : $wpdb->prepare($query, $picked_post_ids));
+}
+
+function simplepdf_get_ref_like_patterns($post_id) {
+    global $wpdb;
+
+    return array('%' . $wpdb->esc_like('"ref":' . $post_id . '}') . '%', '%' . $wpdb->esc_like('"ref":' . $post_id . ',') . '%');
 }
 
 function simplepdf_is_referenced_by_published_content($post_id) {
@@ -463,58 +438,119 @@ function simplepdf_is_referenced_by_published_content($post_id) {
         WHERE post_type IN ('page', 'post') AND post_status = 'publish'
           AND (post_content LIKE %s OR post_content LIKE %s)
         LIMIT 1",
-        '%' . $wpdb->esc_like('"ref":' . $post_id . '}') . '%',
-        '%' . $wpdb->esc_like('"ref":' . $post_id . ',') . '%'
+        simplepdf_get_ref_like_patterns($post_id)
     ));
 }
 
-// The site parts the live site shows, resolved with core's own template lookup (theme files included): the templates
-// in effect, the template parts they include, the menus their navigation blocks show (a navigation block without a
-// menu shows the most recently published one), and the patterns inserted in any of these or in a published page.
+// The published patterns that insert any of these patterns or menus: a page may show a PDF link two patterns deep.
+function simplepdf_get_referencing_pattern_ids($post_ids) {
+    global $wpdb;
+
+    $ref_like_patterns = array();
+    foreach ( $post_ids as $post_id ) {
+        $ref_like_patterns = array_merge($ref_like_patterns, simplepdf_get_ref_like_patterns($post_id));
+    }
+
+    return array_map('intval', $wpdb->get_col($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts}
+        WHERE post_type = 'wp_block' AND post_status = 'publish'
+          AND (" . implode(' OR ', array_fill(0, count($ref_like_patterns), 'post_content LIKE %s')) . ')',
+        $ref_like_patterns
+    )));
+}
+
+// The patterns and menus published pages insert directly, among these and the patterns that insert them.
+function simplepdf_get_page_inserted_ids($site_parts) {
+    $candidate_ids = array();
+    foreach ( $site_parts as $site_part ) {
+        $is_insertable = in_array($site_part->post_type, array('wp_block', 'wp_navigation'), true);
+        $candidate_ids = $is_insertable ? array_merge($candidate_ids, array($site_part->ID)) : $candidate_ids;
+    }
+
+    $new_ids = $candidate_ids;
+    while ( ! empty($new_ids) ) {
+        $new_ids = array_values(array_diff(simplepdf_get_referencing_pattern_ids($new_ids), $candidate_ids));
+        $candidate_ids = array_merge($candidate_ids, $new_ids);
+    }
+
+    return array_values(array_filter($candidate_ids, 'simplepdf_is_referenced_by_published_content'));
+}
+
+// The site parts the live site shows, resolved with core's own template lookup (theme files included). A worklist walks
+// the blocks of everything shown (templates in effect, the patterns and menus pages insert) and follows each template
+// part, registered pattern, synced pattern and menu it meets, at any depth. A navigation block with no links of its own
+// and no published menu shows the most recently published one.
 function simplepdf_get_used_site_part_ids($site_parts) {
     $assigned_template_slugs = simplepdf_get_assigned_template_slugs();
-    $used_templates = array_filter(get_block_templates(array(), 'wp_template'), function ($template) use ($assigned_template_slugs) {
-        return empty($template->is_custom) || in_array($template->slug, $assigned_template_slugs, true);
-    });
-    $template_parts = get_block_templates(array(), 'wp_template_part');
+    $template_parts_by_slug = array();
+    foreach ( get_block_templates(array(), 'wp_template_part') as $template_part ) {
+        $template_parts_by_slug[$template_part->slug] = $template_part;
+    }
 
     $used_ids = array();
-    $shown_blocks = array();
-    foreach ( $used_templates as $template ) {
+    $pending_blocks = array();
+    foreach ( get_block_templates(array(), 'wp_template') as $template ) {
+        if ( simplepdf_is_picker_template($template) && ! in_array($template->slug, $assigned_template_slugs, true) ) {
+            continue;
+        }
         $used_ids[] = (int) $template->wp_id;
-        $shown_blocks = array_merge($shown_blocks, parse_blocks($template->content));
+        $pending_blocks = array_merge($pending_blocks, parse_blocks($template->content));
     }
-    foreach ( $site_parts as $site_part ) {
-        $is_shown_pattern = $site_part->post_type === 'wp_block' && simplepdf_is_referenced_by_published_content($site_part->ID);
-        $shown_blocks = $is_shown_pattern ? array_merge($shown_blocks, parse_blocks($site_part->post_content)) : $shown_blocks;
+    foreach ( simplepdf_get_page_inserted_ids($site_parts) as $inserted_id ) {
+        $used_ids[] = $inserted_id;
+        $pending_blocks = array_merge($pending_blocks, parse_blocks(get_post_field('post_content', $inserted_id)));
     }
 
-    // Template parts can include template parts: follow them until no new one shows up.
-    $references = simplepdf_get_block_references($shown_blocks);
     $followed_slugs = array();
-    while ( count(array_diff($references['template_part_slugs'], $followed_slugs)) > 0 ) {
-        $new_slugs = array_diff($references['template_part_slugs'], $followed_slugs);
-        $followed_slugs = array_merge($followed_slugs, $new_slugs);
-        foreach ( $template_parts as $template_part ) {
-            if ( ! in_array($template_part->slug, $new_slugs, true) ) {
-                continue;
-            }
-            $used_ids[] = (int) $template_part->wp_id;
-            $references = simplepdf_merge_block_references($references, simplepdf_get_block_references(parse_blocks($template_part->content)));
+    $followed_ids = array();
+    $shows_fallback_menu = false;
+    while ( ! empty($pending_blocks) ) {
+        $block = array_pop($pending_blocks);
+        $attrs = $block['attrs'];
+        $pending_blocks = array_merge($pending_blocks, $block['innerBlocks']);
+        switch ( $block['blockName'] ) {
+            case 'core/template-part':
+                $slug = isset($attrs['slug']) ? $attrs['slug'] : '';
+                $is_active_theme = ! isset($attrs['theme']) || $attrs['theme'] === get_stylesheet();
+                if ( ! $is_active_theme || ! isset($template_parts_by_slug[$slug]) || in_array($slug, $followed_slugs, true) ) {
+                    break;
+                }
+                $followed_slugs[] = $slug;
+                $used_ids[] = (int) $template_parts_by_slug[$slug]->wp_id;
+                $pending_blocks = array_merge($pending_blocks, parse_blocks($template_parts_by_slug[$slug]->content));
+                break;
+            case 'core/pattern':
+                $slug = isset($attrs['slug']) ? $attrs['slug'] : '';
+                $pattern = class_exists('WP_Block_Patterns_Registry') ? WP_Block_Patterns_Registry::get_instance()->get_registered($slug) : null;
+                if ( ! is_array($pattern) || in_array($slug, $followed_slugs, true) ) {
+                    break;
+                }
+                $followed_slugs[] = $slug;
+                $pending_blocks = array_merge($pending_blocks, parse_blocks($pattern['content']));
+                break;
+            case 'core/block':
+            case 'core/navigation':
+                $legacy_menu_ref = isset($attrs['navigationMenuId']) ? (int) $attrs['navigationMenuId'] : 0;
+                $ref = isset($attrs['ref']) ? (int) $attrs['ref'] : $legacy_menu_ref;
+                $is_published_ref = $ref !== 0 && get_post_status($ref) === 'publish';
+                $shows_fallback_menu = $shows_fallback_menu || ($block['blockName'] === 'core/navigation' && ! $is_published_ref && empty($block['innerBlocks']));
+                if ( ! $is_published_ref || in_array($ref, $followed_ids, true) ) {
+                    break;
+                }
+                $followed_ids[] = $ref;
+                $used_ids[] = $ref;
+                $pending_blocks = array_merge($pending_blocks, parse_blocks(get_post_field('post_content', $ref)));
+                break;
+            default:
+                break;
         }
     }
 
-    $fallback_navigation_ids = $references['has_fallback_navigation']
+    $fallback_menu_ids = $shows_fallback_menu
         ? get_posts(array('post_type' => 'wp_navigation', 'post_status' => 'publish', 'numberposts' => 1, 'orderby' => 'date', 'order' => 'DESC', 'fields' => 'ids'))
         : array();
-    $used_ids = array_merge($used_ids, $references['navigation_ids'], $references['pattern_ids'], array_map('intval', $fallback_navigation_ids));
-    foreach ( $site_parts as $site_part ) {
-        $is_menu_in_a_page = $site_part->post_type !== 'wp_template' && $site_part->post_type !== 'wp_template_part'
-            && simplepdf_is_referenced_by_published_content($site_part->ID);
-        $used_ids[] = $is_menu_in_a_page ? $site_part->ID : 0;
-    }
 
-    return array_values(array_unique(array_filter($used_ids)));
+    return array_values(array_unique(array_filter(array_merge($used_ids, array_map('intval', $fallback_menu_ids)))));
 }
 
 // The Site Editor's saved parts that link a PDF: published, from the active theme (customized templates stay in wp_posts
@@ -570,25 +606,25 @@ function simplepdf_scan_site_parts() {
 }
 
 // What visitors can reach: published pages and posts, plus drafts or private pages picked in "Where it runs" to try it.
+// Picked pages sort first: they are the ones the script runs on, never pushed out of the cap by recent posts.
 function simplepdf_scan_pages() {
     global $wpdb;
 
     $picked_post_ids = simplepdf_get_load_scope() === 'selected' ? simplepdf_get_selected_post_ids() : array();
-    $picked_clause = empty($picked_post_ids)
-        ? ''
-        : " OR (post_status IN ('private', 'draft') AND ID IN (" . implode(', ', array_fill(0, count($picked_post_ids), '%d')) . '))';
+    $picked_placeholders = implode(', ', array_fill(0, count($picked_post_ids), '%d'));
+    $picked_clause = empty($picked_post_ids) ? '' : " OR (post_status IN ('private', 'draft') AND ID IN (" . $picked_placeholders . '))';
+    $picked_first = empty($picked_post_ids) ? '' : 'ID IN (' . $picked_placeholders . ') DESC, ';
     $page_ids = $wpdb->get_col($wpdb->prepare(
         "SELECT ID FROM {$wpdb->posts}
         WHERE post_type IN ('page', 'post')
           AND (post_status = 'publish'" . $picked_clause . ")
           AND (post_content LIKE %s OR post_content LIKE %s)
-        ORDER BY post_modified DESC, ID DESC
+        ORDER BY " . $picked_first . "post_modified DESC, ID DESC
         LIMIT %d",
         array_merge($picked_post_ids, array(
             '%' . $wpdb->esc_like('.pdf') . '%',
             '%' . $wpdb->esc_like('simplepdf') . '%',
-            SIMPLEPDF_PDF_PAGE_LIMIT,
-        ))
+        ), $picked_post_ids, array(SIMPLEPDF_PDF_PAGE_LIMIT))
     ));
     if ( empty($page_ids) ) {
         return array('pages' => array(), 'is_capped' => false);
@@ -749,9 +785,6 @@ function simplepdf_render_opens_in_pill($opens_in) {
         case 'error':
             echo '<span class="simplepdf-pill simplepdf-pill-error">' . esc_html__('Error', 'simplepdf-embed') . '</span>';
             break;
-        case 'browser':
-            echo '<span class="simplepdf-pill">' . esc_html__('Browser', 'simplepdf-embed') . '</span>';
-            break;
         default:
             echo '<span class="simplepdf-pill">' . esc_html__('Browser', 'simplepdf-embed') . '</span>';
             break;
@@ -764,7 +797,8 @@ function simplepdf_render_page_cell($post) {
     $edit_url = get_edit_post_link($post);
     echo $view_url === '' ? esc_html($label) : wp_kses_post(simplepdf_external_link($view_url, $label));
     if ( $edit_url !== null && $edit_url !== '' ) {
-        echo ' <span class="simplepdf-edit-link">&middot;</span> <a href="' . esc_url($edit_url) . '">' . esc_html__('Edit', 'simplepdf-embed') . '</a>';
+        echo ' <span class="simplepdf-edit-link" aria-hidden="true">&middot;</span> <a href="' . esc_url($edit_url) . '">'
+            . esc_html__('Edit', 'simplepdf-embed') . '<span class="screen-reader-text"> ' . esc_html($label) . '</span></a>';
     }
 }
 
@@ -788,7 +822,7 @@ function simplepdf_render_pdf_table($pages_with_pdf_links) {
                     ?>
                     <tr>
                         <?php if ( $link_index === 0 ) : ?>
-                            <td rowspan="<?php echo esc_attr((string) count($page['pdf_links'])); ?>"><?php simplepdf_render_page_cell($page['post']); ?></td>
+                            <th scope="rowgroup" rowspan="<?php echo esc_attr((string) count($page['pdf_links'])); ?>"><?php simplepdf_render_page_cell($page['post']); ?></th>
                         <?php endif; ?>
                         <td><?php echo wp_kses_post(simplepdf_external_link($pdf_link['href'], $file_name)); ?></td>
                         <td>
@@ -829,7 +863,7 @@ function simplepdf_build_pdf_link_report() {
             $counts[$outcome['opens_in']]++;
             $pdf_links[] = array_merge($pdf_link, array('outcome' => $outcome));
         }
-        $pages[] = array('post' => $page['post'], 'page_scope' => $page_scope, 'pdf_links' => $pdf_links);
+        $pages[] = array('post' => $page['post'], 'pdf_links' => $pdf_links);
     }
 
     return array(
@@ -863,16 +897,30 @@ function simplepdf_get_pdfs_card_header($report) {
     }
 
     $opening_count = $counts['simplepdf'] + $counts['picked_pages'];
-    $title = sprintf(
-        /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
-        _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
-        $opening_count,
-        $link_count
-    );
-    $picked_count = count(simplepdf_get_selected_post_ids());
-
+    $title = $counts['picked_pages'] === 0
+        ? sprintf(
+            /* translators: 1: PDF links that open in SimplePDF, 2: all PDF links found */
+            _n('%1$d of %2$d PDF link opens in SimplePDF', '%1$d of %2$d PDF links open in SimplePDF', $link_count, 'simplepdf-embed'),
+            $counts['simplepdf'],
+            $link_count
+        )
+        : sprintf(
+            /* translators: 1: PDF links that open in SimplePDF everywhere they show, 2: all PDF links found, 3: PDF links in templates, patterns and menus, which open only on the picked pages */
+            _n('%1$d of %2$d PDF link opens in SimplePDF, %3$d on picked pages', '%1$d of %2$d PDF links open in SimplePDF, %3$d on picked pages', $link_count, 'simplepdf-embed'),
+            $counts['simplepdf'],
+            $link_count,
+            $counts['picked_pages']
+        );
     switch ( simplepdf_get_load_scope() ) {
         case 'selected':
+            $selected_post_ids = simplepdf_get_selected_post_ids();
+            $picked_count = empty($selected_post_ids) ? 0 : count(get_posts(array(
+                'post__in' => $selected_post_ids,
+                'post_type' => array('page', 'post'),
+                'post_status' => array('publish', 'private', 'draft'),
+                'numberposts' => -1,
+                'fields' => 'ids',
+            )));
             if ( $picked_count === 0 ) {
                 return array(
                     'needs_attention' => true,
@@ -886,7 +934,7 @@ function simplepdf_get_pdfs_card_header($report) {
                 'title' => $title,
                 'lede' => sprintf(
                     /* translators: %d: pages and posts picked in "Where it runs" */
-                    _n('Runs on the %d page you picked. Every other PDF link opens in the browser.', 'Runs on the %d pages you picked. Every other PDF link opens in the browser.', $picked_count, 'simplepdf-embed'),
+                    _n('Runs on the %d page or post you picked. Every other PDF link opens in the browser.', 'Runs on the %d pages and posts you picked. Every other PDF link opens in the browser.', $picked_count, 'simplepdf-embed'),
                     $picked_count
                 ),
             );
@@ -914,8 +962,8 @@ function simplepdf_render_pdf_table_pagination($table_page, $table_page_count, $
             <span class="displaying-num">
                 <?php
                 echo esc_html(sprintf(
-                    /* translators: %d: pages, posts, templates, patterns and menus in the PDF links table */
-                    _n('%d item', '%d items', $row_count, 'simplepdf-embed'),
+                    /* translators: %d: pages, posts, templates, patterns and menus listed in the PDF links table */
+                    _n('%d page or template', '%d pages and templates', $row_count, 'simplepdf-embed'),
                     $row_count
                 ));
                 ?>
