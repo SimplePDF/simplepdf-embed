@@ -2,7 +2,7 @@
 Contributors:      bendersej
 Tags:              pdf, pdf form, fill pdf, sign pdf, form submissions
 Tested up to:      7.1.2
-Stable tag:        1.2.0
+Stable tag:        1.2.1
 License:           GPLv2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Requires at least: 5.8
@@ -37,7 +37,7 @@ Visitors fill and sign your PDFs, then download them. The document is filled in 
 
 * Every PDF link opens in SimplePDF by default, whatever the extension case (`Consent.PDF`) or query string (`form.pdf?ver=2`)
 * Or limit it to the pages and posts you pick, and try it on a draft before going live
-* The settings page lists the PDF links on your pages and posts, and where each one opens
+* The settings page lists the PDF links on your pages, posts, Site Editor templates, patterns and menus, and where each one opens
 * Add the `exclude-simplepdf` class to a link to keep the browser's own PDF viewer
 * Visitors who browse with an AI assistant (ChatGPT's browser, Chrome with WebMCP) can ask it to fill the form for them, and check every answer before they submit. One checkbox turns it off.
 
@@ -98,13 +98,13 @@ Every PDF link on your site now opens in SimplePDF. Open Settings > SimplePDF Em
 
 = A PDF link does not open in SimplePDF =
 
-Settings > SimplePDF Embed lists the PDF links on your pages and posts, with the reason next to any link that opens in the browser. The usual causes:
+Settings > SimplePDF Embed lists the PDF links on your pages, posts, Site Editor templates, patterns and menus, with the reason next to any link that opens in the browser. The usual causes:
 
 * The link does not point to a `.pdf` file
 * The link has the `exclude-simplepdf` class
 * The page is not picked in "Where it runs"
 
-Links added by a page builder, a menu or a widget open the same way but are not listed.
+Links added by a page builder, a classic menu or a widget open the same way but are not listed.
 
 = How do I keep one PDF in the browser's viewer? =
 
@@ -137,6 +137,10 @@ This plugin connects to SimplePDF (https://simplepdf.com) in two ways.
 * [Privacy policy](https://simplepdf.com/privacy-policy)
 
 == Changelog ==
+
+= 1.2.1 =
+* The PDF links report now also lists the links in your Site Editor templates, template parts, synced patterns and navigation menus, like your home page, header and footer
+* The report shows 20 rows at a time, with page navigation
 
 = 1.2.0 =
 * New settings page: see every PDF link on your pages and posts, and where each one opens
