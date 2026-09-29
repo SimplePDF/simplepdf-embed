@@ -4,6 +4,8 @@ dev
 
 # Wordpress extension
 wordpress/svn/.svn
+# Published versions live on WordPress.org SVN and as wordpress@<version> GitHub releases, not in git
+wordpress/svn/tags/
 
 # Chrome extension
 chrome-extension/release/
