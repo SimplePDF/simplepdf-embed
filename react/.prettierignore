@@ -4,6 +4,7 @@ coverage/
 etc/
 tmp/
 
+package.json
 package-lock.json
 
 .prettierignore

@@ -5,7 +5,7 @@ import type { METHOD_NAMES } from './method-names'
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const EDITOR_ERROR_CODES = ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
+export const EDITOR_ERROR_CODES = ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
 export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number]
 
 export const FIELD_TYPES = ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"] as const
@@ -45,7 +45,7 @@ export type RotatePageInput = { page: number }
 export type RotatePageOutput = null
 export type SelectToolInput = { tool: OverlayToolType | null }
 export type SelectToolOutput = null
-export type SetFieldValueInput = { fieldId: string; value: string | null }
+export type SetFieldValueInput = { animate?: boolean; fieldId: string; value: string | null }
 export type SetFieldValueOutput = null
 export type SubmitInput = { downloadCopy: boolean }
 export type SubmitOutput = null
@@ -66,7 +66,7 @@ export const OPERATIONS = [
     wire_type: "CREATE_FIELD",
     method: "createField",
     description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.",
-    error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"] as const,
+    error_codes: ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* CreateField */,
@@ -75,7 +75,7 @@ export const OPERATIONS = [
     wire_type: "DELETE_FIELDS",
     method: "deleteFields",
     description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.",
-    error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_field_ids", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:page_not_found"] as const,
+    error_codes: ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_field_ids", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:page_not_found"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* DeleteFields */,
@@ -120,7 +120,7 @@ export const OPERATIONS = [
     wire_type: "GET_ANNOTATED_PAGE",
     method: "getAnnotatedPage",
     description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.",
-    error_codes: ["bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* GetAnnotatedPage */,
@@ -147,7 +147,7 @@ export const OPERATIONS = [
     wire_type: "GO_TO",
     method: "goTo",
     description: "Scroll the editor to a specific 1-based page. Returns no data.",
-    error_codes: ["bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* GoTo */,
@@ -155,8 +155,8 @@ export const OPERATIONS = [
     request_type: "LOAD_DOCUMENT",
     wire_type: "LOAD_DOCUMENT",
     method: "loadDocument",
-    description: "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.",
-    error_codes: ["bad_request:invalid_value", "bad_request:invalid_page"] as const,
+    description: "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.",
+    error_codes: ["bad_request:failed_to_load_document", "bad_request:invalid_value", "bad_request:invalid_page"] as const,
     is_agentic_tool: false,
     has_output: false,
   } /* LoadDocument */,
@@ -183,7 +183,7 @@ export const OPERATIONS = [
     wire_type: "SELECT_TOOL",
     method: "selectTool",
     description: "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.",
-    error_codes: ["bad_request:invalid_tool"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_tool"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* SelectTool */,
@@ -191,7 +191,7 @@ export const OPERATIONS = [
     request_type: "SET_FIELD_VALUE",
     wire_type: "SET_FIELD_VALUE",
     method: "setFieldValue",
-    description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.",
+    description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.",
     error_codes: ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -201,7 +201,7 @@ export const OPERATIONS = [
     wire_type: "SUBMIT",
     method: "submit",
     description: "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
-    error_codes: ["bad_request:invalid_value", "bad_request:missing_required_fields"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* Submit */,
@@ -212,8 +212,8 @@ export type RequestType = (typeof OPERATIONS)[number]["request_type"]
 export type MethodName = (typeof METHOD_NAMES)[number]
 
 export const OUTBOUND_EVENTS = [
-  { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, every operation fails with bad_request:editor_not_ready. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },
-  { event_type: "DOCUMENT_LOADED", description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. Wait for it before operating on the document: until it fires, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded or bad_request:editor_not_ready, and GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user." },
+  { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },
+  { event_type: "DOCUMENT_LOADED", description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user." },
   { event_type: "PAGE_FOCUSED", description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page." },
   { event_type: "SUBMISSION_SENT", description: "Pushed after a SUBMIT completes successfully. This is how you confirm a submission landed: the SUBMIT operation itself resolves with data: null, so listen for this event to get the resulting document_id and submission_id." },
 ] as const

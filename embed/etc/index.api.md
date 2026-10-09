@@ -350,6 +350,7 @@ export type SelectToolInput = {
 
 // @public (undocumented)
 export type SetFieldValueInput = {
+    animate?: boolean;
     fieldId: string;
     value: string | null;
 };

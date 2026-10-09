@@ -1,5 +1,5 @@
 {
-  "editor_version": "0b688f24-20260911T151304Z",
+  "editor_version": "65235d76-20261009T151312Z",
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -126,6 +126,7 @@
       },
       "error_codes": [
         "forbidden:editing_not_allowed",
+        "bad_request:no_document_loaded",
         "bad_request:invalid_page",
         "bad_request:invalid_dimensions",
         "bad_request:invalid_value",
@@ -209,6 +210,7 @@
       },
       "error_codes": [
         "forbidden:editing_not_allowed",
+        "bad_request:no_document_loaded",
         "bad_request:invalid_field_ids",
         "bad_request:invalid_page",
         "bad_request:page_out_of_range",
@@ -439,7 +441,7 @@
         },
         "required": ["page", "image_data_url", "image_width", "image_height", "badges"]
       },
-      "error_codes": ["bad_request:invalid_page", "bad_request:page_out_of_range"],
+      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"],
       "tool": {
         "name": "simplepdf_embed_get_annotated_page",
         "description": "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.",
@@ -617,7 +619,7 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_page", "bad_request:page_out_of_range"],
+      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"],
       "tool": {
         "name": "simplepdf_embed_go_to",
         "description": "Scroll the editor to a specific 1-based page. Returns no data.",
@@ -638,7 +640,7 @@
     },
     {
       "request_type": "LOAD_DOCUMENT",
-      "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.",
+      "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -656,15 +658,15 @@
           }
         },
         "required": ["data_url"],
-        "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data."
+        "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data."
       },
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:invalid_page"],
+      "error_codes": ["bad_request:failed_to_load_document", "bad_request:invalid_value", "bad_request:invalid_page"],
       "tool": {
         "name": "simplepdf_embed_load_document",
-        "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.",
+        "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -806,7 +808,7 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_tool"],
+      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_tool"],
       "tool": {
         "name": "simplepdf_embed_select_tool",
         "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.",
@@ -835,10 +837,14 @@
     },
     {
       "request_type": "SET_FIELD_VALUE",
-      "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.",
+      "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
+          "animate": {
+            "description": "Type a text value out character by character (true, the default) so a person watching the editor can follow the field being filled, or set it at once (false) for headless or batch filling where speed matters. Only text values are typed: checkbox, option, signature, picture and null values are always set at once.",
+            "type": "boolean"
+          },
           "field_id": {
             "type": "string",
             "description": "ID of the field to update."
@@ -856,7 +862,7 @@
           }
         },
         "required": ["field_id", "value"],
-        "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data."
+        "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data."
       },
       "output_schema": {
         "type": "null"
@@ -870,10 +876,14 @@
       ],
       "tool": {
         "name": "simplepdf_embed_set_field_value",
-        "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.",
+        "description": "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {
+            "animate": {
+              "description": "Type a text value out character by character (true, the default) so a person watching the editor can follow the field being filled, or set it at once (false) for headless or batch filling where speed matters. Only text values are typed: checkbox, option, signature, picture and null values are always set at once.",
+              "type": "boolean"
+            },
             "field_id": {
               "description": "ID of the field to update.",
               "type": "string"
@@ -915,7 +925,11 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:missing_required_fields"],
+      "error_codes": [
+        "bad_request:no_document_loaded",
+        "bad_request:invalid_value",
+        "bad_request:missing_required_fields"
+      ],
       "tool": {
         "name": "simplepdf_embed_submit",
         "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
@@ -938,7 +952,7 @@
   "events": [
     {
       "event_type": "EDITOR_READY",
-      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, every operation fails with bad_request:editor_not_ready. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
+      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
       "payload_schema": {
         "type": "object",
         "properties": {}
@@ -946,7 +960,7 @@
     },
     {
       "event_type": "DOCUMENT_LOADED",
-      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. Wait for it before operating on the document: until it fires, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded or bad_request:editor_not_ready, and GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
+      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
       "payload_schema": {
         "type": "object",
         "properties": {
@@ -1044,7 +1058,12 @@
               {
                 "type": "string",
                 "const": "bad_request:event_not_allowed",
-                "description": "This operation is disabled for the current portal configuration."
+                "description": "This operation is not available in this context (the portal configuration or this page does not offer it); the message says why."
+              },
+              {
+                "type": "string",
+                "const": "bad_request:failed_to_load_document",
+                "description": "The document LOAD_DOCUMENT was given could not be loaded (unreachable, not a PDF or image, corrupted, password-protected, superseded by another load, or the editor could not prepare it: the server never resolved it, or storing it failed); the message says which."
               },
               {
                 "type": "string",
@@ -1129,7 +1148,7 @@
               {
                 "type": "string",
                 "const": "forbidden:origin_not_whitelisted",
-                "description": "The embedding origin is not allowlisted for this tenant. Allowlist it in the SimplePDF admin dashboard."
+                "description": "The embedding origin is not allowlisted for this tenant, or is not the allowlisted origin the editor was loaded from. Allowlist it in the SimplePDF admin dashboard and let the embedding page's Referer reach the editor."
               },
               {
                 "type": "string",
