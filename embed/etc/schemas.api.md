@@ -139,6 +139,7 @@ export type SelectToolInput = z.infer<typeof SelectToolInput>;
 
 // @public (undocumented)
 export const SetFieldValueInput: z.ZodObject<{
+    animate: z.ZodOptional<z.ZodBoolean>;
     fieldId: z.ZodString;
     value: z.ZodNullable<z.ZodString>;
 }, z.core.$strip>;

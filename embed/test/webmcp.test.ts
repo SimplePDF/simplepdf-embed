@@ -168,7 +168,7 @@ describe('attachEmbed({ webMCP })', () => {
     const setFieldValue = findTool(modelContext, 'simplepdf_embed_set_field_value')
     expect(setFieldValue.description).toMatch(/^Set the value of an existing field/)
     expect(setFieldValue.inputSchema.type).toBe('object')
-    expect(Object.keys(setFieldValue.inputSchema.properties ?? {})).toEqual(['field_id', 'value'])
+    expect(Object.keys(setFieldValue.inputSchema.properties ?? {})).toEqual(['animate', 'field_id', 'value'])
     expect(setFieldValue.inputSchema.required).toEqual(['field_id', 'value'])
     for (const tool of modelContext.registered) {
       const hasExplicitHint = tool.annotations.readOnlyHint === true || typeof tool.annotations.destructiveHint === 'boolean'

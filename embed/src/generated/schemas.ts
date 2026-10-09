@@ -46,7 +46,7 @@ export const LoadDocumentInput = z.object({
   dataUrl: z.string().describe("The document to load: a data URL, or an http(s) URL the editor fetches."),
   name: z.string().describe("Optional display name for the document.").optional(),
   page: z.number().int().describe("Optional 1-based page to open the document on.").optional(),
-}).describe("Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Returns no data.")
+}).describe("Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.")
 export type LoadDocumentInput = z.infer<typeof LoadDocumentInput>
 export const MovePageInput = z.object({
   fromPage: z.number().int().describe("1-based current position of the page to move."),
@@ -62,9 +62,10 @@ export const SelectToolInput = z.object({
 }).describe("Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.")
 export type SelectToolInput = z.infer<typeof SelectToolInput>
 export const SetFieldValueInput = z.object({
+  animate: z.boolean().describe("Type a text value out character by character (true, the default) so a person watching the editor can follow the field being filled, or set it at once (false) for headless or batch filling where speed matters. Only text values are typed: checkbox, option, signature, picture and null values are always set at once.").optional(),
   fieldId: z.string().describe("ID of the field to update."),
   value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
-}).describe("Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.")
+}).describe("Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.")
 export type SetFieldValueInput = z.infer<typeof SetFieldValueInput>
 export const SubmitInput = z.object({
   downloadCopy: z.boolean().describe("When true, the signer also receives a downloaded copy on submit."),

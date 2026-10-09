@@ -114,8 +114,9 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly setFieldValue: {
-        readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Returns no data.";
+        readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
+            animate: zod.ZodOptional<zod.ZodBoolean>;
             fieldId: zod.ZodString;
             value: zod.ZodNullable<zod.ZodString>;
         }, zod_v4_core.$strip>;
