@@ -1,5 +1,12 @@
 # @simplepdf/react-embed-pdf
 
+## 1.13.1
+
+### Patch Changes
+
+- Updated dependencies [dbc84c1]
+  - @simplepdf/embed@0.8.0
+
 ## 1.13.0
 
 ### Minor Changes

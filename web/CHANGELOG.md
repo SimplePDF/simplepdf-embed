@@ -1,5 +1,12 @@
 # @simplepdf/web-embed-pdf
 
+## 1.9.1
+
+### Patch Changes
+
+- Updated dependencies [dbc84c1]
+  - @simplepdf/embed@0.8.0
+
 ## 1.9.0
 
 ### Minor Changes

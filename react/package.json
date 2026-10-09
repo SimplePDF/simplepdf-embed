@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/react-embed-pdf",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "SimplePDF straight into your React app",
   "repository": {
     "type": "git",
@@ -49,7 +49,7 @@
     "check:api": "node ../scripts/check-api.mjs ."
   },
   "dependencies": {
-    "@simplepdf/embed": "0.7.0"
+    "@simplepdf/embed": "0.8.0"
   },
   "peerDependencies": {
     "@tanstack/ai": "^0.38.0",
@@ -90,6 +90,13 @@
     "vitest": "4.0.17",
     "zod": "^4.4.3"
   },
-  "files": ["dist"],
-  "keywords": ["react", "typescript", "npm", "pdf"]
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "react",
+    "typescript",
+    "npm",
+    "pdf"
+  ]
 }
