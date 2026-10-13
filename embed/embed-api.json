@@ -1,5 +1,5 @@
 {
-  "editor_version": "65235d76-20261009T151312Z",
+  "editor_version": null,
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -57,7 +57,7 @@
                       "const": false
                     },
                     "error": {
-                      "description": "The error object when success is false: a `code` plus a human-readable `message` (with typed `details` for bad_request:missing_required_fields). Its full shape and code set are editor_error_schema, where each code const carries a description of its meaning."
+                      "description": "The error object when success is false: a `code` plus a human-readable `message` (with typed `details` for bad_request:batch_validation_failed and bad_request:missing_required_fields). Its full shape and code set are editor_error_schema, where each code const carries a description of its meaning."
                     }
                   },
                   "required": ["success", "error"]
@@ -76,6 +76,89 @@
     }
   },
   "operations": [
+    {
+      "request_type": "BATCH_SET_FIELD_VALUE",
+      "description": "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "updates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "description": "ID of the field to update."
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+                }
+              },
+              "required": ["field_id", "value"]
+            },
+            "description": "The fields to set, at least one, each field at most once. Fields not listed keep their value."
+          }
+        },
+        "required": ["updates"],
+        "description": "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data."
+      },
+      "output_schema": {
+        "type": "null"
+      },
+      "error_codes": [
+        "bad_request:batch_validation_failed",
+        "bad_request:invalid_value",
+        "bad_request:no_document_loaded"
+      ],
+      "tool": {
+        "name": "simplepdf_embed_batch_set_field_value",
+        "description": "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "updates": {
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field_id": {
+                    "type": "string",
+                    "description": "ID of the field to update."
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+                  }
+                },
+                "required": ["field_id", "value"]
+              },
+              "description": "The fields to set, at least one, each field at most once. Fields not listed keep their value.",
+              "type": "array"
+            }
+          },
+          "required": ["updates"]
+        },
+        "annotations": {
+          "destructiveHint": false,
+          "openWorldHint": true
+        }
+      }
+    },
     {
       "request_type": "CREATE_FIELD",
       "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.",
@@ -305,7 +388,10 @@
         },
         "required": ["detected_count"]
       },
-      "error_codes": ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"],
+      "error_codes": [
+        "forbidden:editing_not_allowed",
+        "bad_request:no_document_loaded"
+      ],
       "tool": {
         "name": "simplepdf_embed_detect_fields",
         "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled.",
@@ -379,7 +465,11 @@
         },
         "required": ["hint"]
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"],
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:no_document_loaded",
+        "bad_request:field_not_found"
+      ],
       "tool": {
         "name": "simplepdf_embed_focus_field",
         "description": "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.",
@@ -439,9 +529,19 @@
             "description": "Badge number (as drawn on the render) to field_id, for every field on the page."
           }
         },
-        "required": ["page", "image_data_url", "image_width", "image_height", "badges"]
+        "required": [
+          "page",
+          "image_data_url",
+          "image_width",
+          "image_height",
+          "badges"
+        ]
       },
-      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"],
+      "error_codes": [
+        "bad_request:no_document_loaded",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range"
+      ],
       "tool": {
         "name": "simplepdf_embed_get_annotated_page",
         "description": "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.",
@@ -499,7 +599,10 @@
         },
         "required": ["name", "pages"]
       },
-      "error_codes": ["bad_request:invalid_value", "bad_request:no_document_loaded"],
+      "error_codes": [
+        "bad_request:invalid_value",
+        "bad_request:no_document_loaded"
+      ],
       "tool": {
         "name": "simplepdf_embed_get_document_content",
         "description": "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
@@ -550,7 +653,15 @@
                 },
                 "type": {
                   "type": "string",
-                  "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"]
+                  "enum": [
+                    "TEXT",
+                    "SIGNATURE",
+                    "PICTURE",
+                    "CHECKBOX",
+                    "COMB_TEXT",
+                    "DROPDOWN",
+                    "RADIO"
+                  ]
                 },
                 "page": {
                   "type": "integer",
@@ -582,7 +693,14 @@
                   "description": "Valid values for this field (a DROPDOWN/RADIO's choices), or null. When set, a value set on or created for the field must be one of these."
                 }
               },
-              "required": ["field_id", "name", "type", "page", "value", "options"]
+              "required": [
+                "field_id",
+                "name",
+                "type",
+                "page",
+                "value",
+                "options"
+              ]
             }
           }
         },
@@ -619,7 +737,11 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"],
+      "error_codes": [
+        "bad_request:no_document_loaded",
+        "bad_request:invalid_page",
+        "bad_request:page_out_of_range"
+      ],
       "tool": {
         "name": "simplepdf_embed_go_to",
         "description": "Scroll the editor to a specific 1-based page. Returns no data.",
@@ -663,7 +785,11 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:failed_to_load_document", "bad_request:invalid_value", "bad_request:invalid_page"],
+      "error_codes": [
+        "bad_request:failed_to_load_document",
+        "bad_request:invalid_value",
+        "bad_request:invalid_page"
+      ],
       "tool": {
         "name": "simplepdf_embed_load_document",
         "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.",
@@ -793,7 +919,13 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]
+                "enum": [
+                  "TEXT",
+                  "SIGNATURE",
+                  "PICTURE",
+                  "CHECKBOX",
+                  "COMB_TEXT"
+                ]
               },
               {
                 "type": "null"
@@ -808,7 +940,10 @@
       "output_schema": {
         "type": "null"
       },
-      "error_codes": ["bad_request:no_document_loaded", "bad_request:invalid_tool"],
+      "error_codes": [
+        "bad_request:no_document_loaded",
+        "bad_request:invalid_tool"
+      ],
       "tool": {
         "name": "simplepdf_embed_select_tool",
         "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.",
@@ -819,7 +954,13 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]
+                  "enum": [
+                    "TEXT",
+                    "SIGNATURE",
+                    "PICTURE",
+                    "CHECKBOX",
+                    "COMB_TEXT"
+                  ]
                 },
                 {
                   "type": "null"
@@ -868,11 +1009,11 @@
         "type": "null"
       },
       "error_codes": [
-        "bad_request:invalid_value",
+        "bad_request:field_not_found",
         "bad_request:invalid_signature_url",
-        "bad_request:no_document_loaded",
+        "bad_request:invalid_value",
         "bad_request:read_only",
-        "bad_request:field_not_found"
+        "bad_request:no_document_loaded"
       ],
       "tool": {
         "name": "simplepdf_embed_set_field_value",
@@ -1017,6 +1158,65 @@
   "locales": ["fr", "en", "it", "de", "pt", "es", "ja", "nl"],
   "editor_error_schema": {
     "anyOf": [
+      {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "const": "bad_request:batch_validation_failed",
+            "description": "At least one update of batch_set_field_value was rejected, so no field changed. details.failures lists every rejected update with its field_id and the set_field_value code and message explaining why."
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "failures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "const": "bad_request:field_not_found",
+                          "description": "No field on the loaded document matches the provided field_id."
+                        },
+                        {
+                          "type": "string",
+                          "const": "bad_request:invalid_signature_url",
+                          "description": "The signature value is not a valid, reachable image URL."
+                        },
+                        {
+                          "type": "string",
+                          "const": "bad_request:invalid_value",
+                          "description": "The provided value is missing or not valid for this operation or field type."
+                        },
+                        {
+                          "type": "string",
+                          "const": "bad_request:read_only",
+                          "description": "The document or field is read-only and cannot be modified."
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["field_id", "code", "message"]
+                }
+              }
+            },
+            "required": ["failures"]
+          }
+        },
+        "required": ["code", "message", "details"]
+      },
       {
         "type": "object",
         "properties": {

@@ -18,6 +18,15 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
+    readonly batchSetFieldValue: {
+        readonly description: "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.";
+        readonly inputSchema: zod.ZodObject<{
+            updates: zod.ZodArray<zod.ZodObject<{
+                fieldId: zod.ZodString;
+                value: zod.ZodNullable<zod.ZodString>;
+            }, zod_v4_core.$strip>>;
+        }, zod_v4_core.$strip>;
+    };
     readonly createField: {
         readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.";
         readonly inputSchema: zod.ZodObject<{

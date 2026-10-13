@@ -155,6 +155,7 @@ Actions are camelCase (the editor's snake_case wire is transformed for you). `us
 | `actions.deleteFields({ fieldIds?, page? })`     | Delete fields by id or page, or all fields if both are omitted                                          |
 | `actions.getDocumentContent({ extractionMode })` | Extract document content (`'auto'` or `'ocr'`)                                                          |
 | `actions.setFieldValue({ fieldId, value })`      | Set a field's value                                                                                     |
+| `actions.batchSetFieldValue({ updates })`        | Set several fields at once (`updates: [{ fieldId, value }]`): all apply, or none do                     |
 | `actions.submit({ downloadCopy })`               | Submit the document                                                                                     |
 
 …plus `createField`, `getFields`, `getAnnotatedPage`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.

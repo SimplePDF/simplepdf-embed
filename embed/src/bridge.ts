@@ -1,7 +1,7 @@
-import { fromWireData, toWireData } from './case-transform'
-import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
-import { isBridgeResultLike } from './result'
-import type { OutboundEventType, WireType } from './generated/contract'
+import { fromWireData, toWireData } from "./case-transform";
+import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from "./logger";
+import { isBridgeResultLike } from "./result";
+import type { OutboundEventType, WireType } from "./generated/contract";
 import type {
   BridgeResult,
   BridgeState,
@@ -10,103 +10,128 @@ import type {
   IframeActions,
   PageFocusedPayload,
   SubmissionSentPayload,
-} from './types'
-import { modelContextCandidates, normalizeWebMCPOptions, type WebMCPOptions } from './webmcp-shared'
+} from "./types";
+import {
+  modelContextCandidates,
+  normalizeWebMCPOptions,
+  type WebMCPOptions,
+} from "./webmcp-shared";
 
 export type AttachEmbedArgs = {
   // Getter returning the iframe element. Called each time the bridge needs to
   // reach the editor (postMessage send, probe, identity check on incoming
   // messages). Framework-agnostic: React callers pass `() => ref.current`,
   // vanilla callers pass `() => document.getElementById('my-iframe')`.
-  getIframe: () => HTMLIFrameElement | null
+  getIframe: () => HTMLIFrameElement | null;
   // Origin the iframe is served from. Every incoming message is verified against
   // this value, and it is the postMessage target origin.
-  editorOrigin: string
-  logger?: BridgeLogger
+  editorOrigin: string;
+  logger?: BridgeLogger;
   // Optional teardown hook invoked once on dispose() after the bridge has cleaned
   // up (createEmbed's create path uses it to remove the iframe it created).
-  onDispose?: () => void
+  onDispose?: () => void;
   // Expose the editor operations as WebMCP tools on the host page (see ./webmcp).
-  webMCP?: WebMCPOptions
+  webMCP?: WebMCPOptions;
   // Internal wiring for createEmbed's "load the document once ready" flow: called on
   // every lifecycle transition (booting -> editorReady -> documentLoaded), including
   // readiness reached via the liveness probe (which emits no editor event). NOT a
   // public event — consumers observe lifecycle via the EDITOR_READY / DOCUMENT_LOADED events.
-  onStateChange?: (state: BridgeState) => void
-}
+  onStateChange?: (state: BridgeState) => void;
+};
 
 // One uniform request/response timeout. The editor is proven alive (EDITOR_READY
 // + the readiness probe), so this is purely a dead-iframe safety net — deliberately
 // generous so a request posted behind a slow FIFO op (auto-detection / OCR) is not
 // starved by a per-op budget that starts at enqueue, not at dispatch. Dependent
 // calls should be awaited rather than fired concurrently.
-const REQUEST_TIMEOUT_MS = 60_000
-const EDITOR_READY_PROBE_INTERVAL_MS = 500
-const EDITOR_READY_HARD_FALLBACK_MS = 30_000
+const REQUEST_TIMEOUT_MS = 60_000;
+const EDITOR_READY_PROBE_INTERVAL_MS = 500;
+const EDITOR_READY_HARD_FALLBACK_MS = 30_000;
 
 // Compile-time drift guards: the outbound-event literals the bridge matches must
 // remain members of the generated vocabulary, or `tsc` fails (an editor rename
 // would otherwise silently stop the bridge emitting that event). Type-only, so
 // no generated value (the OPERATIONS table) is pulled into the zero-dep root.
-const EDITOR_READY_EVENT: Extract<OutboundEventType, 'EDITOR_READY'> = 'EDITOR_READY'
-const DOCUMENT_LOADED_EVENT: Extract<OutboundEventType, 'DOCUMENT_LOADED'> = 'DOCUMENT_LOADED'
-const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, 'SUBMISSION_SENT'> = 'SUBMISSION_SENT'
-const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, 'PAGE_FOCUSED'> = 'PAGE_FOCUSED'
+const EDITOR_READY_EVENT: Extract<OutboundEventType, "EDITOR_READY"> =
+  "EDITOR_READY";
+const DOCUMENT_LOADED_EVENT: Extract<OutboundEventType, "DOCUMENT_LOADED"> =
+  "DOCUMENT_LOADED";
+const SUBMISSION_SENT_EVENT: Extract<OutboundEventType, "SUBMISSION_SENT"> =
+  "SUBMISSION_SENT";
+const PAGE_FOCUSED_EVENT: Extract<OutboundEventType, "PAGE_FOCUSED"> =
+  "PAGE_FOCUSED";
 // The reply envelope (manifest `protocol`), not an event: never part of OutboundEventType.
-const REQUEST_RESULT_TYPE = 'REQUEST_RESULT'
+const REQUEST_RESULT_TYPE = "REQUEST_RESULT";
 
 const generateRequestId = (): string => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
   }
-  return `req_${Math.random().toString(36).slice(2)}_${Date.now().toString(36)}`
-}
+  return `req_${Math.random().toString(36).slice(2)}_${Date.now().toString(
+    36
+  )}`;
+};
 
 // The single deliberate trust boundary. The editor is contracted to reply with
 // `data` matching the operation's output_schema; that shape cannot be re-derived
 // at runtime (the zero-dep root carries no validator), so this generic relabels
 // the validated envelope. Errors are TData-independent and pass through untouched.
-const relabelResult = <TData>(result: BridgeResult<unknown>): BridgeResult<TData> => {
+const relabelResult = <TData>(
+  result: BridgeResult<unknown>
+): BridgeResult<TData> => {
   if (result.success) {
-    return { success: true, data: result.data as TData }
+    return { success: true, data: result.data as TData };
   }
-  return result
-}
+  return result;
+};
 
 // Op results reach SDK callers camelCased; the WebMCP tools hand the agent the wire
 // shape (snake_case), the one the manifest's tool descriptions promise.
-type ResultShape = 'sdk' | 'wire'
+type ResultShape = "sdk" | "wire";
 
 type PendingRequest = {
-  resolve: (result: BridgeResult<unknown>) => void
-  resultShape: ResultShape
-  wireType: WireType
-  startedAtMs: number
-  timeoutId: ReturnType<typeof setTimeout>
-}
+  resolve: (result: BridgeResult<unknown>) => void;
+  resultShape: ResultShape;
+  wireType: WireType;
+  startedAtMs: number;
+  timeoutId: ReturnType<typeof setTimeout>;
+};
 
 // Validates + returns the editor's outbound event payload VERBATIM (snake_case):
 // these are forwarded to onEmbedEvent unchanged, so they keep the wire shape (the
 // established EmbedEvent contract). Op method payloads, by contrast, are camelCased.
-const asSubmissionSent = (data: Record<string, unknown> | undefined): SubmissionSentPayload | null => {
-  const documentId = data?.document_id
-  const submissionId = data?.submission_id
-  if (typeof documentId === 'string' && typeof submissionId === 'string') {
-    return { document_id: documentId, submission_id: submissionId }
+const asSubmissionSent = (
+  data: Record<string, unknown> | undefined
+): SubmissionSentPayload | null => {
+  const documentId = data?.document_id;
+  const submissionId = data?.submission_id;
+  if (typeof documentId === "string" && typeof submissionId === "string") {
+    return { document_id: documentId, submission_id: submissionId };
   }
-  return null
-}
+  return null;
+};
 
-const asPageFocused = (data: Record<string, unknown> | undefined): PageFocusedPayload | null => {
-  const previousPage = data?.previous_page
-  const currentPage = data?.current_page
-  const totalPages = data?.total_pages
-  const previousIsValid = previousPage === null || typeof previousPage === 'number'
-  if (previousIsValid && typeof currentPage === 'number' && typeof totalPages === 'number') {
-    return { previous_page: previousPage, current_page: currentPage, total_pages: totalPages }
+const asPageFocused = (
+  data: Record<string, unknown> | undefined
+): PageFocusedPayload | null => {
+  const previousPage = data?.previous_page;
+  const currentPage = data?.current_page;
+  const totalPages = data?.total_pages;
+  const previousIsValid =
+    previousPage === null || typeof previousPage === "number";
+  if (
+    previousIsValid &&
+    typeof currentPage === "number" &&
+    typeof totalPages === "number"
+  ) {
+    return {
+      previous_page: previousPage,
+      current_page: currentPage,
+      total_pages: totalPages,
+    };
   }
-  return null
-}
+  return null;
+};
 
 export const attachEmbed = ({
   getIframe,
@@ -116,11 +141,11 @@ export const attachEmbed = ({
   onStateChange,
   webMCP,
 }: AttachEmbedArgs): Embed => {
-  const logger = makeSafeLogger(providedLogger)
-  const pending = new Map<string, PendingRequest>()
-  let state: BridgeState = { kind: 'booting' }
-  let documentId: string | null = null
-  let disposed = false
+  const logger = makeSafeLogger(providedLogger);
+  const pending = new Map<string, PendingRequest>();
+  let state: BridgeState = { kind: "booting" };
+  let documentId: string | null = null;
+  let disposed = false;
 
   // Per-type channels for the editor's outbound events, forwarded verbatim (the
   // established EmbedEvent contract). A throwing listener can't stop the others or break cleanup.
@@ -128,128 +153,151 @@ export const attachEmbed = ({
   // load-when-ready gate), not an event: consumers observe readiness via the
   // EDITOR_READY / DOCUMENT_LOADED events.
   type Channel<T> = {
-    subscribe: (listener: (payload: T) => void) => () => void
-    emit: (payload: T) => void
-    clear: () => void
-  }
+    subscribe: (listener: (payload: T) => void) => () => void;
+    emit: (payload: T) => void;
+    clear: () => void;
+  };
   const reportListenerError = (error: unknown): void =>
-    logger.error('iframe.listener_threw', { message: error instanceof Error ? error.message : String(error) })
+    logger.error("iframe.listener_threw", {
+      message: error instanceof Error ? error.message : String(error),
+    });
   const makeChannel = <T>(): Channel<T> => {
-    const listeners = new Set<(payload: T) => void>()
+    const listeners = new Set<(payload: T) => void>();
     return {
       subscribe: (listener) => {
-        listeners.add(listener)
-        return () => listeners.delete(listener)
+        listeners.add(listener);
+        return () => listeners.delete(listener);
       },
       emit: (payload) => {
         for (const listener of listeners) {
           try {
-            listener(payload)
+            listener(payload);
           } catch (error) {
-            reportListenerError(error)
+            reportListenerError(error);
           }
         }
       },
       clear: () => listeners.clear(),
-    }
-  }
+    };
+  };
   // One channel per editor event type, so on(type, handler) hands the handler that
   // event's typed payload directly — no cast, no union narrowing.
-  const channels: { [TEventType in keyof EditorEventMap]: Channel<EditorEventMap[TEventType]> } = {
+  const channels: {
+    [TEventType in keyof EditorEventMap]: Channel<EditorEventMap[TEventType]>;
+  } = {
     EDITOR_READY: makeChannel(),
     DOCUMENT_LOADED: makeChannel(),
     PAGE_FOCUSED: makeChannel(),
     SUBMISSION_SENT: makeChannel(),
-  }
+  };
   // Granular, EventEmitter-style subscription. Returns an unsubscribe fn.
   const on = <TEventType extends keyof EditorEventMap>(
     type: TEventType,
-    handler: (data: EditorEventMap[TEventType]) => void,
-  ): (() => void) => channels[type].subscribe(handler)
+    handler: (data: EditorEventMap[TEventType]) => void
+  ): (() => void) => channels[type].subscribe(handler);
 
   // WebMCP tools are registered once the editor is alive (an agent enumerating tools
   // at page load must not post into an iframe that has no listener yet), only when the
   // embedder opted in and the page exposes a model context: the module and the schema
   // table it reads load for no one else. Aborting the signal on dispose unregisters
   // every tool.
-  const webMCPController = new AbortController()
-  const webMCPOptions = normalizeWebMCPOptions(webMCP)
+  const webMCPController = new AbortController();
+  const webMCPOptions = normalizeWebMCPOptions(webMCP);
   // Latched while a registration attempt is in flight or succeeded; released when the
   // module finds no usable context or fails to load, so the next non-booting transition
   // probes again and a runtime that installs its context after a fast EDITOR_READY (or a
   // transient chunk fetch failure) still gets the tools. A transition during the load
   // itself needs no replay: the module probes on arrival.
-  let webMCPStarted = false
+  let webMCPStarted = false;
   const startWebMCP = (): void => {
     if (!webMCPOptions.enabled || webMCPStarted) {
-      return
+      return;
     }
     if (modelContextCandidates().length === 0) {
-      logger.info('webmcp.unavailable', { reason: 'no_model_context' })
-      return
+      logger.info("webmcp.unavailable", { reason: "no_model_context" });
+      return;
     }
-    webMCPStarted = true
-    void import('./webmcp')
+    webMCPStarted = true;
+    void import("./webmcp")
       .then(({ registerWebMCPTools }) => {
         const registered = registerWebMCPTools({
-          dispatch: (wireType, data) => postRequest(wireType, data, 'wire'),
+          dispatch: (wireType, data) => postRequest(wireType, data, "wire"),
           exclude: webMCPOptions.exclude,
           signal: webMCPController.signal,
           logger,
-        })
+        });
         if (!registered) {
-          webMCPStarted = false
+          webMCPStarted = false;
         }
       })
       .catch((error: unknown) => {
-        webMCPStarted = false
-        logger.error('webmcp.load_failed', { message: error instanceof Error ? error.message : String(error) })
-      })
-  }
+        webMCPStarted = false;
+        logger.error("webmcp.load_failed", {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      });
+  };
 
   const transitionTo = (next: BridgeState): void => {
-    state = next
-    onStateChange?.(next)
-    if (next.kind !== 'booting') {
-      startWebMCP()
+    state = next;
+    onStateChange?.(next);
+    if (next.kind !== "booting") {
+      startWebMCP();
     }
-  }
+  };
 
-  const postRequest = <TData>(wireType: WireType, data: unknown, resultShape: ResultShape): Promise<BridgeResult<TData>> =>
+  const postRequest = <TData>(
+    wireType: WireType,
+    data: unknown,
+    resultShape: ResultShape
+  ): Promise<BridgeResult<TData>> =>
     new Promise<BridgeResult<TData>>((resolve) => {
       if (disposed) {
         resolve({
           success: false,
-          error: { code: 'unexpected:bridge_disposed', message: 'Editor bridge was disposed' },
-        })
-        return
+          error: {
+            code: "unexpected:bridge_disposed",
+            message: "Editor bridge was disposed",
+          },
+        });
+        return;
       }
-      const iframe = getIframe()
+      const iframe = getIframe();
       if (iframe === null || iframe.contentWindow === null) {
         resolve({
           success: false,
-          error: { code: 'unexpected:iframe_not_mounted', message: 'Editor iframe is not mounted' },
-        })
-        return
+          error: {
+            code: "unexpected:iframe_not_mounted",
+            message: "Editor iframe is not mounted",
+          },
+        });
+        return;
       }
 
-      const requestId = generateRequestId()
-      const startedAtMs = Date.now()
+      const requestId = generateRequestId();
+      const startedAtMs = Date.now();
       // Log identifiers + timing only — never the payload body (it can carry the
       // document data URL, field values, signatures, or other PII).
-      logger.info('iframe.request_sent', { request_id: requestId, type: wireType, timeout_ms: REQUEST_TIMEOUT_MS })
+      logger.info("iframe.request_sent", {
+        request_id: requestId,
+        type: wireType,
+        timeout_ms: REQUEST_TIMEOUT_MS,
+      });
       const timeoutId = setTimeout(() => {
-        pending.delete(requestId)
-        logger.error('iframe.request_timed_out', {
+        pending.delete(requestId);
+        logger.error("iframe.request_timed_out", {
           request_id: requestId,
           type: wireType,
           elapsed_ms: Date.now() - startedAtMs,
-        })
+        });
         resolve({
           success: false,
-          error: { code: 'unexpected:timeout', message: `Editor request '${wireType}' timed out after ${REQUEST_TIMEOUT_MS}ms` },
-        })
-      }, REQUEST_TIMEOUT_MS)
+          error: {
+            code: "unexpected:timeout",
+            message: `Editor request '${wireType}' timed out after ${REQUEST_TIMEOUT_MS}ms`,
+          },
+        });
+      }, REQUEST_TIMEOUT_MS);
 
       pending.set(requestId, {
         resolve: (result) => resolve(relabelResult<TData>(result)),
@@ -257,101 +305,113 @@ export const attachEmbed = ({
         wireType,
         startedAtMs,
         timeoutId,
-      })
+      });
 
       // Serializing (circular / BigInt input) or posting (dead contentWindow) can
       // throw; convert that into a Result rather than rejecting the promise.
       try {
-        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data: toWireData(data) })
-        iframe.contentWindow.postMessage(outbound, editorOrigin)
-        logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, char_count: outbound.length })
+        const outbound = JSON.stringify({
+          type: wireType,
+          request_id: requestId,
+          data: toWireData(data),
+        });
+        iframe.contentWindow.postMessage(outbound, editorOrigin);
+        logger.debug("iframe.request_posted", {
+          request_id: requestId,
+          type: wireType,
+          char_count: outbound.length,
+        });
       } catch (error) {
-        clearTimeout(timeoutId)
-        pending.delete(requestId)
+        clearTimeout(timeoutId);
+        pending.delete(requestId);
         resolve({
           success: false,
           error: {
-            code: 'unexpected:unknown',
-            message: `Failed to post '${wireType}': ${error instanceof Error ? error.message : String(error)}`,
+            code: "unexpected:unknown",
+            message: `Failed to post '${wireType}': ${
+              error instanceof Error ? error.message : String(error)
+            }`,
           },
-        })
+        });
       }
-    })
+    });
 
-  const sendRequest = <TData>(wireType: WireType, data: unknown): Promise<BridgeResult<TData>> =>
-    postRequest<TData>(wireType, data, 'sdk')
+  const sendRequest = <TData>(
+    wireType: WireType,
+    data: unknown
+  ): Promise<BridgeResult<TData>> => postRequest<TData>(wireType, data, "sdk");
 
   // --- Editor-readiness probing ---------------------------------------------
   // Fire a GET_FIELDS every 500ms until the editor confirms a document is loaded
   // (success: true) or the hard fallback fires. A success: false with
   // bad_request:no_document_loaded still proves the postMessage bridge is alive,
   // so we flip to editor_ready on the first response and keep probing for loaded.
-  const probeRequestIds = new Set<string>()
-  let probeInterval: ReturnType<typeof setInterval> | null = null
+  const probeRequestIds = new Set<string>();
+  let probeInterval: ReturnType<typeof setInterval> | null = null;
 
   const stopProbing = (): void => {
     if (probeInterval !== null) {
-      clearInterval(probeInterval)
-      probeInterval = null
+      clearInterval(probeInterval);
+      probeInterval = null;
     }
-    probeRequestIds.clear()
-  }
+    probeRequestIds.clear();
+  };
 
   // `editor_ready_event` = a real EDITOR_READY message (iframe re-mounting for a
   // fresh document cycle). `probe`/`fallback` only prove liveness and must NEVER
   // drop a loaded document back to editorReady.
-  type EditorReadySource = 'editor_ready_event' | 'probe' | 'fallback'
+  type EditorReadySource = "editor_ready_event" | "probe" | "fallback";
   const markEditorReady = (source: EditorReadySource): void => {
     switch (state.kind) {
-      case 'documentLoaded':
-        if (source === 'editor_ready_event') {
-          transitionTo({ kind: 'editorReady' })
+      case "documentLoaded":
+        if (source === "editor_ready_event") {
+          transitionTo({ kind: "editorReady" });
         }
-        return
-      case 'booting':
-        transitionTo({ kind: 'editorReady' })
-        return
-      case 'editorReady':
-        return
+        return;
+      case "booting":
+        transitionTo({ kind: "editorReady" });
+        return;
+      case "editorReady":
+        return;
       default:
-        state satisfies never
+        state satisfies never;
     }
-  }
+  };
 
-  let readyTimeout: ReturnType<typeof setTimeout> | null = null
+  let readyTimeout: ReturnType<typeof setTimeout> | null = null;
   const clearReadyTimeout = (): void => {
     if (readyTimeout !== null) {
-      clearTimeout(readyTimeout)
-      readyTimeout = null
+      clearTimeout(readyTimeout);
+      readyTimeout = null;
     }
-  }
+  };
 
   const markDocumentLoaded = (): void => {
-    if (state.kind === 'documentLoaded') {
-      return
+    if (state.kind === "documentLoaded") {
+      return;
     }
-    clearReadyTimeout()
-    stopProbing()
-    transitionTo({ kind: 'documentLoaded', documentId })
-  }
+    clearReadyTimeout();
+    stopProbing();
+    transitionTo({ kind: "documentLoaded", documentId });
+  };
 
   const sendProbe = (): void => {
-    const iframe = getIframe()
+    const iframe = getIframe();
     if (iframe === null || iframe.contentWindow === null) {
-      return
+      return;
     }
-    const probeId = generateRequestId()
+    const probeId = generateRequestId();
     try {
       iframe.contentWindow.postMessage(
-        JSON.stringify({ type: 'GET_FIELDS', request_id: probeId, data: {} }),
-        editorOrigin,
-      )
+        JSON.stringify({ type: "GET_FIELDS", request_id: probeId, data: {} }),
+        editorOrigin
+      );
       // Track only successfully-posted probes (a failed post leaves no id to match).
-      probeRequestIds.add(probeId)
+      probeRequestIds.add(probeId);
     } catch {
       // Best-effort liveness probe; a transient post failure just retries next tick.
     }
-  }
+  };
 
   // Hard readiness fallback. It only WARNS if we are still booting (the editor
   // never confirmed readiness), and it stops the 500ms probe loop: by this point
@@ -359,208 +419,231 @@ export const attachEmbed = ({
   // we rely on the DOCUMENT_LOADED event rather than probing — and accumulating
   // probe ids — indefinitely.
   readyTimeout = setTimeout(() => {
-    readyTimeout = null
-    if (state.kind === 'booting') {
-      logger.warn('editor.ready_fallback_timeout', { timeout_ms: EDITOR_READY_HARD_FALLBACK_MS })
+    readyTimeout = null;
+    if (state.kind === "booting") {
+      logger.warn("editor.ready_fallback_timeout", {
+        timeout_ms: EDITOR_READY_HARD_FALLBACK_MS,
+      });
     }
-    markEditorReady('fallback')
-    stopProbing()
-  }, EDITOR_READY_HARD_FALLBACK_MS)
+    markEditorReady("fallback");
+    stopProbing();
+  }, EDITOR_READY_HARD_FALLBACK_MS);
 
-  sendProbe()
-  probeInterval = setInterval(sendProbe, EDITOR_READY_PROBE_INTERVAL_MS)
+  sendProbe();
+  probeInterval = setInterval(sendProbe, EDITOR_READY_PROBE_INTERVAL_MS);
 
   const onMessage = (event: MessageEvent<string>): void => {
     if (event.origin !== editorOrigin) {
-      return
+      return;
     }
-    const iframe = getIframe()
+    const iframe = getIframe();
     // Iframe torn down (ref cleared between dispatch and receive, or a message
     // delivered after dispose): don't transition or resolve on a dead iframe.
     if (iframe === null || event.source !== iframe.contentWindow) {
-      return
+      return;
     }
 
-    const payload = ((): { type?: string; data?: Record<string, unknown>; request_id?: string } | null => {
-      if (typeof event.data !== 'string') {
-        return null
+    const payload = ((): {
+      type?: string;
+      data?: Record<string, unknown>;
+      request_id?: string;
+    } | null => {
+      if (typeof event.data !== "string") {
+        return null;
       }
       try {
-        const parsed: unknown = JSON.parse(event.data)
-        return typeof parsed === 'object' && parsed !== null ? parsed : null
+        const parsed: unknown = JSON.parse(event.data);
+        return typeof parsed === "object" && parsed !== null ? parsed : null;
       } catch {
-        return null
+        return null;
       }
-    })()
+    })();
 
     if (payload === null) {
-      return
+      return;
     }
     // Log the message type + correlation id only — never the body (PII).
-    logger.debug('iframe.message_received', { type: payload.type, request_id: payload.request_id })
+    logger.debug("iframe.message_received", {
+      type: payload.type,
+      request_id: payload.request_id,
+    });
 
     if (payload.type === EDITOR_READY_EVENT) {
-      markEditorReady('editor_ready_event')
-      channels.EDITOR_READY.emit({})
-      return
+      markEditorReady("editor_ready_event");
+      channels.EDITOR_READY.emit({});
+      return;
     }
 
     if (payload.type === DOCUMENT_LOADED_EVENT) {
-      const rawDocId = payload.data?.document_id
-      if (typeof rawDocId === 'string' && rawDocId !== '') {
+      const rawDocId = payload.data?.document_id;
+      if (typeof rawDocId === "string" && rawDocId !== "") {
         // Forward every real DOCUMENT_LOADED verbatim (snake wire data).
-        channels.DOCUMENT_LOADED.emit({ document_id: rawDocId })
+        channels.DOCUMENT_LOADED.emit({ document_id: rawDocId });
         if (documentId !== rawDocId) {
-          documentId = rawDocId
-          if (state.kind === 'documentLoaded') {
+          documentId = rawDocId;
+          if (state.kind === "documentLoaded") {
             // Late DOCUMENT_LOADED after the probe already flipped the state: still
             // refresh the internal documentId snapshot.
-            transitionTo({ kind: 'documentLoaded', documentId })
-            return
+            transitionTo({ kind: "documentLoaded", documentId });
+            return;
           }
         }
       }
-      markDocumentLoaded()
-      return
+      markDocumentLoaded();
+      return;
     }
 
     if (payload.type === SUBMISSION_SENT_EVENT) {
-      const submission = asSubmissionSent(payload.data)
+      const submission = asSubmissionSent(payload.data);
       if (submission !== null) {
-        channels.SUBMISSION_SENT.emit(submission)
+        channels.SUBMISSION_SENT.emit(submission);
       }
-      return
+      return;
     }
 
     if (payload.type === PAGE_FOCUSED_EVENT) {
-      const pageFocused = asPageFocused(payload.data)
+      const pageFocused = asPageFocused(payload.data);
       if (pageFocused !== null) {
-        channels.PAGE_FOCUSED.emit(pageFocused)
+        channels.PAGE_FOCUSED.emit(pageFocused);
       }
-      return
+      return;
     }
 
     if (payload.type !== REQUEST_RESULT_TYPE) {
-      return
+      return;
     }
 
-    const requestId = typeof payload.data?.request_id === 'string' ? payload.data.request_id : null
+    const requestId =
+      typeof payload.data?.request_id === "string"
+        ? payload.data.request_id
+        : null;
     if (requestId === null) {
-      return
+      return;
     }
     if (probeRequestIds.has(requestId)) {
-      probeRequestIds.delete(requestId)
-      markEditorReady('probe')
-      const probeResult = payload.data?.result
+      probeRequestIds.delete(requestId);
+      markEditorReady("probe");
+      const probeResult = payload.data?.result;
       if (isBridgeResultLike(probeResult) && probeResult.success === true) {
-        markDocumentLoaded()
+        markDocumentLoaded();
       }
-      return
+      return;
     }
-    const entry = pending.get(requestId)
+    const entry = pending.get(requestId);
     if (entry === undefined) {
       // Not a tracked request: a late/stale reply, or a probe reply received after
       // the probe loop was torn down. Not an error.
-      logger.debug('iframe.request_unmatched', { request_id: requestId })
-      return
+      logger.debug("iframe.request_unmatched", { request_id: requestId });
+      return;
     }
-    pending.delete(requestId)
-    clearTimeout(entry.timeoutId)
-    const rawResult = payload.data?.result
+    pending.delete(requestId);
+    clearTimeout(entry.timeoutId);
+    const rawResult = payload.data?.result;
     const result: BridgeResult<unknown> = ((): BridgeResult<unknown> => {
       if (!isBridgeResultLike(rawResult)) {
         return {
           success: false,
-          error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
-        }
+          error: {
+            code: "unexpected:malformed_result",
+            message: "REQUEST_RESULT payload had no valid result",
+          },
+        };
       }
       // Editor void ops emit `{ success: true }` without `data`. Normalize to
       // `{ success: true, data: null }` so consumers never see the missing field.
-      if (rawResult.success === true && !('data' in rawResult)) {
-        return { success: true, data: null }
+      if (rawResult.success === true && !("data" in rawResult)) {
+        return { success: true, data: null };
       }
       switch (entry.resultShape) {
-        case 'wire':
-          return rawResult
-        case 'sdk': {
+        case "wire":
+          return rawResult;
+        case "sdk": {
           // wire (snake_case) -> SDK (camelCase) for the data / error.details payloads.
           // The transform preserves the envelope shape, so re-narrowing with the same
           // guard re-types it without a cast.
-          const camelCased = fromWireData(rawResult)
+          const camelCased = fromWireData(rawResult);
           if (!isBridgeResultLike(camelCased)) {
             return {
               success: false,
-              error: { code: 'unexpected:malformed_result', message: 'REQUEST_RESULT payload had no valid result' },
-            }
+              error: {
+                code: "unexpected:malformed_result",
+                message: "REQUEST_RESULT payload had no valid result",
+              },
+            };
           }
-          return camelCased
+          return camelCased;
         }
         default:
-          entry.resultShape satisfies never
-          return rawResult
+          entry.resultShape satisfies never;
+          return rawResult;
       }
-    })()
-    logger.info('iframe.request_received', {
+    })();
+    logger.info("iframe.request_received", {
       request_id: requestId,
       type: entry.wireType,
       elapsed_ms: Date.now() - entry.startedAtMs,
       success: result.success,
-    })
-    entry.resolve(result)
-  }
+    });
+    entry.resolve(result);
+  };
 
-  window.addEventListener('message', onMessage)
+  window.addEventListener("message", onMessage);
 
   // The bridge is a thin interface, not a policy engine: the editor owns FIFO
   // ordering, input validation, and typed errors, and always replies. Each method
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
-    createField: (input) => sendRequest('CREATE_FIELD', input),
+    batchSetFieldValue: (input) => sendRequest("BATCH_SET_FIELD_VALUE", input),
+    createField: (input) => sendRequest("CREATE_FIELD", input),
     // All-optional input: deleteFields() with no args clears every field.
-    deleteFields: (input) => sendRequest('DELETE_FIELDS', input ?? {}),
-    deletePages: (input) => sendRequest('DELETE_PAGES', input),
-    detectFields: () => sendRequest('DETECT_FIELDS', {}),
-    download: () => sendRequest('DOWNLOAD', {}),
-    focusField: (input) => sendRequest('FOCUS_FIELD', input),
-    getAnnotatedPage: (input) => sendRequest('GET_ANNOTATED_PAGE', input),
-    getDocumentContent: (input) => sendRequest('GET_DOCUMENT_CONTENT', input ?? {}),
-    getFields: () => sendRequest('GET_FIELDS', {}),
-    goTo: (input) => sendRequest('GO_TO', input),
-    loadDocument: (input) => sendRequest('LOAD_DOCUMENT', input),
-    movePage: (input) => sendRequest('MOVE_PAGE', input),
-    rotatePage: (input) => sendRequest('ROTATE_PAGE', input),
-    selectTool: (input) => sendRequest('SELECT_TOOL', input),
-    setFieldValue: (input) => sendRequest('SET_FIELD_VALUE', input),
-    submit: (input) => sendRequest('SUBMIT', input),
-  } satisfies IframeActions
+    deleteFields: (input) => sendRequest("DELETE_FIELDS", input ?? {}),
+    deletePages: (input) => sendRequest("DELETE_PAGES", input),
+    detectFields: () => sendRequest("DETECT_FIELDS", {}),
+    download: () => sendRequest("DOWNLOAD", {}),
+    focusField: (input) => sendRequest("FOCUS_FIELD", input),
+    getAnnotatedPage: (input) => sendRequest("GET_ANNOTATED_PAGE", input),
+    getDocumentContent: (input) =>
+      sendRequest("GET_DOCUMENT_CONTENT", input ?? {}),
+    getFields: () => sendRequest("GET_FIELDS", {}),
+    goTo: (input) => sendRequest("GO_TO", input),
+    loadDocument: (input) => sendRequest("LOAD_DOCUMENT", input),
+    movePage: (input) => sendRequest("MOVE_PAGE", input),
+    rotatePage: (input) => sendRequest("ROTATE_PAGE", input),
+    selectTool: (input) => sendRequest("SELECT_TOOL", input),
+    setFieldValue: (input) => sendRequest("SET_FIELD_VALUE", input),
+    submit: (input) => sendRequest("SUBMIT", input),
+  } satisfies IframeActions;
 
   const dispose = (): void => {
     if (disposed) {
-      return
+      return;
     }
-    disposed = true
-    webMCPController.abort()
-    window.removeEventListener('message', onMessage)
-    clearReadyTimeout()
-    stopProbing()
+    disposed = true;
+    webMCPController.abort();
+    window.removeEventListener("message", onMessage);
+    clearReadyTimeout();
+    stopProbing();
     for (const { timeoutId, resolve } of pending.values()) {
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
       resolve({
         success: false,
-        error: { code: 'unexpected:bridge_disposed', message: 'Editor bridge was disposed' },
-      })
+        error: {
+          code: "unexpected:bridge_disposed",
+          message: "Editor bridge was disposed",
+        },
+      });
     }
-    pending.clear()
+    pending.clear();
     for (const channel of Object.values(channels)) {
-      channel.clear()
+      channel.clear();
     }
-    onDispose?.()
-  }
+    onDispose?.();
+  };
 
   const embed: Embed = {
     actions: methods,
     events: { on },
     lifecycle: { dispose },
-  }
-  return embed
-}
+  };
+  return embed;
+};

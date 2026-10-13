@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export const EDITOR_ERROR_CODES: readonly ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"];
+export const EDITOR_ERROR_CODES: readonly ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"];
 
 // @public (undocumented)
 export const EXTRACTION_MODES: readonly ["auto", "ocr"];
@@ -27,6 +27,14 @@ export const LOCALES: readonly ["fr", "en", "it", "de", "pt", "es", "ja", "nl"];
 
 // @public (undocumented)
 export const OPERATIONS: readonly [{
+    readonly request_type: "BATCH_SET_FIELD_VALUE";
+    readonly wire_type: "BATCH_SET_FIELD_VALUE";
+    readonly method: "batchSetFieldValue";
+    readonly description: "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.";
+    readonly error_codes: readonly ["bad_request:batch_validation_failed", "bad_request:invalid_value", "bad_request:no_document_loaded"];
+    readonly is_agentic_tool: true;
+    readonly has_output: false;
+}, {
     readonly request_type: "CREATE_FIELD";
     readonly wire_type: "CREATE_FIELD";
     readonly method: "createField";
@@ -143,7 +151,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "SET_FIELD_VALUE";
     readonly method: "setFieldValue";
     readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.";
-    readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"];
+    readonly error_codes: readonly ["bad_request:field_not_found", "bad_request:invalid_signature_url", "bad_request:invalid_value", "bad_request:read_only", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
 }, {
@@ -184,13 +192,13 @@ export const OVERLAY_TOOL_TYPES: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHEC
 export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number];
 
 // @public (undocumented)
-export const REQUEST_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const REQUEST_TYPES: ("BATCH_SET_FIELD_VALUE" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type RequestType = (typeof OPERATIONS)[number]["request_type"];
 
 // @public (undocumented)
-export const WIRE_TYPES: ("CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const WIRE_TYPES: ("BATCH_SET_FIELD_VALUE" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type WireType = (typeof OPERATIONS)[number]["wire_type"];

@@ -5,7 +5,7 @@ import type { METHOD_NAMES } from './method-names'
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const EDITOR_ERROR_CODES = ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
+export const EDITOR_ERROR_CODES = ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
 export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number]
 
 export const FIELD_TYPES = ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"] as const
@@ -17,6 +17,8 @@ export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number]
 export const EXTRACTION_MODES = ["auto", "ocr"] as const
 export type ExtractionMode = (typeof EXTRACTION_MODES)[number]
 
+export type BatchSetFieldValueInput = { updates: Array<{ fieldId: string; value: string | null }> }
+export type BatchSetFieldValueOutput = null
 export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; value?: string }
 export type CreateFieldOutput = { fieldId: string }
 export type DeleteFieldsInput = { fieldIds?: string[]; page?: number }
@@ -53,7 +55,12 @@ export type SubmitOutput = null
 export type DocumentContentResult = GetDocumentContentOutput
 export type DocumentContentPage = GetDocumentContentOutput['pages'][number]
 
+export type BatchValidationFailedDetails = { failures: Array<{ fieldId: string; code: "bad_request:field_not_found" | "bad_request:invalid_signature_url" | "bad_request:invalid_value" | "bad_request:read_only"; message: string }> }
 export type MissingRequiredFieldsDetails = { unfilledRequiredFieldsCount: number }
+export type EditorErrorDetailsByCode = {
+  'bad_request:batch_validation_failed': BatchValidationFailedDetails
+  'bad_request:missing_required_fields': MissingRequiredFieldsDetails
+}
 
 export type EditorReadyPayload = Record<string, never>
 export type DocumentLoadedPayload = { document_id: string }
@@ -61,6 +68,15 @@ export type PageFocusedPayload = { previous_page: number | null; current_page: n
 export type SubmissionSentPayload = { document_id: string; submission_id: string }
 
 export const OPERATIONS = [
+  {
+    request_type: "BATCH_SET_FIELD_VALUE",
+    wire_type: "BATCH_SET_FIELD_VALUE",
+    method: "batchSetFieldValue",
+    description: "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.",
+    error_codes: ["bad_request:batch_validation_failed", "bad_request:invalid_value", "bad_request:no_document_loaded"] as const,
+    is_agentic_tool: true,
+    has_output: false,
+  } /* BatchSetFieldValue */,
   {
     request_type: "CREATE_FIELD",
     wire_type: "CREATE_FIELD",
@@ -192,7 +208,7 @@ export const OPERATIONS = [
     wire_type: "SET_FIELD_VALUE",
     method: "setFieldValue",
     description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.",
-    error_codes: ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"] as const,
+    error_codes: ["bad_request:field_not_found", "bad_request:invalid_signature_url", "bad_request:invalid_value", "bad_request:read_only", "bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* SetFieldValue */,

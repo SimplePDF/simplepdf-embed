@@ -1,6 +1,13 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 import { z } from 'zod'
 
+export const BatchSetFieldValueInput = z.object({
+  updates: z.array(z.object({
+  fieldId: z.string().describe("ID of the field to update."),
+  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
+})).describe("The fields to set, at least one, each field at most once. Fields not listed keep their value."),
+}).describe("Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.")
+export type BatchSetFieldValueInput = z.infer<typeof BatchSetFieldValueInput>
 export const CreateFieldInput = z.object({
   type: z.enum(["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]).describe("Field type to create."),
   x: z.number().describe("Field x position, in PDF points."),

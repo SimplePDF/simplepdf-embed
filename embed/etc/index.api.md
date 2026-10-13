@@ -5,12 +5,28 @@
 ```ts
 
 // @public (undocumented)
-export type BridgeError = {
-    code: 'bad_request:missing_required_fields';
-    message: string;
-    details: MissingRequiredFieldsDetails;
-} | {
-    code: Exclude<BridgeErrorCode, 'bad_request:missing_required_fields'>;
+export type BatchSetFieldValueInput = {
+    updates: Array<{
+        fieldId: string;
+        value: string | null;
+    }>;
+};
+
+// @public (undocumented)
+export type BatchValidationFailedDetails = {
+    failures: Array<{
+        fieldId: string;
+        code: "bad_request:field_not_found" | "bad_request:invalid_signature_url" | "bad_request:invalid_value" | "bad_request:read_only";
+        message: string;
+    }>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "DetailedBridgeError" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "EditorErrorDetailsByCode" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type BridgeError = DetailedBridgeError<keyof EditorErrorDetailsByCode> | {
+    code: Exclude<BridgeErrorCode, keyof EditorErrorDetailsByCode>;
     message: string;
 };
 
@@ -264,6 +280,7 @@ export type GoToInput = {
 
 // @public (undocumented)
 export type IframeActions = {
+    batchSetFieldValue: (input: BatchSetFieldValueInput) => Promise<BridgeResult>;
     createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>;
     deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>;
     deletePages: (input: DeletePagesInput) => Promise<BridgeResult>;

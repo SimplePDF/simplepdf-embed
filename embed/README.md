@@ -184,7 +184,7 @@ await embed.actions.rotatePage({ page: 1 })
 await embed.actions.download()
 ```
 
-Full set: `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getAnnotatedPage`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
+Full set: `batchSetFieldValue`, `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getAnnotatedPage`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
 
 **"Fill and read this document for me"** is just these operations in sequence, exactly what the agentic tools expose to a model:
 
