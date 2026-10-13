@@ -31,7 +31,7 @@ import type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from "./generated/contract";
+} from './generated/contract'
 
 export type {
   BatchSetFieldValueInput,
@@ -69,11 +69,11 @@ export type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from "./generated/contract";
+} from './generated/contract'
 
 // A single field as reported by get_fields. Alias kept for ergonomics; the
 // shape is owned by the generated GetFieldsOutput.
-export type FieldRecord = GetFieldsOutput["fields"][number];
+export type FieldRecord = GetFieldsOutput['fields'][number]
 
 // --- Error model -----------------------------------------------------------
 
@@ -82,35 +82,31 @@ export type FieldRecord = GetFieldsOutput["fields"][number];
 // `bad_request:invalid_input` is emitted by the /tools router when an agentic call
 // fails schema validation before dispatch (the thin root bridge does not validate).
 export type BridgeOwnedErrorCode =
-  | "bad_request:invalid_input"
-  | "unexpected:timeout"
-  | "unexpected:iframe_not_mounted"
-  | "unexpected:bridge_disposed"
-  | "unexpected:malformed_result"
-  | "unexpected:unknown";
+  | 'bad_request:invalid_input'
+  | 'unexpected:timeout'
+  | 'unexpected:iframe_not_mounted'
+  | 'unexpected:bridge_disposed'
+  | 'unexpected:malformed_result'
+  | 'unexpected:unknown'
 
 // The complete, closed error union: package-owned transport codes UNION the
 // generated editor codes (the customer-facing set already redacted at the wire
 // boundary, where internal failures collapse to unexpected:internal_error).
-export type BridgeErrorCode = BridgeOwnedErrorCode | EditorErrorCode;
+export type BridgeErrorCode = BridgeOwnedErrorCode | EditorErrorCode
 
 // The codes of EditorErrorDetailsByCode carry typed details; every other code is a
 // plain { code, message }. Discriminated on `code` (distributed per detailed code).
-type DetailedBridgeError<TCode extends keyof EditorErrorDetailsByCode> =
-  TCode extends keyof EditorErrorDetailsByCode
-    ? { code: TCode; message: string; details: EditorErrorDetailsByCode[TCode] }
-    : never;
+type DetailedBridgeError<TCode extends keyof EditorErrorDetailsByCode> = TCode extends keyof EditorErrorDetailsByCode
+  ? { code: TCode; message: string; details: EditorErrorDetailsByCode[TCode] }
+  : never
 
 export type BridgeError =
   | DetailedBridgeError<keyof EditorErrorDetailsByCode>
-  | {
-      code: Exclude<BridgeErrorCode, keyof EditorErrorDetailsByCode>;
-      message: string;
-    };
+  | { code: Exclude<BridgeErrorCode, keyof EditorErrorDetailsByCode>; message: string }
 
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
-  | { success: false; error: BridgeError };
+  | { success: false; error: BridgeError }
 
 // --- Lifecycle -------------------------------------------------------------
 
@@ -119,23 +115,21 @@ export type BridgeResult<TData = null> =
 // (readiness probing + createEmbed's load-when-ready gate); not on the public handle —
 // readiness is observable via the EDITOR_READY / DOCUMENT_LOADED editor events.
 export type BridgeState =
-  | { kind: "booting" }
-  | { kind: "editorReady" }
-  | { kind: "documentLoaded"; documentId: string | null };
+  | { kind: 'booting' }
+  | { kind: 'editorReady' }
+  | { kind: 'documentLoaded'; documentId: string | null }
 
 // The editor's outbound events, forwarded to onEmbedEvent VERBATIM: SCREAMING_SNAKE
 // `type` + snake_case `data` (the stable, established contract — deliberately NOT
 // camelCased, unlike op payloads). Every payload comes from the manifest `events`.
 export type EditorEvent =
-  | { type: "EDITOR_READY"; data: EditorReadyPayload }
-  | { type: "DOCUMENT_LOADED"; data: DocumentLoadedPayload }
-  | { type: "PAGE_FOCUSED"; data: PageFocusedPayload }
-  | { type: "SUBMISSION_SENT"; data: SubmissionSentPayload };
+  | { type: 'EDITOR_READY'; data: EditorReadyPayload }
+  | { type: 'DOCUMENT_LOADED'; data: DocumentLoadedPayload }
+  | { type: 'PAGE_FOCUSED'; data: PageFocusedPayload }
+  | { type: 'SUBMISSION_SENT'; data: SubmissionSentPayload }
 
 // Event type -> payload, derived from EditorEvent, for the granular on(type, handler).
-export type EditorEventMap = {
-  [TEvent in EditorEvent as TEvent["type"]]: TEvent["data"];
-};
+export type EditorEventMap = { [TEvent in EditorEvent as TEvent['type']]: TEvent['data'] }
 
 // --- Handle groups ---------------------------------------------------------
 
@@ -145,34 +139,24 @@ export type EditorEventMap = {
 // throws. Drift-guarded against the generated operation set in ./generated/drift.ts
 // (a new operation fails the build until added here).
 export type IframeActions = {
-  batchSetFieldValue: (input: BatchSetFieldValueInput) => Promise<BridgeResult>;
-  createField: (
-    input: CreateFieldInput
-  ) => Promise<BridgeResult<CreateFieldOutput>>;
-  deleteFields: (
-    input?: DeleteFieldsInput
-  ) => Promise<BridgeResult<DeleteFieldsOutput>>;
-  deletePages: (input: DeletePagesInput) => Promise<BridgeResult>;
-  detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>;
-  download: () => Promise<BridgeResult>;
-  focusField: (
-    input: FocusFieldInput
-  ) => Promise<BridgeResult<FocusFieldOutput>>;
-  getAnnotatedPage: (
-    input: GetAnnotatedPageInput
-  ) => Promise<BridgeResult<GetAnnotatedPageOutput>>;
-  getDocumentContent: (
-    input?: GetDocumentContentInput
-  ) => Promise<BridgeResult<GetDocumentContentOutput>>;
-  getFields: () => Promise<BridgeResult<GetFieldsOutput>>;
-  goTo: (input: GoToInput) => Promise<BridgeResult>;
-  loadDocument: (input: LoadDocumentInput) => Promise<BridgeResult>;
-  movePage: (input: MovePageInput) => Promise<BridgeResult>;
-  rotatePage: (input: RotatePageInput) => Promise<BridgeResult>;
-  selectTool: (input: SelectToolInput) => Promise<BridgeResult>;
-  setFieldValue: (input: SetFieldValueInput) => Promise<BridgeResult>;
-  submit: (input: SubmitInput) => Promise<BridgeResult>;
-};
+  batchSetFieldValue: (input: BatchSetFieldValueInput) => Promise<BridgeResult>
+  createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>
+  deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>
+  deletePages: (input: DeletePagesInput) => Promise<BridgeResult>
+  detectFields: () => Promise<BridgeResult<DetectFieldsOutput>>
+  download: () => Promise<BridgeResult>
+  focusField: (input: FocusFieldInput) => Promise<BridgeResult<FocusFieldOutput>>
+  getAnnotatedPage: (input: GetAnnotatedPageInput) => Promise<BridgeResult<GetAnnotatedPageOutput>>
+  getDocumentContent: (input?: GetDocumentContentInput) => Promise<BridgeResult<GetDocumentContentOutput>>
+  getFields: () => Promise<BridgeResult<GetFieldsOutput>>
+  goTo: (input: GoToInput) => Promise<BridgeResult>
+  loadDocument: (input: LoadDocumentInput) => Promise<BridgeResult>
+  movePage: (input: MovePageInput) => Promise<BridgeResult>
+  rotatePage: (input: RotatePageInput) => Promise<BridgeResult>
+  selectTool: (input: SelectToolInput) => Promise<BridgeResult>
+  setFieldValue: (input: SetFieldValueInput) => Promise<BridgeResult>
+  submit: (input: SubmitInput) => Promise<BridgeResult>
+}
 
 // `embed.events` — granular, EventEmitter-style subscription to the editor's outbound
 // events. `on(type, handler)` hands the handler that event's typed payload and returns
@@ -180,20 +164,20 @@ export type IframeActions = {
 export type EmbedEvents = {
   on: <TEventType extends keyof EditorEventMap>(
     type: TEventType,
-    handler: (data: EditorEventMap[TEventType]) => void
-  ) => () => void;
-};
+    handler: (data: EditorEventMap[TEventType]) => void,
+  ) => () => void
+}
 
 // `embed.lifecycle` — teardown.
 export type EmbedLifecycle = {
-  dispose: () => void;
-};
+  dispose: () => void
+}
 
 // The handle returned by createEmbed: three groups — `actions`, `events`, `lifecycle`.
 // Convention: name the variable `embed` (e.g. `embed.actions.goTo({ page })`,
 // `embed.events.on('SUBMISSION_SENT', …)`, `embed.lifecycle.dispose()`).
 export type Embed = {
-  actions: IframeActions;
-  events: EmbedEvents;
-  lifecycle: EmbedLifecycle;
-};
+  actions: IframeActions
+  events: EmbedEvents
+  lifecycle: EmbedLifecycle
+}
