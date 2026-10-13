@@ -1,13 +1,13 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 import { z } from 'zod'
 
-export const BatchSetFieldValueInput = z.object({
+export const BatchSetFieldValuesInput = z.object({
   updates: z.array(z.object({
   fieldId: z.string().describe("ID of the field to update."),
   value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
 })).describe("The fields to set, at least one, each field at most once. Fields not listed keep their value."),
 })
-export type BatchSetFieldValueInput = z.infer<typeof BatchSetFieldValueInput>
+export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>
 export const CreateFieldInput = z.object({
   type: z.enum(["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT"]).describe("Field type to create."),
   x: z.number().describe("Field x position, in PDF points."),

@@ -7,7 +7,7 @@
 import { z } from 'zod';
 
 // @public (undocumented)
-export const BatchSetFieldValueInput: z.ZodObject<{
+export const BatchSetFieldValuesInput: z.ZodObject<{
     updates: z.ZodArray<z.ZodObject<{
         fieldId: z.ZodString;
         value: z.ZodNullable<z.ZodString>;
@@ -15,7 +15,7 @@ export const BatchSetFieldValueInput: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public (undocumented)
-export type BatchSetFieldValueInput = z.infer<typeof BatchSetFieldValueInput>;
+export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
 
 // @public (undocumented)
 export const CreateFieldInput: z.ZodObject<{

@@ -27,10 +27,10 @@ export const LOCALES: readonly ["fr", "en", "it", "de", "pt", "es", "ja", "nl"];
 
 // @public (undocumented)
 export const OPERATIONS: readonly [{
-    readonly request_type: "BATCH_SET_FIELD_VALUE";
-    readonly wire_type: "BATCH_SET_FIELD_VALUE";
-    readonly method: "batchSetFieldValue";
-    readonly description: "Set the values of several existing fields in one call, addressed by their ids (from the field list). Every update is validated before anything changes: all of them are applied at once, as a single undo step, or none is and the call fails with bad_request:batch_validation_failed, whose details.failures lists every rejected update (field_id, code, message) so the whole batch can be corrected and sent again. A signature URL is fetched only once every other update is valid. Values follow set_field_value and are never typed out. Returns no data.";
+    readonly request_type: "BATCH_SET_FIELD_VALUES";
+    readonly wire_type: "BATCH_SET_FIELD_VALUES";
+    readonly method: "batchSetFieldValues";
+    readonly description: "Set several existing fields in one call, addressed by their ids (from the field list). Either every update applies, as one undo step, or none does and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejected update (field_id, code, message). Values follow set_field_value and are never typed out. Returns no data.";
     readonly error_codes: readonly ["bad_request:batch_validation_failed", "bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -192,13 +192,13 @@ export const OVERLAY_TOOL_TYPES: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHEC
 export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number];
 
 // @public (undocumented)
-export const REQUEST_TYPES: ("BATCH_SET_FIELD_VALUE" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const REQUEST_TYPES: ("BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type RequestType = (typeof OPERATIONS)[number]["request_type"];
 
 // @public (undocumented)
-export const WIRE_TYPES: ("BATCH_SET_FIELD_VALUE" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const WIRE_TYPES: ("BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type WireType = (typeof OPERATIONS)[number]["wire_type"];

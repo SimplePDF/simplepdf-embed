@@ -515,7 +515,7 @@ export const attachEmbed = ({
   // ordering, input validation, and typed errors, and always replies. Each method
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
-    batchSetFieldValue: (input) => sendRequest('BATCH_SET_FIELD_VALUE', input),
+    batchSetFieldValues: (input) => sendRequest('BATCH_SET_FIELD_VALUES', input),
     createField: (input) => sendRequest('CREATE_FIELD', input),
     // All-optional input: deleteFields() with no args clears every field.
     deleteFields: (input) => sendRequest('DELETE_FIELDS', input ?? {}),

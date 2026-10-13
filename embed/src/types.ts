@@ -4,7 +4,7 @@
 // the single source of truth; nothing in this file restates a wire shape.
 
 import type {
-  BatchSetFieldValueInput,
+  BatchSetFieldValuesInput,
   CreateFieldInput,
   CreateFieldOutput,
   DeleteFieldsInput,
@@ -34,7 +34,7 @@ import type {
 } from './generated/contract'
 
 export type {
-  BatchSetFieldValueInput,
+  BatchSetFieldValuesInput,
   BatchValidationFailedDetails,
   CreateFieldInput,
   CreateFieldOutput,
@@ -139,7 +139,7 @@ export type EditorEventMap = { [TEvent in EditorEvent as TEvent['type']]: TEvent
 // throws. Drift-guarded against the generated operation set in ./generated/drift.ts
 // (a new operation fails the build until added here).
 export type IframeActions = {
-  batchSetFieldValue: (input: BatchSetFieldValueInput) => Promise<BridgeResult>
+  batchSetFieldValues: (input: BatchSetFieldValuesInput) => Promise<BridgeResult>
   createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>
   deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>
   deletePages: (input: DeletePagesInput) => Promise<BridgeResult>

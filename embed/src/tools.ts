@@ -7,7 +7,7 @@
 import type { z } from 'zod'
 import { TOOL_DEFINITIONS, type SimplePDFToolName } from './generated/tools'
 import {
-  BatchSetFieldValueInput,
+  BatchSetFieldValuesInput,
   CreateFieldInput,
   DeleteFieldsInput,
   DeletePagesInput,
@@ -59,8 +59,8 @@ export const routeToolCall = (
   input: unknown,
 ): Promise<BridgeResult<unknown>> => {
   switch (toolName) {
-    case 'batchSetFieldValue':
-      return dispatch(BatchSetFieldValueInput, input, (value) => actions.batchSetFieldValue(value))
+    case 'batchSetFieldValues':
+      return dispatch(BatchSetFieldValuesInput, input, (value) => actions.batchSetFieldValues(value))
     case 'createField':
       return dispatch(CreateFieldInput, input, (value) => actions.createField(value))
     case 'deleteFields':

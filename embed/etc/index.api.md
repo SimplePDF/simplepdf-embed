@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export type BatchSetFieldValueInput = {
+export type BatchSetFieldValuesInput = {
     updates: Array<{
         fieldId: string;
         value: string | null;
@@ -280,7 +280,7 @@ export type GoToInput = {
 
 // @public (undocumented)
 export type IframeActions = {
-    batchSetFieldValue: (input: BatchSetFieldValueInput) => Promise<BridgeResult>;
+    batchSetFieldValues: (input: BatchSetFieldValuesInput) => Promise<BridgeResult>;
     createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>;
     deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>;
     deletePages: (input: DeletePagesInput) => Promise<BridgeResult>;
