@@ -19,7 +19,7 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
     readonly batchSetFieldValues: {
-        readonly description: "Set several existing fields in one call, addressed by their ids (from the field list). Either every update applies, as one undo step, or none does and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejected update (field_id, code, message). Values follow set_field_value and are never typed out. Returns no data.";
+        readonly description: "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             updates: zod.ZodArray<zod.ZodObject<{
                 fieldId: zod.ZodString;
@@ -28,7 +28,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly createField: {
-        readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.";
+        readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field.";
         readonly inputSchema: zod.ZodObject<{
             type: zod.ZodEnum<{
                 TEXT: "TEXT";
@@ -46,20 +46,20 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly deleteFields: {
-        readonly description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.";
+        readonly description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             fieldIds: zod.ZodOptional<zod.ZodArray<zod.ZodString>>;
             page: zod.ZodOptional<zod.ZodNumber>;
         }, zod_v4_core.$strip>;
     };
     readonly deletePages: {
-        readonly description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled.";
+        readonly description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             pages: zod.ZodArray<zod.ZodNumber>;
         }, zod_v4_core.$strip>;
     };
     readonly detectFields: {
-        readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled.";
+        readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }.";
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly download: {
@@ -67,13 +67,13 @@ export const SIMPLEPDF_TOOLS: {
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly focusField: {
-        readonly description: "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.";
+        readonly description: "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next.";
         readonly inputSchema: zod.ZodObject<{
             fieldId: zod.ZodString;
         }, zod_v4_core.$strip>;
     };
     readonly getAnnotatedPage: {
-        readonly description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.";
+        readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
@@ -98,14 +98,14 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly movePage: {
-        readonly description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled.";
+        readonly description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             fromPage: zod.ZodNumber;
             toPage: zod.ZodNumber;
         }, zod_v4_core.$strip>;
     };
     readonly rotatePage: {
-        readonly description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled.";
+        readonly description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
@@ -123,7 +123,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly setFieldValue: {
-        readonly description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.";
+        readonly description: "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             animate: zod.ZodOptional<zod.ZodBoolean>;
             fieldId: zod.ZodString;
