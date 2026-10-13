@@ -2,7 +2,6 @@ import scss from 'rollup-plugin-scss';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer';
 import typescript from 'rollup-plugin-typescript2';
-import terser from '@rollup/plugin-terser';
 
 // Dual CJS + ESM (so existing require() consumers keep working — this is a non-breaking minor).
 // react / react-dom / zod / the core are external (peer or dependency), resolved at the
@@ -24,6 +23,7 @@ export default {
       dir: 'dist',
       format: 'cjs',
       exports: 'named',
+      sourcemap: true,
       entryFileNames: '[name].cjs',
       chunkFileNames: 'chunks/[name]-[hash].cjs',
     },
@@ -31,6 +31,7 @@ export default {
       dir: 'dist',
       format: 'es',
       exports: 'named',
+      sourcemap: true,
       entryFileNames: '[name].esm.js',
       chunkFileNames: 'chunks/[name]-[hash].esm.js',
     },
@@ -46,11 +47,6 @@ export default {
     typescript({
       tsconfigOverride: {
         exclude: ['node_modules', 'src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.test-d.ts', 'vitest.setup.ts'],
-      },
-    }),
-    terser({
-      format: {
-        comments: false,
       },
     }),
   ],

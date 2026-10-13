@@ -19,6 +19,7 @@ export default defineConfig({
   dts: true,
   treeshake: true,
   splitting: true,
+  sourcemap: true,
   clean: true,
   external: ['zod', '@tanstack/ai'],
 })

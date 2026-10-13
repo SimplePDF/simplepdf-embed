@@ -11,6 +11,7 @@ function createOutputConfig({ file, minify }) {
     inlineDynamicImports: true,
     name: 'simplePDF',
     strict: true,
+    sourcemap: true,
     plugins: minify ? [terser({ format: { comments: false } })] : [],
   };
 }
