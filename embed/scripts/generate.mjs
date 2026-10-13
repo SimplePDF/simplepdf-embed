@@ -436,8 +436,7 @@ schemaLines.push('')
 
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
-  // The operation description lives on the tool (tools.ts); a root `.describe()` would
-  // ship it twice and send it twice to the model in every tool's JSON schema.
+  // The description lives on the tool (src/generated/tools.ts); repeating it here sends it to the model twice
   schemaLines.push(`export const ${stem}Input = ${zodForNode(op.input_schema, { withDescription: false })}`)
   // Value + type share the PascalCase name (the canonical zod idiom).
   schemaLines.push(`export type ${stem}Input = z.infer<typeof ${stem}Input>`)
