@@ -1,6 +1,6 @@
 {
   "name": "@simplepdf/web-embed-pdf",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "SimplePDF straight into your website",
   "repository": {
     "type": "git",
@@ -52,6 +52,6 @@
     "pdf"
   ],
   "dependencies": {
-    "@simplepdf/embed": "0.8.0"
+    "@simplepdf/embed": "0.9.0"
   }
 }
