@@ -207,6 +207,7 @@
       "focusField": "Fremhæver feltet",
       "goTo": "Går til siden",
       "setFieldValue": "Udfylder feltet",
+      "batchSetFieldValues": "Udfylder felterne",
       "selectTool": "Skifter værktøj",
       "deleteFields": "Sletter felter",
       "movePage": "Flytter siden",

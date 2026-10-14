@@ -207,6 +207,7 @@
       "focusField": "Välja esiletoomine",
       "goTo": "Lehele minemine",
       "setFieldValue": "Välja täitmine",
+      "batchSetFieldValues": "Väljade täitmine",
       "selectTool": "Tööriista vahetamine",
       "deleteFields": "Väljade kustutamine",
       "movePage": "Lehe teisaldamine",

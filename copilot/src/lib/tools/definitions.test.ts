@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { buildCopilotToolDefinitions, isCopilotToolName } from './definitions'
+import { buildCopilotToolDefinitions, isCopilotToolName, pinCopilotFlags } from './definitions'
 
 describe('copilot tool catalogue', () => {
   const names = Object.keys(buildCopilotToolDefinitions())
 
-  it('never exposes createField or loadDocument', () => {
+  it('never exposes createField, getAnnotatedPage or loadDocument', () => {
     expect(names).not.toContain('createField')
+    expect(names).not.toContain('getAnnotatedPage')
     expect(names).not.toContain('loadDocument')
   })
 
@@ -22,6 +23,7 @@ describe('copilot tool catalogue', () => {
         'detectFields',
         'selectTool',
         'setFieldValue',
+        'batchSetFieldValues',
         'focusField',
         'goTo',
       ]),
@@ -40,8 +42,25 @@ describe('copilot tool catalogue', () => {
       expect(isCopilotToolName(name)).toBe(true)
     }
     expect(isCopilotToolName('createField')).toBe(false)
+    expect(isCopilotToolName('getAnnotatedPage')).toBe(false)
     expect(isCopilotToolName('loadDocument')).toBe(false)
     expect(isCopilotToolName('not_a_tool')).toBe(false)
     expect(isCopilotToolName(42)).toBe(false)
+  })
+})
+
+describe(pinCopilotFlags.name, () => {
+  it('types text out and never downloads a copy on submit, whatever the model sends', () => {
+    expect(pinCopilotFlags('setFieldValue', { fieldId: 'f_1', value: 'Jane', animate: false })).toEqual({
+      fieldId: 'f_1',
+      value: 'Jane',
+      animate: true,
+    })
+    expect(pinCopilotFlags('submit', { downloadCopy: true })).toEqual({ downloadCopy: false })
+  })
+
+  it('passes every other tool input through unchanged', () => {
+    const input = { updates: [{ fieldId: 'f_1', value: 'Jane' }] }
+    expect(pinCopilotFlags('batchSetFieldValues', input)).toBe(input)
   })
 })

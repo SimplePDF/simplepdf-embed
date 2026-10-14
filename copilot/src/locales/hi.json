@@ -207,6 +207,7 @@
       "focusField": "फ़ील्ड को हाइलाइट कर रहा है",
       "goTo": "पृष्ठ पर जा रहा है",
       "setFieldValue": "फ़ील्ड भर रहा है",
+      "batchSetFieldValues": "फ़ील्ड भर रहा है",
       "selectTool": "टूल बदल रहा है",
       "deleteFields": "फ़ील्ड हटा रहा है",
       "movePage": "पृष्ठ स्थानांतरित कर रहा है",

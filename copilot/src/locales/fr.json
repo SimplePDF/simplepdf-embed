@@ -207,6 +207,7 @@
       "focusField": "Mise en évidence du champ",
       "goTo": "Passage à la page",
       "setFieldValue": "Remplissage du champ",
+      "batchSetFieldValues": "Remplissage des champs",
       "selectTool": "Changement d’outil",
       "deleteFields": "Suppression des champs",
       "movePage": "Déplacement de la page",

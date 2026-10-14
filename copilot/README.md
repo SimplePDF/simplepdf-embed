@@ -217,6 +217,8 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `detectFields` | Auto-detect missing fields on scanned PDFs |
 | `focusField` | Highlight + scroll to a field |
 | `setFieldValue` | Write a value into a field |
+| `batchSetFieldValues` | Write several values in one call, all or none, as one undo step (used when the user gives many answers at once) |
+| `deleteFields` | Remove fields by id, on a page, or across the document |
 | `selectTool` | Switch the editor toolbar (`TEXT`, `COMB_TEXT`, `CHECKBOX`, `SIGNATURE`, `PICTURE`) |
 | `goTo` | Navigate to a specific page (1-indexed) |
 | `movePage` | Reorder a visible page (`fromPage` → `toPage`, both 1-indexed). Destructive, only fired on explicit user request |
@@ -224,7 +226,7 @@ The chat sidebar advertises these tools to the model. Each runs inside the ifram
 | `rotatePage` | Rotate a visible page 90° clockwise per call. Destructive, only fired on explicit user request |
 | `submit` (Pro mode) / `download` (demo mode) | Finalize: real iframe `SUBMIT` on a Pro fork (lands in BYOS + webhooks) vs. an in-browser `DOWNLOAD` on the hosted demo |
 
-Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
+Tool input + output schemas + the bridge that posts these events into the iframe live in the [`@simplepdf/embed`](../embed) package (generated from the editor contract); copilot's tool catalogue + middleware live in `src/lib/tools/` (`definitions.ts`, `middleware.ts`, `tool_output.ts` for what the model reads back). System prompt: `src/server/tools.ts`. Public iframe contract these tools exercise: [`documentation/IFRAME.md`](../documentation/IFRAME.md).
 
 ## Common fork points
 

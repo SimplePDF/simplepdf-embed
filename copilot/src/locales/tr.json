@@ -207,6 +207,7 @@
       "focusField": "Alan vurgulanıyor",
       "goTo": "Sayfaya gidiliyor",
       "setFieldValue": "Alan dolduruluyor",
+      "batchSetFieldValues": "Alanlar dolduruluyor",
       "selectTool": "Araç değiştiriliyor",
       "deleteFields": "Alanlar siliniyor",
       "movePage": "Sayfa taşınıyor",

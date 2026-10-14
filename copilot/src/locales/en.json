@@ -224,6 +224,7 @@
       "focusField": "Highlighting the field",
       "goTo": "Going to the page",
       "setFieldValue": "Filling the field",
+      "batchSetFieldValues": "Filling the fields",
       "selectTool": "Switching tool",
       "deleteFields": "Deleting fields",
       "movePage": "Moving the page",

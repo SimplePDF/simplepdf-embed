@@ -213,6 +213,7 @@
       "focusField": "Виділення поля",
       "goTo": "Перехід на сторінку",
       "setFieldValue": "Заповнення поля",
+      "batchSetFieldValues": "Заповнення полів",
       "selectTool": "Зміна інструмента",
       "deleteFields": "Видалення полів",
       "movePage": "Переміщення сторінки",

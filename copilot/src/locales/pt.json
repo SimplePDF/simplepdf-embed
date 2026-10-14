@@ -207,6 +207,7 @@
       "focusField": "A destacar o campo",
       "goTo": "A ir para a página",
       "setFieldValue": "A preencher o campo",
+      "batchSetFieldValues": "A preencher os campos",
       "selectTool": "A mudar de ferramenta",
       "deleteFields": "A eliminar campos",
       "movePage": "A mover a página",

@@ -207,6 +207,7 @@
       "focusField": "Veld markeren",
       "goTo": "Naar de pagina gaan",
       "setFieldValue": "Veld invullen",
+      "batchSetFieldValues": "Velden invullen",
       "selectTool": "Tool wisselen",
       "deleteFields": "Velden verwijderen",
       "movePage": "Pagina verplaatsen",

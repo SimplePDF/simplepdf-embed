@@ -210,6 +210,7 @@
       "focusField": "Se evidențiază câmpul",
       "goTo": "Se trece la pagină",
       "setFieldValue": "Se completează câmpul",
+      "batchSetFieldValues": "Se completează câmpurile",
       "selectTool": "Se schimbă instrumentul",
       "deleteFields": "Se șterg câmpurile",
       "movePage": "Se mută pagina",

@@ -207,6 +207,7 @@
       "focusField": "Evidenziazione del campo",
       "goTo": "Passaggio alla pagina",
       "setFieldValue": "Compilazione del campo",
+      "batchSetFieldValues": "Compilazione dei campi",
       "selectTool": "Cambio strumento",
       "deleteFields": "Eliminazione dei campi",
       "movePage": "Spostamento della pagina",
