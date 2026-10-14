@@ -53,8 +53,9 @@ export const isCopilotToolName = (value: unknown): value is SimplePDFToolName =>
   typeof value === 'string' && COPILOT_TOOL_NAMES.has(value)
 
 // Copilot pins the flags its UX depends on, whatever the model sends: the agent
-// never also downloads a copy on submit, and text is always typed out so the
-// person watching follows each field being filled.
+// never also downloads a copy on submit, and a single setFieldValue always types
+// its text out so the person watching follows the field being filled. A batch
+// (bulk mode) has no such flag: the editor sets its values at once.
 export const pinCopilotFlags = (toolName: SimplePDFToolName, input: ToolInput): ToolInput => {
   switch (toolName) {
     case 'submit':
