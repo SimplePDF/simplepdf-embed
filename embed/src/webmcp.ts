@@ -72,6 +72,7 @@ const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): Ca
   switch (wireType) {
     case 'GET_ANNOTATED_PAGE':
       return toAnnotatedPageToolResult(result)
+    case 'BATCH_SET_FIELD_VALUES':
     case 'CREATE_FIELD':
     case 'DELETE_FIELDS':
     case 'DELETE_PAGES':

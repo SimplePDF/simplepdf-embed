@@ -4,6 +4,7 @@
 // the single source of truth; nothing in this file restates a wire shape.
 
 import type {
+  BatchSetFieldValuesInput,
   CreateFieldInput,
   CreateFieldOutput,
   DeleteFieldsInput,
@@ -12,6 +13,7 @@ import type {
   DetectFieldsOutput,
   DocumentLoadedPayload,
   EditorErrorCode,
+  EditorErrorDetailsByCode,
   EditorReadyPayload,
   FocusFieldInput,
   FocusFieldOutput,
@@ -22,7 +24,6 @@ import type {
   GetFieldsOutput,
   GoToInput,
   LoadDocumentInput,
-  MissingRequiredFieldsDetails,
   MovePageInput,
   PageFocusedPayload,
   RotatePageInput,
@@ -33,6 +34,8 @@ import type {
 } from './generated/contract'
 
 export type {
+  BatchSetFieldValuesInput,
+  BatchValidationFailedDetails,
   CreateFieldInput,
   CreateFieldOutput,
   DeleteFieldsInput,
@@ -91,15 +94,15 @@ export type BridgeOwnedErrorCode =
 // boundary, where internal failures collapse to unexpected:internal_error).
 export type BridgeErrorCode = BridgeOwnedErrorCode | EditorErrorCode
 
-// bad_request:missing_required_fields carries typed details; every other code
-// is a plain { code, message }. Discriminated on `code`.
+// The codes of EditorErrorDetailsByCode carry typed details; every other code is a
+// plain { code, message }. Discriminated on `code` (distributed per detailed code).
+type DetailedBridgeError<TCode extends keyof EditorErrorDetailsByCode> = TCode extends keyof EditorErrorDetailsByCode
+  ? { code: TCode; message: string; details: EditorErrorDetailsByCode[TCode] }
+  : never
+
 export type BridgeError =
-  | {
-      code: 'bad_request:missing_required_fields'
-      message: string
-      details: MissingRequiredFieldsDetails
-    }
-  | { code: Exclude<BridgeErrorCode, 'bad_request:missing_required_fields'>; message: string }
+  | DetailedBridgeError<keyof EditorErrorDetailsByCode>
+  | { code: Exclude<BridgeErrorCode, keyof EditorErrorDetailsByCode>; message: string }
 
 export type BridgeResult<TData = null> =
   | { success: true; data: TData }
@@ -136,6 +139,7 @@ export type EditorEventMap = { [TEvent in EditorEvent as TEvent['type']]: TEvent
 // throws. Drift-guarded against the generated operation set in ./generated/drift.ts
 // (a new operation fails the build until added here).
 export type IframeActions = {
+  batchSetFieldValues: (input: BatchSetFieldValuesInput) => Promise<BridgeResult>
   createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>
   deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>
   deletePages: (input: DeletePagesInput) => Promise<BridgeResult>

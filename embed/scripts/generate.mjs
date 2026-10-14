@@ -355,17 +355,27 @@ contractLines.push('export type DocumentContentResult = GetDocumentContentOutput
 contractLines.push("export type DocumentContentPage = GetDocumentContentOutput['pages'][number]")
 contractLines.push('')
 
-// The typed `details` payload carried by the one error code that has them, derived
-// from editor_error_schema so the package's BridgeError never restates it.
-const missingFieldsVariant = (contract.editor_error_schema.anyOf ?? []).find(
-  (variant) => variant.properties?.code?.const === 'bad_request:missing_required_fields',
+// The typed `details` payload of every error code that carries one, derived from
+// editor_error_schema so the package's BridgeError never restates it: one
+// `<Code>Details` type per code ('bad_request:missing_required_fields' ->
+// MissingRequiredFieldsDetails) and the code -> details map BridgeError derives from.
+const detailedErrorVariants = (contract.editor_error_schema.anyOf ?? []).filter(
+  (variant) => typeof variant.properties?.code?.const === 'string' && variant.properties?.details !== undefined,
 )
-if (missingFieldsVariant?.properties?.details === undefined) {
+if (!detailedErrorVariants.some((variant) => variant.properties.code.const === 'bad_request:missing_required_fields')) {
   throw new Error('embed-api.json: the bad_request:missing_required_fields variant lacks a details schema')
 }
-contractLines.push(
-  `export type MissingRequiredFieldsDetails = ${tsForNode(missingFieldsVariant.properties.details, true)}`,
-)
+const toDetailsTypeName = (code) => `${toPascal(code.split(':')[1])}Details`
+for (const variant of detailedErrorVariants) {
+  contractLines.push(
+    `export type ${toDetailsTypeName(variant.properties.code.const)} = ${tsForNode(variant.properties.details, true)}`,
+  )
+}
+contractLines.push('export type EditorErrorDetailsByCode = {')
+for (const variant of detailedErrorVariants) {
+  contractLines.push(`  '${variant.properties.code.const}': ${toDetailsTypeName(variant.properties.code.const)}`)
+}
+contractLines.push('}')
 contractLines.push('')
 
 // Outbound event payload types.
@@ -426,7 +436,8 @@ schemaLines.push('')
 
 for (const op of contract.operations) {
   const stem = toPascal(op.request_type)
-  schemaLines.push(`export const ${stem}Input = ${zodForNode(op.input_schema, { withDescription: true })}`)
+  // The description lives on the tool (src/generated/tools.ts); repeating it here sends it to the model twice
+  schemaLines.push(`export const ${stem}Input = ${zodForNode(op.input_schema, { withDescription: false })}`)
   // Value + type share the PascalCase name (the canonical zod idiom).
   schemaLines.push(`export type ${stem}Input = z.infer<typeof ${stem}Input>`)
 }

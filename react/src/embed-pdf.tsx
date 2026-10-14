@@ -408,6 +408,7 @@ export const useEmbed = (): {
 
   const actions = React.useMemo<EmbedActions>(
     () => ({
+      batchSetFieldValues: (input) => embedRef.current?.batchSetFieldValues(input) ?? notMounted(),
       createField: (input) => embedRef.current?.createField(input) ?? notMounted(),
       deleteFields: (input) => embedRef.current?.deleteFields(input) ?? notMounted(),
       deletePages: (input) => embedRef.current?.deletePages(input) ?? notMounted(),

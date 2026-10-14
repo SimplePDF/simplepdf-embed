@@ -7,6 +7,17 @@
 import { z } from 'zod';
 
 // @public (undocumented)
+export const BatchSetFieldValuesInput: z.ZodObject<{
+    updates: z.ZodArray<z.ZodObject<{
+        fieldId: z.ZodString;
+        value: z.ZodNullable<z.ZodString>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+
+// @public (undocumented)
+export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
+
+// @public (undocumented)
 export const CreateFieldInput: z.ZodObject<{
     type: z.ZodEnum<{
         TEXT: "TEXT";

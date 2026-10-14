@@ -414,6 +414,6 @@ describe(createEmbed.name, () => {
     document.body.innerHTML = '<div id="root"></div>'
     const misspelled: unknown = { target: '#root', companyIdentifier: 'acme', webMCP: { enabled: true, exclude: ['sumbit'] } }
     // @ts-expect-error exercising the runtime guard for untyped JS callers
-    expect(() => createEmbed(misspelled)).toThrow(/webMCP\.exclude names no tool: sumbit \(known: createField/)
+    expect(() => createEmbed(misspelled)).toThrow(/webMCP\.exclude names no tool: sumbit \(known: batchSetFieldValues, createField/)
   })
 })

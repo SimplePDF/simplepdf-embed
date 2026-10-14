@@ -20,10 +20,10 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const BUDGETS = {
   'index.js': 10 * 1024,
   'protocol.js': 3.5 * 1024,
-  'schemas.js': 3 * 1024,
-  'tools.js': 5 * 1024,
-  'ai-sdk.js': 5.5 * 1024,
-  'tanstack-ai.js': 5.5 * 1024,
+  'schemas.js': 2 * 1024,
+  'tools.js': 4.5 * 1024,
+  'ai-sdk.js': 5 * 1024,
+  'tanstack-ai.js': 5 * 1024,
 }
 
 const importsOf = (file, pattern) => {

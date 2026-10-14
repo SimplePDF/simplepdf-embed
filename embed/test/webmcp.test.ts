@@ -166,7 +166,7 @@ describe('attachEmbed({ webMCP })', () => {
     // loadDocument is a host-page tool like it is in the editor's own registration.
     expect(modelContext.liveToolNames()).toContain('simplepdf_embed_load_document')
     const setFieldValue = findTool(modelContext, 'simplepdf_embed_set_field_value')
-    expect(setFieldValue.description).toMatch(/^Set the value of an existing field/)
+    expect(setFieldValue.description).toBe(WEBMCP_TOOLS.setFieldValue.description)
     expect(setFieldValue.inputSchema.type).toBe('object')
     expect(Object.keys(setFieldValue.inputSchema.properties ?? {})).toEqual(['animate', 'field_id', 'value'])
     expect(setFieldValue.inputSchema.required).toEqual(['field_id', 'value'])

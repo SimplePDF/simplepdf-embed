@@ -17,13 +17,19 @@ describe(isSimplePDFToolName.name, () => {
 })
 
 describe('SIMPLEPDF_TOOLS', () => {
-  it('exposes the 15 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
+  it('exposes the 16 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
     const names = Object.keys(SIMPLEPDF_TOOLS)
-    expect(names).toHaveLength(15)
+    expect(names).toHaveLength(16)
     expect(names).not.toContain('loadDocument')
     for (const definition of Object.values(SIMPLEPDF_TOOLS)) {
       expect(typeof definition.description).toBe('string')
       expect(definition.inputSchema).toBeDefined()
+    }
+  })
+
+  it('carries each description on the tool only, so the model never receives it twice', () => {
+    for (const definition of Object.values(SIMPLEPDF_TOOLS)) {
+      expect(definition.inputSchema.description).toBeUndefined()
     }
   })
 })

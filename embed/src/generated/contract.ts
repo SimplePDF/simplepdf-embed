@@ -5,7 +5,7 @@ import type { METHOD_NAMES } from './method-names'
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const EDITOR_ERROR_CODES = ["bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
+export const EDITOR_ERROR_CODES = ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"] as const
 export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number]
 
 export const FIELD_TYPES = ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"] as const
@@ -17,6 +17,8 @@ export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number]
 export const EXTRACTION_MODES = ["auto", "ocr"] as const
 export type ExtractionMode = (typeof EXTRACTION_MODES)[number]
 
+export type BatchSetFieldValuesInput = { updates: Array<{ fieldId: string; value: string | null }> }
+export type BatchSetFieldValuesOutput = null
 export type CreateFieldInput = { type: OverlayToolType; x: number; y: number; width: number; height: number; page: number; value?: string }
 export type CreateFieldOutput = { fieldId: string }
 export type DeleteFieldsInput = { fieldIds?: string[]; page?: number }
@@ -53,7 +55,12 @@ export type SubmitOutput = null
 export type DocumentContentResult = GetDocumentContentOutput
 export type DocumentContentPage = GetDocumentContentOutput['pages'][number]
 
+export type BatchValidationFailedDetails = { failures: Array<{ fieldId: string; code: "bad_request:field_not_found" | "bad_request:invalid_signature_url" | "bad_request:invalid_value" | "bad_request:read_only"; message: string }> }
 export type MissingRequiredFieldsDetails = { unfilledRequiredFieldsCount: number }
+export type EditorErrorDetailsByCode = {
+  'bad_request:batch_validation_failed': BatchValidationFailedDetails
+  'bad_request:missing_required_fields': MissingRequiredFieldsDetails
+}
 
 export type EditorReadyPayload = Record<string, never>
 export type DocumentLoadedPayload = { document_id: string }
@@ -62,10 +69,19 @@ export type SubmissionSentPayload = { document_id: string; submission_id: string
 
 export const OPERATIONS = [
   {
+    request_type: "BATCH_SET_FIELD_VALUES",
+    wire_type: "BATCH_SET_FIELD_VALUES",
+    method: "batchSetFieldValues",
+    description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.",
+    error_codes: ["bad_request:batch_validation_failed", "bad_request:invalid_value", "bad_request:no_document_loaded"] as const,
+    is_agentic_tool: true,
+    has_output: false,
+  } /* BatchSetFieldValues */,
+  {
     request_type: "CREATE_FIELD",
     wire_type: "CREATE_FIELD",
     method: "createField",
-    description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field. Requires editing to be enabled.",
+    description: "Create a new overlay field on a page. Returns the id of the created field.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -74,7 +90,7 @@ export const OPERATIONS = [
     request_type: "DELETE_FIELDS",
     wire_type: "DELETE_FIELDS",
     method: "deleteFields",
-    description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive; requires editing to be enabled.",
+    description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_field_ids", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:page_not_found"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -83,7 +99,7 @@ export const OPERATIONS = [
     request_type: "DELETE_PAGES",
     wire_type: "DELETE_PAGES",
     method: "deletePages",
-    description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive; requires editing to be enabled.",
+    description: "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -92,7 +108,7 @@ export const OPERATIONS = [
     request_type: "DETECT_FIELDS",
     wire_type: "DETECT_FIELDS",
     method: "detectFields",
-    description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }. Requires editing to be enabled.",
+    description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -110,7 +126,7 @@ export const OPERATIONS = [
     request_type: "FOCUS_FIELD",
     wire_type: "FOCUS_FIELD",
     method: "focusField",
-    description: "Scroll an existing field into view and focus it, addressed by its id (from the field list). Returns a hint describing the user action expected next.",
+    description: "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.",
     error_codes: ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -119,7 +135,7 @@ export const OPERATIONS = [
     request_type: "GET_ANNOTATED_PAGE",
     wire_type: "GET_ANNOTATED_PAGE",
     method: "getAnnotatedPage",
-    description: "Render a page as a PNG with every field on it outlined and numbered, so a vision model can SEE which field sits where on the printed form. Feed the image and the badges map to a multimodal model to label fields; get_fields returns the matching ids. The render shows the printed form and field placement, not filled-in values (read those with get_fields). Returns { page, image_data_url, image_width, image_height, badges } where badges maps each number drawn on the image to its field_id. It renders document content, so it is gated exactly like get_document_content: the embedding origin must be whitelisted for the tenant.",
+    description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
     error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -128,7 +144,7 @@ export const OPERATIONS = [
     request_type: "GET_DOCUMENT_CONTENT",
     wire_type: "GET_DOCUMENT_CONTENT",
     method: "getDocumentContent",
-    description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
+    description: "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.",
     error_codes: ["bad_request:invalid_value", "bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -137,7 +153,7 @@ export const OPERATIONS = [
     request_type: "GET_FIELDS",
     wire_type: "GET_FIELDS",
     method: "getFields",
-    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.",
+    description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.",
     error_codes: ["bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -146,7 +162,7 @@ export const OPERATIONS = [
     request_type: "GO_TO",
     wire_type: "GO_TO",
     method: "goTo",
-    description: "Scroll the editor to a specific 1-based page. Returns no data.",
+    description: "Scroll the editor to a page. Returns no data.",
     error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -164,7 +180,7 @@ export const OPERATIONS = [
     request_type: "MOVE_PAGE",
     wire_type: "MOVE_PAGE",
     method: "movePage",
-    description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive; requires editing to be enabled.",
+    description: "Move a page to another position, reordering the document. Returns no data. Destructive.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -173,7 +189,7 @@ export const OPERATIONS = [
     request_type: "ROTATE_PAGE",
     wire_type: "ROTATE_PAGE",
     method: "rotatePage",
-    description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive; requires editing to be enabled.",
+    description: "Rotate a page 90 degrees clockwise. Returns no data. Destructive.",
     error_codes: ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"] as const,
     is_agentic_tool: true,
     has_output: false,
@@ -191,8 +207,8 @@ export const OPERATIONS = [
     request_type: "SET_FIELD_VALUE",
     wire_type: "SET_FIELD_VALUE",
     method: "setFieldValue",
-    description: "Set the value of an existing field addressed by its id (from the field list), or clear it with null. If the field has options (see the field list), value must be one of them; otherwise value is a string (text or checkbox value) or a data URL or http(s) URL the editor fetches (signature, picture). Text values are typed out by default; pass animate: false to set them at once. Returns no data.",
-    error_codes: ["bad_request:invalid_value", "bad_request:invalid_signature_url", "bad_request:no_document_loaded", "bad_request:read_only", "bad_request:field_not_found"] as const,
+    description: "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.",
+    error_codes: ["bad_request:field_not_found", "bad_request:invalid_signature_url", "bad_request:invalid_value", "bad_request:read_only", "bad_request:no_document_loaded"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* SetFieldValue */,
@@ -200,7 +216,7 @@ export const OPERATIONS = [
     request_type: "SUBMIT",
     wire_type: "SUBMIT",
     method: "submit",
-    description: "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
+    description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.",
     error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields"] as const,
     is_agentic_tool: true,
     has_output: false,
