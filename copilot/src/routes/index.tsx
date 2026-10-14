@@ -1,4 +1,4 @@
-import { EmbedPDF, type EmbedDocument, type EmbedEvent, useEmbed } from '@simplepdf/react-embed-pdf'
+import { type EmbedDocument, type EmbedEvent, EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf'
 import { useEmbedTools } from '@simplepdf/react-embed-pdf/ai-sdk'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'

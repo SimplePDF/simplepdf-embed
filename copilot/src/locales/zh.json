@@ -205,6 +205,7 @@
       "focusField": "正在高亮字段",
       "goTo": "正在跳转页面",
       "setFieldValue": "正在填写字段",
+      "batchSetFieldValues": "正在填写字段",
       "selectTool": "正在切换工具",
       "deleteFields": "正在删除字段",
       "movePage": "正在移动页面",

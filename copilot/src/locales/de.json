@@ -207,6 +207,7 @@
       "focusField": "Feld wird hervorgehoben",
       "goTo": "Wechsel zur Seite",
       "setFieldValue": "Feld wird ausgefüllt",
+      "batchSetFieldValues": "Felder werden ausgefüllt",
       "selectTool": "Werkzeug wird gewechselt",
       "deleteFields": "Felder werden gelöscht",
       "movePage": "Seite wird verschoben",

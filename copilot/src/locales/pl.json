@@ -213,6 +213,7 @@
       "focusField": "Podświetlanie pola",
       "goTo": "Przechodzenie do strony",
       "setFieldValue": "Wypełnianie pola",
+      "batchSetFieldValues": "Wypełnianie pól",
       "selectTool": "Zmiana narzędzia",
       "deleteFields": "Usuwanie pól",
       "movePage": "Przenoszenie strony",

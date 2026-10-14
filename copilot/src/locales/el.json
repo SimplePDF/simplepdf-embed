@@ -207,6 +207,7 @@
       "focusField": "Επισήμανση πεδίου",
       "goTo": "Μετάβαση στη σελίδα",
       "setFieldValue": "Συμπλήρωση πεδίου",
+      "batchSetFieldValues": "Συμπλήρωση πεδίων",
       "selectTool": "Αλλαγή εργαλείου",
       "deleteFields": "Διαγραφή πεδίων",
       "movePage": "Μετακίνηση σελίδας",

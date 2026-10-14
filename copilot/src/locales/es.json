@@ -207,6 +207,7 @@
       "focusField": "Resaltando el campo",
       "goTo": "Yendo a la página",
       "setFieldValue": "Completando el campo",
+      "batchSetFieldValues": "Completando los campos",
       "selectTool": "Cambiando de herramienta",
       "deleteFields": "Eliminando campos",
       "movePage": "Moviendo la página",

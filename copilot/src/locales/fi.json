@@ -207,6 +207,7 @@
       "focusField": "Korostetaan kenttää",
       "goTo": "Siirrytään sivulle",
       "setFieldValue": "Täytetään kenttää",
+      "batchSetFieldValues": "Täytetään kenttiä",
       "selectTool": "Vaihdetaan työkalua",
       "deleteFields": "Poistetaan kenttiä",
       "movePage": "Siirretään sivua",

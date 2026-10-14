@@ -219,6 +219,7 @@
       "focusField": "جارٍ تمييز الحقل",
       "goTo": "جارٍ الانتقال إلى الصفحة",
       "setFieldValue": "جارٍ تعبئة الحقل",
+      "batchSetFieldValues": "جارٍ تعبئة الحقول",
       "selectTool": "جارٍ تبديل الأداة",
       "deleteFields": "جارٍ حذف الحقول",
       "movePage": "جارٍ نقل الصفحة",

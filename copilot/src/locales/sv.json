@@ -207,6 +207,7 @@
       "focusField": "Markerar fältet",
       "goTo": "Går till sidan",
       "setFieldValue": "Fyller i fältet",
+      "batchSetFieldValues": "Fyller i fälten",
       "selectTool": "Byter verktyg",
       "deleteFields": "Tar bort fält",
       "movePage": "Flyttar sidan",

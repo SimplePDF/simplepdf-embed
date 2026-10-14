@@ -205,6 +205,7 @@
       "focusField": "Đang làm nổi bật trường",
       "goTo": "Đang chuyển đến trang",
       "setFieldValue": "Đang điền trường",
+      "batchSetFieldValues": "Đang điền các trường",
       "selectTool": "Đang chuyển công cụ",
       "deleteFields": "Đang xóa các trường",
       "movePage": "Đang di chuyển trang",
