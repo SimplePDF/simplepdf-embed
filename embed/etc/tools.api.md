@@ -19,7 +19,7 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
     readonly batchSetFieldValues: {
-        readonly description: "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data.";
+        readonly description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             updates: zod.ZodArray<zod.ZodObject<{
                 fieldId: zod.ZodString;
@@ -28,7 +28,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly createField: {
-        readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field.";
+        readonly description: "Create a new overlay field on a page. Returns the id of the created field.";
         readonly inputSchema: zod.ZodObject<{
             type: zod.ZodEnum<{
                 TEXT: "TEXT";
@@ -46,20 +46,20 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly deleteFields: {
-        readonly description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive.";
+        readonly description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             fieldIds: zod.ZodOptional<zod.ZodArray<zod.ZodString>>;
             page: zod.ZodOptional<zod.ZodNumber>;
         }, zod_v4_core.$strip>;
     };
     readonly deletePages: {
-        readonly description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
+        readonly description: "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             pages: zod.ZodArray<zod.ZodNumber>;
         }, zod_v4_core.$strip>;
     };
     readonly detectFields: {
-        readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }.";
+        readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.";
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly download: {
@@ -67,19 +67,19 @@ export const SIMPLEPDF_TOOLS: {
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly focusField: {
-        readonly description: "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next.";
+        readonly description: "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.";
         readonly inputSchema: zod.ZodObject<{
             fieldId: zod.ZodString;
         }, zod_v4_core.$strip>;
     };
     readonly getAnnotatedPage: {
-        readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
+        readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
     };
     readonly getDocumentContent: {
-        readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+        readonly description: "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.";
         readonly inputSchema: zod.ZodObject<{
             extractionMode: zod.ZodOptional<zod.ZodEnum<{
                 auto: "auto";
@@ -88,24 +88,24 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly getFields: {
-        readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.";
+        readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.";
         readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
     };
     readonly goTo: {
-        readonly description: "Scroll the editor to a specific 1-based page. Returns no data.";
+        readonly description: "Scroll the editor to a page. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
     };
     readonly movePage: {
-        readonly description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive.";
+        readonly description: "Move a page to another position, reordering the document. Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             fromPage: zod.ZodNumber;
             toPage: zod.ZodNumber;
         }, zod_v4_core.$strip>;
     };
     readonly rotatePage: {
-        readonly description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive.";
+        readonly description: "Rotate a page 90 degrees clockwise. Returns no data. Destructive.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
         }, zod_v4_core.$strip>;
@@ -123,7 +123,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly setFieldValue: {
-        readonly description: "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data.";
+        readonly description: "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             animate: zod.ZodOptional<zod.ZodBoolean>;
             fieldId: zod.ZodString;
@@ -131,7 +131,7 @@ export const SIMPLEPDF_TOOLS: {
         }, zod_v4_core.$strip>;
     };
     readonly submit: {
-        readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.";
+        readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
             downloadCopy: zod.ZodBoolean;
         }, zod_v4_core.$strip>;

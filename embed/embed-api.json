@@ -78,7 +78,7 @@
   "operations": [
     {
       "request_type": "BATCH_SET_FIELD_VALUES",
-      "description": "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data.",
+      "description": "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -100,7 +100,7 @@
                       "type": "null"
                     }
                   ],
-                  "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+                  "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."
                 }
               },
               "required": ["field_id", "value"]
@@ -109,7 +109,7 @@
           }
         },
         "required": ["updates"],
-        "description": "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data."
+        "description": "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data."
       },
       "output_schema": {
         "type": "null"
@@ -121,7 +121,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_batch_set_field_values",
-        "description": "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data.",
+        "description": "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -142,7 +142,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+                    "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."
                   }
                 },
                 "required": ["field_id", "value"]
@@ -161,7 +161,7 @@
     },
     {
       "request_type": "CREATE_FIELD",
-      "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field.",
+      "description": "Create a new overlay field on a page. Returns the id of the created field.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -191,12 +191,12 @@
             "description": "1-based page to place the field on."
           },
           "value": {
-            "description": "Optional initial value. A string for text/checkbox fields, or a data URL or http(s) URL (fetched by the editor) for signature/picture fields.",
+            "description": "Optional initial value. A string for text/checkbox fields; a data URL or http(s) URL (fetched by the editor) for signature/picture fields, or plain text for a signature, drawn as a typed signature.",
             "type": "string"
           }
         },
         "required": ["type", "x", "y", "width", "height", "page"],
-        "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field."
+        "description": "Create a new overlay field on a page. Returns the id of the created field."
       },
       "output_schema": {
         "type": "object",
@@ -220,7 +220,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_create_field",
-        "description": "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field.",
+        "description": "Create a new overlay field on a page. Returns the id of the created field.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -250,7 +250,7 @@
               "type": "integer"
             },
             "value": {
-              "description": "Optional initial value. A string for text/checkbox fields, or a data URL or http(s) URL (fetched by the editor) for signature/picture fields.",
+              "description": "Optional initial value. A string for text/checkbox fields; a data URL or http(s) URL (fetched by the editor) for signature/picture fields, or plain text for a signature, drawn as a typed signature.",
               "type": "string"
             }
           },
@@ -264,7 +264,7 @@
     },
     {
       "request_type": "DELETE_FIELDS",
-      "description": "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive.",
+      "description": "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -280,7 +280,7 @@
             "type": "integer"
           }
         },
-        "description": "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive."
+        "description": "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive."
       },
       "output_schema": {
         "type": "object",
@@ -301,7 +301,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_delete_fields",
-        "description": "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive.",
+        "description": "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -325,7 +325,7 @@
     },
     {
       "request_type": "DELETE_PAGES",
-      "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
+      "description": "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -338,7 +338,7 @@
           }
         },
         "required": ["pages"],
-        "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive."
+        "description": "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive."
       },
       "output_schema": {
         "type": "null"
@@ -352,7 +352,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_delete_pages",
-        "description": "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
+        "description": "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -373,11 +373,11 @@
     },
     {
       "request_type": "DETECT_FIELDS",
-      "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }.",
+      "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.",
       "input_schema": {
         "type": "object",
         "properties": {},
-        "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }."
+        "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected."
       },
       "output_schema": {
         "type": "object",
@@ -394,7 +394,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_detect_fields",
-        "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }.",
+        "description": "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.",
         "input_schema": {
           "type": "object",
           "properties": {}
@@ -434,7 +434,7 @@
     },
     {
       "request_type": "FOCUS_FIELD",
-      "description": "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next.",
+      "description": "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -444,7 +444,7 @@
           }
         },
         "required": ["field_id"],
-        "description": "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next."
+        "description": "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next."
       },
       "output_schema": {
         "type": "object",
@@ -472,7 +472,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_focus_field",
-        "description": "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next.",
+        "description": "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -490,7 +490,7 @@
     },
     {
       "request_type": "GET_ANNOTATED_PAGE",
-      "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
+      "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -500,7 +500,7 @@
           }
         },
         "required": ["page"],
-        "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block."
+        "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block."
       },
       "output_schema": {
         "type": "object",
@@ -544,7 +544,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_get_annotated_page",
-        "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
+        "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -563,7 +563,7 @@
     },
     {
       "request_type": "GET_DOCUMENT_CONTENT",
-      "description": "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
+      "description": "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -573,7 +573,7 @@
             "enum": ["auto", "ocr"]
           }
         },
-        "description": "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }."
+        "description": "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content."
       },
       "output_schema": {
         "type": "object",
@@ -605,7 +605,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_get_document_content",
-        "description": "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.",
+        "description": "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -624,11 +624,11 @@
     },
     {
       "request_type": "GET_FIELDS",
-      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.",
+      "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.",
       "input_schema": {
         "type": "object",
         "properties": {},
-        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }."
+        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list."
       },
       "output_schema": {
         "type": "object",
@@ -709,7 +709,7 @@
       "error_codes": ["bad_request:no_document_loaded"],
       "tool": {
         "name": "simplepdf_embed_get_fields",
-        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.",
+        "description": "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.",
         "input_schema": {
           "type": "object",
           "properties": {}
@@ -722,7 +722,7 @@
     },
     {
       "request_type": "GO_TO",
-      "description": "Scroll the editor to a specific 1-based page. Returns no data.",
+      "description": "Scroll the editor to a page. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -732,7 +732,7 @@
           }
         },
         "required": ["page"],
-        "description": "Scroll the editor to a specific 1-based page. Returns no data."
+        "description": "Scroll the editor to a page. Returns no data."
       },
       "output_schema": {
         "type": "null"
@@ -744,7 +744,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_go_to",
-        "description": "Scroll the editor to a specific 1-based page. Returns no data.",
+        "description": "Scroll the editor to a page. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -819,7 +819,7 @@
     },
     {
       "request_type": "MOVE_PAGE",
-      "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive.",
+      "description": "Move a page to another position, reordering the document. Returns no data. Destructive.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -833,7 +833,7 @@
           }
         },
         "required": ["from_page", "to_page"],
-        "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive."
+        "description": "Move a page to another position, reordering the document. Returns no data. Destructive."
       },
       "output_schema": {
         "type": "null"
@@ -847,7 +847,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_move_page",
-        "description": "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive.",
+        "description": "Move a page to another position, reordering the document. Returns no data. Destructive.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -869,17 +869,17 @@
     },
     {
       "request_type": "ROTATE_PAGE",
-      "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive.",
+      "description": "Rotate a page 90 degrees clockwise. Returns no data. Destructive.",
       "input_schema": {
         "type": "object",
         "properties": {
           "page": {
             "type": "integer",
-            "description": "1-based page to rotate 90 degrees clockwise."
+            "description": "1-based page to rotate."
           }
         },
         "required": ["page"],
-        "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive."
+        "description": "Rotate a page 90 degrees clockwise. Returns no data. Destructive."
       },
       "output_schema": {
         "type": "null"
@@ -893,12 +893,12 @@
       ],
       "tool": {
         "name": "simplepdf_embed_rotate_page",
-        "description": "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive.",
+        "description": "Rotate a page 90 degrees clockwise. Returns no data. Destructive.",
         "input_schema": {
           "type": "object",
           "properties": {
             "page": {
-              "description": "1-based page to rotate 90 degrees clockwise.",
+              "description": "1-based page to rotate.",
               "type": "integer"
             }
           },
@@ -978,7 +978,7 @@
     },
     {
       "request_type": "SET_FIELD_VALUE",
-      "description": "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data.",
+      "description": "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -999,11 +999,11 @@
                 "type": "null"
               }
             ],
-            "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+            "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."
           }
         },
         "required": ["field_id", "value"],
-        "description": "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data."
+        "description": "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data."
       },
       "output_schema": {
         "type": "null"
@@ -1017,7 +1017,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_set_field_value",
-        "description": "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data.",
+        "description": "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {
@@ -1038,7 +1038,7 @@
                   "type": "null"
                 }
               ],
-              "description": "New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."
+              "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."
             }
           },
           "required": ["field_id", "value"]
@@ -1051,7 +1051,7 @@
     },
     {
       "request_type": "SUBMIT",
-      "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
+      "description": "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -1061,7 +1061,7 @@
           }
         },
         "required": ["download_copy"],
-        "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data."
+        "description": "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data."
       },
       "output_schema": {
         "type": "null"
@@ -1073,7 +1073,7 @@
       ],
       "tool": {
         "name": "simplepdf_embed_submit",
-        "description": "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.",
+        "description": "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.",
         "input_schema": {
           "type": "object",
           "properties": {

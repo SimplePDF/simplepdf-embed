@@ -4,7 +4,7 @@ import { z } from 'zod'
 export const BatchSetFieldValuesInput = z.object({
   updates: z.array(z.object({
   fieldId: z.string().describe("ID of the field to update."),
-  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
+  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."),
 })).describe("The fields to set, at least one, each field at most once. Fields not listed keep their value."),
 })
 export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>
@@ -15,7 +15,7 @@ export const CreateFieldInput = z.object({
   width: z.number().describe("Field width, in PDF points."),
   height: z.number().describe("Field height, in PDF points."),
   page: z.number().int().describe("1-based page to place the field on."),
-  value: z.string().describe("Optional initial value. A string for text/checkbox fields, or a data URL or http(s) URL (fetched by the editor) for signature/picture fields.").optional(),
+  value: z.string().describe("Optional initial value. A string for text/checkbox fields; a data URL or http(s) URL (fetched by the editor) for signature/picture fields, or plain text for a signature, drawn as a typed signature.").optional(),
 })
 export type CreateFieldInput = z.infer<typeof CreateFieldInput>
 export const DeleteFieldsInput = z.object({
@@ -61,7 +61,7 @@ export const MovePageInput = z.object({
 })
 export type MovePageInput = z.infer<typeof MovePageInput>
 export const RotatePageInput = z.object({
-  page: z.number().int().describe("1-based page to rotate 90 degrees clockwise."),
+  page: z.number().int().describe("1-based page to rotate."),
 })
 export type RotatePageInput = z.infer<typeof RotatePageInput>
 export const SelectToolInput = z.object({
@@ -71,7 +71,7 @@ export type SelectToolInput = z.infer<typeof SelectToolInput>
 export const SetFieldValueInput = z.object({
   animate: z.boolean().describe("Type a text value out character by character (true, the default) so a person watching the editor can follow the field being filled, or set it at once (false) for headless or batch filling where speed matters. Only text values are typed: checkbox, option, signature, picture and null values are always set at once.").optional(),
   fieldId: z.string().describe("ID of the field to update."),
-  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see get_fields), it must be one of them; otherwise a string (text/checkbox) or a data URL or http(s) URL, fetched by the editor (signature/picture)."),
+  value: z.string().nullable().describe("New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."),
 })
 export type SetFieldValueInput = z.infer<typeof SetFieldValueInput>
 export const SubmitInput = z.object({

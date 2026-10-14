@@ -30,7 +30,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "BATCH_SET_FIELD_VALUES";
     readonly wire_type: "BATCH_SET_FIELD_VALUES";
     readonly method: "batchSetFieldValues";
-    readonly description: "Set existing fields, addressed by ids from get_fields, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details.failures lists each rejection (field_id, code, message). Text is set at once, never typed. Returns no data.";
+    readonly description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.";
     readonly error_codes: readonly ["bad_request:batch_validation_failed", "bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -38,7 +38,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "CREATE_FIELD";
     readonly wire_type: "CREATE_FIELD";
     readonly method: "createField";
-    readonly description: "Create a new overlay field of the given type at an (x, y) position and size (in PDF points) on a 1-based page. Returns { field_id } for the created field.";
+    readonly description: "Create a new overlay field on a page. Returns the id of the created field.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:invalid_dimensions", "bad_request:invalid_value", "bad_request:page_out_of_range", "bad_request:page_not_found", "bad_request:invalid_field_type", "bad_request:invalid_signature_url"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -46,7 +46,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "DELETE_FIELDS";
     readonly wire_type: "DELETE_FIELDS";
     readonly method: "deleteFields";
-    readonly description: "Delete overlay fields by id; omit field_ids to delete every field on the given 1-based page, or omit both field_ids and page to delete every overlay field in the document. Returns { deleted_count }. Destructive.";
+    readonly description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:no_document_loaded", "bad_request:invalid_field_ids", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -54,7 +54,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "DELETE_PAGES";
     readonly wire_type: "DELETE_PAGES";
     readonly method: "deletePages";
-    readonly description: "Delete one or more 1-based pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
+    readonly description: "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -62,7 +62,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "DETECT_FIELDS";
     readonly wire_type: "DETECT_FIELDS";
     readonly method: "detectFields";
-    readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns { detected_count }.";
+    readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -78,7 +78,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "FOCUS_FIELD";
     readonly wire_type: "FOCUS_FIELD";
     readonly method: "focusField";
-    readonly description: "Scroll an existing field into view and focus it, addressed by its id from get_fields. Returns a hint describing the user action expected next.";
+    readonly description: "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded", "bad_request:field_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -86,7 +86,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_ANNOTATED_PAGE";
     readonly wire_type: "GET_ANNOTATED_PAGE";
     readonly method: "getAnnotatedPage";
-    readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values with get_fields). Returns { page, image_data_url, image_width, image_height, badges }, where badges maps each number drawn on the image to its field_id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
+    readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
     readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -94,7 +94,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_DOCUMENT_CONTENT";
     readonly wire_type: "GET_DOCUMENT_CONTENT";
     readonly method: "getDocumentContent";
-    readonly description: "Extract the document's content page by page as Markdown (pass extraction_mode 'ocr' to force optical recognition, which returns plain text). Use it to read what the document says. Returns { name, pages: [{ page, content }] }.";
+    readonly description: "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.";
     readonly error_codes: readonly ["bad_request:invalid_value", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -102,7 +102,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GET_FIELDS";
     readonly wire_type: "GET_FIELDS";
     readonly method: "getFields";
-    readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, and current value. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, call get_annotated_page. Returns { fields }.";
+    readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.";
     readonly error_codes: readonly ["bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
@@ -110,7 +110,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "GO_TO";
     readonly wire_type: "GO_TO";
     readonly method: "goTo";
-    readonly description: "Scroll the editor to a specific 1-based page. Returns no data.";
+    readonly description: "Scroll the editor to a page. Returns no data.";
     readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -126,7 +126,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "MOVE_PAGE";
     readonly wire_type: "MOVE_PAGE";
     readonly method: "movePage";
-    readonly description: "Move a page from one 1-based position to another, reordering the document. Returns no data. Destructive.";
+    readonly description: "Move a page to another position, reordering the document. Returns no data. Destructive.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -134,7 +134,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "ROTATE_PAGE";
     readonly wire_type: "ROTATE_PAGE";
     readonly method: "rotatePage";
-    readonly description: "Rotate a 1-based page 90 degrees clockwise. Returns no data. Destructive.";
+    readonly description: "Rotate a page 90 degrees clockwise. Returns no data. Destructive.";
     readonly error_codes: readonly ["forbidden:editing_not_allowed", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:no_document_loaded", "bad_request:page_not_found"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -150,7 +150,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "SET_FIELD_VALUE";
     readonly wire_type: "SET_FIELD_VALUE";
     readonly method: "setFieldValue";
-    readonly description: "Set or clear (null) one existing field, addressed by its id from get_fields. Text is typed out so a person watching can follow along, unless animate is false. Returns no data.";
+    readonly description: "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.";
     readonly error_codes: readonly ["bad_request:field_not_found", "bad_request:invalid_signature_url", "bad_request:invalid_value", "bad_request:read_only", "bad_request:no_document_loaded"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
@@ -158,7 +158,7 @@ export const OPERATIONS: readonly [{
     readonly request_type: "SUBMIT";
     readonly wire_type: "SUBMIT";
     readonly method: "submit";
-    readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. When download_copy is true the signer also gets a downloaded copy. Fails with missing_required_fields when required fields are unfilled. Returns no data.";
+    readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.";
     readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
