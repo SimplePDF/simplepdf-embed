@@ -286,7 +286,7 @@ const assertValidDocument = (document: unknown): void => {
 }
 
 // A SimplePDF "documents" URL is a stored document / share route
-// (e.g. https://<companyIdentifier>.simplepdf.com/documents/<id>?prefill=<id>),
+// (e.g. https://<companyIdentifier>.simplepdf.com/documents/<id>?link=<id>),
 // not a fetchable PDF. The path is /documents/<id>, optionally locale-prefixed.
 const DOCUMENTS_PATH_PATTERN = /^\/(?:[a-z]{2}\/)?documents\/[^/]+\/?$/
 
@@ -631,7 +631,7 @@ const mountIntoContainer = (
       ? ((): string => {
           // Navigate straight to the stored document; carry the context through
           // (the editor decodes ?context= on the documents route too) while
-          // preserving the URL's own query, e.g. ?prefill=.
+          // preserving the URL's own query, e.g. ?link=.
           const src = new URL(documentsUrl.url.href)
           if (encodedContext !== null) {
             src.searchParams.set('context', encodedContext)

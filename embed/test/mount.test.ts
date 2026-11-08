@@ -215,7 +215,7 @@ describe(createEmbed.name, () => {
       target: '#root',
       companyIdentifier: 'acme',
       context: { a: 1 },
-      document: { url: 'https://demo.simplepdf.com/documents/abc-123?prefill=p-9' },
+      document: { url: 'https://demo.simplepdf.com/documents/abc-123?link=p-9' },
     })
     const iframe = document.querySelector('#root iframe')
     if (!(iframe instanceof HTMLIFrameElement)) {
@@ -225,7 +225,7 @@ describe(createEmbed.name, () => {
     // Bridges to the URL's own subdomain (demo), not the configured companyIdentifier (acme).
     expect(src.origin).toBe('https://demo.simplepdf.com')
     expect(src.pathname).toBe('/documents/abc-123')
-    expect(src.searchParams.get('prefill')).toBe('p-9')
+    expect(src.searchParams.get('link')).toBe('p-9')
     expect(src.searchParams.get('context')).not.toBeNull()
     // It is a direct navigation, not the host-fetch /editor path.
     expect(src.searchParams.get('loadingPlaceholder')).toBeNull()

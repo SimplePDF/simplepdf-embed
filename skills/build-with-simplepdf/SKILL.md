@@ -292,12 +292,12 @@ Canonical flow (relative to the API base in "REST API" below):
 
 1. `GET /documents/{document_id}/fields` — each field has a stable `id`, a `type`, and (for constrained fields) allowed `options`
 2. map known values to stable field ids and allowed options
-3. `POST /documents/{document_id}/prefills` — returns the prefill `id`, an `upload` object (where and how to send the values), and an `embed_url`
+3. `POST /documents/{document_id}/personal-links` — creates a personal link and returns its `id`, an `upload` object (where and how to send the values), and an `embed_url`
 4. upload `{ "fields": [{ "id", "value" }] }` per the `upload` object, straight to the customer storage
 5. open/share the returned `embed_url`
 6. the human reviews, corrects, signs and submits
 
-Rules: keep sensitive values in the prefill blob, not webhook `context`; unknown field ids are ignored and read-only fields ignore prefill values; a field listing `options` only accepts one of them (checkboxes, dropdowns, radios); otherwise the value is a plain string (text fields) or a base64 data URL (signature and picture fields). When mapping from natural-language data, validate constrained values before writing the blob and never let the model invent a field id when the field schema is available. Prefills are deletable (`DELETE /documents/{document_id}/prefills/{prefill_id}`) — clean up prefills that were superseded or never opened.
+Rules: keep sensitive values in the prefill blob, not webhook `context`; unknown field ids are ignored and read-only fields ignore prefill values; a field listing `options` only accepts one of them (checkboxes, dropdowns, radios); otherwise the value is a plain string (text fields) or a base64 data URL (signature and picture fields). When mapping from natural-language data, validate constrained values before writing the blob and never let the model invent a field id when the field schema is available. Personal links are deletable (`DELETE /documents/{document_id}/personal-links/{personal_link_id}`) — clean up personal links that were superseded or never opened.
 
 ## Post-submit
 
@@ -321,7 +321,7 @@ Use `submission.created` for downstream automation. The delivery carries metadat
 
 ## Storage
 
-Only when submissions/prefills/persistence make it relevant, and after checking whether the app already has an established storage boundary (`AskUserQuestion`, header `Storage`):
+Only when submissions/personal links/persistence make it relevant, and after checking whether the app already has an established storage boundary (`AskUserQuestion`, header `Storage`):
 
 **"Where should submitted PDFs and prefill data live?"**
 
