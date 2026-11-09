@@ -336,7 +336,7 @@ Supported BYOS families: S3-compatible object storage, Azure Blob Storage, Share
 
 ## REST API
 
-Only when the backend needs lifecycle control beyond browser editor actions/webhooks. Server-side resources: documents, field schemas, prefills, submissions.
+Only when the backend needs lifecycle control beyond browser editor actions/webhooks. Server-side resources: documents, field schemas, personal links, submissions.
 
 ```text
 https://{companyIdentifier}.simplepdf.com/api/v1
