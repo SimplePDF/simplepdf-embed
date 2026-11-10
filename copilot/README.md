@@ -144,7 +144,7 @@ See the privacy notes above for the per-route audio-egress disclosure.
 
 ### Load a specific document via `?url=`
 
-To open a specific document instead of the bundled demo forms, append `?url=<document-url>`. The value is passed as the `document` to `<EmbedPDF>`; a SimplePDF documents URL (a `/documents/<id>` link, optionally with a `?link=<id>`) is navigated to directly by the embed core, so pass a valid one:
+To open a specific document instead of the bundled demo forms, append `?url=<document-url>`. The value is passed as the `document` to `<EmbedPDF>`; a SimplePDF documents URL (a `/documents/<id>` link, optionally with a recipient link's `?link=<id>`) is navigated to directly by the embed core, so pass a valid one:
 
 ```
 http://localhost:3001/?url=https%3A%2F%2Fdemo.simplepdf.com%2Fdocuments%2Fc28f061b-1974-4251-ba7a-d08bedc3ef28%3Flink%3D35fdf39e-2e06-4712-bb9d-f62d2f88ce50
