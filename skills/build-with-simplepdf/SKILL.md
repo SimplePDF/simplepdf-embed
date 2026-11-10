@@ -321,7 +321,7 @@ Use `submission.created` for downstream automation. The delivery carries metadat
 
 ## Storage
 
-Only when submissions/links/persistence make it relevant, and after checking whether the app already has an established storage boundary (`AskUserQuestion`, header `Storage`):
+Only when submissions/recipient links/persistence make it relevant, and after checking whether the app already has an established storage boundary (`AskUserQuestion`, header `Storage`):
 
 **"Where should submitted PDFs and prefill data live?"**
 
