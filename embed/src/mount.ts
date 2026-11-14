@@ -286,7 +286,7 @@ const assertValidDocument = (document: unknown): void => {
 }
 
 // A SimplePDF "documents" URL is a stored document / share route
-// (e.g. https://<companyIdentifier>.simplepdf.com/documents/<id>?link=<id>),
+// (e.g. https://<companyIdentifier>.simplepdf.com/documents/<document_id>?link=<recipient_link_id>),
 // not a fetchable PDF. The path is /documents/<id>, optionally locale-prefixed.
 const DOCUMENTS_PATH_PATTERN = /^\/(?:[a-z]{2}\/)?documents\/[^/]+\/?$/
 

@@ -2,4 +2,4 @@
 '@simplepdf/embed': patch
 ---
 
-Docs: a SimplePDF document link carries a recipient link as `?link=<id>` (was `?prefill=<id>`), and the contract pin follows the live editor (a document with more form fields than a document can is a load failure)
+**Docs: a recipient link opens with `?link=<id>`.** A SimplePDF documents URL carries its recipient link as `?link=<recipient_link_id>`; the editor no longer reads `?prefill=`.
