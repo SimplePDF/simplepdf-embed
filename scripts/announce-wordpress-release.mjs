@@ -87,7 +87,7 @@ const githubRequest = ({ token, repository, method, pathname, body }) =>
     headers: {
       accept: 'application/vnd.github+json',
       authorization: `Bearer ${token}`,
-      'x-github-api-version': '2022-11-28',
+      'x-github-api-version': '2026-03-10',
       ...(body === undefined ? {} : { 'content-type': 'application/json' }),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
