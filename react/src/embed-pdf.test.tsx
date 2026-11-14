@@ -93,7 +93,7 @@ describe('EmbedPDF (inline)', () => {
       <EmbedPDF
         mode="inline"
         companyIdentifier="acme"
-        document={{ url: 'https://demo.simplepdf.com/documents/abc?prefill=p1' }}
+        document={{ url: 'https://demo.simplepdf.com/documents/abc?link=p1' }}
       />,
     );
     const iframe = container.querySelector('iframe');
@@ -103,7 +103,7 @@ describe('EmbedPDF (inline)', () => {
     const src = new URL(iframe.getAttribute('src') ?? '');
     expect(src.origin).toBe('https://demo.simplepdf.com');
     expect(src.pathname).toBe('/documents/abc');
-    expect(src.searchParams.get('prefill')).toBe('p1');
+    expect(src.searchParams.get('link')).toBe('p1');
   });
 
   it('accepts the deprecated documentURL as an alias for document (deprecated alias)', () => {
@@ -172,7 +172,7 @@ describe('EmbedPDF (modal, default)', () => {
     const user = userEvent.setup();
     render(
       <EmbedPDF companyIdentifier="acme">
-        <a href="https://demo.simplepdf.com/documents/abc?prefill=p1">Open</a>
+        <a href="https://demo.simplepdf.com/documents/abc?link=p1">Open</a>
       </EmbedPDF>,
     );
     await user.click(screen.getByText('Open'));
