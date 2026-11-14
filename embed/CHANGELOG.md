@@ -1,5 +1,11 @@
 # @simplepdf/embed
 
+## 0.9.1
+
+### Patch Changes
+
+- 3388e02: **Docs: a recipient link opens with `?link=<id>`.** A SimplePDF documents URL carries its recipient link as `?link=<recipient_link_id>`; the editor no longer reads `?prefill=`.
+
 ## 0.9.0
 
 ### Minor Changes
