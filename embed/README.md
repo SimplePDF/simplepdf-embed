@@ -225,7 +225,7 @@ embed.events.on('SUBMISSION_SENT', (data) => data) // { document_id, submission_
 
 | Code | Returned by | What to do |
 | --- | --- | --- |
-| `forbidden:recipient_link_used` | `submit` on a document opened through a recipient link (`?link=<id>`) that has already been submitted | Do not retry: a recipient link takes one submission. Nothing was sent; the editor keeps the entered values and tells the person in a dialog (with "Download your answers" when downloads are allowed). The document owner reopens the link by deleting its submission, or shares a new link. |
+| `forbidden:recipient_link_used` | `submit` on a document opened through a recipient link (`?link=<id>`) that has already been submitted | Do not retry: a recipient link takes one submission, and no submission was completed. The editor keeps the entered values and tells the person in a dialog (with "Download your answers" when downloads are allowed). The document owner reopens the link by deleting its submission, or shares a new link. |
 
 Prefer exceptions? `unwrap` returns `data` or throws:
 
