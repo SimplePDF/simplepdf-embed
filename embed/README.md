@@ -223,6 +223,10 @@ embed.events.on('SUBMISSION_SENT', (data) => data) // { document_id, submission_
 - **Construction** (programmer error): `createEmbed` throws `EmbedConfigError` synchronously. `code`: `invalid_config | invalid_target | invalid_company_identifier | invalid_document`.
 - **Operations**: never throw; resolve to `BridgeResult`. `error.code` is a closed `BridgeErrorCode` (the bridge's transport / lifecycle codes union the editor's redacted set). `bad_request:missing_required_fields` carries typed `details`.
 
+| Code | Returned by | What to do |
+| --- | --- | --- |
+| `forbidden:recipient_link_used` | `submit` on a document opened through a recipient link (`?link=<id>`) that has already been submitted | Do not retry: a recipient link takes one submission, and no submission was completed. The editor keeps the entered values and tells the person in a dialog (with "Download your answers" when downloads are allowed). The document owner reopens the link by deleting its submission, or shares a new link. |
+
 Prefer exceptions? `unwrap` returns `data` or throws:
 
 ```ts
