@@ -1069,7 +1069,8 @@
       "error_codes": [
         "bad_request:no_document_loaded",
         "bad_request:invalid_value",
-        "bad_request:missing_required_fields"
+        "bad_request:missing_required_fields",
+        "forbidden:recipient_link_used"
       ],
       "tool": {
         "name": "simplepdf_embed_submit",
@@ -1349,6 +1350,11 @@
                 "type": "string",
                 "const": "forbidden:origin_not_whitelisted",
                 "description": "The embedding origin is not allowlisted for this tenant, or is not the allowlisted origin the editor was loaded from. Allowlist it in the SimplePDF admin dashboard and let the embedding page's Referer reach the editor."
+              },
+              {
+                "type": "string",
+                "const": "forbidden:recipient_link_used",
+                "description": "The document was opened through a recipient link that has already been submitted (each link takes one submission), so this submission was refused and nothing was sent. The editor keeps the entered values and shows the end user a dialog saying so. Do not retry: the document owner reopens the link by deleting its submission, or shares a new one."
               },
               {
                 "type": "string",
