@@ -18,6 +18,50 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
+    readonly buildPdf: {
+        readonly description: "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.";
+        readonly inputSchema: zod.ZodUnion<readonly [zod.ZodObject<{
+            action: zod.ZodLiteral<"build">;
+            inspect: zod.ZodOptional<zod.ZodObject<{
+                pages: zod.ZodOptional<zod.ZodArray<zod.ZodNumber>>;
+            }, zod_v4_core.$strip>>;
+            code: zod.ZodString;
+            idempotencyKey: zod.ZodString;
+            buildSessionId: zod.ZodOptional<zod.ZodString>;
+            baseRevision: zod.ZodOptional<zod.ZodNumber>;
+            name: zod.ZodOptional<zod.ZodString>;
+            assets: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+                path: zod.ZodString;
+                dataUrl: zod.ZodString;
+            }, zod_v4_core.$strip>>>;
+            waitMs: zod.ZodOptional<zod.ZodNumber>;
+        }, zod_v4_core.$strip>, zod.ZodObject<{
+            action: zod.ZodLiteral<"status">;
+            jobId: zod.ZodString;
+            waitMs: zod.ZodOptional<zod.ZodNumber>;
+            inspect: zod.ZodOptional<zod.ZodObject<{
+                pages: zod.ZodOptional<zod.ZodArray<zod.ZodNumber>>;
+            }, zod_v4_core.$strip>>;
+        }, zod_v4_core.$strip>, zod.ZodObject<{
+            action: zod.ZodLiteral<"cancel">;
+            jobId: zod.ZodString;
+        }, zod_v4_core.$strip>]>;
+    };
+    readonly getDocumentation: {
+        readonly description: "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions.";
+        readonly inputSchema: zod.ZodObject<{
+            topic: zod.ZodOptional<zod.ZodEnum<{
+                build_pdf: "build_pdf";
+                "build_pdf.templates": "build_pdf.templates";
+                "build_pdf.forms": "build_pdf.forms";
+                "build_pdf.assets": "build_pdf.assets";
+                "build_pdf.fonts": "build_pdf.fonts";
+                "build_pdf.troubleshooting": "build_pdf.troubleshooting";
+                fields: "fields";
+                inspection: "inspection";
+            }>>;
+        }, zod_v4_core.$strip>;
+    };
     readonly batchSetFieldValues: {
         readonly description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.";
         readonly inputSchema: zod.ZodObject<{
@@ -76,6 +120,9 @@ export const SIMPLEPDF_TOOLS: {
         readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
         readonly inputSchema: zod.ZodObject<{
             page: zod.ZodNumber;
+            expectedBuildSessionId: zod.ZodOptional<zod.ZodString>;
+            expectedRevision: zod.ZodOptional<zod.ZodNumber>;
+            expectedEditorStateVersion: zod.ZodOptional<zod.ZodNumber>;
         }, zod_v4_core.$strip>;
     };
     readonly getDocumentContent: {

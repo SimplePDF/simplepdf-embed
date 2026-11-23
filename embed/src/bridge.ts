@@ -515,6 +515,8 @@ export const attachEmbed = ({
   // ordering, input validation, and typed errors, and always replies. Each method
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
+    buildPdf: (input) => sendRequest('BUILD_PDF', input),
+    getDocumentation: (input) => sendRequest('GET_DOCUMENTATION', input),
     batchSetFieldValues: (input) => sendRequest('BATCH_SET_FIELD_VALUES', input),
     createField: (input) => sendRequest('CREATE_FIELD', input),
     // All-optional input: deleteFields() with no args clears every field.

@@ -14,6 +14,8 @@ export type DriftGuards = [
   AssertTrue<Exact<keyof IframeActions, Contract.MethodName>>,
   AssertTrue<Exact<Contract.MethodName, (typeof Contract.OPERATIONS)[number]["method"]>>,
   AssertTrue<Exact<Contract.OutboundEventType, EditorEvent['type']>>,
+  AssertTrue<Exact<Schemas.BuildPdfInput, Contract.BuildPdfInput>>,
+  AssertTrue<Exact<Schemas.GetDocumentationInput, Contract.GetDocumentationInput>>,
   AssertTrue<Exact<Schemas.BatchSetFieldValuesInput, Contract.BatchSetFieldValuesInput>>,
   AssertTrue<Exact<Schemas.CreateFieldInput, Contract.CreateFieldInput>>,
   AssertTrue<Exact<Schemas.DeleteFieldsInput, Contract.DeleteFieldsInput>>,

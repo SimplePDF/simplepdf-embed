@@ -4,6 +4,8 @@ import * as Schemas from './schemas'
 // The agentic tool registry. Each tool name is the camelCase operation name;
 // load_document is excluded here (a host/setup action; the WebMCP surface registers it).
 export const TOOL_DEFINITIONS = {
+  buildPdf: { description: "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.", inputSchema: Schemas.BuildPdfInput },
+  getDocumentation: { description: "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions.", inputSchema: Schemas.GetDocumentationInput },
   batchSetFieldValues: { description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.", inputSchema: Schemas.BatchSetFieldValuesInput },
   createField: { description: "Create a new overlay field on a page. Returns the id of the created field.", inputSchema: Schemas.CreateFieldInput },
   deleteFields: { description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.", inputSchema: Schemas.DeleteFieldsInput },

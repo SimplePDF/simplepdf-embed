@@ -18,6 +18,7 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: true,
   treeshake: true,
+  minify: true,
   splitting: true,
   clean: true,
   external: ['zod', '@tanstack/ai'],

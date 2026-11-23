@@ -170,6 +170,8 @@ else r.error.code // a closed BridgeErrorCode
 `embed.actions.*`: method names + arguments are camelCase (the snake_case wire is generated + transformed for you; [`/embed/json`](https://simplepdf.com/embed/json) or `@simplepdf/embed/schemas` carry every field):
 
 ```ts
+await embed.actions.getDocumentation({ topic: 'build_pdf' })
+await embed.actions.buildPdf({ action: 'build', code: '= Hello', idempotencyKey: 'draft-1', inspect: {} })
 await embed.actions.loadDocument({ dataUrl, name, page })
 await embed.actions.goTo({ page: 3 })
 await embed.actions.selectTool({ tool: 'TEXT' }) // 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | 'COMB_TEXT' | null
@@ -184,7 +186,9 @@ await embed.actions.rotatePage({ page: 1 })
 await embed.actions.download()
 ```
 
-Full set: `batchSetFieldValues`, `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getAnnotatedPage`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
+Full set: `buildPdf`, `getDocumentation`, `batchSetFieldValues`, `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getAnnotatedPage`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
+
+PDF building requires an empty editor. Successful builds publish automatically; queued/running results carry the job ID for polling. Results discriminate by `status`; compilation failures carry repair diagnostics inside `error`. Manual edits block replacement. Bind later inspection with `expectedBuildSessionId` and `expectedRevision`. The WebMCP projection carries compound inspection PNGs as image blocks. Documentation returns an index or one English topic, discriminated by `kind`. Building never downloads or shares the document.
 
 **"Fill and read this document for me"** is just these operations in sequence, exactly what the agentic tools expose to a model:
 

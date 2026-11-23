@@ -18,6 +18,37 @@ export const BatchSetFieldValuesInput: z.ZodObject<{
 export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
 
 // @public (undocumented)
+export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
+    action: z.ZodLiteral<"build">;
+    inspect: z.ZodOptional<z.ZodObject<{
+        pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    }, z.core.$strip>>;
+    code: z.ZodString;
+    idempotencyKey: z.ZodString;
+    buildSessionId: z.ZodOptional<z.ZodString>;
+    baseRevision: z.ZodOptional<z.ZodNumber>;
+    name: z.ZodOptional<z.ZodString>;
+    assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        path: z.ZodString;
+        dataUrl: z.ZodString;
+    }, z.core.$strip>>>;
+    waitMs: z.ZodOptional<z.ZodNumber>;
+}, z.core.$strip>, z.ZodObject<{
+    action: z.ZodLiteral<"status">;
+    jobId: z.ZodString;
+    waitMs: z.ZodOptional<z.ZodNumber>;
+    inspect: z.ZodOptional<z.ZodObject<{
+        pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>, z.ZodObject<{
+    action: z.ZodLiteral<"cancel">;
+    jobId: z.ZodString;
+}, z.core.$strip>]>;
+
+// @public (undocumented)
+export type BuildPdfInput = z.infer<typeof BuildPdfInput>;
+
+// @public (undocumented)
 export const CreateFieldInput: z.ZodObject<{
     type: z.ZodEnum<{
         TEXT: "TEXT";
@@ -77,10 +108,30 @@ export type FocusFieldInput = z.infer<typeof FocusFieldInput>;
 // @public (undocumented)
 export const GetAnnotatedPageInput: z.ZodObject<{
     page: z.ZodNumber;
+    expectedBuildSessionId: z.ZodOptional<z.ZodString>;
+    expectedRevision: z.ZodOptional<z.ZodNumber>;
+    expectedEditorStateVersion: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strip>;
 
 // @public (undocumented)
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>;
+
+// @public (undocumented)
+export const GetDocumentationInput: z.ZodObject<{
+    topic: z.ZodOptional<z.ZodEnum<{
+        build_pdf: "build_pdf";
+        "build_pdf.templates": "build_pdf.templates";
+        "build_pdf.forms": "build_pdf.forms";
+        "build_pdf.assets": "build_pdf.assets";
+        "build_pdf.fonts": "build_pdf.fonts";
+        "build_pdf.troubleshooting": "build_pdf.troubleshooting";
+        fields: "fields";
+        inspection: "inspection";
+    }>>;
+}, z.core.$strip>;
+
+// @public (undocumented)
+export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>;
 
 // @public (undocumented)
 export const GetDocumentContentInput: z.ZodObject<{

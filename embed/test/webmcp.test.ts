@@ -266,6 +266,50 @@ describe('attachEmbed({ webMCP })', () => {
     ])
   })
 
+  it('returns build inspection as native images without duplicating PNG bytes in text', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+    const pending = findTool(modelContext, 'build_pdf').execute({
+      action: 'status',
+      job_id: 'job',
+      inspect: {},
+    })
+    const request = await waitForRequest(harness, 'BUILD_PDF')
+    const page = {
+      page: 1,
+      image_data_url: 'data:image/png;base64,iVBORw0KGgo=',
+      image_width: 10,
+      image_height: 12,
+      badges: {},
+    }
+    harness.reply(request, {
+      success: true,
+      data: {
+        job_id: 'job',
+        build_session_id: 'session',
+        revision: 1,
+        published_revision: 1,
+        status: 'succeeded',
+        page_count: 1,
+        warnings: [],
+        warnings_truncated: false,
+        inspection: {
+          success: true,
+          data: { pages: [page], omitted_pages: [] },
+        },
+      },
+    })
+    const result = await pending
+    expect(result.content[0]).toEqual({
+      type: 'image',
+      data: 'iVBORw0KGgo=',
+      mimeType: 'image/png',
+    })
+    expect(JSON.stringify(result.content[1])).not.toContain('base64')
+    expect(JSON.stringify(result.content[1])).toContain('published_revision')
+  })
+
   it('keeps the text envelope for a failed annotated page render', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ webMCP: { enabled: true } })

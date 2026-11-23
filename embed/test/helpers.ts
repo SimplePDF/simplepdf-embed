@@ -8,6 +8,8 @@ const okResult: BridgeResult<unknown> = { success: true, data: null }
 export const makeActionsStub = (): IframeActions => {
   const method = (): Promise<BridgeResult<unknown>> => Promise.resolve(okResult)
   return {
+    buildPdf: vi.fn(method),
+    getDocumentation: vi.fn(method),
     createField: vi.fn(method),
     deleteFields: vi.fn(method),
     deletePages: vi.fn(method),

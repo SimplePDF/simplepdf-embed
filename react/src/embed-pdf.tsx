@@ -408,6 +408,8 @@ export const useEmbed = (): {
 
   const actions = React.useMemo<EmbedActions>(
     () => ({
+      buildPdf: (input) => embedRef.current?.buildPdf(input) ?? notMounted(),
+      getDocumentation: (input) => embedRef.current?.getDocumentation(input) ?? notMounted(),
       batchSetFieldValues: (input) => embedRef.current?.batchSetFieldValues(input) ?? notMounted(),
       createField: (input) => embedRef.current?.createField(input) ?? notMounted(),
       deleteFields: (input) => embedRef.current?.deleteFields(input) ?? notMounted(),

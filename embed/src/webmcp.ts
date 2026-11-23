@@ -66,10 +66,75 @@ const toAnnotatedPageToolResult = (result: BridgeResult<unknown>): CallToolResul
   }
 }
 
+// Compound inspection carries each PNG once, with the remaining job/page metadata in text.
+const toBuildPdfToolResult = (
+  result: BridgeResult<unknown>
+): CallToolResult => {
+  if (!result.success) return toTextToolResult(result)
+  const job = result.data
+  if (typeof job !== 'object' || job === null || !('inspection' in job))
+    return toTextToolResult(result)
+  const inspection = job.inspection
+  if (
+    typeof inspection !== 'object' ||
+    inspection === null ||
+    !('success' in inspection) ||
+    inspection.success !== true ||
+    !('data' in inspection)
+  )
+    return toTextToolResult(result)
+  const data = inspection.data
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    !('pages' in data) ||
+    !Array.isArray(data.pages)
+  )
+    return toTextToolResult(result)
+  const images: ToolContent[] = []
+  const pages: Record<string, unknown>[] = []
+  for (const page of data.pages) {
+    if (
+      typeof page !== 'object' ||
+      page === null ||
+      !('image_data_url' in page)
+    )
+      return toTextToolResult(result)
+    const { image_data_url: image, ...metadata } = page
+    if (typeof image !== 'string' || !image.startsWith(PNG_DATA_URL_PREFIX))
+      return toTextToolResult(result)
+    images.push({
+      type: 'image',
+      data: image.slice(PNG_DATA_URL_PREFIX.length),
+      mimeType: 'image/png',
+    })
+    pages.push(metadata)
+  }
+  return {
+    content: [
+      ...images,
+      {
+        type: 'text',
+        text: JSON.stringify({
+          success: true,
+          data: {
+            ...job,
+            inspection: { ...inspection, data: { ...data, pages } },
+          },
+        }),
+      },
+    ],
+  }
+}
+
 // One arm per operation on purpose: a new operation must decide here whether its result
 // is text or a picture instead of taking the text envelope unnoticed.
 const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): CallToolResult => {
   switch (wireType) {
+    case 'BUILD_PDF':
+      return toBuildPdfToolResult(result)
+    case 'GET_DOCUMENTATION':
+      return toTextToolResult(result)
     case 'GET_ANNOTATED_PAGE':
       return toAnnotatedPageToolResult(result)
     case 'BATCH_SET_FIELD_VALUES':

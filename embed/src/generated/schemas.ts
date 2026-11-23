@@ -1,6 +1,37 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 import { z } from 'zod'
 
+export const BuildPdfInput = z.union([z.object({
+  action: z.literal("build"),
+  inspect: z.object({
+  pages: z.array(z.number().int()).optional(),
+}).optional(),
+  code: z.string(),
+  idempotencyKey: z.string(),
+  buildSessionId: z.string().optional(),
+  baseRevision: z.number().int().optional(),
+  name: z.string().optional(),
+  assets: z.array(z.object({
+  path: z.string(),
+  dataUrl: z.string(),
+})).optional(),
+  waitMs: z.number().int().optional(),
+}), z.object({
+  action: z.literal("status"),
+  jobId: z.string(),
+  waitMs: z.number().int().optional(),
+  inspect: z.object({
+  pages: z.array(z.number().int()).optional(),
+}).optional(),
+}), z.object({
+  action: z.literal("cancel"),
+  jobId: z.string(),
+})])
+export type BuildPdfInput = z.infer<typeof BuildPdfInput>
+export const GetDocumentationInput = z.object({
+  topic: z.enum(["build_pdf", "build_pdf.templates", "build_pdf.forms", "build_pdf.assets", "build_pdf.fonts", "build_pdf.troubleshooting", "fields", "inspection"]).optional(),
+})
+export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>
 export const BatchSetFieldValuesInput = z.object({
   updates: z.array(z.object({
   fieldId: z.string().describe("ID of the field to update."),
@@ -37,6 +68,9 @@ export const FocusFieldInput = z.object({
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
 export const GetAnnotatedPageInput = z.object({
   page: z.number().int().describe("1-based page to render, at its current position."),
+  expectedBuildSessionId: z.string().optional(),
+  expectedRevision: z.number().int().optional(),
+  expectedEditorStateVersion: z.number().int().optional(),
 })
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>
 export const GetDocumentContentInput = z.object({

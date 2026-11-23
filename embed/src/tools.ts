@@ -7,6 +7,8 @@
 import type { z } from 'zod'
 import { TOOL_DEFINITIONS, type SimplePDFToolName } from './generated/tools'
 import {
+  BuildPdfInput,
+  GetDocumentationInput,
   BatchSetFieldValuesInput,
   CreateFieldInput,
   DeleteFieldsInput,
@@ -59,6 +61,10 @@ export const routeToolCall = (
   input: unknown,
 ): Promise<BridgeResult<unknown>> => {
   switch (toolName) {
+    case 'buildPdf':
+      return dispatch(BuildPdfInput, input, (value) => actions.buildPdf(value))
+    case 'getDocumentation':
+      return dispatch(GetDocumentationInput, input ?? {}, (value) => actions.getDocumentation(value))
     case 'batchSetFieldValues':
       return dispatch(BatchSetFieldValuesInput, input, (value) => actions.batchSetFieldValues(value))
     case 'createField':

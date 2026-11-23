@@ -5,6 +5,8 @@ import { makeActionsStub } from './helpers'
 describe(isSimplePDFToolName.name, () => {
   it('accepts agentic tool names', () => {
     expect(isSimplePDFToolName('getFields')).toBe(true)
+    expect(isSimplePDFToolName('buildPdf')).toBe(true)
+    expect(isSimplePDFToolName('getDocumentation')).toBe(true)
     expect(isSimplePDFToolName('goTo')).toBe(true)
     expect(isSimplePDFToolName('createField')).toBe(true)
   })
@@ -17,9 +19,9 @@ describe(isSimplePDFToolName.name, () => {
 })
 
 describe('SIMPLEPDF_TOOLS', () => {
-  it('exposes the 16 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
+  it('exposes the 18 agentic operations with descriptions + input schemas (loadDocument excluded)', () => {
     const names = Object.keys(SIMPLEPDF_TOOLS)
-    expect(names).toHaveLength(16)
+    expect(names).toHaveLength(18)
     expect(names).not.toContain('loadDocument')
     for (const definition of Object.values(SIMPLEPDF_TOOLS)) {
       expect(typeof definition.description).toBe('string')
@@ -39,6 +41,22 @@ describe(routeToolCall.name, () => {
     const actions = makeActionsStub()
     await routeToolCall(actions, 'goTo', { page: 2 })
     expect(actions.goTo).toHaveBeenCalledWith({ page: 2 })
+  })
+
+  it('routes build actions and the documentation index with camelCase inputs', async () => {
+    const actions = makeActionsStub()
+    await routeToolCall(actions, 'buildPdf', {
+      action: 'build',
+      code: 'Hello',
+      idempotencyKey: 'first',
+    })
+    expect(actions.buildPdf).toHaveBeenCalledWith({
+      action: 'build',
+      code: 'Hello',
+      idempotencyKey: 'first',
+    })
+    await routeToolCall(actions, 'getDocumentation', undefined)
+    expect(actions.getDocumentation).toHaveBeenCalledWith({})
   })
 
   it('returns bad_request:invalid_input on schema-invalid input without dispatching', async () => {

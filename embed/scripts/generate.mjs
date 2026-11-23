@@ -512,6 +512,7 @@ webmcpToolLines.push('  readonly inputSchema: {')
 webmcpToolLines.push("    readonly type: 'object'")
 webmcpToolLines.push('    readonly properties?: Readonly<Record<string, unknown>>')
 webmcpToolLines.push('    readonly required?: readonly string[]')
+webmcpToolLines.push('    readonly anyOf?: readonly unknown[]')
 webmcpToolLines.push('  }')
 webmcpToolLines.push('  readonly annotations: {')
 for (const hint of WEBMCP_ANNOTATION_KEYS) {
