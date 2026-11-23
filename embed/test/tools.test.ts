@@ -87,17 +87,10 @@ describe(routeToolCall.name, () => {
     expect(actions.goTo).not.toHaveBeenCalled()
   })
 
-  it('rejects a misspelled expected job ID before dispatch', async () => {
+  it('routes getAnnotatedPage to its action with the validated page', async () => {
     const actions = makeActionsStub()
-    const result = await routeToolCall(actions, 'getAnnotatedPage', { page: 1, expectedJobID: 'job' })
-    expect(result).toMatchObject({ success: false, error: { code: 'bad_request:invalid_input' } })
-    expect(actions.getAnnotatedPage).not.toHaveBeenCalled()
-  })
-
-  it.each([{ page: 1 }, { page: 2, expectedJobId: 'job' }])('routes getAnnotatedPage with %j', async (input) => {
-    const actions = makeActionsStub()
-    await routeToolCall(actions, 'getAnnotatedPage', input)
-    expect(actions.getAnnotatedPage).toHaveBeenCalledWith(input)
+    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
+    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
   })
 
   it('dispatches no-input tools without requiring input', async () => {

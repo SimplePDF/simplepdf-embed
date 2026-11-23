@@ -103,7 +103,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "GET_ANNOTATED_PAGE";
     readonly method: "getAnnotatedPage";
     readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
-    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:invalid_value", "conflict:inspection_state_changed"];
+    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
 }, {

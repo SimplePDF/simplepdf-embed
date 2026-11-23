@@ -107,7 +107,6 @@ export type BuildPdfOutput = {
     preview: {
         success: true;
         data: {
-            jobId: string | null;
             page: number;
             imageDataUrl: string;
             imageWidth: number;
@@ -117,7 +116,7 @@ export type BuildPdfOutput = {
     } | {
         success: false;
         error: {
-            code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:invalid_value" | "conflict:inspection_state_changed" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error";
+            code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "conflict:inspection_state_changed" | "unexpected:internal_error";
             message: string;
         };
     };
@@ -311,12 +310,10 @@ export type FocusFieldOutput = {
 // @public (undocumented)
 export type GetAnnotatedPageInput = {
     page: number;
-    expectedJobId?: string;
 };
 
 // @public (undocumented)
 export type GetAnnotatedPageOutput = {
-    jobId: string | null;
     page: number;
     imageDataUrl: string;
     imageWidth: number;

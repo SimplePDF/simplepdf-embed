@@ -18,7 +18,7 @@ export const EXTRACTION_MODES = ["auto", "ocr"] as const
 export type ExtractionMode = (typeof EXTRACTION_MODES)[number]
 
 export type BuildPdfInput = { action: "build"; code: string; idempotencyKey: string; name?: string; assets?: Array<{ path: string; dataUrl: string }> } | { action: "status"; jobId: string } | { action: "cancel"; jobId: string }
-export type BuildPdfOutput = { jobId: string; status: "running" } | { jobId: string; status: "succeeded"; pageCount: number; warnings: Array<{ severity: "warning"; code: "typst" | "unsupported_dependency"; message: string; file?: string; line?: number; column?: number }>; preview: { success: true; data: { jobId: string | null; page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> } } | { success: false; error: { code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:invalid_value" | "conflict:inspection_state_changed" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error"; message: string } } } | { jobId: string; status: "failed"; error: { code: "unsupported_dependency" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error"; message: string; retryable: boolean; diagnostics: Array<{ severity: "error" | "warning"; code: "typst" | "unsupported_dependency"; message: string; file?: string; line?: number; column?: number }> } } | { jobId: string; status: "cancelled" } | { jobId: string; status: "superseded" }
+export type BuildPdfOutput = { jobId: string; status: "running" } | { jobId: string; status: "succeeded"; pageCount: number; warnings: Array<{ severity: "warning"; code: "typst" | "unsupported_dependency"; message: string; file?: string; line?: number; column?: number }>; preview: { success: true; data: { page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> } } | { success: false; error: { code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "conflict:inspection_state_changed" | "unexpected:internal_error"; message: string } } } | { jobId: string; status: "failed"; error: { code: "unsupported_dependency" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error"; message: string; retryable: boolean; diagnostics: Array<{ severity: "error" | "warning"; code: "typst" | "unsupported_dependency"; message: string; file?: string; line?: number; column?: number }> } } | { jobId: string; status: "cancelled" } | { jobId: string; status: "superseded" }
 export type GetDocumentationInput = { topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.troubleshooting" | "fields" | "inspection" }
 export type GetDocumentationOutput = { kind: "index"; topics: Array<{ topic: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.troubleshooting" | "fields" | "inspection"; description: string }> } | { kind: "topic"; markdown: string }
 export type BatchSetFieldValuesInput = { updates: Array<{ fieldId: string; value: string | null }> }
@@ -35,8 +35,8 @@ export type DownloadInput = Record<string, never>
 export type DownloadOutput = null
 export type FocusFieldInput = { fieldId: string }
 export type FocusFieldOutput = { hint: { type: "user_action_expected"; message: string } }
-export type GetAnnotatedPageInput = { page: number; expectedJobId?: string }
-export type GetAnnotatedPageOutput = { jobId: string | null; page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> }
+export type GetAnnotatedPageInput = { page: number }
+export type GetAnnotatedPageOutput = { page: number; imageDataUrl: string; imageWidth: number; imageHeight: number; badges: Record<string, string> }
 export type GetDocumentContentInput = { extractionMode?: ExtractionMode }
 export type GetDocumentContentOutput = { name: string; pages: Array<{ page: number; content: string }> }
 export type GetFieldsInput = Record<string, never>
@@ -158,7 +158,7 @@ export const OPERATIONS = [
     wire_type: "GET_ANNOTATED_PAGE",
     method: "getAnnotatedPage",
     description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
-    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:invalid_value", "conflict:inspection_state_changed"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range"] as const,
     is_agentic_tool: true,
     has_output: true,
   } /* GetAnnotatedPage */,

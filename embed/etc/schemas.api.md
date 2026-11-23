@@ -98,8 +98,7 @@ export type FocusFieldInput = z.infer<typeof FocusFieldInput>;
 // @public (undocumented)
 export const GetAnnotatedPageInput: z.ZodObject<{
     page: z.ZodNumber;
-    expectedJobId: z.ZodOptional<z.ZodString>;
-}, z.core.$strict>;
+}, z.core.$strip>;
 
 // @public (undocumented)
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>;

@@ -104,8 +104,7 @@ export const SIMPLEPDF_TOOLS: {
         readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
         readonly inputSchema: z.ZodObject<{
             page: z.ZodNumber;
-            expectedJobId: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>;
+        }, z.core.$strip>;
     };
     readonly getDocumentContent: {
         readonly description: "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.";

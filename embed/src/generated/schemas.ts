@@ -56,9 +56,8 @@ export const FocusFieldInput = z.object({
   fieldId: z.string().describe("ID of the field to focus and scroll into view."),
 })
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
-export const GetAnnotatedPageInput = z.strictObject({
+export const GetAnnotatedPageInput = z.object({
   page: z.number().int().describe("1-based page to render, at its current position."),
-  expectedJobId: z.string().optional(),
 })
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>
 export const GetDocumentContentInput = z.object({

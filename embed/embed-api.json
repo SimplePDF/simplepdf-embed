@@ -1,4 +1,5 @@
 {
+  "editor_version": null,
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -218,16 +219,6 @@
                       "data": {
                         "type": "object",
                         "properties": {
-                          "job_id": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
                           "page": {
                             "type": "integer",
                             "description": "1-based page position this render shows."
@@ -253,7 +244,6 @@
                           }
                         },
                         "required": [
-                          "job_id",
                           "page",
                           "image_data_url",
                           "image_width",
@@ -294,16 +284,6 @@
                               },
                               {
                                 "type": "string",
-                                "const": "bad_request:invalid_value",
-                                "description": "The provided value is missing or not valid for this operation or field type."
-                              },
-                              {
-                                "type": "string",
-                                "const": "conflict:inspection_state_changed",
-                                "description": "The expected job is not displayed or the editor changed during inspection."
-                              },
-                              {
-                                "type": "string",
                                 "const": "bad_request:editor_not_ready",
                                 "description": "The editor is still initializing and cannot accept this operation yet. Retry the operation shortly."
                               },
@@ -331,6 +311,11 @@
                                 "type": "string",
                                 "const": "forbidden:whitelist_required",
                                 "description": "This tenant requires the embedding origin to be allowlisted before any operation is accepted. Configure it in the admin dashboard."
+                              },
+                              {
+                                "type": "string",
+                                "const": "conflict:inspection_state_changed",
+                                "description": "The build is no longer displayed or the editor changed during its automatic preview."
                               },
                               {
                                 "type": "string",
@@ -1082,28 +1067,14 @@
           "page": {
             "type": "integer",
             "description": "1-based page to render, at its current position."
-          },
-          "expected_job_id": {
-            "type": "string"
           }
         },
         "required": ["page"],
-        "additionalProperties": false,
         "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block."
       },
       "output_schema": {
         "type": "object",
         "properties": {
-          "job_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "page": {
             "type": "integer",
             "description": "1-based page position this render shows."
@@ -1129,7 +1100,6 @@
           }
         },
         "required": [
-          "job_id",
           "page",
           "image_data_url",
           "image_width",
@@ -1140,24 +1110,18 @@
       "error_codes": [
         "bad_request:no_document_loaded",
         "bad_request:invalid_page",
-        "bad_request:page_out_of_range",
-        "bad_request:invalid_value",
-        "conflict:inspection_state_changed"
+        "bad_request:page_out_of_range"
       ],
       "tool": {
         "name": "simplepdf_embed_get_annotated_page",
         "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
         "input_schema": {
           "required": ["page"],
-          "additionalProperties": false,
           "type": "object",
           "properties": {
             "page": {
               "description": "1-based page to render, at its current position.",
               "type": "integer"
-            },
-            "expected_job_id": {
-              "type": "string"
             }
           }
         },
@@ -1979,7 +1943,7 @@
               {
                 "type": "string",
                 "const": "conflict:inspection_state_changed",
-                "description": "The expected job is not displayed or the editor changed during inspection."
+                "description": "The build is no longer displayed or the editor changed during its automatic preview."
               },
               {
                 "type": "string",
