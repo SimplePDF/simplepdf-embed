@@ -91,9 +91,6 @@ export type BuildPdfInput = {
 // @public (undocumented)
 export type BuildPdfOutput = {
     jobId: string;
-    status: "queued";
-} | {
-    jobId: string;
     status: "running";
 } | {
     jobId: string;
@@ -106,7 +103,6 @@ export type BuildPdfOutput = {
         file?: string;
         line?: number;
         column?: number;
-        hint?: string;
     }>;
     preview: {
         success: true;
@@ -155,7 +151,6 @@ export type BuildPdfOutput = {
             file?: string;
             line?: number;
             column?: number;
-            hint?: string;
         }>;
     };
 } | {

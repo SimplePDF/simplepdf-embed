@@ -157,20 +157,6 @@
               },
               "status": {
                 "type": "string",
-                "const": "queued"
-              }
-            },
-            "required": ["job_id", "status"],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "job_id": {
-                "type": "string"
-              },
-              "status": {
-                "type": "string",
                 "const": "running"
               }
             },
@@ -214,9 +200,6 @@
                     },
                     "column": {
                       "type": "integer"
-                    },
-                    "hint": {
-                      "type": "string"
                     }
                   },
                   "required": ["severity", "code", "message"],
@@ -617,9 +600,6 @@
                         },
                         "column": {
                           "type": "integer"
-                        },
-                        "hint": {
-                          "type": "string"
                         }
                       },
                       "required": ["severity", "code", "message"],

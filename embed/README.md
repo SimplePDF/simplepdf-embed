@@ -188,7 +188,7 @@ await embed.actions.download()
 
 Full set: `buildPdf`, `getDocumentation`, `batchSetFieldValues`, `createField`, `deleteFields`, `deletePages`, `detectFields`, `download`, `focusField`, `getAnnotatedPage`, `getDocumentContent`, `getFields`, `goTo`, `loadDocument`, `movePage`, `rotatePage`, `selectTool`, `setFieldValue`, `submit`.
 
-Start a build in an empty editor. If the job is still `queued` or `running` after five seconds, call `buildPdf({ action: 'status', jobId })` until it finishes. A failed build reports diagnostics in `error`. A successful build opens the PDF and returns its page count, warnings and a first-page `preview`. Check `preview.success` before reading `preview.data.imageDataUrl`. To view another page of the same build, call `getAnnotatedPage({ page: 2, expectedJobId: jobId })`. Manual edits protect the document from replacement by a subsequent build.
+Start a build in an empty editor. If the job is still `running` after five seconds, call `buildPdf({ action: 'status', jobId })` until it finishes. A failed build reports diagnostics in `error`. A successful build opens the PDF and returns its page count, warnings and a first-page `preview`. Check `preview.success` before reading `preview.data.imageDataUrl`. To view another page of the same build, call `getAnnotatedPage({ page: 2, expectedJobId: jobId })`. Manual edits protect the document from replacement by a subsequent build.
 
 Call `getDocumentation()` for the topic index, then `getDocumentation({ topic })` to read a topic.
 
