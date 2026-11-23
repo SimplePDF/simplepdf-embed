@@ -12,7 +12,6 @@
 // CF: https://webmachinelearning.github.io/webmcp/
 
 import type { MethodName, WireType } from './generated/contract'
-import { METHOD_NAMES } from './generated/method-names'
 import { WEBMCP_TOOLS, type WebMCPToolRecord } from './generated/webmcp-tools'
 import type { BridgeLogger } from './logger'
 import type { BridgeResult } from './types'
@@ -36,33 +35,25 @@ const PNG_DATA_URL_PREFIX = 'data:image/png;base64,'
 const isModelContext = (value: unknown): value is ModelContext =>
   typeof value === 'object' && value !== null && 'registerTool' in value && typeof value.registerTool === 'function'
 
-const readModelContext = (): ModelContext | null => modelContextCandidates().find(isModelContext) ?? null
-
 const toTextToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
   content: [{ type: 'text', text: JSON.stringify(result) }],
   ...(result.success ? {} : { isError: true }),
 })
 
-// The render travels once, as the image block a vision-capable runtime shows the
-// model; the text block keeps the rest of the result (page, size, badges). Anything
-// but a successful PNG render takes the plain text envelope.
+// Keep the image bytes separate from metadata on both inspection paths.
+const splitPageImage = (render: unknown): { image: ToolContent; metadata: Record<string, unknown> } | null => {
+  if (typeof render !== 'object' || render === null || !('image_data_url' in render)) return null
+  const { image_data_url: image, ...metadata } = render
+  if (typeof image !== 'string' || !image.startsWith(PNG_DATA_URL_PREFIX)) return null
+  return { image: { type: 'image', data: image.slice(PNG_DATA_URL_PREFIX.length), mimeType: 'image/png' }, metadata }
+}
+
 const toAnnotatedPageToolResult = (result: BridgeResult<unknown>): CallToolResult => {
-  if (!result.success) {
-    return toTextToolResult(result)
-  }
-  const render: unknown = result.data
-  if (typeof render !== 'object' || render === null || !('image_data_url' in render)) {
-    return toTextToolResult(result)
-  }
-  const { image_data_url: imageDataUrl, ...renderWithoutImage } = render
-  if (typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith(PNG_DATA_URL_PREFIX)) {
-    return toTextToolResult(result)
-  }
+  if (!result.success) return toTextToolResult(result)
+  const page = splitPageImage(result.data)
+  if (page === null) return toTextToolResult(result)
   return {
-    content: [
-      { type: 'image', data: imageDataUrl.slice(PNG_DATA_URL_PREFIX.length), mimeType: 'image/png' },
-      { type: 'text', text: JSON.stringify({ success: true, data: renderWithoutImage }) },
-    ],
+    content: [page.image, ...toTextToolResult({ success: true, data: page.metadata }).content],
   }
 }
 
@@ -94,35 +85,18 @@ const toBuildPdfToolResult = (
   const images: ToolContent[] = []
   const pages: Record<string, unknown>[] = []
   for (const page of data.pages) {
-    if (
-      typeof page !== 'object' ||
-      page === null ||
-      !('image_data_url' in page)
-    )
-      return toTextToolResult(result)
-    const { image_data_url: image, ...metadata } = page
-    if (typeof image !== 'string' || !image.startsWith(PNG_DATA_URL_PREFIX))
-      return toTextToolResult(result)
-    images.push({
-      type: 'image',
-      data: image.slice(PNG_DATA_URL_PREFIX.length),
-      mimeType: 'image/png',
-    })
-    pages.push(metadata)
+    const split = splitPageImage(page)
+    if (split === null) return toTextToolResult(result)
+    images.push(split.image)
+    pages.push(split.metadata)
   }
   return {
     content: [
       ...images,
-      {
-        type: 'text',
-        text: JSON.stringify({
-          success: true,
-          data: {
-            ...job,
-            inspection: { ...inspection, data: { ...data, pages } },
-          },
-        }),
-      },
+      ...toTextToolResult({
+        success: true,
+        data: { ...job, inspection: { ...inspection, data: { ...data, pages } } },
+      }).content,
     ],
   }
 }
@@ -133,10 +107,9 @@ const toCallToolResult = (wireType: WireType, result: BridgeResult<unknown>): Ca
   switch (wireType) {
     case 'BUILD_PDF':
       return toBuildPdfToolResult(result)
-    case 'GET_DOCUMENTATION':
-      return toTextToolResult(result)
     case 'GET_ANNOTATED_PAGE':
       return toAnnotatedPageToolResult(result)
+    case 'GET_DOCUMENTATION':
     case 'BATCH_SET_FIELD_VALUES':
     case 'CREATE_FIELD':
     case 'DELETE_FIELDS':
@@ -189,32 +162,28 @@ export const registerWebMCPTools = ({
   if (signal.aborted) {
     return false
   }
-  const modelContext = readModelContext()
-  if (modelContext === null) {
+  const modelContext = modelContextCandidates().find(isModelContext)
+  if (modelContext === undefined) {
     logger.info('webmcp.unavailable', { reason: 'invalid_model_context' })
     return false
   }
-  const excluded = new Set<MethodName>(exclude)
-  for (const method of METHOD_NAMES) {
+  const excluded = new Set<string>(exclude)
+  for (const [method, { wireType, ...record }] of Object.entries(WEBMCP_TOOLS)) {
     if (excluded.has(method)) {
       continue
     }
-    const record = WEBMCP_TOOLS[method]
     if (liveTools.has(record.name)) {
       logger.warn('webmcp.tool_already_registered', { tool: record.name })
       continue
     }
     const tool: WebMCPTool = {
-      name: record.name,
-      description: record.description,
-      inputSchema: record.inputSchema,
-      annotations: record.annotations,
+      ...record,
       // A call the runtime already aborted never reaches the editor; one aborted after it
       // was posted still runs there (the wire has no cancel frame). A nullish input becomes
       // an empty payload (the no-input operations' wire shape).
       execute: async (input, options) => {
         options?.signal.throwIfAborted()
-        return toCallToolResult(record.wireType, await dispatch(record.wireType, input ?? {}))
+        return toCallToolResult(wireType, await dispatch(wireType, input ?? {}))
       },
     }
     liveTools.set(tool.name, signal)

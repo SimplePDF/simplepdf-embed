@@ -91,6 +91,24 @@ describe(attachEmbed.name, () => {
     await expect(promise).resolves.toEqual({ success: true, data: null })
   })
 
+  it('posts an empty documentation input when called without arguments', async () => {
+    const harness = makeHarness()
+    const pending = harness.embed.actions.getDocumentation()
+    expect(harness.posted.at(-1)).toMatchObject({ type: 'GET_DOCUMENTATION', data: {} })
+    replyResult(harness, harness.lastRequestId(), { success: true, data: { kind: 'index', topics: [] } })
+    expect(await pending).toEqual({ success: true, data: { kind: 'index', topics: [] } })
+  })
+
+  it.each(['conflict:editor_modified', 'not_found:job', 'resource:session_limit'])(
+    'preserves the build error %s', async (code) => {
+      const harness = makeHarness()
+      const pending = harness.embed.actions.buildPdf({ action: 'status', jobId: 'job' })
+      const result = { success: false, error: { code, message: 'Build request rejected' } }
+      replyResult(harness, harness.lastRequestId(), result)
+      expect(await pending).toEqual(result)
+    }
+  )
+
   it('forwards a typed editor error and camelCases its details payload', async () => {
     const harness = makeHarness()
     const promise = harness.embed.actions.submit({ downloadCopy: false })

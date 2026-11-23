@@ -22,7 +22,7 @@ export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
     action: z.ZodLiteral<"build">;
     inspect: z.ZodOptional<z.ZodObject<{
         pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    }, z.core.$strip>>;
+    }, z.core.$strict>>;
     code: z.ZodString;
     idempotencyKey: z.ZodString;
     buildSessionId: z.ZodOptional<z.ZodString>;
@@ -31,19 +31,19 @@ export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
     assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         dataUrl: z.ZodString;
-    }, z.core.$strip>>>;
+    }, z.core.$strict>>>;
     waitMs: z.ZodOptional<z.ZodNumber>;
-}, z.core.$strip>, z.ZodObject<{
+}, z.core.$strict>, z.ZodObject<{
     action: z.ZodLiteral<"status">;
     jobId: z.ZodString;
     waitMs: z.ZodOptional<z.ZodNumber>;
     inspect: z.ZodOptional<z.ZodObject<{
         pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    }, z.core.$strip>>;
-}, z.core.$strip>, z.ZodObject<{
+    }, z.core.$strict>>;
+}, z.core.$strict>, z.ZodObject<{
     action: z.ZodLiteral<"cancel">;
     jobId: z.ZodString;
-}, z.core.$strip>]>;
+}, z.core.$strict>]>;
 
 // @public (undocumented)
 export type BuildPdfInput = z.infer<typeof BuildPdfInput>;
@@ -111,7 +111,7 @@ export const GetAnnotatedPageInput: z.ZodObject<{
     expectedBuildSessionId: z.ZodOptional<z.ZodString>;
     expectedRevision: z.ZodOptional<z.ZodNumber>;
     expectedEditorStateVersion: z.ZodOptional<z.ZodNumber>;
-}, z.core.$strip>;
+}, z.core.$strict>;
 
 // @public (undocumented)
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>;
@@ -128,7 +128,7 @@ export const GetDocumentationInput: z.ZodObject<{
         fields: "fields";
         inspection: "inspection";
     }>>;
-}, z.core.$strip>;
+}, z.core.$strict>;
 
 // @public (undocumented)
 export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>;

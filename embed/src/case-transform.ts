@@ -46,10 +46,10 @@ const transformKeysDeep = (value: unknown, mapKey: (key: string) => string): unk
   return value
 }
 
-// SDK (camelCase) -> wire (snake_case), applied to every outbound request payload.
+// SDK (camelCase) -> wire (snake_case), applied to SDK requests; WebMCP wire input passes through unchanged.
 export const toWireData = (input: unknown): unknown => transformKeysDeep(input, camelToSnakeKey)
 
-// wire (snake_case) -> SDK (camelCase), applied to every inbound operation RESULT
-// payload. Editor EVENTS are NOT transformed — they are forwarded verbatim (snake) to
+// wire (snake_case) -> SDK (camelCase), applied to SDK operation results. WebMCP results remain wire-shaped.
+// Editor EVENTS are NOT transformed — they are forwarded verbatim (snake) to
 // keep the established EmbedEvent contract.
 export const fromWireData = (data: unknown): unknown => transformKeysDeep(data, snakeToCamelKey)

@@ -55,8 +55,26 @@ describe(routeToolCall.name, () => {
       code: 'Hello',
       idempotencyKey: 'first',
     })
+    await routeToolCall(actions, 'buildPdf', { action: 'status', jobId: 'job' })
+    expect(actions.buildPdf).toHaveBeenCalledWith({ action: 'status', jobId: 'job' })
     await routeToolCall(actions, 'getDocumentation', undefined)
     expect(actions.getDocumentation).toHaveBeenCalledWith({})
+  })
+
+  // Router validation must preserve the caller's intended preconditions before any editor call.
+  it.each([
+    { action: 'build', code: 'Hello', idempotencyKey: 'key', baseRevison: 2 },
+    { action: 'build', code: 'Hello', idempotencyKey: 'key', inspect: { page: [1] } },
+    { action: 'build', code: 'Hello', idempotencyKey: 'key', assets: [{ path: 'a.png', dataUrl: 'data', extra: true }] },
+    { action: 'cancel', jobId: 'job', code: 'Hello' },
+    { action: 'build', code: 'Hello' },
+  ])('rejects invalid build input without losing fields: %j', async (input) => {
+    const actions = makeActionsStub()
+    expect(await routeToolCall(actions, 'buildPdf', input)).toMatchObject({
+      success: false,
+      error: { code: 'bad_request:invalid_input' },
+    })
+    expect(actions.buildPdf).not.toHaveBeenCalled()
   })
 
   it('returns bad_request:invalid_input on schema-invalid input without dispatching', async () => {
@@ -67,6 +85,17 @@ describe(routeToolCall.name, () => {
       expect(result.error.code).toBe('bad_request:invalid_input')
     }
     expect(actions.goTo).not.toHaveBeenCalled()
+  })
+
+  it('rejects misspelled inspection preconditions before dispatch', async () => {
+    const actions = makeActionsStub()
+    const result = await routeToolCall(actions, 'getAnnotatedPage', {
+      page: 1, expectedBuildSessionId: 'session', expectedRevision: 7, expectedEditorStateVerison: 4,
+    })
+    expect(result).toMatchObject({ success: false, error: { code: 'bad_request:invalid_input' } })
+    expect(actions.getAnnotatedPage).not.toHaveBeenCalled()
+    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
+    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
   })
 
   it('routes getAnnotatedPage to its action with the validated page', async () => {

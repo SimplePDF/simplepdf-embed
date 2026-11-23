@@ -1,7 +1,7 @@
 import { attachEmbed } from './bridge'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import type { BridgeState, Embed } from './types'
-import { METHOD_NAMES } from './generated/method-names'
+import { METHOD_NAMES } from './generated/bridge-vocabulary'
 import type { Locale } from './generated/contract'
 import type { WebMCPOptions } from './webmcp-shared'
 

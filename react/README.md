@@ -158,7 +158,7 @@ Actions are camelCase (the editor's snake_case wire is transformed for you). `us
 | `actions.batchSetFieldValues({ updates })`       | Set several fields at once (`updates: [{ fieldId, value }]`): all apply, or none do                     |
 | `actions.submit({ downloadCopy })`               | Submit the document                                                                                     |
 
-…plus `createField`, `getFields`, `getAnnotatedPage`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
+See the [core action reference](../embed/README.md#actions) for `buildPdf`, `getDocumentation` and all input shapes. Other actions include `createField`, `getFields`, `getAnnotatedPage`, `focusField`, `movePage`, `rotatePage`, `deletePages`, `download`, and `loadDocument`. All actions return a `Promise` with a result object: `{ success: true, data: ... }` or `{ success: false, error: { code, message } }`.
 
 ```jsx
 import { EmbedPDF, useEmbed } from '@simplepdf/react-embed-pdf';

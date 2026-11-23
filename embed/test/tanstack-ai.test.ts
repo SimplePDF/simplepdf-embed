@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { convertSchemaToJsonSchema } from '@tanstack/ai'
 import { createSimplePDFTools, simplePDFToolDefinitions } from '../src/tanstack-ai'
 import type { BridgeResult } from '../src/types'
 import { makeEmbedStub } from './helpers'
@@ -11,6 +12,9 @@ describe('simplePDFToolDefinitions', () => {
     for (const definition of definitions) {
       expect(typeof definition.description).toBe('string')
       expect(definition.inputSchema).toBeDefined()
+      const schema = convertSchemaToJsonSchema(definition.inputSchema)
+      expect(schema?.type).toBe('object')
+      expect(schema?.anyOf).toBeUndefined()
     }
   })
 })

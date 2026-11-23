@@ -1,9 +1,9 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 import { z } from 'zod'
 
-export const BuildPdfInput = z.union([z.object({
+export const BuildPdfInput = z.union([z.strictObject({
   action: z.literal("build"),
-  inspect: z.object({
+  inspect: z.strictObject({
   pages: z.array(z.number().int()).optional(),
 }).optional(),
   code: z.string(),
@@ -11,24 +11,24 @@ export const BuildPdfInput = z.union([z.object({
   buildSessionId: z.string().optional(),
   baseRevision: z.number().int().optional(),
   name: z.string().optional(),
-  assets: z.array(z.object({
+  assets: z.array(z.strictObject({
   path: z.string(),
   dataUrl: z.string(),
 })).optional(),
   waitMs: z.number().int().optional(),
-}), z.object({
+}), z.strictObject({
   action: z.literal("status"),
   jobId: z.string(),
   waitMs: z.number().int().optional(),
-  inspect: z.object({
+  inspect: z.strictObject({
   pages: z.array(z.number().int()).optional(),
 }).optional(),
-}), z.object({
+}), z.strictObject({
   action: z.literal("cancel"),
   jobId: z.string(),
 })])
 export type BuildPdfInput = z.infer<typeof BuildPdfInput>
-export const GetDocumentationInput = z.object({
+export const GetDocumentationInput = z.strictObject({
   topic: z.enum(["build_pdf", "build_pdf.templates", "build_pdf.forms", "build_pdf.assets", "build_pdf.fonts", "build_pdf.troubleshooting", "fields", "inspection"]).optional(),
 })
 export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>
@@ -66,7 +66,7 @@ export const FocusFieldInput = z.object({
   fieldId: z.string().describe("ID of the field to focus and scroll into view."),
 })
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
-export const GetAnnotatedPageInput = z.object({
+export const GetAnnotatedPageInput = z.strictObject({
   page: z.number().int().describe("1-based page to render, at its current position."),
   expectedBuildSessionId: z.string().optional(),
   expectedRevision: z.number().int().optional(),

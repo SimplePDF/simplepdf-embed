@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attachEmbed, type AttachEmbedArgs } from '../src/bridge'
 import type { BridgeLogger } from '../src/logger'
 import type { Embed } from '../src/types'
-import { METHOD_NAMES } from '../src/generated/method-names'
+import { METHOD_NAMES } from '../src/generated/bridge-vocabulary'
 import { WEBMCP_TOOLS } from '../src/generated/webmcp-tools'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
@@ -235,6 +235,22 @@ describe('attachEmbed({ webMCP })', () => {
     expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify({ success: true, data: null }) }])
   })
 
+  it('preserves raw WebMCP keys so the editor can reject misspelled build preconditions', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+    const input = {
+      action: 'build', code: 'Draft', idempotency_key: 'wire-keys', base_revision: 1, baseRevision: 0,
+      assets: [{ path: 'image.png', dataUrl: 'invalid' }],
+    }
+    const pending = findTool(modelContext, 'build_pdf').execute(input)
+    const request = await waitForRequest(harness, 'BUILD_PDF')
+    expect(request.data).toEqual(input)
+    const result = { success: false, error: { code: 'bad_request:invalid_value', message: 'Unknown input keys' } }
+    harness.reply(request, result)
+    expect(await pending).toEqual({ isError: true, content: [{ type: 'text', text: JSON.stringify(result) }] })
+  })
+
   it('hands the agent the wire-shaped result its tool description promises (snake_case, not the SDK camelCase)', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ webMCP: { enabled: true } })
@@ -278,6 +294,9 @@ describe('attachEmbed({ webMCP })', () => {
     const request = await waitForRequest(harness, 'BUILD_PDF')
     const page = {
       page: 1,
+      build_session_id: 'session',
+      revision: 1,
+      editor_state_version: 3,
       image_data_url: 'data:image/png;base64,iVBORw0KGgo=',
       image_width: 10,
       image_height: 12,
@@ -291,12 +310,12 @@ describe('attachEmbed({ webMCP })', () => {
         revision: 1,
         published_revision: 1,
         status: 'succeeded',
-        page_count: 1,
+        page_count: 2,
         warnings: [],
         warnings_truncated: false,
         inspection: {
           success: true,
-          data: { pages: [page], omitted_pages: [] },
+          data: { pages: [page, { ...page, page: 2, image_data_url: 'data:image/png;base64,cGFnZTI=' }], omitted_pages: [] },
         },
       },
     })
@@ -306,8 +325,16 @@ describe('attachEmbed({ webMCP })', () => {
       data: 'iVBORw0KGgo=',
       mimeType: 'image/png',
     })
-    expect(JSON.stringify(result.content[1])).not.toContain('base64')
-    expect(JSON.stringify(result.content[1])).toContain('published_revision')
+    expect(result.content[1]).toEqual({ type: 'image', data: 'cGFnZTI=', mimeType: 'image/png' })
+    const text = result.content[2]
+    if (text.type !== 'text') throw new Error('Expected inspection metadata')
+    const metadata = JSON.parse(text.text)
+    expect(metadata.data.inspection.data.pages).toEqual([1, 2].map((page) => ({
+      page, build_session_id: 'session', revision: 1, editor_state_version: 3,
+      image_width: 10, image_height: 12, badges: {},
+    })))
+    expect(metadata.data.published_revision).toBe(1)
+    expect(text.text).not.toContain('image_data_url')
   })
 
   it('keeps the text envelope for a failed annotated page render', async () => {

@@ -3,4 +3,7 @@
 '@simplepdf/react-embed-pdf': minor
 ---
 
-Add typed browser PDF building, task documentation and revision-bound inspection. Build results discriminate job status and WebMCP returns inspection images separately from text. Existing field operations keep their contracts.
+**Build and revise PDFs directly in the browser editor.**
+- Use typed JavaScript and React methods for PDF building and task documentation.
+- Inspect the published revision through native WebMCP images.
+- Existing field operations keep their contracts.

@@ -1,5 +1,4 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
-// The SDK method names alone, so createEmbed can validate a `webMCP.exclude` list
-// without pulling the operations table into the zero-dep root; contract.ts derives
-// MethodName from this list.
+// Kept separate from the full manifest to preserve the root entry bundle boundary.
 export const METHOD_NAMES = ["buildPdf", "getDocumentation", "batchSetFieldValues", "createField", "deleteFields", "deletePages", "detectFields", "download", "focusField", "getAnnotatedPage", "getDocumentContent", "getFields", "goTo", "loadDocument", "movePage", "rotatePage", "selectTool", "setFieldValue", "submit"] as const
+export const EDITOR_ERROR_PREFIXES = ["bad_request:","conflict:","forbidden:","not_found:","resource:","unexpected:"] as const

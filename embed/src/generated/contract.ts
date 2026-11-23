@@ -1,6 +1,6 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
-// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.
-import type { METHOD_NAMES } from './method-names'
+// Zero runtime dependencies: the zero-dep root imports only from this module and bridge-vocabulary.ts.
+import type { METHOD_NAMES } from './bridge-vocabulary'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
@@ -76,7 +76,7 @@ export const OPERATIONS = [
     request_type: "BUILD_PDF",
     wire_type: "BUILD_PDF",
     method: "buildPdf",
-    description: "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.",
+    description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing.",
     error_codes: ["conflict:build_session_mismatch", "conflict:base_revision_mismatch", "conflict:idempotency_key_reused", "conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "conflict:inspection_revision_mismatch", "conflict:inspection_state_changed", "bad_request:invalid_value", "forbidden:editing_not_allowed"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -85,7 +85,7 @@ export const OPERATIONS = [
     request_type: "GET_DOCUMENTATION",
     wire_type: "GET_DOCUMENTATION",
     method: "getDocumentation",
-    description: "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions.",
+    description: "Read task guidance and tested PDF recipes. Omit topic for the index.",
     error_codes: ["bad_request:invalid_value"] as const,
     is_agentic_tool: true,
     has_output: true,
@@ -250,8 +250,8 @@ export type RequestType = (typeof OPERATIONS)[number]["request_type"]
 export type MethodName = (typeof METHOD_NAMES)[number]
 
 export const OUTBOUND_EVENTS = [
-  { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },
-  { event_type: "DOCUMENT_LOADED", description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user." },
+  { event_type: "EDITOR_READY", description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and document-dependent operations with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event." },
+  { event_type: "DOCUMENT_LOADED", description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, document-dependent operations fail with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user." },
   { event_type: "PAGE_FOCUSED", description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page." },
   { event_type: "SUBMISSION_SENT", description: "Pushed after a SUBMIT completes successfully. This is how you confirm a submission landed: the SUBMIT operation itself resolves with data: null, so listen for this event to get the resulting document_id and submission_id." },
 ] as const

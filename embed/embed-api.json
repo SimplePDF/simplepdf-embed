@@ -93,9 +93,8 @@
   "operations": [
     {
       "request_type": "BUILD_PDF",
-      "description": "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.",
+      "description": "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing.",
       "input_schema": {
-        "description": "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.",
         "anyOf": [
           {
             "type": "object",
@@ -113,7 +112,8 @@
                       "type": "integer"
                     }
                   }
-                }
+                },
+                "additionalProperties": false
               },
               "code": {
                 "type": "string"
@@ -145,7 +145,8 @@
                   "required": [
                     "path",
                     "data_url"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               },
               "wait_ms": {
@@ -156,7 +157,8 @@
               "action",
               "code",
               "idempotency_key"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -180,13 +182,15 @@
                       "type": "integer"
                     }
                   }
-                }
+                },
+                "additionalProperties": false
               }
             },
             "required": [
               "action",
               "job_id"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -202,9 +206,11 @@
             "required": [
               "action",
               "job_id"
-            ]
+            ],
+            "additionalProperties": false
           }
-        ]
+        ],
+        "description": "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing."
       },
       "output_schema": {
         "anyOf": [
@@ -238,7 +244,8 @@
               "published_revision",
               "status",
               "poll_after_ms"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -282,7 +289,8 @@
               "status",
               "stage",
               "poll_after_ms"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -342,7 +350,8 @@
                     "severity",
                     "code",
                     "message"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               },
               "warnings_truncated": {
@@ -434,13 +443,15 @@
                         "required": [
                           "pages",
                           "omitted_pages"
-                        ]
+                        ],
+                        "additionalProperties": false
                       }
                     },
                     "required": [
                       "success",
                       "data"
-                    ]
+                    ],
+                    "additionalProperties": false
                   },
                   {
                     "type": "object",
@@ -736,7 +747,8 @@
                     "required": [
                       "success",
                       "error"
-                    ]
+                    ],
+                    "additionalProperties": false
                   }
                 ]
               }
@@ -750,7 +762,8 @@
               "page_count",
               "warnings",
               "warnings_truncated"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -846,7 +859,8 @@
                         "severity",
                         "code",
                         "message"
-                      ]
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "diagnostics_truncated": {
@@ -860,7 +874,8 @@
                   "retryable",
                   "diagnostics",
                   "diagnostics_truncated"
-                ]
+                ],
+                "additionalProperties": false
               }
             },
             "required": [
@@ -870,7 +885,8 @@
               "published_revision",
               "status",
               "error"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -898,7 +914,8 @@
               "revision",
               "published_revision",
               "status"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -926,7 +943,8 @@
               "revision",
               "published_revision",
               "status"
-            ]
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -946,7 +964,7 @@
       ],
       "tool": {
         "name": "build_pdf",
-        "description": "Build and display a PDF locally from Typst code. Read get_documentation for task recipes, templates, fonts and limits. Request inspect:{} for revision-bound page images in the same response. Use a stable idempotency key; poll the job if needed. Inspect the successful revision with simplepdf_embed_get_annotated_page. Manual edits block replacement. Does not submit or share.",
+        "description": "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing.",
         "input_schema": {
           "anyOf": [
             {
@@ -965,7 +983,8 @@
                         "type": "integer"
                       }
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 },
                 "code": {
                   "type": "string"
@@ -997,7 +1016,8 @@
                     "required": [
                       "path",
                       "data_url"
-                    ]
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "wait_ms": {
@@ -1008,7 +1028,8 @@
                 "action",
                 "code",
                 "idempotency_key"
-              ]
+              ],
+              "additionalProperties": false
             },
             {
               "type": "object",
@@ -1032,13 +1053,15 @@
                         "type": "integer"
                       }
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
               },
               "required": [
                 "action",
                 "job_id"
-              ]
+              ],
+              "additionalProperties": false
             },
             {
               "type": "object",
@@ -1054,7 +1077,8 @@
               "required": [
                 "action",
                 "job_id"
-              ]
+              ],
+              "additionalProperties": false
             }
           ],
           "type": "object",
@@ -1068,7 +1092,7 @@
     },
     {
       "request_type": "GET_DOCUMENTATION",
-      "description": "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions.",
+      "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -1086,7 +1110,8 @@
             ]
           }
         },
-        "description": "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions."
+        "additionalProperties": false,
+        "description": "Read task guidance and tested PDF recipes. Omit topic for the index."
       },
       "output_schema": {
         "anyOf": [
@@ -1122,14 +1147,16 @@
                   "required": [
                     "topic",
                     "description"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             },
             "required": [
               "kind",
               "topics"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "type": "object",
@@ -1159,7 +1186,8 @@
               "kind",
               "topic",
               "markdown"
-            ]
+            ],
+            "additionalProperties": false
           }
         ]
       },
@@ -1168,8 +1196,9 @@
       ],
       "tool": {
         "name": "get_documentation",
-        "description": "Read task documentation for the SimplePDF browser API. Omit topic for the index. Includes PDF building, templates, forms, fields and inspection. Guidance does not modify the document or grant permissions.",
+        "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
         "input_schema": {
+          "additionalProperties": false,
           "type": "object",
           "properties": {
             "topic": {
@@ -1683,6 +1712,7 @@
         "required": [
           "page"
         ],
+        "additionalProperties": false,
         "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block."
       },
       "output_schema": {
@@ -1761,6 +1791,7 @@
           "required": [
             "page"
           ],
+          "additionalProperties": false,
           "type": "object",
           "properties": {
             "page": {
@@ -2364,7 +2395,7 @@
   "events": [
     {
       "event_type": "EDITOR_READY",
-      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
+      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and document-dependent operations with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
       "payload_schema": {
         "type": "object",
         "properties": {}
@@ -2372,7 +2403,7 @@
     },
     {
       "event_type": "DOCUMENT_LOADED",
-      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
+      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, document-dependent operations fail with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
       "payload_schema": {
         "type": "object",
         "properties": {
