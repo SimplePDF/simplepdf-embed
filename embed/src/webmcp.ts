@@ -40,7 +40,7 @@ const toTextToolResult = (result: BridgeResult<unknown>): CallToolResult => ({
   ...(result.success ? {} : { isError: true }),
 })
 
-// Keep the image bytes separate from metadata on both inspection paths.
+// Both an annotated page and a build preview carry their PNG once as a native MCP image.
 const splitPageImage = (render: unknown): { image: ToolContent; metadata: Record<string, unknown> } | null => {
   if (typeof render !== 'object' || render === null || !('image_data_url' in render)) return null
   const { image_data_url: image, ...metadata } = render
@@ -57,46 +57,21 @@ const toAnnotatedPageToolResult = (result: BridgeResult<unknown>): CallToolResul
   }
 }
 
-// Compound inspection carries each PNG once, with the remaining job/page metadata in text.
-const toBuildPdfToolResult = (
-  result: BridgeResult<unknown>
-): CallToolResult => {
+const toBuildPdfToolResult = (result: BridgeResult<unknown>): CallToolResult => {
   if (!result.success) return toTextToolResult(result)
   const job = result.data
-  if (typeof job !== 'object' || job === null || !('inspection' in job))
-    return toTextToolResult(result)
-  const inspection = job.inspection
+  if (typeof job !== 'object' || job === null || !('preview' in job)) return toTextToolResult(result)
+  const preview = job.preview
   if (
-    typeof inspection !== 'object' ||
-    inspection === null ||
-    !('success' in inspection) ||
-    inspection.success !== true ||
-    !('data' in inspection)
-  )
-    return toTextToolResult(result)
-  const data = inspection.data
-  if (
-    typeof data !== 'object' ||
-    data === null ||
-    !('pages' in data) ||
-    !Array.isArray(data.pages)
-  )
-    return toTextToolResult(result)
-  const images: ToolContent[] = []
-  const pages: Record<string, unknown>[] = []
-  for (const page of data.pages) {
-    const split = splitPageImage(page)
-    if (split === null) return toTextToolResult(result)
-    images.push(split.image)
-    pages.push(split.metadata)
-  }
+    typeof preview !== 'object' || preview === null ||
+    !('success' in preview) || preview.success !== true || !('data' in preview)
+  ) return toTextToolResult(result)
+  const page = splitPageImage(preview.data)
+  if (page === null) return toTextToolResult(result)
   return {
     content: [
-      ...images,
-      ...toTextToolResult({
-        success: true,
-        data: { ...job, inspection: { ...inspection, data: { ...data, pages } } },
-      }).content,
+      page.image,
+      ...toTextToolResult({ success: true, data: { ...job, preview: { success: true, data: page.metadata } } }).content,
     ],
   }
 }

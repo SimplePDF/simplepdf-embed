@@ -20,26 +20,16 @@ export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
 // @public (undocumented)
 export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
     action: z.ZodLiteral<"build">;
-    inspect: z.ZodOptional<z.ZodObject<{
-        pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    }, z.core.$strict>>;
     code: z.ZodString;
     idempotencyKey: z.ZodString;
-    buildSessionId: z.ZodOptional<z.ZodString>;
-    baseRevision: z.ZodOptional<z.ZodNumber>;
     name: z.ZodOptional<z.ZodString>;
     assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         dataUrl: z.ZodString;
     }, z.core.$strict>>>;
-    waitMs: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strict>, z.ZodObject<{
     action: z.ZodLiteral<"status">;
     jobId: z.ZodString;
-    waitMs: z.ZodOptional<z.ZodNumber>;
-    inspect: z.ZodOptional<z.ZodObject<{
-        pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-    }, z.core.$strict>>;
 }, z.core.$strict>, z.ZodObject<{
     action: z.ZodLiteral<"cancel">;
     jobId: z.ZodString;
@@ -108,9 +98,7 @@ export type FocusFieldInput = z.infer<typeof FocusFieldInput>;
 // @public (undocumented)
 export const GetAnnotatedPageInput: z.ZodObject<{
     page: z.ZodNumber;
-    expectedBuildSessionId: z.ZodOptional<z.ZodString>;
-    expectedRevision: z.ZodOptional<z.ZodNumber>;
-    expectedEditorStateVersion: z.ZodOptional<z.ZodNumber>;
+    expectedJobId: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 
 // @public (undocumented)

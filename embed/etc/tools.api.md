@@ -18,22 +18,16 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
     readonly buildPdf: {
-        readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing.";
+        readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
         readonly inputSchema: z.ZodObject<{
             action: z.ZodUnion<readonly [z.ZodLiteral<"build">, z.ZodLiteral<"status">, z.ZodLiteral<"cancel">]>;
-            inspect: z.ZodOptional<z.ZodObject<{
-                pages: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
-            }, z.core.$strict>>;
             code: z.ZodOptional<z.ZodString>;
             idempotencyKey: z.ZodOptional<z.ZodString>;
-            buildSessionId: z.ZodOptional<z.ZodString>;
-            baseRevision: z.ZodOptional<z.ZodNumber>;
             name: z.ZodOptional<z.ZodString>;
             assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 path: z.ZodString;
                 dataUrl: z.ZodString;
             }, z.core.$strict>>>;
-            waitMs: z.ZodOptional<z.ZodNumber>;
             jobId: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>;
     };
@@ -110,9 +104,7 @@ export const SIMPLEPDF_TOOLS: {
         readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
         readonly inputSchema: z.ZodObject<{
             page: z.ZodNumber;
-            expectedBuildSessionId: z.ZodOptional<z.ZodString>;
-            expectedRevision: z.ZodOptional<z.ZodNumber>;
-            expectedEditorStateVersion: z.ZodOptional<z.ZodNumber>;
+            expectedJobId: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>;
     };
     readonly getDocumentContent: {

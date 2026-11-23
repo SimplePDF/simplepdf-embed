@@ -235,12 +235,12 @@ describe('attachEmbed({ webMCP })', () => {
     expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify({ success: true, data: null }) }])
   })
 
-  it('preserves raw WebMCP keys so the editor can reject misspelled build preconditions', async () => {
+  it('preserves raw WebMCP keys so the editor can reject misspelled build inputs', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     const input = {
-      action: 'build', code: 'Draft', idempotency_key: 'wire-keys', base_revision: 1, baseRevision: 0,
+      action: 'build', code: 'Draft', idempotency_key: 'wire-keys', idempotencyKey: 'duplicate',
       assets: [{ path: 'image.png', dataUrl: 'invalid' }],
     }
     const pending = findTool(modelContext, 'build_pdf').execute(input)
@@ -272,69 +272,34 @@ describe('attachEmbed({ webMCP })', () => {
     const request = await waitForRequest(harness, 'GET_ANNOTATED_PAGE')
     harness.reply(request, {
       success: true,
-      data: { page: 1, image_data_url: 'data:image/png;base64,iVBORw0KGgo=', image_width: 10, image_height: 12, badges: { '1': 'f1' } },
+      data: { page: 1, job_id: null, image_data_url: 'data:image/png;base64,iVBORw0KGgo=', image_width: 10, image_height: 12, badges: { '1': 'f1' } },
     })
     const toolResult = await pendingResult
     expect(toolResult.isError).toBeUndefined()
     expect(toolResult.content).toEqual([
       { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
-      { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
+      { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, job_id: null, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
     ])
   })
 
-  it('returns build inspection as native images without duplicating PNG bytes in text', async () => {
+  it('returns the first-page build preview as a native image alongside the job metadata', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
-    const pending = findTool(modelContext, 'build_pdf').execute({
-      action: 'status',
-      job_id: 'job',
-      inspect: {},
-    })
+    const pending = findTool(modelContext, 'build_pdf').execute({ action: 'status', job_id: 'job' })
     const request = await waitForRequest(harness, 'BUILD_PDF')
-    const page = {
-      page: 1,
-      build_session_id: 'session',
-      revision: 1,
-      editor_state_version: 3,
-      image_data_url: 'data:image/png;base64,iVBORw0KGgo=',
-      image_width: 10,
-      image_height: 12,
-      badges: {},
-    }
+    const page = { page: 1, job_id: 'job', image_width: 10, image_height: 12, badges: {} }
+    const job = { job_id: 'job', status: 'succeeded', page_count: 2, warnings: [] }
     harness.reply(request, {
       success: true,
-      data: {
-        job_id: 'job',
-        build_session_id: 'session',
-        revision: 1,
-        published_revision: 1,
-        status: 'succeeded',
-        page_count: 2,
-        warnings: [],
-        warnings_truncated: false,
-        inspection: {
-          success: true,
-          data: { pages: [page, { ...page, page: 2, image_data_url: 'data:image/png;base64,cGFnZTI=' }], omitted_pages: [] },
-        },
-      },
+      data: { ...job, preview: { success: true, data: { ...page, image_data_url: 'data:image/png;base64,iVBORw0KGgo=' } } },
     })
-    const result = await pending
-    expect(result.content[0]).toEqual({
-      type: 'image',
-      data: 'iVBORw0KGgo=',
-      mimeType: 'image/png',
+    expect(await pending).toEqual({
+      content: [
+        { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
+        { type: 'text', text: JSON.stringify({ success: true, data: { ...job, preview: { success: true, data: page } } }) },
+      ],
     })
-    expect(result.content[1]).toEqual({ type: 'image', data: 'cGFnZTI=', mimeType: 'image/png' })
-    const text = result.content[2]
-    if (text.type !== 'text') throw new Error('Expected inspection metadata')
-    const metadata = JSON.parse(text.text)
-    expect(metadata.data.inspection.data.pages).toEqual([1, 2].map((page) => ({
-      page, build_session_id: 'session', revision: 1, editor_state_version: 3,
-      image_width: 10, image_height: 12, badges: {},
-    })))
-    expect(metadata.data.published_revision).toBe(1)
-    expect(text.text).not.toContain('image_data_url')
   })
 
   it('keeps the text envelope for a failed annotated page render', async () => {

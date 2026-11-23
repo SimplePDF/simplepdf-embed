@@ -73,26 +73,16 @@ export class BridgeUnwrapError extends Error {
 // @public (undocumented)
 export type BuildPdfInput = {
     action: "build";
-    inspect?: {
-        pages?: number[];
-    };
     code: string;
     idempotencyKey: string;
-    buildSessionId?: string;
-    baseRevision?: number;
     name?: string;
     assets?: Array<{
         path: string;
         dataUrl: string;
     }>;
-    waitMs?: number;
 } | {
     action: "status";
     jobId: string;
-    waitMs?: number;
-    inspect?: {
-        pages?: number[];
-    };
 } | {
     action: "cancel";
     jobId: string;
@@ -101,24 +91,12 @@ export type BuildPdfInput = {
 // @public (undocumented)
 export type BuildPdfOutput = {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "queued";
-    pollAfterMs: number;
 } | {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "running";
-    stage: "queued" | "initializing" | "compiling" | "validating" | "loading" | "ready";
-    pollAfterMs: number;
 } | {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "succeeded";
     pageCount: number;
     warnings: Array<{
@@ -130,21 +108,15 @@ export type BuildPdfOutput = {
         column?: number;
         hint?: string;
     }>;
-    warningsTruncated: boolean;
-    inspection?: {
+    preview: {
         success: true;
         data: {
-            pages: Array<{
-                buildSessionId: string | null;
-                revision: number | null;
-                editorStateVersion: number;
-                page: number;
-                imageDataUrl: string;
-                imageWidth: number;
-                imageHeight: number;
-                badges: Record<string, string>;
-            }>;
-            omittedPages: number[];
+            jobId: string | null;
+            page: number;
+            imageDataUrl: string;
+            imageWidth: number;
+            imageHeight: number;
+            badges: Record<string, string>;
         };
     } | {
         success: false;
@@ -165,20 +137,16 @@ export type BuildPdfOutput = {
                 unfilledRequiredFieldsCount: number;
             };
         } | {
-            code: "conflict:build_session_mismatch" | "conflict:base_revision_mismatch" | "conflict:idempotency_key_reused" | "conflict:editor_modified" | "conflict:unmanaged_document" | "not_found:job" | "not_found:job_expired" | "resource:session_limit" | "conflict:inspection_revision_mismatch" | "conflict:inspection_state_changed" | "bad_request:download_blocked" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:failed_to_load_document" | "bad_request:field_not_found" | "bad_request:invalid_dimensions" | "bad_request:invalid_event_type" | "bad_request:invalid_field_ids" | "bad_request:invalid_field_type" | "bad_request:invalid_page" | "bad_request:invalid_signature_url" | "bad_request:invalid_tool" | "bad_request:invalid_value" | "bad_request:no_document_loaded" | "bad_request:page_not_found" | "bad_request:page_out_of_range" | "bad_request:plan_upgrade_required" | "bad_request:read_only" | "bad_request:signup_required" | "forbidden:editing_not_allowed" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error";
+            code: "conflict:idempotency_key_reused" | "conflict:editor_modified" | "conflict:unmanaged_document" | "not_found:job" | "not_found:job_expired" | "resource:session_limit" | "conflict:inspection_state_changed" | "bad_request:download_blocked" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:failed_to_load_document" | "bad_request:field_not_found" | "bad_request:invalid_dimensions" | "bad_request:invalid_event_type" | "bad_request:invalid_field_ids" | "bad_request:invalid_field_type" | "bad_request:invalid_page" | "bad_request:invalid_signature_url" | "bad_request:invalid_tool" | "bad_request:invalid_value" | "bad_request:no_document_loaded" | "bad_request:page_not_found" | "bad_request:page_out_of_range" | "bad_request:plan_upgrade_required" | "bad_request:read_only" | "bad_request:signup_required" | "forbidden:editing_not_allowed" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error";
             message: string;
         };
     };
 } | {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "failed";
     error: {
         code: "unsupported_dependency" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error";
         message: string;
-        stage: "queued" | "initializing" | "compiling" | "validating" | "loading" | "ready";
         retryable: boolean;
         diagnostics: Array<{
             severity: "error" | "warning";
@@ -189,19 +157,12 @@ export type BuildPdfOutput = {
             column?: number;
             hint?: string;
         }>;
-        diagnosticsTruncated: boolean;
     };
 } | {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "cancelled";
 } | {
     jobId: string;
-    buildSessionId: string;
-    revision: number;
-    publishedRevision: number;
     status: "superseded";
 };
 
@@ -371,16 +332,12 @@ export type FocusFieldOutput = {
 // @public (undocumented)
 export type GetAnnotatedPageInput = {
     page: number;
-    expectedBuildSessionId?: string;
-    expectedRevision?: number;
-    expectedEditorStateVersion?: number;
+    expectedJobId?: string;
 };
 
 // @public (undocumented)
 export type GetAnnotatedPageOutput = {
-    buildSessionId: string | null;
-    revision: number | null;
-    editorStateVersion: number;
+    jobId: string | null;
     page: number;
     imageDataUrl: string;
     imageWidth: number;
@@ -402,7 +359,6 @@ export type GetDocumentationOutput = {
     }>;
 } | {
     kind: "topic";
-    topic: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.troubleshooting" | "fields" | "inspection";
     markdown: string;
 };
 

@@ -3,26 +3,16 @@ import { z } from 'zod'
 
 export const BuildPdfInput = z.union([z.strictObject({
   action: z.literal("build"),
-  inspect: z.strictObject({
-  pages: z.array(z.number().int()).optional(),
-}).optional(),
   code: z.string(),
   idempotencyKey: z.string(),
-  buildSessionId: z.string().optional(),
-  baseRevision: z.number().int().optional(),
   name: z.string().optional(),
   assets: z.array(z.strictObject({
   path: z.string(),
   dataUrl: z.string(),
 })).optional(),
-  waitMs: z.number().int().optional(),
 }), z.strictObject({
   action: z.literal("status"),
   jobId: z.string(),
-  waitMs: z.number().int().optional(),
-  inspect: z.strictObject({
-  pages: z.array(z.number().int()).optional(),
-}).optional(),
 }), z.strictObject({
   action: z.literal("cancel"),
   jobId: z.string(),
@@ -68,9 +58,7 @@ export const FocusFieldInput = z.object({
 export type FocusFieldInput = z.infer<typeof FocusFieldInput>
 export const GetAnnotatedPageInput = z.strictObject({
   page: z.number().int().describe("1-based page to render, at its current position."),
-  expectedBuildSessionId: z.string().optional(),
-  expectedRevision: z.number().int().optional(),
-  expectedEditorStateVersion: z.number().int().optional(),
+  expectedJobId: z.string().optional(),
 })
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>
 export const GetDocumentContentInput = z.object({

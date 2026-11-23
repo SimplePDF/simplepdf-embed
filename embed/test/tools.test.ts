@@ -61,10 +61,10 @@ describe(routeToolCall.name, () => {
     expect(actions.getDocumentation).toHaveBeenCalledWith({})
   })
 
-  // Router validation must preserve the caller's intended preconditions before any editor call.
+  // Reject unrecognized keys on each action and in nested assets before dispatch.
   it.each([
-    { action: 'build', code: 'Hello', idempotencyKey: 'key', baseRevison: 2 },
-    { action: 'build', code: 'Hello', idempotencyKey: 'key', inspect: { page: [1] } },
+    { action: 'build', code: 'Hello', idempotencyKey: 'key', jobId: 'job' },
+    { action: 'build', code: 'Hello', idempotencyKey: 'key', inspect: {} },
     { action: 'build', code: 'Hello', idempotencyKey: 'key', assets: [{ path: 'a.png', dataUrl: 'data', extra: true }] },
     { action: 'cancel', jobId: 'job', code: 'Hello' },
     { action: 'build', code: 'Hello' },
@@ -87,21 +87,17 @@ describe(routeToolCall.name, () => {
     expect(actions.goTo).not.toHaveBeenCalled()
   })
 
-  it('rejects misspelled inspection preconditions before dispatch', async () => {
+  it('rejects a misspelled expected job ID before dispatch', async () => {
     const actions = makeActionsStub()
-    const result = await routeToolCall(actions, 'getAnnotatedPage', {
-      page: 1, expectedBuildSessionId: 'session', expectedRevision: 7, expectedEditorStateVerison: 4,
-    })
+    const result = await routeToolCall(actions, 'getAnnotatedPage', { page: 1, expectedJobID: 'job' })
     expect(result).toMatchObject({ success: false, error: { code: 'bad_request:invalid_input' } })
     expect(actions.getAnnotatedPage).not.toHaveBeenCalled()
-    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
-    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
   })
 
-  it('routes getAnnotatedPage to its action with the validated page', async () => {
+  it.each([{ page: 1 }, { page: 2, expectedJobId: 'job' }])('routes getAnnotatedPage with %j', async (input) => {
     const actions = makeActionsStub()
-    await routeToolCall(actions, 'getAnnotatedPage', { page: 1 })
-    expect(actions.getAnnotatedPage).toHaveBeenCalledWith({ page: 1 })
+    await routeToolCall(actions, 'getAnnotatedPage', input)
+    expect(actions.getAnnotatedPage).toHaveBeenCalledWith(input)
   })
 
   it('dispatches no-input tools without requiring input', async () => {

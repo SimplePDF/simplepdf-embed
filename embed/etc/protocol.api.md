@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export const EDITOR_ERROR_CODES: readonly ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "conflict:base_revision_mismatch", "conflict:build_session_mismatch", "conflict:editor_modified", "conflict:idempotency_key_reused", "conflict:inspection_revision_mismatch", "conflict:inspection_state_changed", "conflict:unmanaged_document", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "not_found:job", "not_found:job_expired", "resource:session_limit", "unexpected:internal_error"];
+export const EDITOR_ERROR_CODES: readonly ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "conflict:editor_modified", "conflict:idempotency_key_reused", "conflict:inspection_state_changed", "conflict:unmanaged_document", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "not_found:job", "not_found:job_expired", "resource:session_limit", "unexpected:internal_error"];
 
 // @public (undocumented)
 export const EXTRACTION_MODES: readonly ["auto", "ocr"];
@@ -30,8 +30,8 @@ export const OPERATIONS: readonly [{
     readonly request_type: "BUILD_PDF";
     readonly wire_type: "BUILD_PDF";
     readonly method: "buildPdf";
-    readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Add inspect for page images. Edits block rebuilding. No sharing.";
-    readonly error_codes: readonly ["conflict:build_session_mismatch", "conflict:base_revision_mismatch", "conflict:idempotency_key_reused", "conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "conflict:inspection_revision_mismatch", "conflict:inspection_state_changed", "bad_request:invalid_value", "forbidden:editing_not_allowed"];
+    readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
+    readonly error_codes: readonly ["conflict:idempotency_key_reused", "conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "conflict:inspection_state_changed", "bad_request:invalid_value", "forbidden:editing_not_allowed"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
 }, {
@@ -103,7 +103,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "GET_ANNOTATED_PAGE";
     readonly method: "getAnnotatedPage";
     readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
-    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:invalid_value", "conflict:inspection_revision_mismatch", "conflict:inspection_state_changed"];
+    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_page", "bad_request:page_out_of_range", "bad_request:invalid_value", "conflict:inspection_state_changed"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
 }, {
