@@ -414,11 +414,6 @@
                                   },
                                   {
                                     "type": "string",
-                                    "const": "conflict:inspection_state_changed",
-                                    "description": "The editor changed during inspection. Inspect again."
-                                  },
-                                  {
-                                    "type": "string",
                                     "const": "bad_request:download_blocked",
                                     "description": "The browser blocked delivering the generated document (share sheet or new tab denied without a user gesture, or a popup blocker). Retry the download from a direct user interaction."
                                   },
@@ -511,6 +506,11 @@
                                     "type": "string",
                                     "const": "bad_request:signup_required",
                                     "description": "This operation requires the end user to sign up or authenticate first at https://simplepdf.com/auth/signup."
+                                  },
+                                  {
+                                    "type": "string",
+                                    "const": "conflict:inspection_state_changed",
+                                    "description": "The expected job is not displayed or the editor changed during inspection."
                                   },
                                   {
                                     "type": "string",
@@ -671,7 +671,6 @@
         "not_found:job",
         "not_found:job_expired",
         "resource:session_limit",
-        "conflict:inspection_state_changed",
         "bad_request:invalid_value",
         "forbidden:editing_not_allowed"
       ],
@@ -2083,11 +2082,6 @@
               },
               {
                 "type": "string",
-                "const": "conflict:inspection_state_changed",
-                "description": "The editor changed during inspection. Inspect again."
-              },
-              {
-                "type": "string",
                 "const": "bad_request:download_blocked",
                 "description": "The browser blocked delivering the generated document (share sheet or new tab denied without a user gesture, or a popup blocker). Retry the download from a direct user interaction."
               },
@@ -2180,6 +2174,11 @@
                 "type": "string",
                 "const": "bad_request:signup_required",
                 "description": "This operation requires the end user to sign up or authenticate first at https://simplepdf.com/auth/signup."
+              },
+              {
+                "type": "string",
+                "const": "conflict:inspection_state_changed",
+                "description": "The expected job is not displayed or the editor changed during inspection."
               },
               {
                 "type": "string",

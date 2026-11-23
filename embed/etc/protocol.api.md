@@ -31,7 +31,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "BUILD_PDF";
     readonly method: "buildPdf";
     readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
-    readonly error_codes: readonly ["conflict:idempotency_key_reused", "conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "conflict:inspection_state_changed", "bad_request:invalid_value", "forbidden:editing_not_allowed"];
+    readonly error_codes: readonly ["conflict:idempotency_key_reused", "conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "bad_request:invalid_value", "forbidden:editing_not_allowed"];
     readonly is_agentic_tool: true;
     readonly has_output: true;
 }, {
