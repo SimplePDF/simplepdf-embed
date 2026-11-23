@@ -117,23 +117,7 @@ export type BuildPdfOutput = {
     } | {
         success: false;
         error: {
-            code: "bad_request:batch_validation_failed";
-            message: string;
-            details: {
-                failures: Array<{
-                    fieldId: string;
-                    code: "bad_request:field_not_found" | "bad_request:invalid_signature_url" | "bad_request:invalid_value" | "bad_request:read_only";
-                    message: string;
-                }>;
-            };
-        } | {
-            code: "bad_request:missing_required_fields";
-            message: string;
-            details: {
-                unfilledRequiredFieldsCount: number;
-            };
-        } | {
-            code: "conflict:idempotency_key_reused" | "conflict:editor_modified" | "conflict:unmanaged_document" | "not_found:job" | "not_found:job_expired" | "resource:session_limit" | "bad_request:download_blocked" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:failed_to_load_document" | "bad_request:field_not_found" | "bad_request:invalid_dimensions" | "bad_request:invalid_event_type" | "bad_request:invalid_field_ids" | "bad_request:invalid_field_type" | "bad_request:invalid_page" | "bad_request:invalid_signature_url" | "bad_request:invalid_tool" | "bad_request:invalid_value" | "bad_request:no_document_loaded" | "bad_request:page_not_found" | "bad_request:page_out_of_range" | "bad_request:plan_upgrade_required" | "bad_request:read_only" | "bad_request:signup_required" | "conflict:inspection_state_changed" | "forbidden:editing_not_allowed" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error";
+            code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:invalid_value" | "conflict:inspection_state_changed" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "unexpected:internal_error";
             message: string;
         };
     };
