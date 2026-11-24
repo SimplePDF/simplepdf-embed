@@ -5,10 +5,9 @@ import { z } from 'zod'
 // The agentic tool registry. Each tool name is the camelCase operation name;
 // load_document is excluded here (a host/setup action; the WebMCP surface registers it).
 export const TOOL_DEFINITIONS = {
-  buildPdf: { description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.", inputSchema: z.strictObject({
+  buildPdf: { description: "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.", inputSchema: z.strictObject({
   action: z.union([z.literal("build"), z.literal("status"), z.literal("cancel")]),
   code: z.string().optional(),
-  idempotencyKey: z.string().optional(),
   name: z.string().optional(),
   assets: z.array(z.strictObject({
   path: z.string(),

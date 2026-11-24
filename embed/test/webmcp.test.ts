@@ -240,7 +240,7 @@ describe('attachEmbed({ webMCP })', () => {
     const harness = mountReady({ webMCP: { enabled: true } })
     await waitForTools(modelContext, TOOL_COUNT)
     const input = {
-      action: 'build', code: 'Draft', idempotency_key: 'wire-keys', idempotencyKey: 'duplicate',
+      action: 'status', job_id: 'wire-id', jobId: 'duplicate',
       assets: [{ path: 'image.png', dataUrl: 'invalid' }],
     }
     const pending = findTool(modelContext, 'build_pdf').execute(input)

@@ -171,7 +171,7 @@ else r.error.code // a closed BridgeErrorCode
 
 ```ts
 await embed.actions.getDocumentation({ topic: 'build_pdf' })
-await embed.actions.buildPdf({ action: 'build', code: '= Hello', idempotencyKey: 'draft-1' })
+await embed.actions.buildPdf({ action: 'build', code: '= Hello' })
 await embed.actions.loadDocument({ dataUrl, name, page })
 await embed.actions.goTo({ page: 3 })
 await embed.actions.selectTool({ tool: 'TEXT' }) // 'CHECKBOX' | 'SIGNATURE' | 'PICTURE' | 'COMB_TEXT' | null

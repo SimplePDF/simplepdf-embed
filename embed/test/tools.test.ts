@@ -48,12 +48,10 @@ describe(routeToolCall.name, () => {
     await routeToolCall(actions, 'buildPdf', {
       action: 'build',
       code: 'Hello',
-      idempotencyKey: 'first',
     })
     expect(actions.buildPdf).toHaveBeenCalledWith({
       action: 'build',
       code: 'Hello',
-      idempotencyKey: 'first',
     })
     await routeToolCall(actions, 'buildPdf', { action: 'status', jobId: 'job' })
     expect(actions.buildPdf).toHaveBeenCalledWith({ action: 'status', jobId: 'job' })
@@ -63,11 +61,12 @@ describe(routeToolCall.name, () => {
 
   // Reject unrecognized keys on each action and in nested assets before dispatch.
   it.each([
-    { action: 'build', code: 'Hello', idempotencyKey: 'key', jobId: 'job' },
-    { action: 'build', code: 'Hello', idempotencyKey: 'key', inspect: {} },
-    { action: 'build', code: 'Hello', idempotencyKey: 'key', assets: [{ path: 'a.png', dataUrl: 'data', extra: true }] },
+    { action: 'build', code: 'Hello', idempotencyKey: 'removed' },
+    { action: 'build', code: 'Hello', jobId: 'job' },
+    { action: 'build', code: 'Hello', inspect: {} },
+    { action: 'build', code: 'Hello', assets: [{ path: 'a.png', dataUrl: 'data', extra: true }] },
     { action: 'cancel', jobId: 'job', code: 'Hello' },
-    { action: 'build', code: 'Hello' },
+    { action: 'build' },
   ])('rejects invalid build input without losing fields: %j', async (input) => {
     const actions = makeActionsStub()
     expect(await routeToolCall(actions, 'buildPdf', input)).toMatchObject({

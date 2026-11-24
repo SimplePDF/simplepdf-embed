@@ -18,11 +18,10 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
     readonly buildPdf: {
-        readonly description: "Build and display Typst PDFs. See documentation. Reuse keys for retries; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
+        readonly description: "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
         readonly inputSchema: z.ZodObject<{
             action: z.ZodUnion<readonly [z.ZodLiteral<"build">, z.ZodLiteral<"status">, z.ZodLiteral<"cancel">]>;
             code: z.ZodOptional<z.ZodString>;
-            idempotencyKey: z.ZodOptional<z.ZodString>;
             name: z.ZodOptional<z.ZodString>;
             assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 path: z.ZodString;

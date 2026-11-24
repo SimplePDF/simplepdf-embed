@@ -4,7 +4,6 @@ import { z } from 'zod'
 export const BuildPdfInput = z.union([z.strictObject({
   action: z.literal("build"),
   code: z.string(),
-  idempotencyKey: z.string(),
   name: z.string().optional(),
   assets: z.array(z.strictObject({
   path: z.string(),

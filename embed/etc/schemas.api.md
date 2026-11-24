@@ -21,7 +21,6 @@ export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
 export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
     action: z.ZodLiteral<"build">;
     code: z.ZodString;
-    idempotencyKey: z.ZodString;
     name: z.ZodOptional<z.ZodString>;
     assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
         path: z.ZodString;

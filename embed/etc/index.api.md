@@ -74,7 +74,6 @@ export class BridgeUnwrapError extends Error {
 export type BuildPdfInput = {
     action: "build";
     code: string;
-    idempotencyKey: string;
     name?: string;
     assets?: Array<{
         path: string;
