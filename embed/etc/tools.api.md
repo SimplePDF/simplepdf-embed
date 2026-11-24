@@ -28,7 +28,53 @@ export const SIMPLEPDF_TOOLS: {
                 dataUrl: z.ZodString;
             }, z.core.$strict>>>;
             jobId: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>;
+        }, z.core.$strict> & z.ZodType<{
+            action: "build";
+            code: string;
+            name?: string | undefined;
+            assets?: {
+                path: string;
+                dataUrl: string;
+            }[] | undefined;
+        } | {
+            action: "status";
+            jobId: string;
+        } | {
+            action: "cancel";
+            jobId: string;
+        }, {
+            action: "build" | "status" | "cancel";
+            code?: string | undefined;
+            name?: string | undefined;
+            assets?: {
+                path: string;
+                dataUrl: string;
+            }[] | undefined;
+            jobId?: string | undefined;
+        }, z.core.$ZodTypeInternals<{
+            action: "build";
+            code: string;
+            name?: string | undefined;
+            assets?: {
+                path: string;
+                dataUrl: string;
+            }[] | undefined;
+        } | {
+            action: "status";
+            jobId: string;
+        } | {
+            action: "cancel";
+            jobId: string;
+        }, {
+            action: "build" | "status" | "cancel";
+            code?: string | undefined;
+            name?: string | undefined;
+            assets?: {
+                path: string;
+                dataUrl: string;
+            }[] | undefined;
+            jobId?: string | undefined;
+        }>>;
     };
     readonly getDocumentation: {
         readonly description: "Read task guidance and tested PDF recipes. Omit topic for the index.";

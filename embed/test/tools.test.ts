@@ -68,6 +68,7 @@ describe(routeToolCall.name, () => {
     { action: 'cancel', jobId: 'job', code: 'Hello' },
     { action: 'build' },
   ])('rejects invalid build input without losing fields: %j', async (input) => {
+    expect(SIMPLEPDF_TOOLS.buildPdf.inputSchema.safeParse(input).success).toBe(false)
     const actions = makeActionsStub()
     expect(await routeToolCall(actions, 'buildPdf', input)).toMatchObject({
       success: false,

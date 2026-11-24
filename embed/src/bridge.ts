@@ -1,4 +1,5 @@
-import { fromWireData, toWireData } from './case-transform'
+import { fromWireData, toWireData, InvalidSdkInputError } from './case-transform'
+import { STRICT_INPUT_REQUEST_TYPES } from './generated/bridge-vocabulary'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
@@ -233,6 +234,7 @@ export const attachEmbed = ({
         return
       }
 
+      const strictInput = STRICT_INPUT_REQUEST_TYPES.some((type) => type === wireType)
       const requestId = generateRequestId()
       const startedAtMs = Date.now()
       // Log identifiers + timing only — never the payload body (it can carry the
@@ -265,10 +267,11 @@ export const attachEmbed = ({
         let wireData: unknown
         switch (payloadShape) {
           case 'sdk':
-            wireData = toWireData(data)
+            wireData = toWireData(data, strictInput)
             break
           case 'wire':
-            wireData = data
+            // Preserve strict inputs for editor validation; established operations retain SDK-key conversion.
+            wireData = strictInput ? data : toWireData(data)
             break
           default:
             payloadShape satisfies never
@@ -282,7 +285,7 @@ export const attachEmbed = ({
         resolve({
           success: false,
           error: {
-            code: 'unexpected:unknown',
+            code: error instanceof InvalidSdkInputError ? 'bad_request:invalid_value' : 'unexpected:unknown',
             message: `Failed to post '${wireType}': ${error instanceof Error ? error.message : String(error)}`,
           },
         })

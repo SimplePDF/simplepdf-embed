@@ -14,3 +14,12 @@ expectTypeOf<ReturnType<typeof simplePDFToolDefinitions>[number]['name']>().toEq
 
 // Browser tools are the documented `AnyClientTool[]`, passed straight to useChat({ tools }).
 expectTypeOf<ReturnType<typeof createSimplePDFTools>>().toEqualTypeOf<AnyClientTool[]>()
+
+// Provider-compatible JSON must retain the canonical discriminated input in TypeScript.
+import type { z } from 'zod'
+import { SIMPLEPDF_TOOLS } from './tools'
+import type { BuildPdfInput } from './types'
+type AdvertisedBuildInput = z.infer<typeof SIMPLEPDF_TOOLS.buildPdf.inputSchema>
+expectTypeOf<AdvertisedBuildInput>().toExtend<BuildPdfInput>()
+expectTypeOf<{ action: 'build' }>().not.toExtend<AdvertisedBuildInput>()
+expectTypeOf<Extract<AdvertisedBuildInput, { action: 'build' }>['code']>().toEqualTypeOf<string>()

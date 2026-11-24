@@ -203,10 +203,13 @@ describe(attachEmbed.name, () => {
     vi.spyOn(harness.contentWindow, 'postMessage').mockImplementation(() => {
       throw new Error('dead window')
     })
-    const result = await harness.embed.actions.getFields()
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.code).toBe('unexpected:unknown')
+    // A dead contentWindow is an injected browser failure, not reproducible through a live host.
+    for (const result of await Promise.all([
+      harness.embed.actions.getFields(),
+      harness.embed.actions.buildPdf({ action: 'build', code: 'Valid source' }),
+      harness.embed.actions.getDocumentation(),
+    ])) {
+      expect(result).toMatchObject({ success: false, error: { code: 'unexpected:unknown' } })
     }
   })
 

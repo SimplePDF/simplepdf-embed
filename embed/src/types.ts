@@ -35,7 +35,7 @@ import type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from './generated/contract'
+} from './generated/contract.js'
 
 export type {
   BuildPdfInput,
@@ -77,7 +77,7 @@ export type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from './generated/contract'
+} from './generated/contract.js'
 
 // A single field as reported by get_fields. Alias kept for ergonomics; the
 // shape is owned by the generated GetFieldsOutput.

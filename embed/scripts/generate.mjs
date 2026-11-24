@@ -323,7 +323,7 @@ const constArray = (name, values, typeName) => {
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
 contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module and bridge-vocabulary.ts.')
-contractLines.push("import type { METHOD_NAMES } from './bridge-vocabulary'")
+contractLines.push("import type { METHOD_NAMES } from './bridge-vocabulary.js'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))
 contractLines.push(constArray('EDITOR_ERROR_CODES', editorErrorCodes, 'EditorErrorCode'))
@@ -443,6 +443,7 @@ writeFileSync(
     '// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.',
     '// Kept separate from the full manifest to preserve the root entry bundle boundary.',
     `export const METHOD_NAMES = [${methodNames.map((name) => JSON.stringify(name)).join(', ')}] as const`,
+    `export const STRICT_INPUT_REQUEST_TYPES = ${JSON.stringify(contract.operations.filter((op) => (op.input_schema.anyOf ?? [op.input_schema]).every((schema) => schema.additionalProperties === false)).map((op) => op.request_type))} as const`,
     `export const EDITOR_ERROR_PREFIXES = ${JSON.stringify([...new Set(editorErrorCodes.map((code) => code.slice(0, code.indexOf(':') + 1)))])} as const\n`,
   ]),
 )
@@ -587,7 +588,9 @@ toolLines.push('export const TOOL_DEFINITIONS = {')
 for (const op of agenticOperations) {
   const stem = toPascal(op.request_type)
   const advertisement = toolInputObject(op.input_schema)
-  const inputSchema = advertisement ? zodForObject(advertisement) : `Schemas.${stem}Input`
+  const inputSchema = advertisement
+    ? `${zodForObject(advertisement)}.refine((input): input is z.infer<typeof Schemas.${stem}Input> => Schemas.${stem}Input.safeParse(input).success, { message: 'Invalid action input' })`
+    : `Schemas.${stem}Input`
   toolLines.push(
     `  ${toCamel(op.request_type)}: { description: ${JSON.stringify(op.description)}, inputSchema: ${inputSchema} },`,
   )

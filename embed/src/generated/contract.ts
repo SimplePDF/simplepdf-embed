@@ -1,6 +1,6 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 // Zero runtime dependencies: the zero-dep root imports only from this module and bridge-vocabulary.ts.
-import type { METHOD_NAMES } from './bridge-vocabulary'
+import type { METHOD_NAMES } from './bridge-vocabulary.js'
 
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]

@@ -4,7 +4,7 @@
 //
 // KEYS ONLY: string / number / boolean values pass through untouched, so a field
 // value that happens to contain underscores is never mangled. Payload keys are the
-// contract's (SDK callers) or an agent's (the WebMCP path forwards its input as-is);
+// contract's (SDK callers) or an agent's (legacy WebMCP calls also normalize keys);
 // `__proto__` is dropped below and the editor validates every payload, so a
 // data-controlled key can neither pollute a prototype nor reach an operation unchecked.
 // The editor `context` is baked into the iframe URL at mount and never travels as an op payload.
@@ -46,8 +46,15 @@ const transformKeysDeep = (value: unknown, mapKey: (key: string) => string): unk
   return value
 }
 
-// SDK (camelCase) -> wire (snake_case), applied to SDK requests; WebMCP wire input passes through unchanged.
-export const toWireData = (input: unknown): unknown => transformKeysDeep(input, camelToSnakeKey)
+// Distinguish rejected SDK input from browser transport failures at the bridge boundary.
+export class InvalidSdkInputError extends Error {}
+
+// SDK (camelCase) -> wire (snake_case). Strict WebMCP inputs bypass conversion so unknown keys reach validation.
+export const toWireData = (input: unknown, strict = false): unknown => transformKeysDeep(input, (key) => {
+  // Strict SDK inputs are camelCase: reject wire aliases before conversion can collapse two keys.
+  if (strict && key.includes('_')) throw new InvalidSdkInputError('Use camelCase keys for SDK actions.')
+  return camelToSnakeKey(key)
+})
 
 // wire (snake_case) -> SDK (camelCase), applied to SDK operation results. WebMCP results remain wire-shaped.
 // Editor EVENTS are NOT transformed — they are forwarded verbatim (snake) to

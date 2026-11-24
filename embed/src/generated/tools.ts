@@ -14,7 +14,7 @@ export const TOOL_DEFINITIONS = {
   dataUrl: z.string(),
 })).optional(),
   jobId: z.string().optional(),
-}) },
+}).refine((input): input is z.infer<typeof Schemas.BuildPdfInput> => Schemas.BuildPdfInput.safeParse(input).success, { message: 'Invalid action input' }) },
   getDocumentation: { description: "Read task guidance and tested PDF recipes. Omit topic for the index.", inputSchema: Schemas.GetDocumentationInput },
   batchSetFieldValues: { description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.", inputSchema: Schemas.BatchSetFieldValuesInput },
   createField: { description: "Create a new overlay field on a page. Returns the id of the created field.", inputSchema: Schemas.CreateFieldInput },
