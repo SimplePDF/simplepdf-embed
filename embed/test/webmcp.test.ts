@@ -272,13 +272,13 @@ describe('attachEmbed({ webMCP })', () => {
     const request = await waitForRequest(harness, 'GET_ANNOTATED_PAGE')
     harness.reply(request, {
       success: true,
-      data: { page: 1, job_id: null, image_data_url: 'data:image/png;base64,iVBORw0KGgo=', image_width: 10, image_height: 12, badges: { '1': 'f1' } },
+      data: { page: 1, image_data_url: 'data:image/png;base64,iVBORw0KGgo=', image_width: 10, image_height: 12, badges: { '1': 'f1' } },
     })
     const toolResult = await pendingResult
     expect(toolResult.isError).toBeUndefined()
     expect(toolResult.content).toEqual([
       { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
-      { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, job_id: null, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
+      { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
     ])
   })
 
@@ -288,7 +288,7 @@ describe('attachEmbed({ webMCP })', () => {
     await waitForTools(modelContext, TOOL_COUNT)
     const pending = findTool(modelContext, 'build_pdf').execute({ action: 'status', job_id: 'job' })
     const request = await waitForRequest(harness, 'BUILD_PDF')
-    const page = { page: 1, job_id: 'job', image_width: 10, image_height: 12, badges: {} }
+    const page = { page: 1, image_width: 10, image_height: 12, badges: {} }
     const job = { job_id: 'job', status: 'succeeded', page_count: 2, warnings: [] }
     harness.reply(request, {
       success: true,
