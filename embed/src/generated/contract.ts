@@ -5,7 +5,7 @@ import type { METHOD_NAMES } from './bridge-vocabulary.js'
 export const LOCALES = ["fr", "en", "it", "de", "pt", "es", "ja", "nl"] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const EDITOR_ERROR_CODES = ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "conflict:editor_modified", "conflict:inspection_state_changed", "conflict:unmanaged_document", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "not_found:job", "not_found:job_expired", "resource:session_limit", "unexpected:internal_error"] as const
+export const EDITOR_ERROR_CODES = ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "conflict:editor_modified", "conflict:inspection_state_changed", "conflict:unmanaged_document", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:recipient_link_used", "forbidden:whitelist_required", "not_found:job", "not_found:job_expired", "resource:session_limit", "unexpected:internal_error"] as const
 export type EditorErrorCode = (typeof EDITOR_ERROR_CODES)[number]
 
 export const FIELD_TYPES = ["TEXT", "SIGNATURE", "PICTURE", "CHECKBOX", "COMB_TEXT", "DROPDOWN", "RADIO"] as const
@@ -239,7 +239,7 @@ export const OPERATIONS = [
     wire_type: "SUBMIT",
     method: "submit",
     description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.",
-    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields"] as const,
+    error_codes: ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields", "forbidden:recipient_link_used"] as const,
     is_agentic_tool: true,
     has_output: false,
   } /* Submit */,
