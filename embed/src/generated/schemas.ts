@@ -1,6 +1,42 @@
 // AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.
 import { z } from 'zod'
 
+export const BuildPdfInput = z.union([z.strictObject({
+  action: z.literal("build"),
+  code: z.string(),
+  fonts: z.array(z.strictObject({
+  family: z.string(),
+  weight: z.number().int().optional(),
+  style: z.enum(["normal", "italic"]).optional(),
+})).optional(),
+  name: z.string().optional(),
+  assets: z.array(z.union([z.strictObject({
+  path: z.string(),
+  dataUrl: z.string(),
+}), z.strictObject({
+  path: z.string(),
+  shader: z.strictObject({
+  code: z.string(),
+  width: z.number().int(),
+  height: z.number().int(),
+  textures: z.array(z.string()).optional(),
+}),
+})])).optional(),
+}), z.strictObject({
+  action: z.literal("status"),
+  jobId: z.string(),
+}), z.strictObject({
+  action: z.literal("cancel"),
+  jobId: z.string(),
+})])
+export type BuildPdfInput = z.infer<typeof BuildPdfInput>
+export const GetDocumentationInput = z.union([z.strictObject({
+  topic: z.enum(["build_pdf", "build_pdf.templates", "build_pdf.forms", "build_pdf.assets", "build_pdf.graphics", "build_pdf.shaders", "build_pdf.troubleshooting", "fields", "inspection"]).optional(),
+}), z.strictObject({
+  topic: z.enum(["build_pdf.fonts"]),
+  query: z.string().optional(),
+})])
+export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>
 export const BatchSetFieldValuesInput = z.object({
   updates: z.array(z.object({
   fieldId: z.string().describe("ID of the field to update."),

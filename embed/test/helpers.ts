@@ -1,13 +1,16 @@
 import { vi } from 'vitest'
 import type { BridgeResult, Embed, IframeActions } from '../src/types'
 
-const okResult: BridgeResult<unknown> = { success: true, data: null }
+const result: BridgeResult<never> = { success: false, error: { code: 'bad_request:invalid_input', message: 'Test action' } }
 
 // A fully-stubbed actions group: every editor operation is a vi.fn resolving to a
-// success Result. Shared by the tools + adapter tests.
+// failure Result. Shared by the tools + adapter tests.
 export const makeActionsStub = (): IframeActions => {
-  const method = (): Promise<BridgeResult<unknown>> => Promise.resolve(okResult)
+  const method = (): Promise<BridgeResult<never>> => Promise.resolve(result)
   return {
+    batchSetFieldValues: vi.fn(method),
+    buildPdf: vi.fn(method),
+    getDocumentation: vi.fn(method),
     createField: vi.fn(method),
     deleteFields: vi.fn(method),
     deletePages: vi.fn(method),

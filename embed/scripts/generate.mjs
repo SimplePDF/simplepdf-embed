@@ -3,20 +3,8 @@
 // source of truth; this script is the only consumer that re-materializes it as
 // TypeScript. Run via `npm run generate` (wired into prebuild + pretest).
 //
-// Four outputs, all derived from one source so they cannot hand-drift:
-//   - src/generated/contract.ts : zero-runtime-dep plain TS types + const tables
-//                                  (locales, error codes, operations, events).
-//                                  The zero-dep root imports only from here and
-//                                  from method-names.ts.
-//   - src/generated/schemas.ts  : zod schemas (peer dep). Each schema is compile-time
-//                                  drift-guarded against the plain type in contract.ts,
-//                                  so a divergence fails `tsc`.
-//   - src/generated/method-names.ts : the SDK method names alone, the one generated
-//                                  VALUE the zero-dep root imports (to validate
-//                                  `webMCP.exclude`).
-//   - src/generated/webmcp-tools.ts : each operation's WebMCP tool record (manifest
-//                                  `tool`), verbatim, read only by the lazily-loaded
-//                                  WebMCP module.
+// The bridge vocabulary is separate from the full contract so the zero-dependency
+// root does not download the operations table. Runtime schemas remain opt-in.
 //
 // The JSON Schema vocabulary in embed-api.json is closed and small (object/string/
 // integer/number/boolean/null/array/enum/const/anyOf), so the emitter below covers
@@ -69,8 +57,8 @@ const NAMED_ENUMS = new Map()
 // The closed vocabulary the emitter understands. A node carrying any other
 // keyword (minLength, pattern, format, minimum, oneOf, allOf, $ref, ...) fails
 // loud so a new manifest constraint can never be silently dropped from the
-// generated types/schemas. `additionalProperties` is honored only as a schema on
-// an object with no `properties` (a map: Record<string, T> / z.record).
+// generated types/schemas. `additionalProperties:false` preserves strict objects; a schema on an object
+// without properties describes a map (Record<string, T> / z.record).
 const KNOWN_SCHEMA_KEYWORDS = new Set([
   'type',
   'enum',
@@ -90,9 +78,9 @@ const assertKnownKeywords = (node) => {
       )
     }
   }
-  if (node.additionalProperties !== undefined && !isMapNode(node)) {
+  if (node.additionalProperties !== undefined && node.additionalProperties !== false && !isMapNode(node)) {
     throw new Error(
-      `Unsupported 'additionalProperties' in ${JSON.stringify(node)} — only a schema on an object without 'properties' is honored (a map)`,
+      `Unsupported 'additionalProperties' in ${JSON.stringify(node)} — only false or a schema on an object without 'properties' is honored`,
     )
   }
   if (isMapNode(node) && node.required !== undefined) {
@@ -249,15 +237,16 @@ const zodForObject = (node) => {
   const properties = node.properties ?? {}
   const required = new Set(node.required ?? [])
   const keys = Object.keys(properties)
+  const constructor = node.additionalProperties === false ? 'z.strictObject' : 'z.object'
   if (keys.length === 0) {
-    return 'z.object({})'
+    return `${constructor}({})`
   }
   const members = keys.map((key) => {
     const inner = zodForNode(properties[key], { withDescription: true })
     const withOptional = required.has(key) ? inner : `${inner}.optional()`
     return `  ${toCamel(key)}: ${withOptional},`
   })
-  return `z.object({\n${members.join('\n')}\n})`
+  return `${constructor}({\n${members.join('\n')}\n})`
 }
 
 // ---------------------------------------------------------------------------
@@ -333,8 +322,8 @@ const constArray = (name, values, typeName) => {
 
 const contractLines = []
 contractLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
-contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module and method-names.ts.')
-contractLines.push("import type { METHOD_NAMES } from './method-names'")
+contractLines.push('// Zero runtime dependencies: the zero-dep root imports only from this module and bridge-vocabulary.ts.')
+contractLines.push("import type { METHOD_NAMES } from './bridge-vocabulary.js'")
 contractLines.push('')
 contractLines.push(constArray('LOCALES', contract.locales, 'Locale'))
 contractLines.push(constArray('EDITOR_ERROR_CODES', editorErrorCodes, 'EditorErrorCode'))
@@ -445,17 +434,17 @@ schemaLines.push('')
 
 writeFileSync(join(GENERATED_DIR, 'schemas.ts'), renderFile(schemaLines))
 
-// --- method-names.ts (zero runtime deps; the one generated value the root imports) ---
+// --- bridge-vocabulary.ts (the small runtime subset used by the root) ---
 
 const methodNames = contract.operations.map((op) => toCamel(op.request_type))
 writeFileSync(
-  join(GENERATED_DIR, 'method-names.ts'),
+  join(GENERATED_DIR, 'bridge-vocabulary.ts'),
   renderFile([
     '// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.',
-    '// The SDK method names alone, so createEmbed can validate a `webMCP.exclude` list',
-    '// without pulling the operations table into the zero-dep root; contract.ts derives',
-    '// MethodName from this list.',
+    '// Kept separate from the full manifest to preserve the root entry bundle boundary.',
     `export const METHOD_NAMES = [${methodNames.map((name) => JSON.stringify(name)).join(', ')}] as const`,
+    `export const STRICT_INPUT_REQUEST_TYPES = ${JSON.stringify(contract.operations.filter((op) => (op.input_schema.anyOf ?? [op.input_schema]).every((schema) => schema.additionalProperties === false)).map((op) => op.request_type))} as const`,
+    `export const EDITOR_ERROR_PREFIXES = ${JSON.stringify([...new Set(editorErrorCodes.map((code) => code.slice(0, code.indexOf(':') + 1)))])} as const\n`,
   ]),
 )
 
@@ -512,6 +501,8 @@ webmcpToolLines.push('  readonly inputSchema: {')
 webmcpToolLines.push("    readonly type: 'object'")
 webmcpToolLines.push('    readonly properties?: Readonly<Record<string, unknown>>')
 webmcpToolLines.push('    readonly required?: readonly string[]')
+webmcpToolLines.push('    readonly anyOf?: readonly unknown[]')
+webmcpToolLines.push('    readonly additionalProperties?: false')
 webmcpToolLines.push('  }')
 webmcpToolLines.push('  readonly annotations: {')
 for (const hint of WEBMCP_ANNOTATION_KEYS) {
@@ -564,17 +555,44 @@ writeFileSync(join(GENERATED_DIR, 'drift.ts'), renderFile(driftLines))
 const agenticOperations = contract.operations.filter(
   (op) => !NON_AGENTIC_OPERATIONS.has(op.request_type.toLowerCase()),
 )
+// Provider tools require an object root. The broad advertisement is derived from the
+// same variants; dispatch still validates the exact action-specific input union.
+const toolInputObject = (schema) => {
+  if (!schema.anyOf) return null
+  const variants = schema.anyOf
+  if (variants.some((variant) => variant.type !== 'object')) {
+    throw new Error('Tool input variants must be objects')
+  }
+  const keys = [...new Set(variants.flatMap((variant) => Object.keys(variant.properties ?? {})))]
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: Object.fromEntries(keys.map((key) => {
+      const values = [...new Map(variants.flatMap((variant) =>
+        variant.properties?.[key] ? [[JSON.stringify(variant.properties[key]), variant.properties[key]]] : [],
+      )).values()]
+      return [key, values.length === 1 ? values[0] : { anyOf: values }]
+    })),
+    required: keys.filter((key) => variants.every((variant) => variant.required?.includes(key))),
+  }
+}
+
 const toolLines = []
 toolLines.push('// AUTO-GENERATED from embed-api.json by scripts/generate.mjs. Do not edit by hand.')
 toolLines.push("import * as Schemas from './schemas'")
+toolLines.push("import { z } from 'zod'")
 toolLines.push('')
 toolLines.push('// The agentic tool registry. Each tool name is the camelCase operation name;')
 toolLines.push('// load_document is excluded here (a host/setup action; the WebMCP surface registers it).')
 toolLines.push('export const TOOL_DEFINITIONS = {')
 for (const op of agenticOperations) {
   const stem = toPascal(op.request_type)
+  const advertisement = toolInputObject(op.input_schema)
+  const inputSchema = advertisement
+    ? `${zodForObject(advertisement)}.refine((input): input is z.infer<typeof Schemas.${stem}Input> => Schemas.${stem}Input.safeParse(input).success, { message: 'Invalid action input' })`
+    : `Schemas.${stem}Input`
   toolLines.push(
-    `  ${toCamel(op.request_type)}: { description: ${JSON.stringify(op.description)}, inputSchema: Schemas.${stem}Input },`,
+    `  ${toCamel(op.request_type)}: { description: ${JSON.stringify(op.description)}, inputSchema: ${inputSchema} },`,
   )
 }
 toolLines.push('} as const')
@@ -586,5 +604,5 @@ writeFileSync(join(GENERATED_DIR, 'tools.ts'), renderFile(toolLines))
 
 console.log(
   `Generated contract.ts (${contract.operations.length} ops, ${contract.events.length} events, ` +
-    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + method-names.ts + webmcp-tools.ts`,
+    `${contract.locales.length} locales, ${editorErrorCodes.length} editor error codes) + schemas.ts + bridge-vocabulary.ts + webmcp-tools.ts`,
 )

@@ -1,4 +1,5 @@
-import { fromWireData, toWireData } from './case-transform'
+import { fromWireData, toWireData, InvalidSdkInputError } from './case-transform'
+import { STRICT_INPUT_REQUEST_TYPES } from './generated/bridge-vocabulary'
 import { type BridgeLogger, makeSafeLogger, NOOP_LOGGER } from './logger'
 import { isBridgeResultLike } from './result'
 import type { OutboundEventType, WireType } from './generated/contract'
@@ -75,11 +76,11 @@ const relabelResult = <TData>(result: BridgeResult<unknown>): BridgeResult<TData
 
 // Op results reach SDK callers camelCased; the WebMCP tools hand the agent the wire
 // shape (snake_case), the one the manifest's tool descriptions promise.
-type ResultShape = 'sdk' | 'wire'
+type PayloadShape = 'sdk' | 'wire'
 
 type PendingRequest = {
   resolve: (result: BridgeResult<unknown>) => void
-  resultShape: ResultShape
+  payloadShape: PayloadShape
   wireType: WireType
   startedAtMs: number
   timeoutId: ReturnType<typeof setTimeout>
@@ -215,7 +216,7 @@ export const attachEmbed = ({
     }
   }
 
-  const postRequest = <TData>(wireType: WireType, data: unknown, resultShape: ResultShape): Promise<BridgeResult<TData>> =>
+  const postRequest = <TData>(wireType: WireType, data: unknown, payloadShape: PayloadShape): Promise<BridgeResult<TData>> =>
     new Promise<BridgeResult<TData>>((resolve) => {
       if (disposed) {
         resolve({
@@ -233,6 +234,7 @@ export const attachEmbed = ({
         return
       }
 
+      const strictInput = STRICT_INPUT_REQUEST_TYPES.some((type) => type === wireType)
       const requestId = generateRequestId()
       const startedAtMs = Date.now()
       // Log identifiers + timing only — never the payload body (it can carry the
@@ -253,7 +255,7 @@ export const attachEmbed = ({
 
       pending.set(requestId, {
         resolve: (result) => resolve(relabelResult<TData>(result)),
-        resultShape,
+        payloadShape,
         wireType,
         startedAtMs,
         timeoutId,
@@ -262,7 +264,19 @@ export const attachEmbed = ({
       // Serializing (circular / BigInt input) or posting (dead contentWindow) can
       // throw; convert that into a Result rather than rejecting the promise.
       try {
-        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data: toWireData(data) })
+        let wireData: unknown
+        switch (payloadShape) {
+          case 'sdk':
+            wireData = toWireData(data, strictInput)
+            break
+          case 'wire':
+            // Preserve strict inputs for editor validation; established operations retain SDK-key conversion.
+            wireData = strictInput ? data : toWireData(data)
+            break
+          default:
+            payloadShape satisfies never
+        }
+        const outbound = JSON.stringify({ type: wireType, request_id: requestId, data: wireData })
         iframe.contentWindow.postMessage(outbound, editorOrigin)
         logger.debug('iframe.request_posted', { request_id: requestId, type: wireType, char_count: outbound.length })
       } catch (error) {
@@ -271,7 +285,7 @@ export const attachEmbed = ({
         resolve({
           success: false,
           error: {
-            code: 'unexpected:unknown',
+            code: error instanceof InvalidSdkInputError ? 'bad_request:invalid_value' : 'unexpected:unknown',
             message: `Failed to post '${wireType}': ${error instanceof Error ? error.message : String(error)}`,
           },
         })
@@ -479,7 +493,7 @@ export const attachEmbed = ({
       if (rawResult.success === true && !('data' in rawResult)) {
         return { success: true, data: null }
       }
-      switch (entry.resultShape) {
+      switch (entry.payloadShape) {
         case 'wire':
           return rawResult
         case 'sdk': {
@@ -496,7 +510,7 @@ export const attachEmbed = ({
           return camelCased
         }
         default:
-          entry.resultShape satisfies never
+          entry.payloadShape satisfies never
           return rawResult
       }
     })()
@@ -515,6 +529,8 @@ export const attachEmbed = ({
   // ordering, input validation, and typed errors, and always replies. Each method
   // posts the request and correlates the reply; no client-side validation.
   const methods = {
+    buildPdf: (input) => sendRequest('BUILD_PDF', input),
+    getDocumentation: (input) => sendRequest('GET_DOCUMENTATION', input ?? {}),
     batchSetFieldValues: (input) => sendRequest('BATCH_SET_FIELD_VALUES', input),
     createField: (input) => sendRequest('CREATE_FIELD', input),
     // All-optional input: deleteFields() with no args clears every field.

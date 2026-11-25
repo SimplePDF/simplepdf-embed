@@ -1,5 +1,5 @@
 {
-  "editor_version": "6f020890-20261114T210959Z",
+  "editor_version": null,
   "description": "This is the SimplePDF editor interface contract. Drive the editor programmatically over window.postMessage with the editor iframe: post a JSON string { \"type\": {{operation request_type}}, \"request_id\": {{a request correlation id you generate}}, \"data\": {{input matching input_schema}} } to the iframe; the editor replies with { \"type\": \"REQUEST_RESULT\", \"data\": { \"request_id\": {{the same correlation id}}, \"result\": {{result}} } } (match each reply to its request by this id), where result is { \"success\": true, \"data\": {{a value matching the operation's output_schema; null for ops that return nothing}} } or { \"success\": false, \"error\": { code, message } }. Each operation lists the op-specific `error_codes` it can return; on top of those, any op may also fail with a gateway/permission code (origin/plan/signup gating, editor-not-ready, or an internal error). Every code is within `editor_error_schema` (the complete closed union to narrow against), where each code const carries a `description` of its meaning. Outbound events (see `events`) are pushed the same way. `operations` lists every operation the editor supports. Most require the embedding origin to be allowlisted (\"whitelisted\") for the tenant in the SimplePDF admin dashboard, and the tenant plan to permit them (LOAD_DOCUMENT is always available). A call the current setup does not permit returns the matching gateway code: forbidden:origin_not_whitelisted when the origin is not allowlisted, or bad_request:plan_upgrade_required when the plan excludes it. All JSON schemas use the json_schema_dialect declared at the root. We recommend the @simplepdf/embed package for a typed, ergonomic wrapper over this contract (https://github.com/SimplePDF/simplepdf-embed).",
   "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
   "protocol": {
@@ -77,6 +77,725 @@
   },
   "operations": [
     {
+      "request_type": "BUILD_PDF",
+      "description": "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.",
+      "input_schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "build"
+              },
+              "code": {
+                "type": "string"
+              },
+              "fonts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "family": {
+                      "type": "string"
+                    },
+                    "weight": {
+                      "type": "integer"
+                    },
+                    "style": {
+                      "type": "string",
+                      "enum": ["normal", "italic"]
+                    }
+                  },
+                  "required": ["family"],
+                  "additionalProperties": false
+                }
+              },
+              "name": {
+                "type": "string"
+              },
+              "assets": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "data_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["path", "data_url"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "shader": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "integer"
+                            },
+                            "height": {
+                              "type": "integer"
+                            },
+                            "textures": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": ["code", "width", "height"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["path", "shader"],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            },
+            "required": ["action", "code"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "status"
+              },
+              "job_id": {
+                "type": "string"
+              }
+            },
+            "required": ["action", "job_id"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "cancel"
+              },
+              "job_id": {
+                "type": "string"
+              }
+            },
+            "required": ["action", "job_id"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing."
+      },
+      "output_schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "running"
+              }
+            },
+            "required": ["job_id", "status"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "succeeded"
+              },
+              "page_count": {
+                "type": "integer"
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "severity": {
+                      "type": "string",
+                      "const": "warning"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": ["typst", "shader", "unsupported_dependency"]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "file": {
+                      "type": "string"
+                    },
+                    "line": {
+                      "type": "integer"
+                    },
+                    "column": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["severity", "code", "message"],
+                  "additionalProperties": false
+                }
+              },
+              "preview": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "page": {
+                            "type": "integer",
+                            "description": "1-based page position this render shows."
+                          },
+                          "image_data_url": {
+                            "type": "string",
+                            "description": "PNG render of the page as a data URL, with every field outlined and a numbered badge drawn inside it on the right, or just to its left when the field is too small to hold it."
+                          },
+                          "image_width": {
+                            "type": "integer",
+                            "description": "Render width in pixels."
+                          },
+                          "image_height": {
+                            "type": "integer",
+                            "description": "Render height in pixels."
+                          },
+                          "badges": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            },
+                            "description": "Badge number (as drawn on the render) to field_id, for every field on the page."
+                          }
+                        },
+                        "required": [
+                          "page",
+                          "image_data_url",
+                          "image_width",
+                          "image_height",
+                          "badges"
+                        ]
+                      }
+                    },
+                    "required": ["success", "data"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "const": false
+                      },
+                      "error": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "const": "bad_request:no_document_loaded",
+                                "description": "No document is loaded. Load a document before calling this operation."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:invalid_page",
+                                "description": "page is missing or is not a positive integer."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:page_out_of_range",
+                                "description": "page is outside the document range (1 to the document page_count)."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:editor_not_ready",
+                                "description": "The editor is still initializing and cannot accept this operation yet. Retry the operation shortly."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:event_not_allowed",
+                                "description": "This operation is not available in this context (the portal configuration or this page does not offer it); the message says why."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:plan_upgrade_required",
+                                "description": "The tenant's plan does not include this operation. Upgrade the plan in the SimplePDF admin dashboard."
+                              },
+                              {
+                                "type": "string",
+                                "const": "bad_request:signup_required",
+                                "description": "This operation requires the end user to sign up or authenticate first at https://simplepdf.com/auth/signup."
+                              },
+                              {
+                                "type": "string",
+                                "const": "forbidden:origin_not_whitelisted",
+                                "description": "The embedding origin is not allowlisted for this tenant, or is not the allowlisted origin the editor was loaded from. Allowlist it in the SimplePDF admin dashboard and let the embedding page's Referer reach the editor."
+                              },
+                              {
+                                "type": "string",
+                                "const": "forbidden:whitelist_required",
+                                "description": "This tenant requires the embedding origin to be allowlisted before any operation is accepted. Configure it in the admin dashboard."
+                              },
+                              {
+                                "type": "string",
+                                "const": "conflict:inspection_state_changed",
+                                "description": "The build is no longer displayed or the editor changed during its automatic preview."
+                              },
+                              {
+                                "type": "string",
+                                "const": "unexpected:internal_error",
+                                "description": "An unexpected internal error occurred. Try again, and if the issue persists, reach out to support@simplepdf.com."
+                              }
+                            ]
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["code", "message"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": ["success", "error"],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "job_id",
+              "status",
+              "page_count",
+              "warnings",
+              "preview"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "failed"
+              },
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "enum": [
+                      "unsupported_dependency",
+                      "font_unavailable",
+                      "engine_initialization_failed",
+                      "compile_error",
+                      "compile_timeout",
+                      "job_timeout",
+                      "resource_limit",
+                      "invalid_pdf",
+                      "editor_load_failed",
+                      "editor_conflict",
+                      "worker_crashed",
+                      "internal_error"
+                    ]
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "retryable": {
+                    "type": "boolean"
+                  },
+                  "diagnostics": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "severity": {
+                          "type": "string",
+                          "enum": ["error", "warning"]
+                        },
+                        "code": {
+                          "type": "string",
+                          "enum": ["typst", "shader", "unsupported_dependency"]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "file": {
+                          "type": "string"
+                        },
+                        "line": {
+                          "type": "integer"
+                        },
+                        "column": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": ["severity", "code", "message"],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": ["code", "message", "retryable", "diagnostics"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["job_id", "status", "error"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "cancelled"
+              }
+            },
+            "required": ["job_id", "status"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "const": "superseded"
+              }
+            },
+            "required": ["job_id", "status"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "error_codes": [
+        "conflict:editor_modified",
+        "conflict:unmanaged_document",
+        "not_found:job",
+        "not_found:job_expired",
+        "resource:session_limit",
+        "bad_request:invalid_value",
+        "forbidden:editing_not_allowed"
+      ],
+      "tool": {
+        "name": "build_pdf",
+        "description": "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.",
+        "input_schema": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "const": "build"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "fonts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "family": {
+                        "type": "string"
+                      },
+                      "weight": {
+                        "type": "integer"
+                      },
+                      "style": {
+                        "type": "string",
+                        "enum": ["normal", "italic"]
+                      }
+                    },
+                    "required": ["family"],
+                    "additionalProperties": false
+                  }
+                },
+                "name": {
+                  "type": "string"
+                },
+                "assets": {
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "data_url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["path", "data_url"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "shader": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "width": {
+                                "type": "integer"
+                              },
+                              "height": {
+                                "type": "integer"
+                              },
+                              "textures": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": ["code", "width", "height"],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": ["path", "shader"],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": ["action", "code"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "const": "status"
+                },
+                "job_id": {
+                  "type": "string"
+                }
+              },
+              "required": ["action", "job_id"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "const": "cancel"
+                },
+                "job_id": {
+                  "type": "string"
+                }
+              },
+              "required": ["action", "job_id"],
+              "additionalProperties": false
+            }
+          ],
+          "type": "object",
+          "properties": {}
+        },
+        "annotations": {
+          "destructiveHint": true,
+          "untrustedContentHint": true,
+          "openWorldHint": true
+        }
+      }
+    },
+    {
+      "request_type": "GET_DOCUMENTATION",
+      "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
+      "input_schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "enum": [
+                  "build_pdf",
+                  "build_pdf.templates",
+                  "build_pdf.forms",
+                  "build_pdf.assets",
+                  "build_pdf.graphics",
+                  "build_pdf.shaders",
+                  "build_pdf.troubleshooting",
+                  "fields",
+                  "inspection"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "enum": ["build_pdf.fonts"]
+              },
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": ["topic"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "Read task guidance and tested PDF recipes. Omit topic for the index."
+      },
+      "output_schema": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "index"
+              },
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "topic": {
+                      "type": "string",
+                      "enum": [
+                        "build_pdf",
+                        "build_pdf.templates",
+                        "build_pdf.forms",
+                        "build_pdf.assets",
+                        "build_pdf.fonts",
+                        "build_pdf.graphics",
+                        "build_pdf.shaders",
+                        "build_pdf.troubleshooting",
+                        "fields",
+                        "inspection"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["topic", "description"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["kind", "topics"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "topic"
+              },
+              "markdown": {
+                "type": "string"
+              }
+            },
+            "required": ["kind", "markdown"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "error_codes": ["bad_request:invalid_value"],
+      "tool": {
+        "name": "get_documentation",
+        "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
+        "input_schema": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "enum": [
+                    "build_pdf",
+                    "build_pdf.templates",
+                    "build_pdf.forms",
+                    "build_pdf.assets",
+                    "build_pdf.graphics",
+                    "build_pdf.shaders",
+                    "build_pdf.troubleshooting",
+                    "fields",
+                    "inspection"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "enum": ["build_pdf.fonts"]
+                },
+                "query": {
+                  "type": "string"
+                }
+              },
+              "required": ["topic"],
+              "additionalProperties": false
+            }
+          ],
+          "type": "object",
+          "properties": {}
+        },
+        "annotations": {
+          "readOnlyHint": true,
+          "untrustedContentHint": true
+        }
+      }
+    },
+    {
       "request_type": "BATCH_SET_FIELD_VALUES",
       "description": "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.",
       "input_schema": {
@@ -123,6 +842,7 @@
         "name": "simplepdf_embed_batch_set_field_values",
         "description": "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.",
         "input_schema": {
+          "required": ["updates"],
           "type": "object",
           "properties": {
             "updates": {
@@ -150,8 +870,7 @@
               "description": "The fields to set, at least one, each field at most once. Fields not listed keep their value.",
               "type": "array"
             }
-          },
-          "required": ["updates"]
+          }
         },
         "annotations": {
           "destructiveHint": false,
@@ -222,6 +941,7 @@
         "name": "simplepdf_embed_create_field",
         "description": "Create a new overlay field on a page. Returns the id of the created field.",
         "input_schema": {
+          "required": ["type", "x", "y", "width", "height", "page"],
           "type": "object",
           "properties": {
             "type": {
@@ -253,8 +973,7 @@
               "description": "Optional initial value. A string for text/checkbox fields; a data URL or http(s) URL (fetched by the editor) for signature/picture fields, or plain text for a signature, drawn as a typed signature.",
               "type": "string"
             }
-          },
-          "required": ["type", "x", "y", "width", "height", "page"]
+          }
         },
         "annotations": {
           "destructiveHint": false,
@@ -354,6 +1073,7 @@
         "name": "simplepdf_embed_delete_pages",
         "description": "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.",
         "input_schema": {
+          "required": ["pages"],
           "type": "object",
           "properties": {
             "pages": {
@@ -363,8 +1083,7 @@
               "description": "1-based page numbers to delete.",
               "type": "array"
             }
-          },
-          "required": ["pages"]
+          }
         },
         "annotations": {
           "destructiveHint": true
@@ -474,14 +1193,14 @@
         "name": "simplepdf_embed_focus_field",
         "description": "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.",
         "input_schema": {
+          "required": ["field_id"],
           "type": "object",
           "properties": {
             "field_id": {
               "description": "ID of the field to focus and scroll into view.",
               "type": "string"
             }
-          },
-          "required": ["field_id"]
+          }
         },
         "annotations": {
           "destructiveHint": false
@@ -546,14 +1265,14 @@
         "name": "simplepdf_embed_get_annotated_page",
         "description": "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.",
         "input_schema": {
+          "required": ["page"],
           "type": "object",
           "properties": {
             "page": {
               "description": "1-based page to render, at its current position.",
               "type": "integer"
             }
-          },
-          "required": ["page"]
+          }
         },
         "annotations": {
           "readOnlyHint": true,
@@ -746,14 +1465,14 @@
         "name": "simplepdf_embed_go_to",
         "description": "Scroll the editor to a page. Returns no data.",
         "input_schema": {
+          "required": ["page"],
           "type": "object",
           "properties": {
             "page": {
               "description": "1-based page to navigate to.",
               "type": "integer"
             }
-          },
-          "required": ["page"]
+          }
         },
         "annotations": {
           "destructiveHint": false
@@ -794,6 +1513,7 @@
         "name": "simplepdf_embed_load_document",
         "description": "Replace the document in the editor with one supplied as a base64 data URL or an http(s) URL the editor fetches. Destructive: the current document and every edit in it are discarded. Replies once the document and its fields are ready, so the next operation can act on it, and DOCUMENT_LOADED follows the reply; the URL already open is left as is and answers once it settles; a document that cannot be loaded or prepared answers bad_request:failed_to_load_document. Returns no data.",
         "input_schema": {
+          "required": ["data_url"],
           "type": "object",
           "properties": {
             "data_url": {
@@ -808,8 +1528,7 @@
               "description": "Optional 1-based page to open the document on.",
               "type": "integer"
             }
-          },
-          "required": ["data_url"]
+          }
         },
         "annotations": {
           "destructiveHint": true,
@@ -849,6 +1568,7 @@
         "name": "simplepdf_embed_move_page",
         "description": "Move a page to another position, reordering the document. Returns no data. Destructive.",
         "input_schema": {
+          "required": ["from_page", "to_page"],
           "type": "object",
           "properties": {
             "from_page": {
@@ -859,8 +1579,7 @@
               "description": "1-based destination position for the page.",
               "type": "integer"
             }
-          },
-          "required": ["from_page", "to_page"]
+          }
         },
         "annotations": {
           "destructiveHint": true
@@ -895,14 +1614,14 @@
         "name": "simplepdf_embed_rotate_page",
         "description": "Rotate a page 90 degrees clockwise. Returns no data. Destructive.",
         "input_schema": {
+          "required": ["page"],
           "type": "object",
           "properties": {
             "page": {
               "description": "1-based page to rotate.",
               "type": "integer"
             }
-          },
-          "required": ["page"]
+          }
         },
         "annotations": {
           "destructiveHint": true
@@ -948,6 +1667,7 @@
         "name": "simplepdf_embed_select_tool",
         "description": "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.",
         "input_schema": {
+          "required": ["tool"],
           "type": "object",
           "properties": {
             "tool": {
@@ -968,8 +1688,7 @@
               ],
               "description": "Tool to activate, or null to deselect."
             }
-          },
-          "required": ["tool"]
+          }
         },
         "annotations": {
           "destructiveHint": false
@@ -1019,6 +1738,7 @@
         "name": "simplepdf_embed_set_field_value",
         "description": "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.",
         "input_schema": {
+          "required": ["field_id", "value"],
           "type": "object",
           "properties": {
             "animate": {
@@ -1040,8 +1760,7 @@
               ],
               "description": "New value for the field, or null to clear it. If the field has options (see the field list), it must be one of them; otherwise a string (text/checkbox), or a data URL or http(s) URL, fetched by the editor (signature/picture), or plain text for a signature, drawn as a typed signature."
             }
-          },
-          "required": ["field_id", "value"]
+          }
         },
         "annotations": {
           "destructiveHint": false,
@@ -1069,20 +1788,21 @@
       "error_codes": [
         "bad_request:no_document_loaded",
         "bad_request:invalid_value",
-        "bad_request:missing_required_fields"
+        "bad_request:missing_required_fields",
+        "forbidden:recipient_link_used"
       ],
       "tool": {
         "name": "simplepdf_embed_submit",
         "description": "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.",
         "input_schema": {
+          "required": ["download_copy"],
           "type": "object",
           "properties": {
             "download_copy": {
               "description": "When true, the signer also receives a downloaded copy on submit.",
               "type": "boolean"
             }
-          },
-          "required": ["download_copy"]
+          }
         },
         "annotations": {
           "destructiveHint": true
@@ -1093,7 +1813,7 @@
   "events": [
     {
       "event_type": "EDITOR_READY",
-      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
+      "description": "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and document-dependent operations with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.",
       "payload_schema": {
         "type": "object",
         "properties": {}
@@ -1101,7 +1821,7 @@
     },
     {
       "event_type": "DOCUMENT_LOADED",
-      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
+      "description": "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, document-dependent operations fail with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.",
       "payload_schema": {
         "type": "object",
         "properties": {
@@ -1247,6 +1967,31 @@
             "anyOf": [
               {
                 "type": "string",
+                "const": "conflict:editor_modified",
+                "description": "Edits block rebuilding. Start a new session in an empty editor."
+              },
+              {
+                "type": "string",
+                "const": "conflict:unmanaged_document",
+                "description": "Open an empty editor before building."
+              },
+              {
+                "type": "string",
+                "const": "not_found:job",
+                "description": "Unknown job in this editor session."
+              },
+              {
+                "type": "string",
+                "const": "not_found:job_expired",
+                "description": "Job expired. Submit a new build."
+              },
+              {
+                "type": "string",
+                "const": "resource:session_limit",
+                "description": "Session job limit reached. Open an empty editor."
+              },
+              {
+                "type": "string",
                 "const": "bad_request:download_blocked",
                 "description": "The browser blocked delivering the generated document (share sheet or new tab denied without a user gesture, or a popup blocker). Retry the download from a direct user interaction."
               },
@@ -1342,6 +2087,11 @@
               },
               {
                 "type": "string",
+                "const": "conflict:inspection_state_changed",
+                "description": "The build is no longer displayed or the editor changed during its automatic preview."
+              },
+              {
+                "type": "string",
                 "const": "forbidden:editing_not_allowed",
                 "description": "Editing is disabled for this document or configuration; field-mutating operations are rejected."
               },
@@ -1349,6 +2099,11 @@
                 "type": "string",
                 "const": "forbidden:origin_not_whitelisted",
                 "description": "The embedding origin is not allowlisted for this tenant, or is not the allowlisted origin the editor was loaded from. Allowlist it in the SimplePDF admin dashboard and let the embedding page's Referer reach the editor."
+              },
+              {
+                "type": "string",
+                "const": "forbidden:recipient_link_used",
+                "description": "The document was opened through a recipient link that has already been submitted (each link takes one submission), so this submit was refused and no submission was completed. The editor keeps the entered values and shows the end user a dialog saying so. Do not retry: the document owner reopens the link by deleting its submission, or shares a new one."
               },
               {
                 "type": "string",

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { attachEmbed, type AttachEmbedArgs } from '../src/bridge'
 import type { BridgeLogger } from '../src/logger'
 import type { Embed } from '../src/types'
-import { METHOD_NAMES } from '../src/generated/method-names'
+import { METHOD_NAMES } from '../src/generated/bridge-vocabulary'
 import { WEBMCP_TOOLS } from '../src/generated/webmcp-tools'
 
 const EDITOR_ORIGIN = 'https://tenant.simplepdf.com'
@@ -235,6 +235,22 @@ describe('attachEmbed({ webMCP })', () => {
     expect(toolResult.content).toEqual([{ type: 'text', text: JSON.stringify({ success: true, data: null }) }])
   })
 
+  it('preserves raw WebMCP keys so the editor can reject misspelled build inputs', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+    const input = {
+      action: 'status', job_id: 'wire-id', jobId: 'duplicate',
+      assets: [{ path: 'image.png', dataUrl: 'invalid' }],
+    }
+    const pending = findTool(modelContext, 'build_pdf').execute(input)
+    const request = await waitForRequest(harness, 'BUILD_PDF')
+    expect(request.data).toEqual(input)
+    const result = { success: false, error: { code: 'bad_request:invalid_value', message: 'Unknown input keys' } }
+    harness.reply(request, result)
+    expect(await pending).toEqual({ isError: true, content: [{ type: 'text', text: JSON.stringify(result) }] })
+  })
+
   it('hands the agent the wire-shaped result its tool description promises (snake_case, not the SDK camelCase)', async () => {
     const modelContext = installModelContext(document)
     const harness = mountReady({ webMCP: { enabled: true } })
@@ -264,6 +280,26 @@ describe('attachEmbed({ webMCP })', () => {
       { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
       { type: 'text', text: JSON.stringify({ success: true, data: { page: 1, image_width: 10, image_height: 12, badges: { '1': 'f1' } } }) },
     ])
+  })
+
+  it('returns the first-page build preview as a native image alongside the job metadata', async () => {
+    const modelContext = installModelContext(document)
+    const harness = mountReady({ webMCP: { enabled: true } })
+    await waitForTools(modelContext, TOOL_COUNT)
+    const pending = findTool(modelContext, 'build_pdf').execute({ action: 'status', job_id: 'job' })
+    const request = await waitForRequest(harness, 'BUILD_PDF')
+    const page = { page: 1, image_width: 10, image_height: 12, badges: {} }
+    const job = { job_id: 'job', status: 'succeeded', page_count: 2, warnings: [] }
+    harness.reply(request, {
+      success: true,
+      data: { ...job, preview: { success: true, data: { ...page, image_data_url: 'data:image/png;base64,iVBORw0KGgo=' } } },
+    })
+    expect(await pending).toEqual({
+      content: [
+        { type: 'image', data: 'iVBORw0KGgo=', mimeType: 'image/png' },
+        { type: 'text', text: JSON.stringify({ success: true, data: { ...job, preview: { success: true, data: page } } }) },
+      ],
+    })
   })
 
   it('keeps the text envelope for a failed annotated page render', async () => {

@@ -1,24 +1,28 @@
 import { describe, expect, it } from 'vitest'
+import { convertSchemaToJsonSchema } from '@tanstack/ai'
 import { createSimplePDFTools, simplePDFToolDefinitions } from '../src/tanstack-ai'
 import type { BridgeResult } from '../src/types'
 import { makeEmbedStub } from './helpers'
 
 describe('simplePDFToolDefinitions', () => {
-  it('returns the 16 agentic operations as execute-less definitions (loadDocument excluded)', () => {
+  it('returns the 18 agentic operations as execute-less definitions (loadDocument excluded)', () => {
     const definitions = simplePDFToolDefinitions()
-    expect(definitions).toHaveLength(16)
+    expect(definitions).toHaveLength(18)
     expect(definitions.map((definition) => definition.name)).not.toContain('loadDocument')
     for (const definition of definitions) {
       expect(typeof definition.description).toBe('string')
       expect(definition.inputSchema).toBeDefined()
+      const schema = convertSchemaToJsonSchema(definition.inputSchema)
+      expect(schema?.type).toBe('object')
+      expect(schema?.anyOf).toBeUndefined()
     }
   })
 })
 
 describe('createSimplePDFTools', () => {
-  it('produces a client tool for each of the 16 agentic operations', () => {
+  it('produces a client tool for each of the 18 agentic operations', () => {
     const tools = createSimplePDFTools({ embed: makeEmbedStub() })
-    expect(tools).toHaveLength(16)
+    expect(tools).toHaveLength(18)
     expect(tools.every((tool) => typeof tool.execute === 'function')).toBe(true)
   })
 

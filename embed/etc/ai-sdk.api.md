@@ -4,8 +4,7 @@
 
 ```ts
 
-import * as zod from 'zod';
-import * as zod_v4_core from 'zod/v4/core';
+import { z } from 'zod';
 
 // Warning: (ae-forgotten-export) The symbol "BridgeResult" needs to be exported by the entry point ai-sdk.d.ts
 //
@@ -24,7 +23,7 @@ export type SimplePDFToolName = keyof typeof TOOL_DEFINITIONS;
 
 // Warnings were encountered during analysis:
 //
-// dist/ai-sdk.d.ts:10:5 - (ae-forgotten-export) The symbol "Embed" needs to be exported by the entry point ai-sdk.d.ts
+// dist/ai-sdk.d.ts:9:5 - (ae-forgotten-export) The symbol "Embed" needs to be exported by the entry point ai-sdk.d.ts
 
 // (No @packageDocumentation comment for this package)
 

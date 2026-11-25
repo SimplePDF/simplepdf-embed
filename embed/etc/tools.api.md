@@ -4,8 +4,7 @@
 
 ```ts
 
-import * as zod from 'zod';
-import * as zod_v4_core from 'zod/v4/core';
+import { z } from 'zod';
 
 // @public (undocumented)
 export const isSimplePDFToolName: (value: unknown) => value is SimplePDFToolName;
@@ -18,123 +17,285 @@ export const routeToolCall: (actions: IframeActions, toolName: SimplePDFToolName
 
 // @public (undocumented)
 export const SIMPLEPDF_TOOLS: {
+    readonly buildPdf: {
+        readonly description: "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
+        readonly inputSchema: z.ZodObject<{
+            action: z.ZodUnion<readonly [z.ZodLiteral<"build">, z.ZodLiteral<"status">, z.ZodLiteral<"cancel">]>;
+            code: z.ZodOptional<z.ZodString>;
+            fonts: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                family: z.ZodString;
+                weight: z.ZodOptional<z.ZodNumber>;
+                style: z.ZodOptional<z.ZodEnum<{
+                    normal: "normal";
+                    italic: "italic";
+                }>>;
+            }, z.core.$strict>>>;
+            name: z.ZodOptional<z.ZodString>;
+            assets: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
+                path: z.ZodString;
+                dataUrl: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                path: z.ZodString;
+                shader: z.ZodObject<{
+                    code: z.ZodString;
+                    width: z.ZodNumber;
+                    height: z.ZodNumber;
+                    textures: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>]>>>;
+            jobId: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict> & z.ZodType<{
+            action: "build";
+            code: string;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
+            name?: string | undefined;
+            assets?: ({
+                path: string;
+                dataUrl: string;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
+        } | {
+            action: "status";
+            jobId: string;
+        } | {
+            action: "cancel";
+            jobId: string;
+        }, {
+            action: "build" | "status" | "cancel";
+            code?: string | undefined;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
+            name?: string | undefined;
+            assets?: ({
+                path: string;
+                dataUrl: string;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
+            jobId?: string | undefined;
+        }, z.core.$ZodTypeInternals<{
+            action: "build";
+            code: string;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
+            name?: string | undefined;
+            assets?: ({
+                path: string;
+                dataUrl: string;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
+        } | {
+            action: "status";
+            jobId: string;
+        } | {
+            action: "cancel";
+            jobId: string;
+        }, {
+            action: "build" | "status" | "cancel";
+            code?: string | undefined;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
+            name?: string | undefined;
+            assets?: ({
+                path: string;
+                dataUrl: string;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
+            jobId?: string | undefined;
+        }>>;
+    };
+    readonly getDocumentation: {
+        readonly description: "Read task guidance and tested PDF recipes. Omit topic for the index.";
+        readonly inputSchema: z.ZodObject<{
+            topic: z.ZodOptional<z.ZodUnion<readonly [z.ZodEnum<{
+                build_pdf: "build_pdf";
+                "build_pdf.templates": "build_pdf.templates";
+                "build_pdf.forms": "build_pdf.forms";
+                "build_pdf.assets": "build_pdf.assets";
+                "build_pdf.graphics": "build_pdf.graphics";
+                "build_pdf.shaders": "build_pdf.shaders";
+                "build_pdf.troubleshooting": "build_pdf.troubleshooting";
+                fields: "fields";
+                inspection: "inspection";
+            }>, z.ZodEnum<{
+                "build_pdf.fonts": "build_pdf.fonts";
+            }>]>>;
+            query: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict> & z.ZodType<{
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | undefined;
+        } | {
+            topic: "build_pdf.fonts";
+            query?: string | undefined;
+        }, {
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | "build_pdf.fonts" | undefined;
+            query?: string | undefined;
+        }, z.core.$ZodTypeInternals<{
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | undefined;
+        } | {
+            topic: "build_pdf.fonts";
+            query?: string | undefined;
+        }, {
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | "build_pdf.fonts" | undefined;
+            query?: string | undefined;
+        }>>;
+    };
     readonly batchSetFieldValues: {
         readonly description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{
-            updates: zod.ZodArray<zod.ZodObject<{
-                fieldId: zod.ZodString;
-                value: zod.ZodNullable<zod.ZodString>;
-            }, zod_v4_core.$strip>>;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            updates: z.ZodArray<z.ZodObject<{
+                fieldId: z.ZodString;
+                value: z.ZodNullable<z.ZodString>;
+            }, z.core.$strip>>;
+        }, z.core.$strip>;
     };
     readonly createField: {
         readonly description: "Create a new overlay field on a page. Returns the id of the created field.";
-        readonly inputSchema: zod.ZodObject<{
-            type: zod.ZodEnum<{
+        readonly inputSchema: z.ZodObject<{
+            type: z.ZodEnum<{
                 TEXT: "TEXT";
                 SIGNATURE: "SIGNATURE";
                 PICTURE: "PICTURE";
                 CHECKBOX: "CHECKBOX";
                 COMB_TEXT: "COMB_TEXT";
             }>;
-            x: zod.ZodNumber;
-            y: zod.ZodNumber;
-            width: zod.ZodNumber;
-            height: zod.ZodNumber;
-            page: zod.ZodNumber;
-            value: zod.ZodOptional<zod.ZodString>;
-        }, zod_v4_core.$strip>;
+            x: z.ZodNumber;
+            y: z.ZodNumber;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+            page: z.ZodNumber;
+            value: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>;
     };
     readonly deleteFields: {
         readonly description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.";
-        readonly inputSchema: zod.ZodObject<{
-            fieldIds: zod.ZodOptional<zod.ZodArray<zod.ZodString>>;
-            page: zod.ZodOptional<zod.ZodNumber>;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            fieldIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
+            page: z.ZodOptional<z.ZodNumber>;
+        }, z.core.$strip>;
     };
     readonly deletePages: {
         readonly description: "Delete pages from the document (it cannot delete every visible page). Returns no data. Destructive.";
-        readonly inputSchema: zod.ZodObject<{
-            pages: zod.ZodArray<zod.ZodNumber>;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            pages: z.ZodArray<z.ZodNumber>;
+        }, z.core.$strip>;
     };
     readonly detectFields: {
         readonly description: "Automatically detect fillable fields in the loaded document and add them as editable fields. Returns the number of fields detected.";
-        readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{}, z.core.$strip>;
     };
     readonly download: {
         readonly description: "Generate and download the current document as a PDF. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{}, z.core.$strip>;
     };
     readonly focusField: {
         readonly description: "Scroll an existing field into view and focus it, addressed by its id from the field list. Returns a hint describing the user action expected next.";
-        readonly inputSchema: zod.ZodObject<{
-            fieldId: zod.ZodString;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            fieldId: z.ZodString;
+        }, z.core.$strip>;
     };
     readonly getAnnotatedPage: {
         readonly description: "Render a page as a PNG with every field outlined and numbered, so a vision model can see which field sits where on the printed form (placement only: read values from the field list). Returns the page, the PNG as a data URL, its width and height in pixels, and badges mapping each number drawn on the image to a field id; as a WebMCP tool the PNG arrives as an image block and the rest as a text block.";
-        readonly inputSchema: zod.ZodObject<{
-            page: zod.ZodNumber;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            page: z.ZodNumber;
+        }, z.core.$strip>;
     };
     readonly getDocumentContent: {
         readonly description: "Extract the document's content page by page as Markdown, or as plain text when optical recognition is forced. Use it to read what the document says. Returns the document name and each page's content.";
-        readonly inputSchema: zod.ZodObject<{
-            extractionMode: zod.ZodOptional<zod.ZodEnum<{
+        readonly inputSchema: z.ZodObject<{
+            extractionMode: z.ZodOptional<z.ZodEnum<{
                 auto: "auto";
                 ocr: "ocr";
             }>>;
-        }, zod_v4_core.$strip>;
+        }, z.core.$strip>;
     };
     readonly getFields: {
         readonly description: "List every fillable field in the loaded document, including native dropdown and radio AcroFields. Each field reports its id, name, type, page, current value, and the options its value must be one of, if any. Call this first to discover field ids before reading or setting values. To SEE where each field sits on the printed page, render the annotated page. Returns the field list.";
-        readonly inputSchema: zod.ZodObject<{}, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{}, z.core.$strip>;
     };
     readonly goTo: {
         readonly description: "Scroll the editor to a page. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{
-            page: zod.ZodNumber;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            page: z.ZodNumber;
+        }, z.core.$strip>;
     };
     readonly movePage: {
         readonly description: "Move a page to another position, reordering the document. Returns no data. Destructive.";
-        readonly inputSchema: zod.ZodObject<{
-            fromPage: zod.ZodNumber;
-            toPage: zod.ZodNumber;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            fromPage: z.ZodNumber;
+            toPage: z.ZodNumber;
+        }, z.core.$strip>;
     };
     readonly rotatePage: {
         readonly description: "Rotate a page 90 degrees clockwise. Returns no data. Destructive.";
-        readonly inputSchema: zod.ZodObject<{
-            page: zod.ZodNumber;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            page: z.ZodNumber;
+        }, z.core.$strip>;
     };
     readonly selectTool: {
         readonly description: "Activate a field-placement tool in the editor toolbar so the user can draw that field type, or pass null to clear the active tool. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{
-            tool: zod.ZodNullable<zod.ZodEnum<{
+        readonly inputSchema: z.ZodObject<{
+            tool: z.ZodNullable<z.ZodEnum<{
                 TEXT: "TEXT";
                 SIGNATURE: "SIGNATURE";
                 PICTURE: "PICTURE";
                 CHECKBOX: "CHECKBOX";
                 COMB_TEXT: "COMB_TEXT";
             }>>;
-        }, zod_v4_core.$strip>;
+        }, z.core.$strip>;
     };
     readonly setFieldValue: {
         readonly description: "Set or clear (null) one existing field, addressed by its id from the field list. Text is typed out unless animate is false. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{
-            animate: zod.ZodOptional<zod.ZodBoolean>;
-            fieldId: zod.ZodString;
-            value: zod.ZodNullable<zod.ZodString>;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            animate: z.ZodOptional<z.ZodBoolean>;
+            fieldId: z.ZodString;
+            value: z.ZodNullable<z.ZodString>;
+        }, z.core.$strip>;
     };
     readonly submit: {
         readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.";
-        readonly inputSchema: zod.ZodObject<{
-            downloadCopy: zod.ZodBoolean;
-        }, zod_v4_core.$strip>;
+        readonly inputSchema: z.ZodObject<{
+            downloadCopy: z.ZodBoolean;
+        }, z.core.$strip>;
     };
 };
 

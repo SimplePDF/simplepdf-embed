@@ -4,6 +4,10 @@
 // the single source of truth; nothing in this file restates a wire shape.
 
 import type {
+  BuildPdfInput,
+  BuildPdfOutput,
+  GetDocumentationInput,
+  GetDocumentationOutput,
   BatchSetFieldValuesInput,
   CreateFieldInput,
   CreateFieldOutput,
@@ -31,9 +35,13 @@ import type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from './generated/contract'
+} from './generated/contract.js'
 
 export type {
+  BuildPdfInput,
+  BuildPdfOutput,
+  GetDocumentationInput,
+  GetDocumentationOutput,
   BatchSetFieldValuesInput,
   BatchValidationFailedDetails,
   CreateFieldInput,
@@ -69,7 +77,7 @@ export type {
   SetFieldValueInput,
   SubmissionSentPayload,
   SubmitInput,
-} from './generated/contract'
+} from './generated/contract.js'
 
 // A single field as reported by get_fields. Alias kept for ergonomics; the
 // shape is owned by the generated GetFieldsOutput.
@@ -139,6 +147,8 @@ export type EditorEventMap = { [TEvent in EditorEvent as TEvent['type']]: TEvent
 // throws. Drift-guarded against the generated operation set in ./generated/drift.ts
 // (a new operation fails the build until added here).
 export type IframeActions = {
+  buildPdf: (input: BuildPdfInput) => Promise<BridgeResult<BuildPdfOutput>>
+  getDocumentation: (input?: GetDocumentationInput) => Promise<BridgeResult<GetDocumentationOutput>>
   batchSetFieldValues: (input: BatchSetFieldValuesInput) => Promise<BridgeResult>
   createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>
   deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>

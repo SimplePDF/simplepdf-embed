@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export const EDITOR_ERROR_CODES: readonly ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:whitelist_required", "unexpected:internal_error"];
+export const EDITOR_ERROR_CODES: readonly ["bad_request:batch_validation_failed", "bad_request:download_blocked", "bad_request:editor_not_ready", "bad_request:event_not_allowed", "bad_request:failed_to_load_document", "bad_request:field_not_found", "bad_request:invalid_dimensions", "bad_request:invalid_event_type", "bad_request:invalid_field_ids", "bad_request:invalid_field_type", "bad_request:invalid_page", "bad_request:invalid_signature_url", "bad_request:invalid_tool", "bad_request:invalid_value", "bad_request:missing_required_fields", "bad_request:no_document_loaded", "bad_request:page_not_found", "bad_request:page_out_of_range", "bad_request:plan_upgrade_required", "bad_request:read_only", "bad_request:signup_required", "conflict:editor_modified", "conflict:inspection_state_changed", "conflict:unmanaged_document", "forbidden:editing_not_allowed", "forbidden:origin_not_whitelisted", "forbidden:recipient_link_used", "forbidden:whitelist_required", "not_found:job", "not_found:job_expired", "resource:session_limit", "unexpected:internal_error"];
 
 // @public (undocumented)
 export const EXTRACTION_MODES: readonly ["auto", "ocr"];
@@ -27,6 +27,22 @@ export const LOCALES: readonly ["fr", "en", "it", "de", "pt", "es", "ja", "nl"];
 
 // @public (undocumented)
 export const OPERATIONS: readonly [{
+    readonly request_type: "BUILD_PDF";
+    readonly wire_type: "BUILD_PDF";
+    readonly method: "buildPdf";
+    readonly description: "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.";
+    readonly error_codes: readonly ["conflict:editor_modified", "conflict:unmanaged_document", "not_found:job", "not_found:job_expired", "resource:session_limit", "bad_request:invalid_value", "forbidden:editing_not_allowed"];
+    readonly is_agentic_tool: true;
+    readonly has_output: true;
+}, {
+    readonly request_type: "GET_DOCUMENTATION";
+    readonly wire_type: "GET_DOCUMENTATION";
+    readonly method: "getDocumentation";
+    readonly description: "Read task guidance and tested PDF recipes. Omit topic for the index.";
+    readonly error_codes: readonly ["bad_request:invalid_value"];
+    readonly is_agentic_tool: true;
+    readonly has_output: true;
+}, {
     readonly request_type: "BATCH_SET_FIELD_VALUES";
     readonly wire_type: "BATCH_SET_FIELD_VALUES";
     readonly method: "batchSetFieldValues";
@@ -159,7 +175,7 @@ export const OPERATIONS: readonly [{
     readonly wire_type: "SUBMIT";
     readonly method: "submit";
     readonly description: "Submit the completed document through the editor's finalization flow. This is irreversible. Fails with bad_request:missing_required_fields when required fields are unfilled. Returns no data.";
-    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields"];
+    readonly error_codes: readonly ["bad_request:no_document_loaded", "bad_request:invalid_value", "bad_request:missing_required_fields", "forbidden:recipient_link_used"];
     readonly is_agentic_tool: true;
     readonly has_output: false;
 }];
@@ -170,10 +186,10 @@ export const OUTBOUND_EVENT_TYPES: ("EDITOR_READY" | "DOCUMENT_LOADED" | "PAGE_F
 // @public (undocumented)
 export const OUTBOUND_EVENTS: readonly [{
     readonly event_type: "EDITOR_READY";
-    readonly description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and every other operation with bad_request:no_document_loaded. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.";
+    readonly description: "Pushed once when the editor iframe boots in loading-placeholder mode (the loadingPlaceholder=true iframe query flag, which @simplepdf/embed sets while it waits to post LOAD_DOCUMENT) and accepts operations; before it, LOAD_DOCUMENT fails with bad_request:editor_not_ready and document-dependent operations with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor. An iframe opened with a document instead goes straight to DOCUMENT_LOADED. It is not replayed: a listener attached after boot never receives it, so treat bad_request:editor_not_ready as \"retry shortly\" rather than waiting for this event.";
 }, {
     readonly event_type: "DOCUMENT_LOADED";
-    readonly description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, operations other than LOAD_DOCUMENT fail with bad_request:no_document_loaded, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.";
+    readonly description: "Pushed exactly once per loaded document, when the document and its fields are ready; the payload carries the document_id. It follows the LOAD_DOCUMENT reply, which is itself sent once the document is ready, so a request sent after that reply acts on the new document; before any document, document-dependent operations fail with bad_request:no_document_loaded; PDF building and documentation are available in an empty editor, and until it fires for a document the page opened itself GET_FIELDS may report an incomplete field list. On a blank editor it fires once a document is loaded, by LOAD_DOCUMENT or by the user.";
 }, {
     readonly event_type: "PAGE_FOCUSED";
     readonly description: "Pushed when the focused page changes (the user scrolls to a new page, or a GO_TO completes). The payload reports the current page.";
@@ -192,13 +208,13 @@ export const OVERLAY_TOOL_TYPES: readonly ["TEXT", "SIGNATURE", "PICTURE", "CHEC
 export type OverlayToolType = (typeof OVERLAY_TOOL_TYPES)[number];
 
 // @public (undocumented)
-export const REQUEST_TYPES: ("BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const REQUEST_TYPES: ("BUILD_PDF" | "GET_DOCUMENTATION" | "BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type RequestType = (typeof OPERATIONS)[number]["request_type"];
 
 // @public (undocumented)
-export const WIRE_TYPES: ("BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
+export const WIRE_TYPES: ("BUILD_PDF" | "GET_DOCUMENTATION" | "BATCH_SET_FIELD_VALUES" | "CREATE_FIELD" | "DELETE_FIELDS" | "DELETE_PAGES" | "DETECT_FIELDS" | "DOWNLOAD" | "FOCUS_FIELD" | "GET_ANNOTATED_PAGE" | "GET_DOCUMENT_CONTENT" | "GET_FIELDS" | "GO_TO" | "LOAD_DOCUMENT" | "MOVE_PAGE" | "ROTATE_PAGE" | "SELECT_TOOL" | "SET_FIELD_VALUE" | "SUBMIT")[];
 
 // @public (undocumented)
 export type WireType = (typeof OPERATIONS)[number]["wire_type"];

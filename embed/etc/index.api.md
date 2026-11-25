@@ -71,6 +71,92 @@ export class BridgeUnwrapError extends Error {
 }
 
 // @public (undocumented)
+export type BuildPdfInput = {
+    action: "build";
+    code: string;
+    fonts?: Array<{
+        family: string;
+        weight?: number;
+        style?: "normal" | "italic";
+    }>;
+    name?: string;
+    assets?: Array<{
+        path: string;
+        dataUrl: string;
+    } | {
+        path: string;
+        shader: {
+            code: string;
+            width: number;
+            height: number;
+            textures?: string[];
+        };
+    }>;
+} | {
+    action: "status";
+    jobId: string;
+} | {
+    action: "cancel";
+    jobId: string;
+};
+
+// @public (undocumented)
+export type BuildPdfOutput = {
+    jobId: string;
+    status: "running";
+} | {
+    jobId: string;
+    status: "succeeded";
+    pageCount: number;
+    warnings: Array<{
+        severity: "warning";
+        code: "typst" | "shader" | "unsupported_dependency";
+        message: string;
+        file?: string;
+        line?: number;
+        column?: number;
+    }>;
+    preview: {
+        success: true;
+        data: {
+            page: number;
+            imageDataUrl: string;
+            imageWidth: number;
+            imageHeight: number;
+            badges: Record<string, string>;
+        };
+    } | {
+        success: false;
+        error: {
+            code: "bad_request:no_document_loaded" | "bad_request:invalid_page" | "bad_request:page_out_of_range" | "bad_request:editor_not_ready" | "bad_request:event_not_allowed" | "bad_request:plan_upgrade_required" | "bad_request:signup_required" | "forbidden:origin_not_whitelisted" | "forbidden:whitelist_required" | "conflict:inspection_state_changed" | "unexpected:internal_error";
+            message: string;
+        };
+    };
+} | {
+    jobId: string;
+    status: "failed";
+    error: {
+        code: "unsupported_dependency" | "font_unavailable" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error";
+        message: string;
+        retryable: boolean;
+        diagnostics: Array<{
+            severity: "error" | "warning";
+            code: "typst" | "shader" | "unsupported_dependency";
+            message: string;
+            file?: string;
+            line?: number;
+            column?: number;
+        }>;
+    };
+} | {
+    jobId: string;
+    status: "cancelled";
+} | {
+    jobId: string;
+    status: "superseded";
+};
+
+// @public (undocumented)
 export const createEmbed: (args: CreateEmbedArgs) => Embed;
 
 // @public (undocumented)
@@ -248,6 +334,26 @@ export type GetAnnotatedPageOutput = {
 };
 
 // @public (undocumented)
+export type GetDocumentationInput = {
+    topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection";
+} | {
+    topic: "build_pdf.fonts";
+    query?: string;
+};
+
+// @public (undocumented)
+export type GetDocumentationOutput = {
+    kind: "index";
+    topics: Array<{
+        topic: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection";
+        description: string;
+    }>;
+} | {
+    kind: "topic";
+    markdown: string;
+};
+
+// @public (undocumented)
 export type GetDocumentContentInput = {
     extractionMode?: ExtractionMode;
 };
@@ -280,6 +386,8 @@ export type GoToInput = {
 
 // @public (undocumented)
 export type IframeActions = {
+    buildPdf: (input: BuildPdfInput) => Promise<BridgeResult<BuildPdfOutput>>;
+    getDocumentation: (input?: GetDocumentationInput) => Promise<BridgeResult<GetDocumentationOutput>>;
     batchSetFieldValues: (input: BatchSetFieldValuesInput) => Promise<BridgeResult>;
     createField: (input: CreateFieldInput) => Promise<BridgeResult<CreateFieldOutput>>;
     deleteFields: (input?: DeleteFieldsInput) => Promise<BridgeResult<DeleteFieldsOutput>>;

@@ -1,4 +1,5 @@
 import type { BridgeResult } from './types'
+import { EDITOR_ERROR_PREFIXES } from './generated/bridge-vocabulary'
 
 // Runtime guard for the result envelope received from the editor. The payload is
 // JSON parsed from the editor origin; same-origin policy narrows the attacker
@@ -29,12 +30,9 @@ export const isBridgeResultLike = (value: unknown): value is BridgeResult<unknow
     if (typeof error.code !== 'string' || typeof error.message !== 'string') {
       return false
     }
-    // The code must carry one of the closed category prefixes. We deliberately do
-    // NOT enumerate the full closed set here: that would pull the generated code
-    // list into the zero-dep root and reject any newly-added editor code before a
-    // manifest re-sync. The exact code (like `data` and the typed `details`) is
-    // trusted to the same-origin editor; the prefix check rejects garbage frames.
-    return /^(bad_request|forbidden|unexpected):/.test(error.code)
+    // Preserve new codes within known categories without bundling every editor error.
+    const code = error.code
+    return EDITOR_ERROR_PREFIXES.some((prefix) => code.startsWith(prefix))
   }
   return false
 }
