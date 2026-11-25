@@ -21,11 +21,27 @@ export type BatchSetFieldValuesInput = z.infer<typeof BatchSetFieldValuesInput>;
 export const BuildPdfInput: z.ZodUnion<readonly [z.ZodObject<{
     action: z.ZodLiteral<"build">;
     code: z.ZodString;
+    fonts: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        family: z.ZodString;
+        weight: z.ZodOptional<z.ZodNumber>;
+        style: z.ZodOptional<z.ZodEnum<{
+            normal: "normal";
+            italic: "italic";
+        }>>;
+    }, z.core.$strict>>>;
     name: z.ZodOptional<z.ZodString>;
-    assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
+    assets: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
         path: z.ZodString;
         dataUrl: z.ZodString;
-    }, z.core.$strict>>>;
+    }, z.core.$strict>, z.ZodObject<{
+        path: z.ZodString;
+        shader: z.ZodObject<{
+            code: z.ZodString;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+            textures: z.ZodOptional<z.ZodArray<z.ZodString>>;
+        }, z.core.$strict>;
+    }, z.core.$strict>]>>>;
 }, z.core.$strict>, z.ZodObject<{
     action: z.ZodLiteral<"status">;
     jobId: z.ZodString;
@@ -103,18 +119,24 @@ export const GetAnnotatedPageInput: z.ZodObject<{
 export type GetAnnotatedPageInput = z.infer<typeof GetAnnotatedPageInput>;
 
 // @public (undocumented)
-export const GetDocumentationInput: z.ZodObject<{
+export const GetDocumentationInput: z.ZodUnion<readonly [z.ZodObject<{
     topic: z.ZodOptional<z.ZodEnum<{
         build_pdf: "build_pdf";
         "build_pdf.templates": "build_pdf.templates";
         "build_pdf.forms": "build_pdf.forms";
         "build_pdf.assets": "build_pdf.assets";
-        "build_pdf.fonts": "build_pdf.fonts";
+        "build_pdf.graphics": "build_pdf.graphics";
+        "build_pdf.shaders": "build_pdf.shaders";
         "build_pdf.troubleshooting": "build_pdf.troubleshooting";
         fields: "fields";
         inspection: "inspection";
     }>>;
-}, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    topic: z.ZodEnum<{
+        "build_pdf.fonts": "build_pdf.fonts";
+    }>;
+    query: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>]>;
 
 // @public (undocumented)
 export type GetDocumentationInput = z.infer<typeof GetDocumentationInput>;

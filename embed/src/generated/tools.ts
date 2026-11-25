@@ -8,14 +8,30 @@ export const TOOL_DEFINITIONS = {
   buildPdf: { description: "Build and display Typst PDFs. See documentation. Each build starts a new attempt; poll pending jobs. Success includes a first-page preview. Edits block rebuilding. No sharing.", inputSchema: z.strictObject({
   action: z.union([z.literal("build"), z.literal("status"), z.literal("cancel")]),
   code: z.string().optional(),
+  fonts: z.array(z.strictObject({
+  family: z.string(),
+  weight: z.number().int().optional(),
+  style: z.enum(["normal", "italic"]).optional(),
+})).optional(),
   name: z.string().optional(),
-  assets: z.array(z.strictObject({
+  assets: z.array(z.union([z.strictObject({
   path: z.string(),
   dataUrl: z.string(),
-})).optional(),
+}), z.strictObject({
+  path: z.string(),
+  shader: z.strictObject({
+  code: z.string(),
+  width: z.number().int(),
+  height: z.number().int(),
+  textures: z.array(z.string()).optional(),
+}),
+})])).optional(),
   jobId: z.string().optional(),
 }).refine((input): input is z.infer<typeof Schemas.BuildPdfInput> => Schemas.BuildPdfInput.safeParse(input).success, { message: 'Invalid action input' }) },
-  getDocumentation: { description: "Read task guidance and tested PDF recipes. Omit topic for the index.", inputSchema: Schemas.GetDocumentationInput },
+  getDocumentation: { description: "Read task guidance and tested PDF recipes. Omit topic for the index.", inputSchema: z.strictObject({
+  topic: z.union([z.enum(["build_pdf", "build_pdf.templates", "build_pdf.forms", "build_pdf.assets", "build_pdf.graphics", "build_pdf.shaders", "build_pdf.troubleshooting", "fields", "inspection"]), z.enum(["build_pdf.fonts"])]).optional(),
+  query: z.string().optional(),
+}).refine((input): input is z.infer<typeof Schemas.GetDocumentationInput> => Schemas.GetDocumentationInput.safeParse(input).success, { message: 'Invalid action input' }) },
   batchSetFieldValues: { description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.", inputSchema: Schemas.BatchSetFieldValuesInput },
   createField: { description: "Create a new overlay field on a page. Returns the id of the created field.", inputSchema: Schemas.CreateFieldInput },
   deleteFields: { description: "Delete overlay fields: the ones listed, every one on a page, or every one in the document. Returns the number of fields deleted. Destructive.", inputSchema: Schemas.DeleteFieldsInput },

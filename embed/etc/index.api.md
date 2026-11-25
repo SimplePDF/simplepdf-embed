@@ -74,10 +74,23 @@ export class BridgeUnwrapError extends Error {
 export type BuildPdfInput = {
     action: "build";
     code: string;
+    fonts?: Array<{
+        family: string;
+        weight?: number;
+        style?: "normal" | "italic";
+    }>;
     name?: string;
     assets?: Array<{
         path: string;
         dataUrl: string;
+    } | {
+        path: string;
+        shader: {
+            code: string;
+            width: number;
+            height: number;
+            textures?: string[];
+        };
     }>;
 } | {
     action: "status";
@@ -97,7 +110,7 @@ export type BuildPdfOutput = {
     pageCount: number;
     warnings: Array<{
         severity: "warning";
-        code: "typst" | "unsupported_dependency";
+        code: "typst" | "shader" | "unsupported_dependency";
         message: string;
         file?: string;
         line?: number;
@@ -123,12 +136,12 @@ export type BuildPdfOutput = {
     jobId: string;
     status: "failed";
     error: {
-        code: "unsupported_dependency" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error";
+        code: "unsupported_dependency" | "font_unavailable" | "engine_initialization_failed" | "compile_error" | "compile_timeout" | "job_timeout" | "resource_limit" | "invalid_pdf" | "editor_load_failed" | "editor_conflict" | "worker_crashed" | "internal_error";
         message: string;
         retryable: boolean;
         diagnostics: Array<{
             severity: "error" | "warning";
-            code: "typst" | "unsupported_dependency";
+            code: "typst" | "shader" | "unsupported_dependency";
             message: string;
             file?: string;
             line?: number;
@@ -322,14 +335,17 @@ export type GetAnnotatedPageOutput = {
 
 // @public (undocumented)
 export type GetDocumentationInput = {
-    topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.troubleshooting" | "fields" | "inspection";
+    topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection";
+} | {
+    topic: "build_pdf.fonts";
+    query?: string;
 };
 
 // @public (undocumented)
 export type GetDocumentationOutput = {
     kind: "index";
     topics: Array<{
-        topic: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.troubleshooting" | "fields" | "inspection";
+        topic: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.fonts" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection";
         description: string;
     }>;
 } | {

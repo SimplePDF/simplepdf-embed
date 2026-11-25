@@ -27,7 +27,7 @@ export type SimplePDFToolName = keyof typeof TOOL_DEFINITIONS;
 
 // Warnings were encountered during analysis:
 //
-// dist/tanstack-ai.d.ts:132:5 - (ae-forgotten-export) The symbol "Embed" needs to be exported by the entry point tanstack-ai.d.ts
+// dist/tanstack-ai.d.ts:220:5 - (ae-forgotten-export) The symbol "Embed" needs to be exported by the entry point tanstack-ai.d.ts
 
 // (No @packageDocumentation comment for this package)
 

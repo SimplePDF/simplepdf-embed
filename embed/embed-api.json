@@ -91,23 +91,79 @@
               "code": {
                 "type": "string"
               },
+              "fonts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "family": {
+                      "type": "string"
+                    },
+                    "weight": {
+                      "type": "integer"
+                    },
+                    "style": {
+                      "type": "string",
+                      "enum": ["normal", "italic"]
+                    }
+                  },
+                  "required": ["family"],
+                  "additionalProperties": false
+                }
+              },
               "name": {
                 "type": "string"
               },
               "assets": {
                 "type": "array",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "data_url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["path", "data_url"],
+                      "additionalProperties": false
                     },
-                    "data_url": {
-                      "type": "string"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "shader": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "width": {
+                              "type": "integer"
+                            },
+                            "height": {
+                              "type": "integer"
+                            },
+                            "textures": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": ["code", "width", "height"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["path", "shader"],
+                      "additionalProperties": false
                     }
-                  },
-                  "required": ["path", "data_url"],
-                  "additionalProperties": false
+                  ]
                 }
               }
             },
@@ -185,7 +241,7 @@
                     },
                     "code": {
                       "type": "string",
-                      "enum": ["typst", "unsupported_dependency"]
+                      "enum": ["typst", "shader", "unsupported_dependency"]
                     },
                     "message": {
                       "type": "string"
@@ -361,6 +417,7 @@
                     "type": "string",
                     "enum": [
                       "unsupported_dependency",
+                      "font_unavailable",
                       "engine_initialization_failed",
                       "compile_error",
                       "compile_timeout",
@@ -390,7 +447,7 @@
                         },
                         "code": {
                           "type": "string",
-                          "enum": ["typst", "unsupported_dependency"]
+                          "enum": ["typst", "shader", "unsupported_dependency"]
                         },
                         "message": {
                           "type": "string"
@@ -471,23 +528,79 @@
                 "code": {
                   "type": "string"
                 },
+                "fonts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "family": {
+                        "type": "string"
+                      },
+                      "weight": {
+                        "type": "integer"
+                      },
+                      "style": {
+                        "type": "string",
+                        "enum": ["normal", "italic"]
+                      }
+                    },
+                    "required": ["family"],
+                    "additionalProperties": false
+                  }
+                },
                 "name": {
                   "type": "string"
                 },
                 "assets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "path": {
-                        "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "data_url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["path", "data_url"],
+                        "additionalProperties": false
                       },
-                      "data_url": {
-                        "type": "string"
+                      {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "shader": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "width": {
+                                "type": "integer"
+                              },
+                              "height": {
+                                "type": "integer"
+                              },
+                              "textures": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": ["code", "width", "height"],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": ["path", "shader"],
+                        "additionalProperties": false
                       }
-                    },
-                    "required": ["path", "data_url"],
-                    "additionalProperties": false
+                    ]
                   }
                 }
               },
@@ -528,7 +641,8 @@
         },
         "annotations": {
           "destructiveHint": true,
-          "untrustedContentHint": true
+          "untrustedContentHint": true,
+          "openWorldHint": true
         }
       }
     },
@@ -536,23 +650,42 @@
       "request_type": "GET_DOCUMENTATION",
       "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "topic": {
-            "type": "string",
-            "enum": [
-              "build_pdf",
-              "build_pdf.templates",
-              "build_pdf.forms",
-              "build_pdf.assets",
-              "build_pdf.fonts",
-              "build_pdf.troubleshooting",
-              "fields",
-              "inspection"
-            ]
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "enum": [
+                  "build_pdf",
+                  "build_pdf.templates",
+                  "build_pdf.forms",
+                  "build_pdf.assets",
+                  "build_pdf.graphics",
+                  "build_pdf.shaders",
+                  "build_pdf.troubleshooting",
+                  "fields",
+                  "inspection"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "enum": ["build_pdf.fonts"]
+              },
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": ["topic"],
+            "additionalProperties": false
           }
-        },
-        "additionalProperties": false,
+        ],
         "description": "Read task guidance and tested PDF recipes. Omit topic for the index."
       },
       "output_schema": {
@@ -577,6 +710,8 @@
                         "build_pdf.forms",
                         "build_pdf.assets",
                         "build_pdf.fonts",
+                        "build_pdf.graphics",
+                        "build_pdf.shaders",
                         "build_pdf.troubleshooting",
                         "fields",
                         "inspection"
@@ -615,23 +750,44 @@
         "name": "get_documentation",
         "description": "Read task guidance and tested PDF recipes. Omit topic for the index.",
         "input_schema": {
-          "additionalProperties": false,
-          "type": "object",
-          "properties": {
-            "topic": {
-              "enum": [
-                "build_pdf",
-                "build_pdf.templates",
-                "build_pdf.forms",
-                "build_pdf.assets",
-                "build_pdf.fonts",
-                "build_pdf.troubleshooting",
-                "fields",
-                "inspection"
-              ],
-              "type": "string"
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "enum": [
+                    "build_pdf",
+                    "build_pdf.templates",
+                    "build_pdf.forms",
+                    "build_pdf.assets",
+                    "build_pdf.graphics",
+                    "build_pdf.shaders",
+                    "build_pdf.troubleshooting",
+                    "fields",
+                    "inspection"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "topic": {
+                  "type": "string",
+                  "enum": ["build_pdf.fonts"]
+                },
+                "query": {
+                  "type": "string"
+                }
+              },
+              "required": ["topic"],
+              "additionalProperties": false
             }
-          }
+          ],
+          "type": "object",
+          "properties": {}
         },
         "annotations": {
           "readOnlyHint": true,

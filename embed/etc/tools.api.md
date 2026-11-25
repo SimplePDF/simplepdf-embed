@@ -22,20 +22,49 @@ export const SIMPLEPDF_TOOLS: {
         readonly inputSchema: z.ZodObject<{
             action: z.ZodUnion<readonly [z.ZodLiteral<"build">, z.ZodLiteral<"status">, z.ZodLiteral<"cancel">]>;
             code: z.ZodOptional<z.ZodString>;
+            fonts: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                family: z.ZodString;
+                weight: z.ZodOptional<z.ZodNumber>;
+                style: z.ZodOptional<z.ZodEnum<{
+                    normal: "normal";
+                    italic: "italic";
+                }>>;
+            }, z.core.$strict>>>;
             name: z.ZodOptional<z.ZodString>;
-            assets: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            assets: z.ZodOptional<z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
                 path: z.ZodString;
                 dataUrl: z.ZodString;
-            }, z.core.$strict>>>;
+            }, z.core.$strict>, z.ZodObject<{
+                path: z.ZodString;
+                shader: z.ZodObject<{
+                    code: z.ZodString;
+                    width: z.ZodNumber;
+                    height: z.ZodNumber;
+                    textures: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>]>>>;
             jobId: z.ZodOptional<z.ZodString>;
         }, z.core.$strict> & z.ZodType<{
             action: "build";
             code: string;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
             name?: string | undefined;
-            assets?: {
+            assets?: ({
                 path: string;
                 dataUrl: string;
-            }[] | undefined;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
         } | {
             action: "status";
             jobId: string;
@@ -45,20 +74,46 @@ export const SIMPLEPDF_TOOLS: {
         }, {
             action: "build" | "status" | "cancel";
             code?: string | undefined;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
             name?: string | undefined;
-            assets?: {
+            assets?: ({
                 path: string;
                 dataUrl: string;
-            }[] | undefined;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
             jobId?: string | undefined;
         }, z.core.$ZodTypeInternals<{
             action: "build";
             code: string;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
             name?: string | undefined;
-            assets?: {
+            assets?: ({
                 path: string;
                 dataUrl: string;
-            }[] | undefined;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
         } | {
             action: "status";
             jobId: string;
@@ -68,28 +123,61 @@ export const SIMPLEPDF_TOOLS: {
         }, {
             action: "build" | "status" | "cancel";
             code?: string | undefined;
+            fonts?: {
+                family: string;
+                weight?: number | undefined;
+                style?: "normal" | "italic" | undefined;
+            }[] | undefined;
             name?: string | undefined;
-            assets?: {
+            assets?: ({
                 path: string;
                 dataUrl: string;
-            }[] | undefined;
+            } | {
+                path: string;
+                shader: {
+                    code: string;
+                    width: number;
+                    height: number;
+                    textures?: string[] | undefined;
+                };
+            })[] | undefined;
             jobId?: string | undefined;
         }>>;
     };
     readonly getDocumentation: {
         readonly description: "Read task guidance and tested PDF recipes. Omit topic for the index.";
         readonly inputSchema: z.ZodObject<{
-            topic: z.ZodOptional<z.ZodEnum<{
+            topic: z.ZodOptional<z.ZodUnion<readonly [z.ZodEnum<{
                 build_pdf: "build_pdf";
                 "build_pdf.templates": "build_pdf.templates";
                 "build_pdf.forms": "build_pdf.forms";
                 "build_pdf.assets": "build_pdf.assets";
-                "build_pdf.fonts": "build_pdf.fonts";
+                "build_pdf.graphics": "build_pdf.graphics";
+                "build_pdf.shaders": "build_pdf.shaders";
                 "build_pdf.troubleshooting": "build_pdf.troubleshooting";
                 fields: "fields";
                 inspection: "inspection";
-            }>>;
-        }, z.core.$strict>;
+            }>, z.ZodEnum<{
+                "build_pdf.fonts": "build_pdf.fonts";
+            }>]>>;
+            query: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict> & z.ZodType<{
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | undefined;
+        } | {
+            topic: "build_pdf.fonts";
+            query?: string | undefined;
+        }, {
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | "build_pdf.fonts" | undefined;
+            query?: string | undefined;
+        }, z.core.$ZodTypeInternals<{
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | undefined;
+        } | {
+            topic: "build_pdf.fonts";
+            query?: string | undefined;
+        }, {
+            topic?: "build_pdf" | "build_pdf.templates" | "build_pdf.forms" | "build_pdf.assets" | "build_pdf.graphics" | "build_pdf.shaders" | "build_pdf.troubleshooting" | "fields" | "inspection" | "build_pdf.fonts" | undefined;
+            query?: string | undefined;
+        }>>;
     };
     readonly batchSetFieldValues: {
         readonly description: "Set existing fields, addressed by ids from the field list, in one atomic undo step. If any update is rejected, nothing changes and the call fails with bad_request:batch_validation_failed, whose details list each rejection with its field id, code and message. Text is set at once, never typed. Returns no data.";
